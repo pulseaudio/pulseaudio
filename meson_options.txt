@@ -14,3 +14,6 @@ option('database',
 option('pulsedspdir',
        type : 'string',
        description : 'Specify location where OSS wrapper will be installed')
+option('x11',
+       type : 'feature', value : 'auto',
+       description : 'Optional X11 support')

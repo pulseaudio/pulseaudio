@@ -1,6 +1,6 @@
 project('pulseaudio', 'c', 'cpp',
         version : run_command(find_program('git-version-gen'), join_paths(meson.current_source_dir(), '.tarball-version')).stdout().strip(),
-        meson_version : '>= 0.44.0',
+        meson_version : '>= 0.47.0',
         default_options : [ 'c_std=gnu11', 'cpp_std=c++11' ]
         )
 
@@ -228,7 +228,7 @@ if dbus_dep.found()
   cdata.set('HAVE_DBUS', 1)
 endif
 
-x11_dep = dependency('x11-xcb', required : false)
+x11_dep = dependency('x11-xcb', required : get_option('x11'))
 if x11_dep.found()
   xcb_dep  = dependency('xcb',  required : true, version : '>= 1.6')
   ice_dep  = dependency('ice',  required : true)
