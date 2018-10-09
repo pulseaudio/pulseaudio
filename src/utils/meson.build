@@ -48,18 +48,20 @@ executable('pacmd',
   c_args : pa_c_args,
 )
 
-pax11publish_sources = [
-  'pax11publish.c',
-]
+if x11_dep.found()
+  pax11publish_sources = [
+    'pax11publish.c',
+  ]
 
-executable('pax11publish',
-  pax11publish_sources,
-  install: true,
-  include_directories : [configinc, topinc],
-  link_with : [libpulsecommon, libpulse],
-  dependencies : [x11_dep],
-  c_args : pa_c_args,
-)
+  executable('pax11publish',
+    pax11publish_sources,
+    install: true,
+    include_directories : [configinc, topinc],
+    link_with : [libpulsecommon, libpulse],
+    dependencies : [x11_dep],
+    c_args : pa_c_args,
+  )
+endif
 
 if cc.has_header('sys/soundcard.h')
   libpulsecommon_sources = [
