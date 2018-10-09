@@ -22,7 +22,7 @@ if dbus_dep.found()
   pulseaudio_headers += 'server-lookup.h'
 endif
 
-# FIXME: man pages, dependencies
+# FIXME: dependencies
 executable('pulseaudio',
   pulseaudio_sources,
   pulseaudio_headers,
