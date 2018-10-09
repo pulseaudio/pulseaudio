@@ -82,6 +82,6 @@ if cc.has_header('sys/soundcard.h')
     output : 'padsp',
     configuration : cdata,
     install : true,
-    install_dir : join_paths(prefix, get_option('bindir')),
+    install_dir : bindir,
   )
 endif

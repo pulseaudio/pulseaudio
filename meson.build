@@ -35,13 +35,15 @@ if not prefix.startswith('/')
   error('Prefix is not absolute: "@0@"'.format(prefix))
 endif
 
+bindir = join_paths(prefix, get_option('bindir'))
+libdir = join_paths(prefix, get_option('libdir'))
 datadir = join_paths(prefix, get_option('datadir'))
 localstatedir = join_paths(prefix, get_option('localstatedir'))
 sysconfdir = join_paths(prefix, get_option('sysconfdir'))
 
 pulsedspdir = get_option('pulsedspdir')
 if pulsedspdir == ''
-  join_paths(prefix, get_option('libdir'), 'pulseaudio')
+  join_paths(libdir, 'pulseaudio')
 endif
 
 cc = meson.get_compiler('c')
@@ -61,11 +63,11 @@ cdata.set_quoted('PA_SRCDIR', join_paths(meson.current_source_dir(), 'src'))
 cdata.set_quoted('PA_BUILDDIR', meson.current_build_dir())
 cdata.set_quoted('PA_SOEXT', '.so')
 cdata.set_quoted('PA_DEFAULT_CONFIG_DIR', join_paths(sysconfdir, 'pulse'))
-cdata.set_quoted('PA_BINARY', join_paths(prefix, get_option('bindir'), 'pulseaudio'))
+cdata.set_quoted('PA_BINARY', join_paths(bindir, 'pulseaudio'))
 cdata.set_quoted('PA_SYSTEM_RUNTIME_PATH', join_paths(localstatedir, 'run', 'pulse'))
 cdata.set_quoted('PA_SYSTEM_CONFIG_PATH', join_paths(localstatedir, 'lib', 'pulse'))
 cdata.set_quoted('PA_SYSTEM_STATE_PATH', join_paths(localstatedir, 'lib', 'pulse'))
-cdata.set_quoted('PA_DLSEARCHPATH', join_paths(prefix, get_option('libdir'), 'pulse-' + pa_version_major_minor, 'modules'))
+cdata.set_quoted('PA_DLSEARCHPATH', join_paths(libdir, 'pulse-' + pa_version_major_minor, 'modules'))
 cdata.set_quoted('PA_SYSTEM_USER', get_option('system_user'))
 cdata.set_quoted('PA_SYSTEM_GROUP', get_option('system_group'))
 cdata.set_quoted('PA_ACCESS_GROUP', get_option('access_group'))
