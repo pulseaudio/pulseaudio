@@ -46,6 +46,8 @@ if pulsedspdir == ''
   join_paths(libdir, 'pulseaudio')
 endif
 
+# Configuration data
+
 cc = meson.get_compiler('c')
 
 cdata = configuration_data()
