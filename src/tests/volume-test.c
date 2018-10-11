@@ -111,6 +111,7 @@ START_TEST (volume_test) {
             double t = pa_sw_volume_to_linear(w);
             double db2 = pa_sw_volume_to_dB(w);
             pa_volume_t p, p1, p2;
+            pa_volume_t md_local = 0;
             double q, qq;
 
             p = pa_sw_volume_multiply(v, w);
@@ -122,30 +123,32 @@ START_TEST (volume_test) {
             q = l*t;
             p1 = pa_sw_volume_from_linear(q);
 
-            if (p2 > p && p2 - p > md)
-                md = p2 - p;
-            if (p2 < p && p - p2 > md)
-                md = p - p2;
-            if (p1 > p && p1 - p > md)
-                md = p1 - p;
-            if (p1 < p && p - p1 > md)
-                md = p - p1;
+            if (p2 > p)
+                md_local = p2 - p;
+            else
+                md_local = p - p2;
 
-            if (p1 != p || p2 != p)
+            if (p1 > p && p1 - p > md_local)
+                md_local = p1 - p;
+            if (p1 < p && p - p1 > md_local)
+                md_local = p - p1;
+
+            /* compute the number of times the deviation is over the acceptable threshold */
+            if (md_local > 1)
                 mdn++;
+
+            if (md_local > md)
+                md = md_local;
         }
     }
 
-    pa_log("max deviation: %lu n=%lu", (unsigned long) md, (unsigned long) mdn);
+    /*
+     * As the hardware, the compiler version and the compilation flags may
+     * generate rounding issues, we allow p1 and p2 to have a difference of + or - 1.
+     */
+    pa_log("max deviation: %lu, number of times over 1:%lu", (unsigned long) md, (unsigned long) mdn);
 
     fail_unless(md <= 1);
-
-    /* mdn counts the times there were rounding errors during the test. The
-     * number of rounding errors seems to vary slightly depending on the
-     * hardware. The original limit was 251 errors, but it was increased to 253
-     * when the test was failing on Tanu's laptop.
-     * See https://bugs.freedesktop.org/show_bug.cgi?id=72374 */
-    fail_unless(mdn <= 253);
 }
 END_TEST
 
