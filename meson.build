@@ -1,14 +1,21 @@
 project('pulseaudio', 'c', 'cpp',
-        version : '10.99.1',
+        version : run_command(find_program('git-version-gen'), join_paths(meson.current_source_dir(), '.tarball-version')).stdout().strip(),
         meson_version : '>= 0.44.0',
         default_options : [ 'c_std=gnu11', 'cpp_std=c++11' ]
         )
 
-pa_version = meson.project_version()
-version_split = pa_version.split('.')
-pa_version_major = version_split[0]
+pa_version_str = meson.project_version()
+# For tarballs, the first split will do nothing, but for builds in git, we
+# split out suffixes when there are commits since the last tag
+# (e.g.: v11.99.1-3-gad14bdb24 -> v11.99.1)
+version_split = pa_version_str.split('-')[0].split('.')
+pa_version_major = version_split[0].split('v')[0]
 pa_version_minor = version_split[1]
-pa_version_micro = version_split[2]
+if version_split.length() > 2
+  pa_version_micro = version_split[2]
+else
+  pa_version_micro = '0'
+endif
 pa_version_major_minor = pa_version_major + '.' + pa_version_minor
 
 pa_api_version = 12
@@ -31,7 +38,7 @@ cc = meson.get_compiler('c')
 cdata = configuration_data()
 cdata.set_quoted('PACKAGE', 'pulseaudio')
 cdata.set_quoted('PACKAGE_NAME', 'pulseaudio')
-cdata.set_quoted('PACKAGE_VERSION', pa_version)
+cdata.set_quoted('PACKAGE_VERSION', pa_version_str)
 cdata.set_quoted('CANONICAL_HOST', host_machine.cpu())
 cdata.set('PA_MAJOR', pa_version_major)
 cdata.set('PA_MINOR', pa_version_minor)
