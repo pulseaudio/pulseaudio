@@ -47,6 +47,9 @@ PA_C_DECL_BEGIN
 #define gettext(String) (String)
 #define dgettext(Domain,String) (String)
 #define dcgettext(Domain,String,Type) (String)
+#define ngettext(SingularString,PluralString,N) (PluralString)
+#define dngettext(Domain,SingularString,PluralString,N) (PluralString)
+#define dcngettext(Domain,SingularString,PluralString,N,Type) (PluralString)
 #define bindtextdomain(Domain,Directory) (Domain)
 #define bind_textdomain_codeset(Domain,Codeset) (Codeset)
 
