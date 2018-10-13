@@ -48,7 +48,7 @@ pulseaudio -n \
         &
 
 # wait a few seconds to let the daemon start!
-sleep 5
+sleep 2
 
 unset DISPLAY
 

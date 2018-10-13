@@ -297,11 +297,14 @@ TESTS_norun = \
 
 # These tests need a running pulseaudio daemon
 TESTS_daemon = \
-		connect-stress \
 		extended-test \
 		passthrough-test \
-		interpol-test \
 		sync-playback
+
+# These tests need a running daemon and take a while to complete
+TESTS_daemon_long = \
+		connect-stress \
+		interpol-test
 
 if !OS_IS_WIN32
 TESTS_default += \
@@ -348,13 +351,16 @@ TESTS_ENVIRONMENT=MAKE_CHECK=1
 TESTS = $(TESTS_default)
 
 if BUILD_TESTS_DEFAULT
-noinst_PROGRAMS = $(TESTS_default) $(TESTS_norun) $(TESTS_daemon)
+noinst_PROGRAMS = $(TESTS_default) $(TESTS_norun) $(TESTS_daemon) $(TESTS_daemon_long)
 else
 check_PROGRAMS = $(TESTS_default) $(TESTS_norun)
 endif
 
 check-daemon: $(TESTS_daemon)
 	PATH=$(builddir):${PATH} $(top_srcdir)/src/tests/test-daemon.sh $(TESTS_daemon)
+
+check-daemon-long: $(TESTS_daemon_long)
+	PATH=$(builddir):${PATH} $(top_srcdir)/src/tests/test-daemon.sh $(TESTS_daemon_long)
 
 else
 TESTS_ENVIRONMENT=
@@ -366,6 +372,8 @@ check-daemon:
 	@echo "Tests are disabled!"
 	@echo "Pass option \"--enable-tests\" to configure and install \"check\" library properly!"
 	false
+
+check-daemon-long: check-daemon
 
 endif
 

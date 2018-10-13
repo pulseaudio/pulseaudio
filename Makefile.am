@@ -109,6 +109,9 @@ dist-hook:
 check-daemon:
 	$(MAKE) -C src check-daemon
 
+check-daemon-long:
+	$(MAKE) -C src check-daemon-long
+
 .PHONY: homepage distcleancheck doxygen
 
 # see git-version-gen
