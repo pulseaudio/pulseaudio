@@ -43,9 +43,16 @@ libexecdir = join_paths(prefix, get_option('libexecdir'))
 datadir = join_paths(prefix, get_option('datadir'))
 localstatedir = join_paths(prefix, get_option('localstatedir'))
 sysconfdir = join_paths(prefix, get_option('sysconfdir'))
+privlibdir = join_paths(get_option('libdir'), 'pulseaudio')
+alsadatadir = join_paths(datadir, 'pulseaudio', 'alsa-mixer')
 
 pulselibexecdir = join_paths(libexecdir, 'pulse')
 pulsesysconfdir = join_paths(sysconfdir, 'pulse')
+
+modlibexecdir = get_option('modlibexecdir')
+if modlibexecdir == ''
+  modlibexecdir = join_paths(libdir, 'pulse-' + pa_version_major_minor, 'modules')
+endif
 
 pulsedspdir = get_option('pulsedspdir')
 if pulsedspdir == ''
@@ -75,13 +82,13 @@ cdata.set_quoted('PA_BINARY', join_paths(bindir, 'pulseaudio'))
 cdata.set_quoted('PA_SYSTEM_RUNTIME_PATH', join_paths(localstatedir, 'run', 'pulse'))
 cdata.set_quoted('PA_SYSTEM_CONFIG_PATH', join_paths(localstatedir, 'lib', 'pulse'))
 cdata.set_quoted('PA_SYSTEM_STATE_PATH', join_paths(localstatedir, 'lib', 'pulse'))
-cdata.set_quoted('PA_DLSEARCHPATH', join_paths(libdir, 'pulse-' + pa_version_major_minor, 'modules'))
+cdata.set_quoted('PA_DLSEARCHPATH', modlibexecdir)
 cdata.set_quoted('PA_SYSTEM_USER', get_option('system_user'))
 cdata.set_quoted('PA_SYSTEM_GROUP', get_option('system_group'))
 cdata.set_quoted('PA_ACCESS_GROUP', get_option('access_group'))
 cdata.set_quoted('PA_CFLAGS', 'Not yet supported on meson')
-cdata.set_quoted('PA_ALSA_PATHS_DIR', join_paths(datadir, 'pulseaudio', 'alsa-mixer', 'paths'))
-cdata.set_quoted('PA_ALSA_PROFILE_SETS_DIR', join_paths(datadir, 'pulseaudio', 'alsa-mixer', 'profile-sets'))
+cdata.set_quoted('PA_ALSA_PATHS_DIR', join_paths(alsadatadir, 'paths'))
+cdata.set_quoted('PA_ALSA_PROFILE_SETS_DIR', join_paths(alsadatadir, 'profile-sets'))
 cdata.set_quoted('DESKTOPFILEDIR', join_paths(datadir, 'applications'))
 
 # Platform specifics
@@ -412,7 +419,7 @@ summary = [
   'datadir:                       @0@'.format(datadir),
   'sysconfdir:                    @0@'.format(sysconfdir),
   'localstatedir:                 @0@'.format(localstatedir),
-#  'modlibexecdir:                 @0@'.format(${modlibexecdir}),
+  'modlibexecdir:                 @0@'.format(modlibexecdir),
   'System Runtime Path:           @0@'.format(cdata.get_unquoted('PA_SYSTEM_RUNTIME_PATH')),
   'System State Path:             @0@'.format(cdata.get_unquoted('PA_SYSTEM_STATE_PATH')),
   'System Config Path:            @0@'.format(cdata.get_unquoted('PA_SYSTEM_CONFIG_PATH')),

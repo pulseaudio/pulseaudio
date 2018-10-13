@@ -1343,7 +1343,7 @@ dist_alsaprofilesets_DATA = \
 
 if HAVE_UDEV
 dist_udevrules_DATA = \
-		modules/alsa/mixer/profile-sets/90-pulseaudio.rules
+		modules/alsa/90-pulseaudio.rules
 endif
 
 dist_alsapaths_DATA = \

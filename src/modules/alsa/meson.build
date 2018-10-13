@@ -32,5 +32,8 @@ libalsa_util = shared_library('libalsa_util',
   c_args : [pa_c_args, server_c_args],
   include_directories : [configinc, topinc],
   dependencies : [libpulse_dep, libpulsecommon_dep, libpulsecore_dep, alsa_dep, dbus_dep, libm_dep, udev_dep],
-  install : true
+  install : true,
+  install_dir : modlibexecdir,
 )
+
+subdir('mixer')

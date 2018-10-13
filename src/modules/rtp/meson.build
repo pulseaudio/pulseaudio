@@ -20,7 +20,8 @@ librtp = shared_library('librtp',
   c_args : [pa_c_args, server_c_args],
   include_directories : [configinc, topinc],
   dependencies : [libpulse_dep, libpulsecommon_dep, libpulsecore_dep],
-  install : true
+  install : true,
+  install_dir : modlibexecdir,
 )
 
 librtp_dep = declare_dependency(link_with: librtp)

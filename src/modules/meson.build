@@ -261,6 +261,7 @@ foreach m : all_modules
     include_directories : [configinc, topinc],
     c_args : [pa_c_args, server_c_args, '-DPA_MODULE_NAME=' + name.underscorify()] + extra_flags,
     install : true,
+    install_dir : modlibexecdir,
     dependencies : [thread_dep, libpulse_dep, libpulsecommon_dep, libpulsecore_dep] + extra_deps,
     link_args : [ '-Wl,--no-undefined' ],
     link_with : extra_libs,

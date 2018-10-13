@@ -17,6 +17,9 @@ option('legacy-database-entry-format',
 option('pulsedspdir',
        type : 'string',
        description : 'Specify location where OSS wrapper will be installed')
+option('modlibexecdir',
+       type : 'string',
+       description : 'Specify location where modules will be installed')
 
 # Optional features
 

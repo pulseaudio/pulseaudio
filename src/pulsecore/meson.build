@@ -172,6 +172,7 @@ libpulsecore = shared_library('pulsecore-' + pa_version_major_minor,
   include_directories : [configinc, topinc],
   c_args : [pa_c_args, server_c_args],
   install : true,
+  install_dir : privlibdir,
   link_with : libpulsecore_simd_lib,
   dependencies : [libm_dep, libpulsecommon_dep, libpulse_dep, ltdl_dep, shm_dep, sndfile_dep, database_dep, dbus_dep, samplerate_dep, soxr_dep, speex_dep, x11_dep],
   implicit_include_directories : false)
@@ -188,7 +189,8 @@ libavahi_wrap = shared_library('avahi_wrap',
   include_directories : [configinc, topinc],
   dependencies : [libpulse_dep, libpulsecommon_dep, libpulsecore_dep, avahi_dep],
   implicit_include_directories : false, # pulsecore/poll.h <vs> /usr/include/poll.h
-  install : true
+  install : true,
+  install_dir : modlibexecdir,
 )
 
 libcli = shared_library('cli',
@@ -197,7 +199,8 @@ libcli = shared_library('cli',
   c_args : [pa_c_args, server_c_args, database_c_args],
   include_directories : [configinc, topinc],
   dependencies : [libpulse_dep, libpulsecommon_dep, libpulsecore_dep],
-  install : true
+  install : true,
+  install_dir : modlibexecdir,
 )
 
 libcli_dep = declare_dependency(link_with: libcli)
@@ -208,7 +211,8 @@ libprotocol_cli = shared_library('protocol_cli',
   c_args : [pa_c_args, server_c_args, database_c_args],
   include_directories : [configinc, topinc],
   dependencies : [libpulse_dep, libpulsecommon_dep, libpulsecore_dep, libcli_dep],
-  install : true
+  install : true,
+  install_dir : modlibexecdir,
 )
 
 libprotocol_http = shared_library('protocol_http',
@@ -217,7 +221,8 @@ libprotocol_http = shared_library('protocol_http',
   c_args : [pa_c_args, server_c_args, database_c_args],
   include_directories : [configinc, topinc],
   dependencies : [libpulse_dep, libpulsecommon_dep, libpulsecore_dep],
-  install : true
+  install : true,
+  install_dir : modlibexecdir,
 )
 
 libprotocol_native = shared_library('protocol_native',
@@ -226,7 +231,8 @@ libprotocol_native = shared_library('protocol_native',
   c_args : [pa_c_args, server_c_args, database_c_args],
   include_directories : [configinc, topinc],
   dependencies : [libpulse_dep, libpulsecommon_dep, libpulsecore_dep, dbus_dep],
-  install : true
+  install : true,
+  install_dir : modlibexecdir,
 )
 
 libprotocol_simple = shared_library('protocol_simple',
@@ -235,5 +241,6 @@ libprotocol_simple = shared_library('protocol_simple',
   c_args : [pa_c_args, server_c_args, database_c_args],
   include_directories : [configinc, topinc],
   dependencies : [libpulse_dep, libpulsecommon_dep, libpulsecore_dep],
-  install : true
+  install : true,
+  install_dir : modlibexecdir,
 )

@@ -20,5 +20,6 @@ libraop = shared_library('libraop',
   c_args : [pa_c_args, server_c_args],
   include_directories : [configinc, topinc],
   dependencies : [libpulse_dep, libpulsecommon_dep, libpulsecore_dep, librtp_dep, openssl_dep],
-  install : true
+  install : true,
+  install_dir : modlibexecdir,
 )
