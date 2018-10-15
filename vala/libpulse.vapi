@@ -1365,6 +1365,16 @@ namespace PulseAudio {
                 public uint32 n_sources;
                 public uint32 priority;
         }
+        
+        [CCode (cname="pa_card_profile_info2", has_type_id=false)]
+        public struct CardProfileInfo2 {
+                public string name;
+                public string description;
+                public uint32 n_sinks;
+                public uint32 n_sources;
+                public uint32 priority;
+                int available;
+        }
 
         [CCode (cname="pa_card_info", has_type_id=false)]
         public struct CardInfo {
@@ -1373,8 +1383,12 @@ namespace PulseAudio {
                 public uint32 owner_module;
                 public string driver;
                 public uint32 n_profiles;
+                [CCode (array_length_cname="n_profiles")]
                 public CardProfileInfo[] profiles;
                 public CardProfileInfo *active_profile;
+                [CCode (array_length_cname="n_profiles")]
+                public CardProfileInfo2*[] profiles2;
+                public CardProfileInfo2 *active_profile2;
                 public Proplist proplist;
         }
 
