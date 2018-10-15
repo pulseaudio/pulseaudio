@@ -160,13 +160,22 @@ static void sink_update_requested_latency_cb(pa_sink *s) {
 }
 
 static int sink_reconfigure_cb(pa_sink *s, pa_sample_spec *spec, pa_channel_map *map, bool passthrough) {
-    /* We don't need to do anything */
+    struct userdata *u;
+    size_t nbytes;
+
+    pa_sink_assert_ref(s);
+    pa_assert_se(u = s->userdata);
+
     s->sample_spec = *spec;
 
     if (map)
         s->channel_map = *map;
     else
         pa_channel_map_init_auto(&s->channel_map, spec->channels, PA_CHANNEL_MAP_DEFAULT);
+
+    nbytes = pa_usec_to_bytes(u->block_usec, &s->sample_spec);
+    pa_sink_set_max_rewind(s, nbytes);
+    pa_sink_set_max_request(s, nbytes);
 
     return 0;
 }
