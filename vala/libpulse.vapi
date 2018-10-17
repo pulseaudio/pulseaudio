@@ -1400,12 +1400,10 @@ namespace PulseAudio {
                 public uint32 n_profiles;
                 [CCode (array_length_cname="n_profiles")]
                 public CardProfileInfo*[] profiles;
-                public CardProfileInfo *active_profile;
                 public Proplist proplist;
+                public int64 latency_offset;
                 [CCode (array_length_cname="n_profiles")]
                 public CardProfileInfo2*[] profiles2;
-                public CardProfileInfo2 *active_profile2;
-                public int64 latency_offset;
         }
 
         [CCode (cname="pa_card_info", has_type_id=false)]
