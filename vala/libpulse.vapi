@@ -1258,6 +1258,20 @@ namespace PulseAudio {
                 public int set_monitor_stream(uint32 sink_input);
                 public uint32 get_monitor_stream();
         }
+        
+        [CCode (cname="pa_direction_t", cprefix="PA_DIRECTION_", has_type_id=false)]
+        [Flags]
+        public enum Direction {
+                OUTPUT = 0x0001U,
+                INPUT = 0x0002U
+        }
+
+        [CCode (cname="pa_port_available_t", cprefix="PA_PORT_AVAILABLE_", has_type_id=false)]
+        public enum PortAvailable {
+                UNKNOWN = 0,
+                NO = 1,
+                YES = 2
+        }
 
         [CCode (cname="pa_sink_port_info", has_type_id=false)]
         public struct SinkPortInfo {
@@ -1375,6 +1389,24 @@ namespace PulseAudio {
                 public uint32 priority;
                 int available;
         }
+        
+        [CCode (cname="pa_card_port_info", has_type_id=false)]
+        public struct CardPortInfo {
+                public string name;
+                public string description;
+                public uint32 priority;
+                PortAvailable available;
+                Direction direction;
+                public uint32 n_profiles;
+                [CCode (array_length_cname="n_profiles")]
+                public CardProfileInfo*[] profiles;
+                public CardProfileInfo *active_profile;
+                public Proplist proplist;
+                [CCode (array_length_cname="n_profiles")]
+                public CardProfileInfo2*[] profiles2;
+                public CardProfileInfo2 *active_profile2;
+                public int64 latency_offset;
+        }
 
         [CCode (cname="pa_card_info", has_type_id=false)]
         public struct CardInfo {
@@ -1390,6 +1422,9 @@ namespace PulseAudio {
                 public CardProfileInfo2*[] profiles2;
                 public CardProfileInfo2 *active_profile2;
                 public Proplist proplist;
+                public uint32 n_ports;
+                [CCode (array_length_cname="n_ports")]
+                public CardPortInfo*[] ports;
         }
 
         [CCode (cname="pa_sink_input_info", has_type_id=false)]
