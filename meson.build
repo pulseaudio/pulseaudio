@@ -300,7 +300,7 @@ if openssl_dep.found()
   cdata.set('HAVE_OPENSSL', 1)
 endif
 
-speex_dep = dependency('speexdsp', version : '>= 1.2', required : false)
+speex_dep = dependency('speexdsp', version : '>= 1.2', required : get_option('speex'))
 if speex_dep.found()
   cdata.set('HAVE_SPEEX', 1)
 endif
