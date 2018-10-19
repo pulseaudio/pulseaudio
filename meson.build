@@ -319,6 +319,12 @@ if webrtc_dep.found()
   cdata.set('HAVE_WEBRTC', 1)
 endif
 
+# Some sanity checks
+
+if not speex_dep.found() and not webrtc_dep.found() and not get_option('adrian-aec')
+  error('At least one echo canceller implementation must be available!')
+endif
+
 # Now generate config.h from everything above
 configure_file(output : 'config.h', configuration : cdata)
 
