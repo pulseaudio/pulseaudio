@@ -239,6 +239,7 @@ endif
 
 alsa_dep = dependency('alsa', version : '>= 1.0.24', required : get_option('alsa'))
 if alsa_dep.found()
+  cdata.set('HAVE_ALSA', 1)
   cdata.set('HAVE_ALSA_UCM', 1)
 endif
 
