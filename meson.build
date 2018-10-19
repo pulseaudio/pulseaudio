@@ -280,14 +280,14 @@ if bluez_dep.found()
   endif
 endif
 
+fftw_dep = dependency('fftw3f', required : get_option('fftw'))
+if fftw_dep.found()
+  cdata.set('HAVE_FFTW', 1)
+endif
+
 jack_dep = dependency('jack', version : '>= 0.117.0', required : get_option('jack'))
 if jack_dep.found()
   cdata.set('HAVE_JACK', 1)
-endif
-
-fftw_dep = dependency('fftw3f', required : false)
-if fftw_dep.found()
-  cdata.set('HAVE_FFTW', 1)
 endif
 
 lirc_dep = dependency('lirc', required : false)

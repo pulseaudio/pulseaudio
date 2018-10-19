@@ -35,6 +35,9 @@ option('bluez5-ofono-headset',
 option('dbus',
        type : 'feature', value : 'auto',
        description : 'Optional D-Bus support')
+option('fftw',
+       type : 'feature', value : 'auto',
+       description : 'Optional FFTW support')
 option('jack',
        type : 'feature', value : 'auto',
        description : 'Optional JACK support')
