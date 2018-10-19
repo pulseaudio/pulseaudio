@@ -266,8 +266,7 @@ if avahi_dep.found()
   cdata.set('HAVE_AVAHI', 1)
 endif
 
-# TODO fix bluez version, it seems wrong
-bluez_dep = dependency('bluez', version : '>= 4.101', required : get_option('bluez5'))
+bluez_dep = dependency('bluez', version : '>= 5.0', required : get_option('bluez5'))
 sbc_dep = dependency('sbc', version : '>= 1.0', required : false)
 if bluez_dep.found()
   assert(dbus_dep.found(), 'BlueZ requires D-Bus support')
