@@ -200,13 +200,14 @@ module_echo_cancel_flags = []
 module_echo_cancel_deps = []
 module_echo_cancel_libs = []
 
-# FIXME: Adrian support should be optional
-module_echo_cancel_sources += [
-  'echo-cancel/adrian.c', 'echo-cancel/adrian.h',
-  'echo-cancel/adrian-aec.c', 'echo-cancel/adrian-aec.h',
-]
-module_echo_cancel_flags += ['-DHAVE_ADRIAN_EC=1']
-module_echo_cancel_deps = [libm_dep]
+if get_option('adrian-aec')
+  module_echo_cancel_sources += [
+    'echo-cancel/adrian.c', 'echo-cancel/adrian.h',
+    'echo-cancel/adrian-aec.c', 'echo-cancel/adrian-aec.h',
+  ]
+  module_echo_cancel_flags += ['-DHAVE_ADRIAN_EC=1']
+  module_echo_cancel_deps = [libm_dep]
+endif
 
 # FIXME: support ORC (depends on Adrian)
 #ORC_SOURCE += modules/echo-cancel/adrian-aec

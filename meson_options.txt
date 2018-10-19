@@ -65,6 +65,9 @@ option('x11',
 
 # Echo cancellation
 
+option('adrian-aec',
+       type : 'boolean',
+       description : 'Optional Adrian\'s echo canceller')
 option('webrtc-aec',
        type : 'feature', value : 'auto',
        description : 'Optional WebRTC-based echo canceller')
