@@ -27,7 +27,6 @@ all_modules = [
   [ 'module-filter-apply', 'module-filter-apply.c' ],
   [ 'module-filter-heuristics', 'module-filter-heuristics.c' ],
 #  [ 'module-gconf', 'gconf/module-gconf.c' ],
-  [ 'module-hal-detect', 'module-hal-detect-compat.c' ],
   [ 'module-http-protocol-tcp', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_HTTP', '-DUSE_TCP_SOCKETS'], [], libprotocol_http ],
   [ 'module-http-protocol-unix', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_HTTP', '-DUSE_UNIX_SOCKETS'], [], libprotocol_http ],
   [ 'module-intended-roles', 'module-intended-roles.c' ],
@@ -176,6 +175,9 @@ endif
 
 if udev_dep.found()
   all_modules += [ [ 'module-udev-detect', 'module-udev-detect.c', [], [], [udev_dep] ] ]
+  if get_option('hal-compat')
+    all_modules += [ [ 'module-hal-detect', 'module-hal-detect-compat.c' ] ]
+  endif
 endif
 
 if x11_dep.found()

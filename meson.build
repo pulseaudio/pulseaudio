@@ -259,6 +259,10 @@ if cc.has_header('sys/soundcard.h')
   cdata.set_quoted('PULSEDSP_LOCATION',	pulsedspdir)
 endif
 
+if get_option('hal-compat')
+  cdata.set('HAVE_HAL_COMPAT', 1)
+endif
+
 avahi_dep = dependency('avahi-client', version : '>= 0.6.0', required : get_option('avahi'))
 if avahi_dep.found()
   cdata.set('HAVE_AVAHI', 1)
