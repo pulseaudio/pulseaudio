@@ -290,7 +290,7 @@ if jack_dep.found()
   cdata.set('HAVE_JACK', 1)
 endif
 
-lirc_dep = dependency('lirc', required : false)
+lirc_dep = dependency('lirc', required : get_option('lirc'))
 if lirc_dep.found()
   cdata.set('HAVE_LIRC', 1)
 endif

@@ -41,6 +41,9 @@ option('fftw',
 option('jack',
        type : 'feature', value : 'auto',
        description : 'Optional JACK support')
+option('lirc',
+       type : 'feature', value : 'auto',
+       description : 'Optional LIRC support')
 option('systemd',
        type : 'feature', value : 'auto',
        description : 'Optional systemd support')
