@@ -17,6 +17,9 @@ option('pulsedspdir',
 
 # Optional features
 
+option('alsa',
+       type : 'feature', value : 'auto',
+       description : 'Optional ALSA support')
 option('dbus',
        type : 'feature', value : 'auto',
        description : 'Optional D-Bus support')

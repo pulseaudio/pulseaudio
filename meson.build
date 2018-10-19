@@ -237,7 +237,7 @@ if x11_dep.found()
   cdata.set('HAVE_X11', 1)
 endif
 
-alsa_dep = dependency('alsa', version : '>= 1.0.24', required : false)
+alsa_dep = dependency('alsa', version : '>= 1.0.24', required : get_option('alsa'))
 if alsa_dep.found()
   cdata.set('HAVE_ALSA_UCM', 1)
 endif
