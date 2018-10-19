@@ -15,7 +15,6 @@ all_modules = [
   [ 'module-cli-protocol-unix', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_CLI', '-DUSE_UNIX_SOCKETS'], [], libprotocol_cli ],
   [ 'module-combine', 'module-combine.c' ],
   [ 'module-combine-sink', 'module-combine-sink.c' ],
-  [ 'module-console-kit', 'module-console-kit.c', [], [], [dbus_dep] ],
 #  [ 'module-coreaudio-detect', 'macosx/module-coreaudio-detect.c' ],
 #  [ 'module-coreaudio-device', 'macosx/module-coreaudio-device.c' ],
   [ 'module-default-device-restore', 'module-default-device-restore.c', [], [], [], libprotocol_native ],
@@ -34,7 +33,6 @@ all_modules = [
   [ 'module-http-protocol-tcp', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_HTTP', '-DUSE_TCP_SOCKETS'], [], libprotocol_http ],
   [ 'module-http-protocol-unix', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_HTTP', '-DUSE_UNIX_SOCKETS'], [], libprotocol_http ],
   [ 'module-intended-roles', 'module-intended-roles.c' ],
-  [ 'module-jackdbus-detect', 'jack/module-jackdbus-detect.c', [], [], [dbus_dep] ],
   [ 'module-ladspa-sink', 'module-ladspa-sink.c', 'ladspa.h', ['-DLADSPA_PATH="' + libdir + '/ladspa:/usr/local/lib/ladspa:/usr/lib/ladspa:/usr/local/lib64/ladspa:/usr/lib64/ladspa"'], [dbus_dep, libm_dep, ltdl_dep] ],
   [ 'module-loopback', 'module-loopback.c' ],
   [ 'module-match', 'module-match.c' ],
@@ -53,7 +51,6 @@ all_modules = [
   [ 'module-role-ducking', ['module-role-ducking.c', 'stream-interaction.c'], 'stream-interaction.h' ],
   [ 'module-rtp-recv', 'rtp/module-rtp-recv.c', [], [], [], librtp ],
   [ 'module-rtp-send', 'rtp/module-rtp-send.c' , [], [], [], librtp ],
-  [ 'module-rygel-media-server', 'module-rygel-media-server.c', [], [], [dbus_dep], libprotocol_http ],
   [ 'module-simple-protocol-tcp', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_SIMPLE', '-DUSE_TCP_SOCKETS'], [], libprotocol_simple ],
   [ 'module-simple-protocol-unix', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_SIMPLE', '-DUSE_UNIX_SOCKETS'], [], libprotocol_simple ],
   [ 'module-sine', 'module-sine.c' ],
@@ -108,6 +105,7 @@ endif
 
 if dbus_dep.found()
   all_modules += [
+    [ 'module-console-kit', 'module-console-kit.c', [], [], [dbus_dep] ],
     [ 'module-dbus-protocol',
       [ 'dbus/iface-card.c', 'dbus/iface-card.h',
 	'dbus/iface-card-profile.c', 'dbus/iface-card-profile.h',
@@ -121,7 +119,14 @@ if dbus_dep.found()
 	'dbus/iface-stream.c', 'dbus/iface-stream.h',
 	'dbus/module-dbus-protocol.c',
       ],
-      [], [], [dbus_dep] ]
+      [], [], [dbus_dep] ],
+    [ 'module-rygel-media-server', 'module-rygel-media-server.c', [], [], [dbus_dep], libprotocol_http ],
+  ]
+endif
+
+if dbus_dep.found() and fftw_dep.found()
+  all_modules += [
+    [ 'module-equalizer-sink', 'module-equalizer-sink.c', [], [], [dbus_dep, fftw_dep, libm_dep] ],
   ]
 endif
 
@@ -139,17 +144,16 @@ if dbus_dep.found() and sbc_dep.found()
   endif
 endif
 
-if fftw_dep.found()
-  all_modules += [
-    [ 'module-equalizer-sink', 'module-equalizer-sink.c', [], [], [dbus_dep, fftw_dep, libm_dep] ],
-  ]
-endif
-
 if jack_dep.found()
   all_modules += [
     [ 'module-jack-sink', 'jack/module-jack-sink.c', [], [], [jack_dep] ],
     [ 'module-jack-source', 'jack/module-jack-source.c', [], [], [jack_dep] ],
   ]
+  if dbus_dep.found()
+    all_modules += [
+      [ 'module-jackdbus-detect', 'jack/module-jackdbus-detect.c', [], [], [dbus_dep] ],
+    ]
+  endif
 endif
 
 if lirc_dep.found()

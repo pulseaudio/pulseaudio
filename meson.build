@@ -223,7 +223,7 @@ cdata.set('DISABLE_LIBTOOL_PRELOAD', 1)
 
 sndfile_dep = dependency('sndfile', version : '>= 1.0.20')
 
-dbus_dep = dependency('dbus-1', version : '>= 1.4.12', required : false)
+dbus_dep = dependency('dbus-1', version : '>= 1.4.12', required : get_option('dbus'))
 if dbus_dep.found()
   cdata.set('HAVE_DBUS', 1)
 endif
