@@ -31,9 +31,7 @@ libversion = '@0@.@1@.0'.format(soversion, pa_version_minor.to_int() * 100 + pa_
 # Paths
 
 prefix = get_option('prefix')
-if not prefix.startswith('/')
-  error('Prefix is not absolute: "@0@"'.format(prefix))
-endif
+assert(prefix.startswith('/'), 'Prefix is not absolute: "@0@"'.format(prefix))
 
 bindir = join_paths(prefix, get_option('bindir'))
 libdir = join_paths(prefix, get_option('libdir'))
