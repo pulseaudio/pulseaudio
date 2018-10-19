@@ -206,6 +206,7 @@ module_echo_cancel_sources += [
   'echo-cancel/adrian-aec.c', 'echo-cancel/adrian-aec.h',
 ]
 module_echo_cancel_flags += ['-DHAVE_ADRIAN_EC=1']
+module_echo_cancel_deps = [libm_dep]
 
 # FIXME: support ORC (depends on Adrian)
 #ORC_SOURCE += modules/echo-cancel/adrian-aec
