@@ -1415,6 +1415,11 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
         if (mute_updated)
             send_mute_updated_signal(de, entry);
     }
+#else
+    /* Silence compiler warnings */
+    (void) device_updated;
+    (void) volume_updated;
+    (void) mute_updated;
 #endif
 
     entry_free(entry);
