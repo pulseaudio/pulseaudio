@@ -62,3 +62,9 @@ option('udev',
 option('x11',
        type : 'feature', value : 'auto',
        description : 'Optional X11 support')
+
+# Echo cancellation
+
+option('webrtc-aec',
+       type : 'feature', value : 'auto',
+       description : 'Optional WebRTC-based echo canceller')
