@@ -243,7 +243,7 @@ if alsa_dep.found()
   cdata.set('HAVE_ALSA_UCM', 1)
 endif
 
-systemd_dep = dependency('libsystemd', required : false)
+systemd_dep = dependency('libsystemd', required : get_option('systemd'))
 if systemd_dep.found()
   cdata.set('HAVE_SYSTEMD_DAEMON', 1)
   cdata.set('HAVE_SYSTEMD_LOGIN', 1)

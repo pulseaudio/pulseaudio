@@ -23,6 +23,9 @@ option('alsa',
 option('dbus',
        type : 'feature', value : 'auto',
        description : 'Optional D-Bus support')
+option('systemd',
+       type : 'feature', value : 'auto',
+       description : 'Optional systemd support')
 option('x11',
        type : 'feature', value : 'auto',
        description : 'Optional X11 support')
