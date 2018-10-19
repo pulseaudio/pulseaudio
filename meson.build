@@ -280,7 +280,7 @@ if bluez_dep.found()
   endif
 endif
 
-jack_dep = dependency('jack', version : '>= 0.117.0', required : false)
+jack_dep = dependency('jack', version : '>= 0.117.0', required : get_option('jack'))
 if jack_dep.found()
   cdata.set('HAVE_JACK', 1)
 endif
