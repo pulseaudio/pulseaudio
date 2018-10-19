@@ -44,6 +44,9 @@ option('jack',
 option('lirc',
        type : 'feature', value : 'auto',
        description : 'Optional LIRC support')
+option('openssl',
+       type : 'feature', value : 'auto',
+       description : 'Optional OpenSSL support (used for Airtunes/RAOP)')
 option('systemd',
        type : 'feature', value : 'auto',
        description : 'Optional systemd support')

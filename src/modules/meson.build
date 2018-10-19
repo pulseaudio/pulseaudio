@@ -1,6 +1,4 @@
-# Order matters! raop needs rtp!
 subdir('rtp')
-subdir('raop')
 
 # module name, sources, [headers, extra flags, extra deps, extra libs]
 all_modules = [
@@ -159,6 +157,7 @@ if lirc_dep.found()
 endif
 
 if openssl_dep.found()
+  subdir('raop')
   all_modules += [
     [ 'module-raop-sink', 'raop/module-raop-sink.c', [], [], [], libraop ],
   ]

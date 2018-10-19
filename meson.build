@@ -295,7 +295,7 @@ if lirc_dep.found()
   cdata.set('HAVE_LIRC', 1)
 endif
 
-openssl_dep = dependency('openssl', version : '>= 0.9', required : false)
+openssl_dep = dependency('openssl', version : '>= 0.9', required : get_option('openssl'))
 if openssl_dep.found()
   cdata.set('HAVE_OPENSSL', 1)
 endif
