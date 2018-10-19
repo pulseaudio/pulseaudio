@@ -103,6 +103,16 @@ if avahi_dep.found()
   ]
 endif
 
+if bluez_dep.found()
+  subdir('bluetooth')
+  all_modules += [
+    [ 'module-bluetooth-discover', 'bluetooth/module-bluetooth-discover.c' ],
+    [ 'module-bluetooth-policy', 'bluetooth/module-bluetooth-policy.c', [], [], [dbus_dep] ],
+    [ 'module-bluez5-device', 'bluetooth/module-bluez5-device.c', [], [], [sbc_dep], libbluez5_util ],
+    [ 'module-bluez5-discover', 'bluetooth/module-bluez5-discover.c', [], [], [dbus_dep], libbluez5_util ],
+  ]
+endif
+
 if dbus_dep.found()
   all_modules += [
     [ 'module-console-kit', 'module-console-kit.c', [], [], [dbus_dep] ],
@@ -128,20 +138,6 @@ if dbus_dep.found() and fftw_dep.found()
   all_modules += [
     [ 'module-equalizer-sink', 'module-equalizer-sink.c', [], [], [dbus_dep, fftw_dep, libm_dep] ],
   ]
-endif
-
-if dbus_dep.found() and sbc_dep.found()
-  all_modules += [
-    [ 'module-bluetooth-discover', 'bluetooth/module-bluetooth-discover.c' ],
-    [ 'module-bluetooth-policy', 'bluetooth/module-bluetooth-policy.c', [], [], [dbus_dep] ]
-  ]
-  if bluez_dep.found()
-    subdir('bluetooth')
-    all_modules += [
-      [ 'module-bluez5-device', 'bluetooth/module-bluez5-device.c', [], [], [sbc_dep], libbluez5_util ],
-      [ 'module-bluez5-discover', 'bluetooth/module-bluez5-discover.c', [], [], [dbus_dep], libbluez5_util ],
-    ]
-  endif
 endif
 
 if jack_dep.found()

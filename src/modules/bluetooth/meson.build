@@ -8,12 +8,13 @@ libbluez5_util_headers = [
   'rtp.h',
 ]
 
-if bluez_dep.found()
+if get_option('bluez5-native-headset')
   libbluez5_util_sources += [ 'backend-native.c' ]
 endif
 
-# TODO This should be optional
-libbluez5_util_sources += [ 'backend-ofono.c' ]
+if get_option('bluez5-ofono-headset')
+  libbluez5_util_sources += [ 'backend-ofono.c' ]
+endif
 
 libbluez5_util = shared_library('libbluez5_util',
   libbluez5_util_sources,

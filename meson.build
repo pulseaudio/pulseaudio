@@ -266,10 +266,21 @@ if avahi_dep.found()
   cdata.set('HAVE_AVAHI', 1)
 endif
 
-bluez_dep = dependency('bluez', version : '>= 4.101', required : false)
+# TODO fix bluez version, it seems wrong
+bluez_dep = dependency('bluez', version : '>= 4.101', required : get_option('bluez5'))
+sbc_dep = dependency('sbc', version : '>= 1.0', required : false)
 if bluez_dep.found()
-  cdata.set('HAVE_BLUEZ_5_NATIVE_HEADSET', 1)
-  cdata.set('HAVE_BLUEZ_5_OFONO_HEADSET', 1) # TODO This should be optional
+  assert(dbus_dep.found(), 'BlueZ requires D-Bus support')
+  assert(sbc_dep.found(), 'BlueZ requires SBC support')
+  cdata.set('HAVE_SBC', 1)
+  cdata.set('HAVE_BLUEZ', 1)
+  cdata.set('HAVE_BLUEZ_5', 1)
+  if get_option('bluez5-native-headset')
+    cdata.set('HAVE_BLUEZ_5_NATIVE_HEADSET', 1)
+  endif
+  if get_option('bluez5-ofono-headset')
+    cdata.set('HAVE_BLUEZ_5_OFONO_HEADSET', 1)
+  endif
 endif
 
 jack_dep = dependency('jack', version : '>= 0.117.0', required : false)
@@ -290,15 +301,6 @@ endif
 openssl_dep = dependency('openssl', version : '>= 0.9', required : false)
 if openssl_dep.found()
   cdata.set('HAVE_OPENSSL', 1)
-endif
-
-sbc_dep = dependency('sbc', version : '>= 1.0', required : false)
-if sbc_dep.found()
-  cdata.set('HAVE_SBC', 1)
-endif
-if sbc_dep.found() and dbus_dep.found()
-  cdata.set('HAVE_BLUEZ', 1)
-  cdata.set('HAVE_BLUEZ_5', 1)
 endif
 
 speex_dep = dependency('speexdsp', version : '>= 1.2', required : false)
