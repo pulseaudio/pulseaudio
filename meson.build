@@ -305,7 +305,7 @@ if speex_dep.found()
   cdata.set('HAVE_SPEEX', 1)
 endif
 
-udev_dep = dependency('libudev', version : '>= 143', required : false)
+udev_dep = dependency('libudev', version : '>= 143', required : get_option('udev'))
 if udev_dep.found()
   cdata.set('HAVE_UDEV', 1)
 endif
