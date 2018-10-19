@@ -364,14 +364,125 @@ if webrtc_dep.found()
   cdata.set('HAVE_WEBRTC', 1)
 endif
 
-# Some sanity checks
-
-if not speex_dep.found() and not webrtc_dep.found() and not get_option('adrian-aec')
-  error('At least one echo canceller implementation must be available!')
-endif
-
 # Now generate config.h from everything above
 configure_file(output : 'config.h', configuration : cdata)
 
 subdir('man')
 subdir('src')
+
+############################################################
+
+# Final summary
+
+summary = [
+  '',
+  '---{ @0@ @1@ }---'.format(meson.project_name(), meson.project_version()),
+  '',
+  'prefix:                        @0@'.format(prefix),
+  'bindir:                        @0@'.format(bindir),
+  'libdir:                        @0@'.format(libdir),
+  'libexecdir:                    @0@'.format(libexecdir),
+  'datadir:                       @0@'.format(datadir),
+  'sysconfdir:                    @0@'.format(sysconfdir),
+  'localstatedir:                 @0@'.format(localstatedir),
+#  'modlibexecdir:                 @0@'.format(${modlibexecdir}),
+  'System Runtime Path:           @0@'.format(cdata.get_unquoted('PA_SYSTEM_RUNTIME_PATH')),
+  'System State Path:             @0@'.format(cdata.get_unquoted('PA_SYSTEM_STATE_PATH')),
+  'System Config Path:            @0@'.format(cdata.get_unquoted('PA_SYSTEM_CONFIG_PATH')),
+#  'Zsh completions directory:     @0@'.format(${zshcompletiondir}),
+#  'Bash completions directory:    @0@'.format(${bashcompletiondir}),
+  'Compiler:                      @0@ @1@'.format(cc.get_id(), cc.version()),
+#  'CFLAGS:                        @0@'.format(${CFLAGS}),
+#  'CPPFLAGS:                      @0@'.format(${CPPFLAGS}),
+#  'LIBS:                          @0@'.format(${LIBS}),
+  '',
+  'Enable memfd shared memory:    @0@'.format(cdata.has('HAVE_MEMFD')),
+  'Enable X11:                    @0@'.format(x11_dep.found()),
+#  'Enable OSS Output:             @0@'.format(${ENABLE_OSS_OUTPUT}),
+#  'Enable OSS Wrapper:            @0@'.format(${ENABLE_OSS_WRAPPER}),
+#  'Enable EsounD:                 @0@'.format(${ENABLE_ESOUND}),
+  'Enable Alsa:                   @0@'.format(alsa_dep.found()),
+#  'Enable CoreAudio:              @0@'.format(${ENABLE_COREAUDIO}),
+#  'Enable Solaris:                @0@'.format(${ENABLE_SOLARIS}),
+#  'Enable WaveOut:                @0@'.format(${ENABLE_WAVEOUT}),
+  'Enable GLib 2:                 @0@'.format(glib_dep.found()),
+#  'Enable GConf:                  @0@'.format(${ENABLE_GCONF}),
+  'Enable GSettings:              @0@'.format(gio_dep.found()),
+  'Enable Gtk+ 3:                 @0@'.format(gtk_dep.found()),
+  'Enable Avahi:                  @0@'.format(avahi_dep.found()),
+  'Enable Jack:                   @0@'.format(jack_dep.found()),
+  'Enable Async DNS:              @0@'.format(asyncns_dep.found()),
+  'Enable LIRC:                   @0@'.format(lirc_dep.found()),
+  'Enable D-Bus:                  @0@'.format(dbus_dep.found()),
+  '  Enable BlueZ 5:              @0@'.format(bluez_dep.found()),
+  '    Enable native headsets:    @0@'.format(get_option('bluez5-native-headset')),
+  '    Enable  ofono headsets:    @0@'.format(get_option('bluez5-ofono-headset')),
+  'Enable udev:                   @0@'.format(udev_dep.found()),
+  '  Enable HAL->udev compat:     @0@'.format(get_option('hal-compat')),
+  'Enable systemd:                @0@'.format(systemd_dep.found()),
+#  'Enable TCP Wrappers:           @0@'.format(${ENABLE_TCPWRAP}),
+  'Enable libsamplerate:          @0@'.format(samplerate_dep.found()),
+  'Enable IPv6:                   @0@'.format(get_option('ipv6')),
+  'Enable OpenSSL (for Airtunes): @0@'.format(openssl_dep.found()),
+  'Enable FFTW:                   @0@'.format(fftw_dep.found()),
+#  'Enable orc:                    @0@'.format(${ENABLE_ORC}),
+  'Enable Adrian echo canceller:  @0@'.format(get_option('adrian-aec')),
+  'Enable Speex (resampler, AEC): @0@'.format(speex_dep.found()),
+  'Enable SoXR (resampler):       @0@'.format(soxr_dep.found()),
+  'Enable WebRTC echo canceller:  @0@'.format(webrtc_dep.found()),
+#  'Enable gcov coverage:          @0@'.format(${ENABLE_GCOV}),
+#  'Enable unit tests:             @0@'.format(${ENABLE_TESTS}),
+  '',
+  'Database:                      @0@'.format(get_option('database')),
+  'Legacy Database Entry Support: @0@'.format(get_option('legacy-database-entry-format')),
+  'System User:                   @0@'.format(cdata.get_unquoted('PA_SYSTEM_USER')),
+  'System Group:                  @0@'.format(cdata.get_unquoted('PA_SYSTEM_GROUP')),
+  'Access Group:                  @0@'.format(cdata.get_unquoted('PA_ACCESS_GROUP')),
+#  'Enable per-user EsounD socket: @0@'.format(${ENABLE_PER_USER_ESOUND_SOCKET}),
+#  'Force preopen:                 @0@'.format(${FORCE_PREOPEN}),
+#  'Preopened modules:             @0@'.format(${PREOPEN_MODS}),
+]
+
+message('\n    '.join(summary))
+
+# Sanity checks
+
+if not speex_dep.found() and not webrtc_dep.found() and not get_option('adrian-aec')
+  error('At least one echo canceller implementation must be available!')
+endif
+
+if samplerate_dep.found()
+  warning('Support for libsamplerate is DEPRECATED')
+endif
+
+if host_machine.system() != 'windows'
+  if not dbus_dep.found()
+    message = [
+      'You do not have D-Bus support enabled. It is strongly recommended',
+      'that you enable D-Bus support if your platform supports it.',
+      'Many parts of PulseAudio use D-Bus, from ConsoleKit interaction',
+      'to the Device Reservation Protocol to speak to JACK, Bluetooth',
+      'support and even a native control protocol for communicating and',
+      'controlling the PulseAudio daemon itself.',
+    ]
+    warning('\n' + '\n'.join(message))
+  endif
+  if not udev_dep.found()
+    message = [
+      'You do not have udev support enabled. It is strongly recommended',
+      'that you enable udev support if your platform supports it as it is',
+      'the primary method used to detect hardware audio devices (on Linux)',
+      'and is thus a critical part of PulseAudio on that platform.',
+    ]
+    warning('\n' + '\n'.join(message))
+  endif
+  if not speex_dep.found()
+    message = [
+      'You do not have speex support enabled. It is strongly recommended',
+      'that you enable speex support if your platform supports it as it is',
+      'the primary method used for audio resampling and is thus a critical',
+      'part of PulseAudio on that platform.',
+    ]
+    warning('\n' + '\n'.join(message))
+  endif
+endif
