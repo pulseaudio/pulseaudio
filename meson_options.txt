@@ -41,6 +41,9 @@ option('fftw',
 option('glib',
        type : 'feature', value : 'auto',
        description : 'Optional GLib 2 support')
+option('gtk',
+       type : 'feature', value : 'auto',
+       description : 'Optional Gtk+ 3 support')
 option('hal-compat',
        type : 'boolean',
        description : 'Optional HAL->udev transition compatibility support (needs udev)')

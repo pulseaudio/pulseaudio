@@ -235,6 +235,11 @@ if glib_dep.found()
   cdata.set('HAVE_GLIB', 1)
 endif
 
+gtk_dep = dependency('gtk+-3.0', required : get_option('gtk'))
+if gtk_dep.found()
+  cdata.set('HAVE_GTK', 1)
+endif
+
 x11_dep = dependency('x11-xcb', required : get_option('x11'))
 if x11_dep.found()
   xcb_dep  = dependency('xcb',  required : true, version : '>= 1.6')

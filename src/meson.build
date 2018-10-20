@@ -182,7 +182,7 @@ libpulsecommon = shared_library('pulsecommon-' + pa_version_major_minor,
   include_directories : [configinc, topinc],
   c_args : [pa_c_args],
   install : true,
-  dependencies : [libm_dep, thread_dep, shm_dep, sndfile_dep, dbus_dep, x11_dep, systemd_dep, glib_dep],
+  dependencies : [libm_dep, thread_dep, shm_dep, sndfile_dep, dbus_dep, x11_dep, systemd_dep, glib_dep, gtk_dep],
   implicit_include_directories : false)
 
 libpulsecommon_dep = declare_dependency(link_with: libpulsecommon)
