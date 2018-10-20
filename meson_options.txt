@@ -38,6 +38,9 @@ option('dbus',
 option('fftw',
        type : 'feature', value : 'auto',
        description : 'Optional FFTW support')
+option('glib',
+       type : 'feature', value : 'auto',
+       description : 'Optional GLib 2 support')
 option('hal-compat',
        type : 'boolean',
        description : 'Optional HAL->udev transition compatibility support (needs udev)')

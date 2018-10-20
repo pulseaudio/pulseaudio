@@ -226,6 +226,11 @@ if dbus_dep.found()
   cdata.set('HAVE_DBUS', 1)
 endif
 
+glib_dep = dependency('glib-2.0', version : '>= 2.4.0', required: get_option('glib'))
+if glib_dep.found()
+  cdata.set('HAVE_GLIB', 1)
+endif
+
 x11_dep = dependency('x11-xcb', required : get_option('x11'))
 if x11_dep.found()
   xcb_dep  = dependency('xcb',  required : true, version : '>= 1.6')

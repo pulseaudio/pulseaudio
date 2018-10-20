@@ -61,6 +61,10 @@ libpulse_headers = [
   'xmalloc.h',
 ]
 
+if glib_dep.found()
+  libpulse_headers += 'glib-mainloop.h'
+endif
+
 libpulse = shared_library('pulse',
   libpulse_sources,
   libpulse_headers,
