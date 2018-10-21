@@ -12,7 +12,7 @@ manpages = [
   ['pax11publish', '1'],
   ['pulse-cli-syntax', '5'],
   ['pulse-client.conf', '5'],
-  ['pulse-daemon.conf','5'],
+  ['pulse-daemon.conf', '5'],
   ['pulseaudio', '1'],
   ['start-pulseaudio-x11', '1'],
 ]
