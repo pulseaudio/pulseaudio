@@ -263,6 +263,11 @@ if alsa_dep.found()
   cdata.set('HAVE_ALSA_UCM', 1)
 endif
 
+asyncns_dep = dependency('libasyncns', version : '>= 0.1', required : get_option('asyncns'))
+if asyncns_dep.found()
+  cdata.set('HAVE_LIBASYNCNS', 1)
+endif
+
 systemd_dep = dependency('libsystemd', required : get_option('systemd'))
 if systemd_dep.found()
   cdata.set('HAVE_SYSTEMD_DAEMON', 1)

@@ -20,6 +20,9 @@ option('pulsedspdir',
 option('alsa',
        type : 'feature', value : 'auto',
        description : 'Optional ALSA support')
+option('asyncns',
+       type : 'feature', value : 'auto',
+       description : 'Optional Async DNS support')
 option('avahi',
        type : 'feature', value : 'auto',
        description : 'Optional Avahi support')
