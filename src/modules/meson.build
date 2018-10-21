@@ -137,6 +137,15 @@ if dbus_dep.found() and fftw_dep.found()
   ]
 endif
 
+if gio_dep.found()
+  subdir('gsettings')
+  all_modules += [
+    [ 'module-gsettings',
+      [ 'gsettings/module-gsettings.c', 'stdin-util.c', 'stdin-util.h' ],
+      [], ['-DPA_GSETTINGS_HELPER="' + pulselibexecdir + 'gsettings-helper"'] ]
+  ]
+endif
+
 if jack_dep.found()
   all_modules += [
     [ 'module-jack-sink', 'jack/module-jack-sink.c', [], [], [jack_dep] ],

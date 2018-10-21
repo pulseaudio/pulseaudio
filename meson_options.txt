@@ -41,6 +41,9 @@ option('fftw',
 option('glib',
        type : 'feature', value : 'auto',
        description : 'Optional GLib 2 support')
+option('gsettings',
+       type : 'feature', value : 'auto',
+       description : 'Optional GSettings support')
 option('gtk',
        type : 'feature', value : 'auto',
        description : 'Optional Gtk+ 3 support')

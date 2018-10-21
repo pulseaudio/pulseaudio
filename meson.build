@@ -39,9 +39,12 @@ assert(prefix.startswith('/'), 'Prefix is not absolute: "@0@"'.format(prefix))
 
 bindir = join_paths(prefix, get_option('bindir'))
 libdir = join_paths(prefix, get_option('libdir'))
+libexecdir = join_paths(prefix, get_option('libexecdir'))
 datadir = join_paths(prefix, get_option('datadir'))
 localstatedir = join_paths(prefix, get_option('localstatedir'))
 sysconfdir = join_paths(prefix, get_option('sysconfdir'))
+
+pulselibexecdir = join_paths(libexecdir, 'pulse')
 
 pulsedspdir = get_option('pulsedspdir')
 if pulsedspdir == ''
@@ -228,6 +231,11 @@ sndfile_dep = dependency('sndfile', version : '>= 1.0.20')
 dbus_dep = dependency('dbus-1', version : '>= 1.4.12', required : get_option('dbus'))
 if dbus_dep.found()
   cdata.set('HAVE_DBUS', 1)
+endif
+
+gio_dep = dependency('gio-2.0', version : '>= 2.26.0', required : get_option('gsettings'))
+if gio_dep.found()
+  cdata.set('HAVE_GSETTINGS', 1)
 endif
 
 glib_dep = dependency('glib-2.0', version : '>= 2.4.0', required: get_option('glib'))
