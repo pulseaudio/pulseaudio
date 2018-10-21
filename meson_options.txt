@@ -53,6 +53,9 @@ option('gtk',
 option('hal-compat',
        type : 'boolean',
        description : 'Optional HAL->udev transition compatibility support (needs udev)')
+option('ipv6',
+       type : 'boolean',
+       description : 'Optional IPv6 support')
 option('jack',
        type : 'feature', value : 'auto',
        description : 'Optional JACK support')

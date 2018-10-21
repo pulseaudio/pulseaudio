@@ -209,6 +209,10 @@ elif get_option('database') == 'gdbm'
   database_dep = cc.find_library('gdbm', required : true)
 endif
 
+if get_option('ipv6')
+  cdata.set('HAVE_IPV6', 1)
+endif
+
 atomictest = '''void func() {
   volatile int atomic = 2;
   __sync_bool_compare_and_swap (&atomic, 2, 3);
