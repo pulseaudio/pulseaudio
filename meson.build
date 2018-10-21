@@ -203,20 +203,6 @@ libm_dep = cc.find_library('m', required : true)
 thread_dep = dependency('threads')
 cap_dep = cc.find_library('cap', required : false)
 
-if get_option('database') == 'tdb'
-  database_dep = dependency('tdb')
-elif get_option('database') == 'gdbm'
-  database_dep = cc.find_library('gdbm', required : true)
-endif
-
-if get_option('ipv6')
-  cdata.set('HAVE_IPV6', 1)
-endif
-
-if get_option('legacy-database-entry-format')
-  cdata.set('ENABLE_LEGACY_DATABASE_ENTRY_FORMAT', 1)
-endif
-
 atomictest = '''void func() {
   volatile int atomic = 2;
   __sync_bool_compare_and_swap (&atomic, 2, 3);
@@ -234,7 +220,30 @@ ltdl_dep = cc.find_library('ltdl', required : true)
 #        and do we still want to support this at all?
 cdata.set('DISABLE_LIBTOOL_PRELOAD', 1)
 
-sndfile_dep = dependency('sndfile', version : '>= 1.0.20')
+if get_option('database') == 'tdb'
+  database_dep = dependency('tdb')
+elif get_option('database') == 'gdbm'
+  database_dep = cc.find_library('gdbm', required : true)
+endif
+
+if get_option('ipv6')
+  cdata.set('HAVE_IPV6', 1)
+endif
+
+if get_option('legacy-database-entry-format')
+  cdata.set('ENABLE_LEGACY_DATABASE_ENTRY_FORMAT', 1)
+endif
+
+alsa_dep = dependency('alsa', version : '>= 1.0.24', required : get_option('alsa'))
+if alsa_dep.found()
+  cdata.set('HAVE_ALSA', 1)
+  cdata.set('HAVE_ALSA_UCM', 1)
+endif
+
+asyncns_dep = dependency('libasyncns', version : '>= 0.1', required : get_option('asyncns'))
+if asyncns_dep.found()
+  cdata.set('HAVE_LIBASYNCNS', 1)
+endif
 
 dbus_dep = dependency('dbus-1', version : '>= 1.4.12', required : get_option('dbus'))
 if dbus_dep.found()
@@ -261,9 +270,18 @@ if samplerate_dep.found()
   cdata.set('HAVE_LIBSAMPLERATE', 1)
 endif
 
+sndfile_dep = dependency('sndfile', version : '>= 1.0.20')
+
 soxr_dep = dependency('soxr', version : '>= 0.1.1', required : get_option('soxr'))
 if soxr_dep.found()
   cdata.set('HAVE_SOXR', 1)
+endif
+
+systemd_dep = dependency('libsystemd', required : get_option('systemd'))
+if systemd_dep.found()
+  cdata.set('HAVE_SYSTEMD_DAEMON', 1)
+  cdata.set('HAVE_SYSTEMD_LOGIN', 1)
+  cdata.set('HAVE_SYSTEMD_JOURNAL', 1)
 endif
 
 x11_dep = dependency('x11-xcb', required : get_option('x11'))
@@ -273,24 +291,6 @@ if x11_dep.found()
   sm_dep   = dependency('sm',   required : true)
   xtst_dep = dependency('xtst', required : true)
   cdata.set('HAVE_X11', 1)
-endif
-
-alsa_dep = dependency('alsa', version : '>= 1.0.24', required : get_option('alsa'))
-if alsa_dep.found()
-  cdata.set('HAVE_ALSA', 1)
-  cdata.set('HAVE_ALSA_UCM', 1)
-endif
-
-asyncns_dep = dependency('libasyncns', version : '>= 0.1', required : get_option('asyncns'))
-if asyncns_dep.found()
-  cdata.set('HAVE_LIBASYNCNS', 1)
-endif
-
-systemd_dep = dependency('libsystemd', required : get_option('systemd'))
-if systemd_dep.found()
-  cdata.set('HAVE_SYSTEMD_DAEMON', 1)
-  cdata.set('HAVE_SYSTEMD_LOGIN', 1)
-  cdata.set('HAVE_SYSTEMD_JOURNAL', 1)
 endif
 
 # FIXME: support ORC
