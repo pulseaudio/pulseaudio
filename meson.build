@@ -252,6 +252,11 @@ if gtk_dep.found()
   cdata.set('HAVE_GTK', 1)
 endif
 
+soxr_dep = dependency('soxr', version : '>= 0.1.1', required : get_option('soxr'))
+if soxr_dep.found()
+  cdata.set('HAVE_SOXR', 1)
+endif
+
 x11_dep = dependency('x11-xcb', required : get_option('x11'))
 if x11_dep.found()
   xcb_dep  = dependency('xcb',  required : true, version : '>= 1.6')

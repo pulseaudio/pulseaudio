@@ -126,6 +126,10 @@ if dbus_dep.found()
   ]
 endif
 
+if soxr_dep.found()
+  libpulsecore_sources += ['resampler/soxr.c']
+endif
+
 if speex_dep.found()
   libpulsecore_sources += ['resampler/speex.c']
 endif
@@ -163,7 +167,7 @@ libpulsecore = shared_library('pulsecore-' + pa_version_major_minor,
   c_args : [pa_c_args, server_c_args],
   install : true,
   link_with : libpulsecore_simd_lib,
-  dependencies : [libm_dep, libpulsecommon_dep, libpulse_dep, ltdl_dep, shm_dep, sndfile_dep, database_dep, dbus_dep, speex_dep, x11_dep],
+  dependencies : [libm_dep, libpulsecommon_dep, libpulse_dep, ltdl_dep, shm_dep, sndfile_dep, database_dep, dbus_dep, soxr_dep, speex_dep, x11_dep],
   implicit_include_directories : false)
 
 libpulsecore_dep = declare_dependency(link_with: libpulsecore)

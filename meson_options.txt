@@ -65,6 +65,9 @@ option('lirc',
 option('openssl',
        type : 'feature', value : 'auto',
        description : 'Optional OpenSSL support (used for Airtunes/RAOP)')
+option('soxr',
+       type : 'feature', value : 'auto',
+       description : 'Optional SoXR support (resampling)')
 option('speex',
        type : 'feature', value : 'auto',
        description : 'Optional Speex support (resampling, AEC)')
