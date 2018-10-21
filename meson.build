@@ -252,6 +252,11 @@ if gtk_dep.found()
   cdata.set('HAVE_GTK', 1)
 endif
 
+samplerate_dep = dependency('samplerate', version : '>= 0.1.0', required : get_option('samplerate'))
+if samplerate_dep.found()
+  cdata.set('HAVE_LIBSAMPLERATE', 1)
+endif
+
 soxr_dep = dependency('soxr', version : '>= 0.1.1', required : get_option('soxr'))
 if soxr_dep.found()
   cdata.set('HAVE_SOXR', 1)
