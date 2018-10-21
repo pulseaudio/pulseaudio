@@ -21,6 +21,9 @@ config.rpath
 config.status
 config.sub
 configure
+cscope.out
+cscope.in.out
+cscope.po.out
 pulse-daemon.log
 depcomp
 install-sh
