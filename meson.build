@@ -213,6 +213,10 @@ if get_option('ipv6')
   cdata.set('HAVE_IPV6', 1)
 endif
 
+if get_option('legacy-database-entry-format')
+  cdata.set('ENABLE_LEGACY_DATABASE_ENTRY_FORMAT', 1)
+endif
+
 atomictest = '''void func() {
   volatile int atomic = 2;
   __sync_bool_compare_and_swap (&atomic, 2, 3);
