@@ -84,6 +84,22 @@ cdata.set_quoted('PA_ALSA_PATHS_DIR', join_paths(datadir, 'pulseaudio', 'alsa-mi
 cdata.set_quoted('PA_ALSA_PROFILE_SETS_DIR', join_paths(datadir, 'pulseaudio', 'alsa-mixer', 'profile-sets'))
 cdata.set_quoted('DESKTOPFILEDIR', join_paths(datadir, 'applications'))
 
+# Platform specifics
+# FIXME: This was not tested. Maybe some flags should better be CFLAGS,
+# rather than ending up in the config.h file?
+if host_machine.system() == 'darwin'
+  cdata.set('OS_IS_DARWIN', 1)
+  cdata.set('_DARWIN_C_SOURCE', '200112L') # Needed to get NSIG on Mac OS
+elif host_machine.system() == 'windows'
+  cdata.set('OS_IS_WIN32', 1)
+  cdata.set('WIN32_LEAN_AND_MEAN', 1) # Needed to avoid including unnecessary headers on Windows
+#elif host_machine.system() == 'solaris'
+#  # Apparently meson has no solaris support?
+#  # Needed to get declarations for msg_control and msg_controllen on Solaris
+#  cdata.set('_XOPEN_SOURCE', 600)
+#  cdata.set('__EXTENSIONS__', 1)
+endif
+
 # Headers
 
 check_headers = [
