@@ -73,7 +73,7 @@ default_conf = configuration_data()
 default_conf.merge_from(cdata)
 default_conf.set('PA_BINARY', cdata.get_unquoted('PA_BINARY'))
 default_conf.set('PA_SOEXT', cdata.get_unquoted('PA_SOEXT'))
-# TODO: OS_IS_WIN32, HAVE_MKFIFO, HAVE_AF_UNIX
+# TODO: OS_IS_WIN32
 
 default_template_file = configure_file(
   input : 'default.pa.in',
