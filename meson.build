@@ -45,6 +45,7 @@ localstatedir = join_paths(prefix, get_option('localstatedir'))
 sysconfdir = join_paths(prefix, get_option('sysconfdir'))
 
 pulselibexecdir = join_paths(libexecdir, 'pulse')
+pulsesysconfdir = join_paths(sysconfdir, 'pulse')
 
 pulsedspdir = get_option('pulsedspdir')
 if pulsedspdir == ''
@@ -69,7 +70,7 @@ cdata.set_quoted('PA_MACHINE_ID_FALLBACK', join_paths(localstatedir, 'lib', 'dbu
 cdata.set_quoted('PA_SRCDIR', join_paths(meson.current_source_dir(), 'src'))
 cdata.set_quoted('PA_BUILDDIR', meson.current_build_dir())
 cdata.set_quoted('PA_SOEXT', '.so')
-cdata.set_quoted('PA_DEFAULT_CONFIG_DIR', join_paths(sysconfdir, 'pulse'))
+cdata.set_quoted('PA_DEFAULT_CONFIG_DIR', pulsesysconfdir)
 cdata.set_quoted('PA_BINARY', join_paths(bindir, 'pulseaudio'))
 cdata.set_quoted('PA_SYSTEM_RUNTIME_PATH', join_paths(localstatedir, 'run', 'pulse'))
 cdata.set_quoted('PA_SYSTEM_CONFIG_PATH', join_paths(localstatedir, 'lib', 'pulse'))

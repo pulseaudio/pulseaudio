@@ -45,3 +45,67 @@ if x11_dep.found()
     install_dir : bindir,
   )
 endif
+
+# Configuration files
+
+m4 = find_program('m4', required: true)
+
+daemon_conf = configuration_data()
+daemon_conf.merge_from(cdata)
+daemon_conf.set('PA_DEFAULT_CONFIG_DIR', cdata.get_unquoted('PA_DEFAULT_CONFIG_DIR'))
+
+daemon_template_file = configure_file(
+  input : 'daemon.conf.in',
+  output : 'daemon.conf.tmp',
+  configuration : daemon_conf,
+)
+
+custom_target('daemon.conf',
+  input : daemon_template_file,
+  output : 'daemon.conf',
+  capture : true,
+  command : [m4, '@INPUT@'],
+  install : true,
+  install_dir : pulsesysconfdir,
+)
+
+default_conf = configuration_data()
+default_conf.merge_from(cdata)
+default_conf.set('PA_BINARY', cdata.get_unquoted('PA_BINARY'))
+default_conf.set('PA_SOEXT', cdata.get_unquoted('PA_SOEXT'))
+# TODO: OS_IS_WIN32, HAVE_MKFIFO, HAVE_AF_UNIX
+
+default_template_file = configure_file(
+  input : 'default.pa.in',
+  output : 'default.pa.tmp',
+  configuration : default_conf,
+)
+
+custom_target('default.pa',
+  input : default_template_file,
+  output : 'default.pa',
+  capture : true,
+  command : [m4, '@INPUT@'],
+  install : true,
+  install_dir : pulsesysconfdir,
+)
+
+system_conf = configuration_data()
+system_conf.merge_from(cdata)
+system_conf.set('PA_BINARY', cdata.get_unquoted('PA_BINARY'))
+system_conf.set('PA_SOEXT', cdata.get_unquoted('PA_SOEXT'))
+
+system_template_file = configure_file(
+  input : 'system.pa.in',
+  output : 'system.pa.tmp',
+  configuration : system_conf,
+)
+
+custom_target('system.pa',
+  input : system_template_file,
+  output : 'system.pa',
+  capture : true,
+  command : [m4, '@INPUT@'],
+  install : true,
+  install_dir : pulsesysconfdir,
+)

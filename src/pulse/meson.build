@@ -90,3 +90,15 @@ if glib_dep.found()
     install : true,
   )
 endif
+
+# Configuration files
+
+client_conf = configuration_data()
+client_conf.set('PA_BINARY', cdata.get_unquoted('PA_BINARY'))
+
+client_conf_file = configure_file(
+  input : 'client.conf.in',
+  output : 'client.conf',
+  configuration : client_conf,
+  install_dir : pulsesysconfdir,
+)
