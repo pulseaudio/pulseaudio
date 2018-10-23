@@ -756,7 +756,7 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     pa_strbuf_printf(s, "log-target = %s\n", pa_strempty(log_target));
     pa_strbuf_printf(s, "log-level = %s\n", log_level_to_string[c->log_level]);
     pa_strbuf_printf(s, "resample-method = %s\n", pa_resample_method_to_string(c->resample_method));
-    pa_strbuf_printf(s, "avoid-resampling = %s\n", pa_yes_no(!c->avoid_resampling));
+    pa_strbuf_printf(s, "avoid-resampling = %s\n", pa_yes_no(c->avoid_resampling));
     pa_strbuf_printf(s, "enable-remixing = %s\n", pa_yes_no(!c->disable_remixing));
     pa_strbuf_printf(s, "remixing-use-all-sink-channels = %s\n", pa_yes_no(c->remixing_use_all_sink_channels));
     pa_strbuf_printf(s, "enable-lfe-remixing = %s\n", pa_yes_no(!c->disable_lfe_remixing));
