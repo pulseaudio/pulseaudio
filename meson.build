@@ -416,6 +416,10 @@ if webrtc_dep.found()
   cdata.set('HAVE_WEBRTC', 1)
 endif
 
+# Test dependencies
+
+check_dep = dependency('check', version : '>= 0.9.10', required : get_option('tests'))
+
 # Now generate config.h from everything above
 configure_file(output : 'config.h', configuration : cdata)
 
@@ -483,7 +487,7 @@ summary = [
   'Enable SoXR (resampler):       @0@'.format(soxr_dep.found()),
   'Enable WebRTC echo canceller:  @0@'.format(webrtc_dep.found()),
 #  'Enable gcov coverage:          @0@'.format(${ENABLE_GCOV}),
-#  'Enable unit tests:             @0@'.format(${ENABLE_TESTS}),
+  'Enable unit tests:             @0@'.format(get_option('tests')),
   '',
   'Database:                      @0@'.format(get_option('database')),
   'Legacy Database Entry Support: @0@'.format(get_option('legacy-database-entry-format')),

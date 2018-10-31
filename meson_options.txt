@@ -1,3 +1,7 @@
+option('tests',
+       type : 'boolean',
+       description : 'Enable unit tests')
+
 option('system_user',
         type : 'string', value : 'pulse',
         description : 'User for running the PulseAudio daemon as a system-wide instance (pulse)')

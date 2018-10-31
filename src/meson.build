@@ -192,4 +192,7 @@ subdir('pulse')
 subdir('pulsecore')
 subdir('daemon')
 subdir('modules')
+if get_option('tests')
+  subdir('tests')
+endif
 subdir('utils')
