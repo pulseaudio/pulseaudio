@@ -89,6 +89,8 @@ if glib_dep.found()
     dependencies : [libpulse_dep, libpulsecommon_dep, glib_dep],
     install : true,
   )
+
+  libpulse_mainloop_glib_dep = declare_dependency(link_with: libpulse_mainloop_glib)
 endif
 
 # Configuration files
