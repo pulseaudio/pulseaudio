@@ -132,8 +132,19 @@ norun_tests = [
     [ check_dep, libpulse_dep, libpulsecommon_dep, libpulsecore_dep ] ],
   [ 'stripnul', 'stripnul.c',
     [ libpulse_dep, libpulsecommon_dep, libpulsecore_dep ] ],
-# TODO
-#  [ 'echo-cancel-test'],
+]
+
+# echo-cancel test is a bit tedious to handle
+echo_cancel_test_sources = []
+foreach s : module_echo_cancel_sources
+  echo_cancel_test_sources += '../modules/' + s
+endforeach
+
+norun_tests += [
+  [ 'echo-cancel-test', echo_cancel_test_sources,
+    module_echo_cancel_deps + [ libpulse_dep, libpulsecore_dep ],
+    module_echo_cancel_libs,
+    module_echo_cancel_flags + server_c_args + [ '-DPA_MODULE_NAME=module_echo_cancel', '-DECHO_CANCEL_TEST=1' ] ]
 ]
 
 if cc.has_header_symbol('signal.h', 'SIGXCPU')
