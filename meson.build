@@ -141,6 +141,7 @@ check_headers = [
   'sys/resource.h',
   'sys/select.h',
   'sys/socket.h',
+  'sys/un.h',
   'sys/wait.h',
   'valgrind/memcheck.h',
   'xlocale.h',
@@ -156,11 +157,6 @@ endforeach
 # FIXME: move this to the above set
 if cc.has_header('pthread.h')
   cdata.set('HAVE_PTHREAD', 1)
-endif
-
-# FIXME: move this to the above set
-if cc.has_header('sys/un.h')
-  cdata.set('HAVE_AF_UNIX', 1)
 endif
 
 # Functions
