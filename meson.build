@@ -28,6 +28,10 @@ soversion = 0
 # current = minor * 100 + micro
 libversion = '@0@.@1@.0'.format(soversion, pa_version_minor.to_int() * 100 + pa_version_micro.to_int())
 
+# A simplified, synchronous, ABI-stable interface for client applications.
+# For the version x:y:z always will hold y=z.
+libpulse_simple_version = '1.1.1'
+
 # The ABI-stable GLib adapter for client applications.
 # For the version x:y:z always will hold y=z.
 libpulse_mainloop_glib_version = '0.5.0'
