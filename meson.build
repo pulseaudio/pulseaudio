@@ -205,11 +205,6 @@ foreach f : check_functions
   endif
 endforeach
 
-shm_dep = cc.find_library('rt', required : false)
-if shm_dep.found()
-  cdata.set('HAVE_SHM_OPEN', 1)
-endif
-
 if cc.has_function('SYS_memfd_create', prefix : '#include <sys/syscall.h>')
   cdata.set('HAVE_MEMFD', 1)
 endif
@@ -248,6 +243,11 @@ cdata.set('MESON_BUILD', 1)
 libm_dep = cc.find_library('m', required : true)
 thread_dep = dependency('threads')
 cap_dep = cc.find_library('cap', required : false)
+
+shm_dep = cc.find_library('rt', required : false)
+if shm_dep.found()
+  cdata.set('HAVE_SHM_OPEN', 1)
+endif
 
 atomictest = '''void func() {
   volatile int atomic = 2;
