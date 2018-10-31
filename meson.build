@@ -130,6 +130,7 @@ check_headers = [
   'regex.h',
   'sched.h',
   'sys/capability.h',
+  'sys/eventfd.h',
   'sys/ioctl.h',
   'sys/mman.h',
   'sys/prctl.h',
