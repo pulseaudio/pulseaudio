@@ -16,7 +16,7 @@ option('database',
         choices : [ 'gdbm', 'tdb', 'simple' ],
         description : 'Database backend')
 option('legacy-database-entry-format',
-       type : 'boolean', value : 'true',
+       type : 'boolean',
        description : 'Try to load legacy (< 1.0) database files (card, device and volume restore)')
 option('pulsedspdir',
        type : 'string',
