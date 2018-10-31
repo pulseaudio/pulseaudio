@@ -214,6 +214,19 @@ if cc.has_function('SYS_memfd_create', prefix : '#include <sys/syscall.h>')
   cdata.set('HAVE_MEMFD', 1)
 endif
 
+# Symbols
+
+if cc.has_header_symbol('signal.h', 'SIGXCPU')
+  cdata.set('HAVE_SIGXCPU', 1)
+endif
+
+if not cc.has_header_symbol('netinet/in.h', 'INADDR_NONE')
+  if not cc.has_header_symbol('winsock2.h', 'INADDR_NONE')
+    # Define INADDR_NONE if not found (Solaris)
+    cdata.set('INADDR_NONE', '0xffffffff')
+  endif
+endif
+
 # Types
 
 # FIXME: do we ever care about gid_t not being defined / smaller than an int?
