@@ -24,6 +24,7 @@ build-meson:
     - cd build
     - ninja
     - ninja test
+    - ninja test-daemon
   artifacts:
     paths:
       - build/
