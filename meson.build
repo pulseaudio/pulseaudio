@@ -44,6 +44,7 @@ assert(prefix.startswith('/'), 'Prefix is not absolute: "@0@"'.format(prefix))
 bindir = join_paths(prefix, get_option('bindir'))
 libdir = join_paths(prefix, get_option('libdir'))
 libexecdir = join_paths(prefix, get_option('libexecdir'))
+mandir = join_paths(prefix, get_option('mandir'))
 datadir = join_paths(prefix, get_option('datadir'))
 localstatedir = join_paths(prefix, get_option('localstatedir'))
 sysconfdir = join_paths(prefix, get_option('sysconfdir'))
@@ -453,6 +454,7 @@ summary = [
   'bindir:                        @0@'.format(bindir),
   'libdir:                        @0@'.format(libdir),
   'libexecdir:                    @0@'.format(libexecdir),
+  'mandir:                        @0@'.format(mandir),
   'datadir:                       @0@'.format(datadir),
   'sysconfdir:                    @0@'.format(sysconfdir),
   'localstatedir:                 @0@'.format(localstatedir),

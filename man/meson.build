@@ -42,7 +42,7 @@ foreach tuple : manpages
     configuration : man_data,
   )
 
-  mandirn = join_paths(get_option('mandir'), 'man' + section)
+  mandirn = join_paths(mandir, 'man' + section)
 
   custom_target(
     man + '-target',
