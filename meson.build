@@ -434,7 +434,9 @@ check_dep = dependency('check', version : '>= 0.9.10', required : get_option('te
 # Now generate config.h from everything above
 configure_file(output : 'config.h', configuration : cdata)
 
-subdir('man')
+if get_option('man')
+  subdir('man')
+endif
 subdir('shell-completion/bash')
 subdir('shell-completion/zsh')
 subdir('src')
@@ -500,6 +502,7 @@ summary = [
   'Enable SoXR (resampler):       @0@'.format(soxr_dep.found()),
   'Enable WebRTC echo canceller:  @0@'.format(webrtc_dep.found()),
 #  'Enable gcov coverage:          @0@'.format(${ENABLE_GCOV}),
+  'Enable man pages:              @0@'.format(get_option('man')),
   'Enable unit tests:             @0@'.format(get_option('tests')),
   '',
   'Database:                      @0@'.format(get_option('database')),

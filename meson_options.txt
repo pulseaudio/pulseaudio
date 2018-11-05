@@ -1,3 +1,6 @@
+option('man',
+       type : 'boolean',
+       description : 'Enable building and installation of man pages')
 option('tests',
        type : 'boolean',
        description : 'Enable unit tests')

@@ -20,17 +20,14 @@ manpages = [
 # FIXME: Add esdcompat if HAVE_ESOUND
 #manpages += ['esdcompat', '1'],
 
-# FIXME: This should be conditional
-want_man = true
-
 man_data = configuration_data()
 man_data.set('PACKAGE_URL', 'http://pulseaudio.org/')
 man_data.set('PACKAGE_BUGREPORT', 'pulseaudio-discuss (at) lists (dot) freedesktop (dot) org')
 man_data.set('PA_DEFAULT_CONFIG_DIR', cdata.get_unquoted('PA_DEFAULT_CONFIG_DIR'))
 
-perl = find_program('perl', required: want_man == true)
+perl = find_program('perl', required: true)
 xmltoman_cmd = [perl, join_paths(meson.current_source_dir(), 'xmltoman')]
-xmllint = find_program('xmllint', required: want_man == true)
+xmllint = find_program('xmllint', required: false)
 
 foreach tuple : manpages
   stem = tuple[0]
@@ -55,7 +52,7 @@ foreach tuple : manpages
     output : man,
     capture : true,
     command : xmltoman_cmd + ['@INPUT@'],
-    install : want_man,
+    install : true,
     install_dir : mandirn,
   )
 
@@ -64,7 +61,7 @@ foreach tuple : manpages
       alias,
       output : alias,
       command : ['ln', '-fs', man, '@OUTPUT@'],
-      install : want_man,
+      install : true,
       install_dir : mandirn,
     )
   endforeach
