@@ -1,5 +1,3 @@
-# TODO How are symlinks installed by meson?
-#      We might need meson.add_install_script()
 
 # man page name, section, [aliases]
 manpages = [
@@ -57,13 +55,8 @@ foreach tuple : manpages
   )
 
   foreach alias : aliases
-    link = custom_target(
-      alias,
-      output : alias,
-      command : ['ln', '-fs', man, '@OUTPUT@'],
-      install : true,
-      install_dir : mandirn,
-    )
+    dst = join_paths(mandirn, alias)
+    meson.add_install_script('ln', '-fs', man, dst)
   endforeach
 
   if xmllint.found()
