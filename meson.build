@@ -63,6 +63,21 @@ if pulsedspdir == ''
   join_paths(libdir, 'pulseaudio')
 endif
 
+bashcompletiondir = get_option('bashcompletiondir')
+if bashcompletiondir == ''
+  bash_completion_dep = dependency('bash-completion', required : false)
+  if bash_completion_dep.found()
+    bashcompletiondir = bash_completion_dep.get_pkgconfig_variable('completionsdir')
+  else
+    bashcompletiondir = join_paths(datadir, 'bash-completion', 'completions')
+  endif
+endif
+
+zshcompletiondir = get_option('zshcompletiondir')
+if zshcompletiondir == ''
+  zshcompletiondir = join_paths(datadir, 'zsh', 'site-functions')
+endif
+
 # Configuration data
 
 cc = meson.get_compiler('c')
@@ -420,6 +435,8 @@ check_dep = dependency('check', version : '>= 0.9.10', required : get_option('te
 configure_file(output : 'config.h', configuration : cdata)
 
 subdir('man')
+subdir('shell-completion/bash')
+subdir('shell-completion/zsh')
 subdir('src')
 
 ############################################################
@@ -441,8 +458,8 @@ summary = [
   'System Runtime Path:           @0@'.format(cdata.get_unquoted('PA_SYSTEM_RUNTIME_PATH')),
   'System State Path:             @0@'.format(cdata.get_unquoted('PA_SYSTEM_STATE_PATH')),
   'System Config Path:            @0@'.format(cdata.get_unquoted('PA_SYSTEM_CONFIG_PATH')),
-#  'Zsh completions directory:     @0@'.format(${zshcompletiondir}),
-#  'Bash completions directory:    @0@'.format(${bashcompletiondir}),
+  'Bash completions directory:    @0@'.format(bashcompletiondir),
+  'Zsh completions directory:     @0@'.format(zshcompletiondir),
   'Compiler:                      @0@ @1@'.format(cc.get_id(), cc.version()),
 #  'CFLAGS:                        @0@'.format(${CFLAGS}),
 #  'CPPFLAGS:                      @0@'.format(${CPPFLAGS}),

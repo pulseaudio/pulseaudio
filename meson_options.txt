@@ -24,6 +24,12 @@ option('pulsedspdir',
 option('modlibexecdir',
        type : 'string',
        description : 'Specify location where modules will be installed')
+option('bashcompletiondir',
+       type : 'string',
+       description : 'Directory for bash completion files')
+option('zshcompletiondir',
+       type : 'string',
+       description : 'Zsh completions directory')
 
 # Optional features
 
