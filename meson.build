@@ -64,6 +64,8 @@ if pulsedspdir == ''
   join_paths(libdir, 'pulseaudio')
 endif
 
+vapidir = join_paths(datadir, 'vala', 'vapi')
+
 bashcompletiondir = get_option('bashcompletiondir')
 if bashcompletiondir == ''
   bash_completion_dep = dependency('bash-completion', required : false)
@@ -441,6 +443,7 @@ endif
 subdir('shell-completion/bash')
 subdir('shell-completion/zsh')
 subdir('src')
+subdir('vala')
 
 ############################################################
 
