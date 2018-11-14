@@ -100,6 +100,13 @@ static bool sample_spec_set = false;
 static pa_channel_map channel_map;
 static bool channel_map_set = false;
 
+/* If the encoding is set, we assume the pa_sample_spec will not be used, and
+ * that the pa_format_info will be. */
+static pa_encoding_t encoding;
+static bool encoding_set = false;
+
+pa_format_info *formats[1] = { NULL, };
+
 static sf_count_t (*readf_function)(SNDFILE *_sndfile, void *ptr, sf_count_t frames) = NULL;
 static sf_count_t (*writef_function)(SNDFILE *_sndfile, const void *ptr, sf_count_t frames) = NULL;
 
@@ -319,7 +326,7 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
 
             if (verbose) {
                 const pa_buffer_attr *a;
-                char cmt[PA_CHANNEL_MAP_SNPRINT_MAX], sst[PA_SAMPLE_SPEC_SNPRINT_MAX];
+                char cmt[PA_CHANNEL_MAP_SNPRINT_MAX], sst[PA_SAMPLE_SPEC_SNPRINT_MAX], fst[PA_FORMAT_INFO_SNPRINT_MAX];
 
                 pa_log(_("Stream successfully created."));
 
@@ -335,9 +342,14 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
                     }
                 }
 
-                pa_log(_("Using sample spec '%s', channel map '%s'."),
-                        pa_sample_spec_snprint(sst, sizeof(sst), pa_stream_get_sample_spec(s)),
-                        pa_channel_map_snprint(cmt, sizeof(cmt), pa_stream_get_channel_map(s)));
+                if (!encoding_set) {
+                    pa_log(_("Using sample spec '%s', channel map '%s'."),
+                            pa_sample_spec_snprint(sst, sizeof(sst), pa_stream_get_sample_spec(s)),
+                            pa_channel_map_snprint(cmt, sizeof(cmt), pa_stream_get_channel_map(s)));
+                } else {
+                    pa_log(_("Using format '%s'."),
+                            pa_format_info_snprint(fst, sizeof(fst), pa_stream_get_format_info(s)));
+                }
 
                 pa_log(_("Connected to device %s (index: %u, suspended: %s)."),
                         pa_stream_get_device_name(s),
@@ -449,7 +461,12 @@ static void context_state_callback(pa_context *c, void *userdata) {
             if (verbose)
                 pa_log(_("Connection established.%s"), CLEAR_LINE);
 
-            if (!(stream = pa_stream_new_with_proplist(c, NULL, &sample_spec, &channel_map, proplist))) {
+            if (!encoding_set)
+                stream = pa_stream_new_with_proplist(c, NULL, &sample_spec, &channel_map, proplist);
+            else
+                stream = pa_stream_new_extended(c, NULL, formats, 1, proplist);
+
+            if (!stream) {
                 pa_log(_("pa_stream_new() failed: %s"), pa_strerror(pa_context_errno(c)));
                 goto fail;
             }
@@ -692,6 +709,7 @@ static void help(const char *argv0) {
              "      --channels=CHANNELS               The number of channels, 1 for mono, 2 for stereo\n"
              "                                        (defaults to 2)\n"
              "      --channel-map=CHANNELMAP          Channel map to use instead of the default\n"
+             "      --encoding=ENCODING               Encoding to use for non-PCM audio\n"
              "      --fix-format                      Take the sample format from the sink/source the stream is\n"
              "                                        being connected to.\n"
              "      --fix-rate                        Take the sampling rate from the sink/source the stream is\n"
@@ -721,6 +739,7 @@ enum {
     ARG_SAMPLEFORMAT,
     ARG_CHANNELS,
     ARG_CHANNELMAP,
+    ARG_ENCODING,
     ARG_FIX_FORMAT,
     ARG_FIX_RATE,
     ARG_FIX_CHANNELS,
@@ -762,6 +781,7 @@ int main(int argc, char *argv[]) {
         {"format",       1, NULL, ARG_SAMPLEFORMAT},
         {"channels",     1, NULL, ARG_CHANNELS},
         {"channel-map",  1, NULL, ARG_CHANNELMAP},
+        {"encoding",     1, NULL, ARG_ENCODING},
         {"fix-format",   0, NULL, ARG_FIX_FORMAT},
         {"fix-rate",     0, NULL, ARG_FIX_RATE},
         {"fix-channels", 0, NULL, ARG_FIX_CHANNELS},
@@ -908,6 +928,20 @@ int main(int argc, char *argv[]) {
                 channel_map_set = true;
                 break;
 
+            case ARG_ENCODING:
+                if ((encoding = pa_encoding_from_string(optarg)) == PA_ENCODING_INVALID) {
+                    pa_log(_("Invalid encoding '%s'"), optarg);
+                    goto quit;
+                }
+
+                if (encoding == PA_ENCODING_PCM) {
+                    pa_log(_("The encoding parameter is only supported with non-PCM formats."));
+                    goto quit;
+                }
+
+                encoding_set = true;
+                break;
+
             case ARG_FIX_CHANNELS:
                 flags |= PA_STREAM_FIX_CHANNELS;
                 break;
@@ -1007,7 +1041,30 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (!pa_sample_spec_valid(&sample_spec)) {
+    if (encoding_set && !raw) {
+        pa_log(_("Cannot set encoding for non-raw mode"));
+        goto quit;
+    }
+
+    /* The capture path uses the sample spec to know how much to read, so let's
+     * not support that for now. */
+    if (encoding_set && mode != PLAYBACK) {
+        pa_log(_("Cannot set encoding for capture"));
+        goto quit;
+    }
+
+    if (encoding_set) {
+        formats[0] = pa_format_info_new();
+
+        formats[0]->encoding = encoding;
+        pa_format_info_set_rate(formats[0], sample_spec.rate);
+        pa_format_info_set_channels(formats[0], sample_spec.channels);
+
+        if (!pa_format_info_valid(formats[0])) {
+            pa_log(_("Invalid format specification."));
+            goto quit;
+        }
+    } else if (!pa_sample_spec_valid(&sample_spec)) {
         pa_log(_("Invalid sample specification"));
         goto quit;
     }
@@ -1120,12 +1177,20 @@ int main(int argc, char *argv[]) {
     }
 
     if (verbose) {
-        char tss[PA_SAMPLE_SPEC_SNPRINT_MAX], tcm[PA_CHANNEL_MAP_SNPRINT_MAX];
+        if (!encoding_set) {
+            char tss[PA_SAMPLE_SPEC_SNPRINT_MAX], tcm[PA_CHANNEL_MAP_SNPRINT_MAX];
 
-        pa_log(_("Opening a %s stream with sample specification '%s' and channel map '%s'."),
-                mode == RECORD ? _("recording") : _("playback"),
-                pa_sample_spec_snprint(tss, sizeof(tss), &sample_spec),
-                pa_channel_map_snprint(tcm, sizeof(tcm), &channel_map));
+            pa_log(_("Opening a %s stream with sample specification '%s' and channel map '%s'."),
+                    mode == RECORD ? _("recording") : _("playback"),
+                    pa_sample_spec_snprint(tss, sizeof(tss), &sample_spec),
+                    pa_channel_map_snprint(tcm, sizeof(tcm), &channel_map));
+        } else {
+            char tsf[PA_FORMAT_INFO_SNPRINT_MAX];
+
+            pa_log(_("Opening a %s stream with format specification '%s'."),
+                    mode == RECORD ? _("recording") : _("playback"),
+                    pa_format_info_snprint(tsf, sizeof(tsf), formats[0]));
+        }
     }
 
     /* Fill in client name if none was set */
@@ -1152,7 +1217,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (raw && mode == PLAYBACK)
+    if (raw && !encoding_set && mode == PLAYBACK)
         partialframe_buf = pa_xmalloc(pa_frame_size(&sample_spec));
 
     /* Set up a new main loop */
