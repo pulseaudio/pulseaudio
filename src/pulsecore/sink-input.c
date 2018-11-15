@@ -417,12 +417,11 @@ int pa_sink_input_new(
 
     if (!(data->flags & PA_SINK_INPUT_VARIABLE_RATE) &&
         !pa_sample_spec_equal(&data->sample_spec, &data->sink->sample_spec)) {
-        /* try to change sink rate. This is done before the FIXATE hook since
+        /* try to change sink format and rate. This is done before the FIXATE hook since
            module-suspend-on-idle can resume a sink */
 
-        pa_log_info("Trying to change sample rate");
-        if (pa_sink_reconfigure(data->sink, &data->sample_spec, pa_sink_input_new_data_is_passthrough(data)) >= 0)
-            pa_log_info("Rate changed to %u Hz", data->sink->sample_spec.rate);
+        pa_log_info("Trying to change sample spec");
+        pa_sink_reconfigure(data->sink, &data->sample_spec, pa_sink_input_new_data_is_passthrough(data));
     }
 
     if (pa_sink_input_new_data_is_passthrough(data) &&
@@ -616,7 +615,7 @@ static void sink_input_set_state(pa_sink_input *i, pa_sink_input_state_t state) 
         if (i->state == PA_SINK_INPUT_CORKED && state == PA_SINK_INPUT_RUNNING && pa_sink_used_by(i->sink) == 0 &&
             !pa_sample_spec_equal(&i->sample_spec, &i->sink->sample_spec)) {
             /* We were uncorked and the sink was not playing anything -- let's try
-             * to update the sample rate to avoid resampling */
+             * to update the sample format and rate to avoid resampling */
             pa_sink_reconfigure(i->sink, &i->sample_spec, pa_sink_input_is_passthrough(i));
         }
 
@@ -1901,13 +1900,12 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, bool save) {
 
     if (!(i->flags & PA_SINK_INPUT_VARIABLE_RATE) &&
         !pa_sample_spec_equal(&i->sample_spec, &dest->sample_spec)) {
-        /* try to change dest sink rate if possible without glitches.
+        /* try to change dest sink format and rate if possible without glitches.
            module-suspend-on-idle resumes destination sink with
            SINK_INPUT_MOVE_FINISH hook */
 
-        pa_log_info("Trying to change sample rate");
-        if (pa_sink_reconfigure(dest, &i->sample_spec, pa_sink_input_is_passthrough(i)) >= 0)
-            pa_log_info("Rate changed to %u Hz", dest->sample_spec.rate);
+        pa_log_info("Trying to change sample spec");
+        pa_sink_reconfigure(dest, &i->sample_spec, pa_sink_input_is_passthrough(i));
     }
 
     if (i->moving)
@@ -1925,7 +1923,7 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, bool save) {
     if (i->state == PA_SINK_INPUT_CORKED)
         i->sink->n_corked++;
 
-    pa_sink_input_update_rate(i);
+    pa_sink_input_update_resampler(i);
 
     pa_sink_update_status(dest);
 
@@ -2264,8 +2262,8 @@ finish:
 
 /* Called from main context */
 /* Updates the sink input's resampler with whatever the current sink requires
- * -- useful when the underlying sink's rate might have changed */
-int pa_sink_input_update_rate(pa_sink_input *i) {
+ * -- useful when the underlying sink's sample spec might have changed */
+int pa_sink_input_update_resampler(pa_sink_input *i) {
     pa_resampler *new_resampler;
     char *memblockq_name;
 

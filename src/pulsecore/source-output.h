@@ -307,7 +307,7 @@ pa_usec_t pa_source_output_set_requested_latency(pa_source_output *o, pa_usec_t 
 void pa_source_output_cork(pa_source_output *o, bool b);
 
 int pa_source_output_set_rate(pa_source_output *o, uint32_t rate);
-int pa_source_output_update_rate(pa_source_output *o);
+int pa_source_output_update_resampler(pa_source_output *o);
 
 size_t pa_source_output_get_max_rewind(pa_source_output *o);
 

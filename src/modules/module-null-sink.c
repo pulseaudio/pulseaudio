@@ -139,11 +139,9 @@ static void sink_update_requested_latency_cb(pa_sink *s) {
     pa_sink_set_max_request_within_thread(s, nbytes);
 }
 
-static int sink_reconfigure_cb(pa_sink *s, pa_sample_spec *spec, bool passthrough) {
+static void sink_reconfigure_cb(pa_sink *s, pa_sample_spec *spec, bool passthrough) {
     /* We don't need to do anything */
     s->sample_spec = *spec;
-
-    return 0;
 }
 
 static bool sink_set_formats_cb(pa_sink *s, pa_idxset *formats) {

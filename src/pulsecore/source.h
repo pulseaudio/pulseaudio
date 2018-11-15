@@ -225,7 +225,7 @@ struct pa_source {
 
     /* Called whenever device parameters need to be changed. Called from
      * main thread. */
-    int (*reconfigure)(pa_source *s, pa_sample_spec *spec, bool passthrough);
+    void (*reconfigure)(pa_source *s, pa_sample_spec *spec, bool passthrough);
 
     /* Contains copies of the above data so that the real-time worker
      * thread can work without access locking */
@@ -416,7 +416,7 @@ bool pa_source_update_proplist(pa_source *s, pa_update_mode_t mode, pa_proplist 
 
 int pa_source_set_port(pa_source *s, const char *name, bool save);
 
-int pa_source_reconfigure(pa_source *s, pa_sample_spec *spec, bool passthrough);
+void pa_source_reconfigure(pa_source *s, pa_sample_spec *spec, bool passthrough);
 
 unsigned pa_source_linked_by(pa_source *s); /* Number of connected streams */
 unsigned pa_source_used_by(pa_source *s); /* Number of connected streams that are not corked */
@@ -441,6 +441,9 @@ pa_idxset* pa_source_get_formats(pa_source *s);
 
 bool pa_source_check_format(pa_source *s, pa_format_info *f);
 pa_idxset* pa_source_check_formats(pa_source *s, pa_idxset *in_formats);
+
+void pa_source_set_sample_format(pa_source *s, pa_sample_format_t format);
+void pa_source_set_sample_rate(pa_source *s, uint32_t rate);
 
 /*** To be called exclusively by the source driver, from IO context */
 

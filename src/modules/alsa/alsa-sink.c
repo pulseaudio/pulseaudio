@@ -111,13 +111,22 @@ struct userdata {
 
     pa_cvolume hardware_volume;
 
+    pa_sample_spec verified_sample_spec;
     pa_sample_format_t *supported_formats;
     unsigned int *supported_rates;
+    struct {
+        size_t fragment_size;
+        size_t nfrags;
+        size_t tsched_size;
+        size_t tsched_watermark;
+        size_t rewind_safeguard;
+    } initial_info;
 
     size_t
         frame_size,
         fragment_size,
         hwbuf_size,
+        tsched_size,
         tsched_watermark,
         tsched_watermark_ref,
         hwbuf_unused,
@@ -1081,13 +1090,36 @@ static void reset_watermark(struct userdata *u, size_t tsched_watermark, pa_samp
                 (double) u->tsched_watermark_usec / PA_USEC_PER_MSEC);
 }
 
+/* Called from IO Context on unsuspend */
+static void update_size(struct userdata *u, pa_sample_spec *ss) {
+    pa_assert(u);
+    pa_assert(ss);
+
+    u->frame_size = pa_frame_size(ss);
+    u->frames_per_block = pa_mempool_block_size_max(u->core->mempool) / u->frame_size;
+
+    /* use initial values including module arguments */
+    u->fragment_size = u->initial_info.fragment_size;
+    u->hwbuf_size = u->initial_info.nfrags * u->fragment_size;
+    u->tsched_size = u->initial_info.tsched_size;
+    u->tsched_watermark = u->initial_info.tsched_watermark;
+    u->rewind_safeguard = u->initial_info.rewind_safeguard;
+
+    u->tsched_watermark_ref = u->tsched_watermark;
+
+    pa_log_info("Updated frame_size %zu, frames_per_block %lu, fragment_size %zu, hwbuf_size %zu, tsched(size %zu, watermark %zu), rewind_safeguard %zu",
+                u->frame_size, (unsigned long) u->frames_per_block, u->fragment_size, u->hwbuf_size, u->tsched_size, u->tsched_watermark, u->rewind_safeguard);
+}
+
 /* Called from IO context */
 static int unsuspend(struct userdata *u) {
     pa_sample_spec ss;
     int err;
     bool b, d;
-    snd_pcm_uframes_t period_size, buffer_size;
+    snd_pcm_uframes_t period_frames, buffer_frames;
+    snd_pcm_uframes_t tsched_frames = 0;
     char *device_name = NULL;
+    bool frame_size_changed = false;
 
     pa_assert(u);
     pa_assert(!u->pcm_handle);
@@ -1111,13 +1143,19 @@ static int unsuspend(struct userdata *u) {
         goto fail;
     }
 
+    if (pa_frame_size(&u->sink->sample_spec) != u->frame_size) {
+        update_size(u, &u->sink->sample_spec);
+        tsched_frames = u->tsched_size / u->frame_size;
+        frame_size_changed = true;
+    }
+
     ss = u->sink->sample_spec;
-    period_size = u->fragment_size / u->frame_size;
-    buffer_size = u->hwbuf_size / u->frame_size;
+    period_frames = u->fragment_size / u->frame_size;
+    buffer_frames = u->hwbuf_size / u->frame_size;
     b = u->use_mmap;
     d = u->use_tsched;
 
-    if ((err = pa_alsa_set_hw_params(u->pcm_handle, &ss, &period_size, &buffer_size, 0, &b, &d, true)) < 0) {
+    if ((err = pa_alsa_set_hw_params(u->pcm_handle, &ss, &period_frames, &buffer_frames, tsched_frames, &b, &d, true)) < 0) {
         pa_log("Failed to set hardware parameters: %s", pa_alsa_strerror(err));
         goto fail;
     }
@@ -1132,11 +1170,17 @@ static int unsuspend(struct userdata *u) {
         goto fail;
     }
 
-    if (period_size*u->frame_size != u->fragment_size ||
-        buffer_size*u->frame_size != u->hwbuf_size) {
-        pa_log_warn("Resume failed, couldn't restore original fragment settings. (Old: %lu/%lu, New %lu/%lu)",
-                    (unsigned long) u->hwbuf_size, (unsigned long) u->fragment_size,
-                    (unsigned long) (buffer_size*u->frame_size), (unsigned long) (period_size*u->frame_size));
+    if (frame_size_changed) {
+        u->fragment_size = (size_t)(period_frames * u->frame_size);
+        u->hwbuf_size = (size_t)(buffer_frames * u->frame_size);
+        pa_proplist_setf(u->sink->proplist, PA_PROP_DEVICE_BUFFERING_BUFFER_SIZE, "%zu", u->hwbuf_size);
+        pa_proplist_setf(u->sink->proplist, PA_PROP_DEVICE_BUFFERING_FRAGMENT_SIZE, "%zu", u->fragment_size);
+
+    } else if (period_frames * u->frame_size != u->fragment_size ||
+                buffer_frames * u->frame_size != u->hwbuf_size) {
+        pa_log_warn("Resume failed, couldn't restore original fragment settings. (Old: %zu/%zu, New %lu/%lu)",
+                    u->hwbuf_size, u->fragment_size,
+                    (unsigned long) buffer_frames * u->frame_size, (unsigned long) period_frames * u->frame_size);
         goto fail;
     }
 
@@ -1671,36 +1715,42 @@ static bool sink_set_formats(pa_sink *s, pa_idxset *formats) {
     return true;
 }
 
-static int sink_reconfigure_cb(pa_sink *s, pa_sample_spec *spec, bool passthrough) {
+static void sink_reconfigure_cb(pa_sink *s, pa_sample_spec *spec, bool passthrough) {
     struct userdata *u = s->userdata;
     int i;
-    bool supported = false;
-
-    /* FIXME: we only update rate for now */
+    bool format_supported = false;
+    bool rate_supported = false;
 
     pa_assert(u);
 
-    for (i = 0; u->supported_rates[i]; i++) {
-        if (u->supported_rates[i] == spec->rate) {
-            supported = true;
+    for (i = 0; u->supported_formats[i] != PA_SAMPLE_MAX; i++) {
+        if (u->supported_formats[i] == spec->format) {
+            pa_sink_set_sample_format(u->sink, spec->format);
+            format_supported = true;
             break;
         }
     }
 
-    if (!supported) {
-        pa_log_info("Sink does not support sample rate of %d Hz", spec->rate);
-        return -1;
+    if (!format_supported) {
+        pa_log_info("Sink does not support sample format of %s, set it to a verified value",
+                    pa_sample_format_to_string(spec->format));
+        pa_sink_set_sample_format(u->sink, u->verified_sample_spec.format);
     }
 
-    if (!PA_SINK_IS_OPENED(s->state)) {
-        pa_log_info("Updating rate for device %s, new rate is %d", u->device_name, spec->rate);
-        u->sink->sample_spec.rate = spec->rate;
-        return 0;
+    for (i = 0; u->supported_rates[i]; i++) {
+        if (u->supported_rates[i] == spec->rate) {
+            pa_sink_set_sample_rate(u->sink, spec->rate);
+            rate_supported = true;
+            break;
+        }
+    }
+
+    if (!rate_supported) {
+        pa_log_info("Sink does not support sample rate of %u, set it to a verified value", spec->rate);
+        pa_sink_set_sample_rate(u->sink, u->verified_sample_spec.rate);
     }
 
     /* Passthrough status change is handled during unsuspend */
-
-    return -1;
 }
 
 static int process_rewind(struct userdata *u) {
@@ -2212,6 +2262,12 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     u->module = m;
     u->use_mmap = use_mmap;
     u->use_tsched = use_tsched;
+    u->tsched_size = tsched_size;
+    u->initial_info.nfrags = (size_t) nfrags;
+    u->initial_info.fragment_size = (size_t) frag_size;
+    u->initial_info.tsched_size = (size_t) tsched_size;
+    u->initial_info.tsched_watermark = (size_t) tsched_watermark;
+    u->initial_info.rewind_safeguard = (size_t) rewind_safeguard;
     u->deferred_volume = deferred_volume;
     u->fixed_latency_range = fixed_latency_range;
     u->first = true;
@@ -2349,6 +2405,8 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
      * to the user. */
     if ((is_iec958(u) || is_hdmi(u)) && ss.channels == 2)
         set_formats = true;
+
+    u->verified_sample_spec = ss;
 
     u->supported_formats = pa_alsa_get_supported_formats(u->pcm_handle, ss.format);
     if (!u->supported_formats) {

@@ -353,7 +353,7 @@ void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes, bool rewrite,
 void pa_sink_input_cork(pa_sink_input *i, bool b);
 
 int pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate);
-int pa_sink_input_update_rate(pa_sink_input *i);
+int pa_sink_input_update_resampler(pa_sink_input *i);
 
 /* This returns the sink's fields converted into out sample type */
 size_t pa_sink_input_get_max_rewind(pa_sink_input *i);
