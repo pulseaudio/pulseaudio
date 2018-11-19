@@ -42,9 +42,16 @@ RUN apt-get update && apt-get install -y \
     libxml2-utils \
     libxtst-dev \
     make \
-    meson \
     ninja-build \
     systemd
+
+# Install meson from upstream tarball
+ARG MESON_VERSION=0.47.0
+RUN apt-get install -y wget && \
+    wget -q https://github.com/mesonbuild/meson/releases/download/${MESON_VERSION}/meson-${MESON_VERSION}.tar.gz && \
+    tar -xf meson-${MESON_VERSION}.tar.gz && \
+    cd meson-${MESON_VERSION} && \
+    python3 setup.py install
 
 # Add a user and set as default for the build. This is safer, in general, and
 # allows us to avoid having to explicitly allow running as root in the
