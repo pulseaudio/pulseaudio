@@ -63,7 +63,7 @@ endif
 
 pulsedspdir = get_option('pulsedspdir')
 if pulsedspdir == ''
-  join_paths(libdir, 'pulseaudio')
+  pulsedspdir = join_paths(libdir, 'pulseaudio')
 endif
 
 vapidir = join_paths(datadir, 'vala', 'vapi')
