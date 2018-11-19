@@ -91,7 +91,6 @@ libpulse_simple = shared_library('pulse-simple',
 libpulse_simple_dep = declare_dependency(link_with: libpulse_simple)
 
 if glib_dep.found()
-  # TODO we must install libpulse-mainloop-glib.pc
   libpulse_mainloop_glib = shared_library('pulse-mainloop-glib',
     'glib-mainloop.c',
     'glib-mainloop.h',

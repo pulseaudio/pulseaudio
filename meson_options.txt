@@ -21,6 +21,9 @@ option('database',
 option('legacy-database-entry-format',
        type : 'boolean',
        description : 'Try to load legacy (< 1.0) database files (card, device and volume restore)')
+
+# Paths
+
 option('pulsedspdir',
        type : 'string',
        description : 'Specify location where OSS wrapper will be installed')

@@ -42,6 +42,7 @@ prefix = get_option('prefix')
 assert(prefix.startswith('/'), 'Prefix is not absolute: "@0@"'.format(prefix))
 
 bindir = join_paths(prefix, get_option('bindir'))
+includedir = join_paths(prefix, get_option('includedir'))
 libdir = join_paths(prefix, get_option('libdir'))
 libexecdir = join_paths(prefix, get_option('libexecdir'))
 mandir = join_paths(prefix, get_option('mandir'))
@@ -51,6 +52,7 @@ sysconfdir = join_paths(prefix, get_option('sysconfdir'))
 privlibdir = join_paths(get_option('libdir'), 'pulseaudio')
 alsadatadir = join_paths(datadir, 'pulseaudio', 'alsa-mixer')
 
+pkgconfigdir = join_paths(libdir, 'pkgconfig')
 pulselibexecdir = join_paths(libexecdir, 'pulse')
 pulsesysconfdir = join_paths(sysconfdir, 'pulse')
 
@@ -436,6 +438,42 @@ check_dep = dependency('check', version : '>= 0.9.10', required : get_option('te
 
 # Now generate config.h from everything above
 configure_file(output : 'config.h', configuration : cdata)
+
+# pkg-config files
+
+pc_cdata = configuration_data()
+
+pc_cdata.set('prefix', prefix)
+pc_cdata.set('exec_prefix', prefix)
+pc_cdata.set('libdir', libdir)
+pc_cdata.set('includedir', includedir)
+pc_cdata.set('modlibexecdir', modlibexecdir)
+pc_cdata.set('PACKAGE_VERSION', pa_version_str)
+pc_cdata.set('PA_MAJORMINOR', pa_version_major_minor)
+# FIXME: the line below is wrong. Currently the meson thread dep lacks documentation,
+# and doesn't allow introspection, ie. none of get_pkgconfig_variable() or
+# get_configtool_variable() work with it, so we have no way to get this flag right,
+# unless we do all the work ourselves. See current work in glib, also meson #553.
+pc_cdata.set('PTHREAD_LIBS', '-pthread')
+
+pc_files = [
+  'libpulse.pc',
+  'libpulse-simple.pc',
+]
+
+if glib_dep.found()
+  pc_files += 'libpulse-mainloop-glib.pc'
+endif
+
+foreach file : pc_files
+  configure_file(
+    input : file + '.in',
+    output : file,
+    configuration : pc_cdata,
+    install_dir : pkgconfigdir)
+endforeach
+
+# Subdirs
 
 if get_option('man')
   subdir('man')
