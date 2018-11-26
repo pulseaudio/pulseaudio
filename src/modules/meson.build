@@ -176,9 +176,9 @@ if openssl_dep.found()
   endif
 endif
 
-if systemd_dep.found()
+if libsystemd_dep.found()
   all_modules += [
-    [ 'module-systemd-login', 'module-systemd-login.c', [], [], [systemd_dep] ],
+    [ 'module-systemd-login', 'module-systemd-login.c', [], [], [libsystemd_dep] ],
   ]
 endif
 

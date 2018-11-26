@@ -66,6 +66,9 @@ if pulsedspdir == ''
   pulsedspdir = join_paths(libdir, 'pulseaudio')
 endif
 
+systemduserunitdir = get_option('systemduserunitdir')
+# the default value is set below
+
 vapidir = join_paths(datadir, 'vala', 'vapi')
 
 bashcompletiondir = get_option('bashcompletiondir')
@@ -345,11 +348,15 @@ if soxr_dep.found()
   cdata.set('HAVE_SOXR', 1)
 endif
 
-systemd_dep = dependency('libsystemd', required : get_option('systemd'))
-if systemd_dep.found()
+libsystemd_dep = dependency('libsystemd', required : get_option('systemd'))
+if libsystemd_dep.found()
   cdata.set('HAVE_SYSTEMD_DAEMON', 1)
   cdata.set('HAVE_SYSTEMD_LOGIN', 1)
   cdata.set('HAVE_SYSTEMD_JOURNAL', 1)
+  systemd_dep = dependency('systemd', required : get_option('systemd'))
+  if systemd_dep.found() and systemduserunitdir == ''
+    systemduserunitdir = systemd_dep.get_pkgconfig_variable('systemduserunitdir')
+  endif
 endif
 
 x11_dep = dependency('x11-xcb', required : get_option('x11'))
@@ -533,7 +540,7 @@ summary = [
   '    Enable  ofono headsets:    @0@'.format(get_option('bluez5-ofono-headset')),
   'Enable udev:                   @0@'.format(udev_dep.found()),
   '  Enable HAL->udev compat:     @0@'.format(get_option('hal-compat')),
-  'Enable systemd:                @0@'.format(systemd_dep.found()),
+  'Enable systemd:                @0@'.format(libsystemd_dep.found()),
 #  'Enable TCP Wrappers:           @0@'.format(${ENABLE_TCPWRAP}),
   'Enable libsamplerate:          @0@'.format(samplerate_dep.found()),
   'Enable IPv6:                   @0@'.format(get_option('ipv6')),
