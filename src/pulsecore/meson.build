@@ -182,7 +182,7 @@ libpulsecore_dep = declare_dependency(link_with: libpulsecore)
 # Internal libraries for modules
 # TODO: understand 'c_args' and 'dependencies' better, maybe we can remove some
 
-libavahi_wrap = shared_library('avahi_wrap',
+libavahi_wrap = shared_library('avahi-wrap',
   'avahi-wrap.c',
   'avahi-wrap.h',
   c_args : [pa_c_args, server_c_args, database_c_args],
@@ -205,7 +205,7 @@ libcli = shared_library('cli',
 
 libcli_dep = declare_dependency(link_with: libcli)
 
-libprotocol_cli = shared_library('protocol_cli',
+libprotocol_cli = shared_library('protocol-cli',
   'protocol-cli.c',
   'protocol-cli.h',
   c_args : [pa_c_args, server_c_args, database_c_args],
@@ -215,7 +215,7 @@ libprotocol_cli = shared_library('protocol_cli',
   install_dir : modlibexecdir,
 )
 
-libprotocol_http = shared_library('protocol_http',
+libprotocol_http = shared_library('protocol-http',
   ['protocol-http.c', 'mime-type.c'],
   ['protocol-http.h', 'mime-type.h'],
   c_args : [pa_c_args, server_c_args, database_c_args],
@@ -225,7 +225,7 @@ libprotocol_http = shared_library('protocol_http',
   install_dir : modlibexecdir,
 )
 
-libprotocol_native = shared_library('protocol_native',
+libprotocol_native = shared_library('protocol-native',
   'protocol-native.c',
   ['protocol-native.h', 'native-common.h'],
   c_args : [pa_c_args, server_c_args, database_c_args],
@@ -235,7 +235,7 @@ libprotocol_native = shared_library('protocol_native',
   install_dir : modlibexecdir,
 )
 
-libprotocol_simple = shared_library('protocol_simple',
+libprotocol_simple = shared_library('protocol-simple',
   'protocol-simple.c',
   'protocol-simple.h',
   c_args : [pa_c_args, server_c_args, database_c_args],

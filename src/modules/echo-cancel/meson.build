@@ -9,7 +9,7 @@ libwebrtc_util_sources = [
   'webrtc.cc'
 ]
 
-libwebrtc_util = static_library('libwebrtc_util',
+libwebrtc_util = static_library('webrtc-util',
   libwebrtc_util_sources,
   cpp_args : [pa_c_args, server_c_args],
   include_directories : [configinc, topinc],

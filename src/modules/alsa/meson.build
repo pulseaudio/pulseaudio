@@ -26,7 +26,7 @@ if udev_dep.found()
   libalsa_util_headers += [ '../udev-util.h' ]
 endif
 
-libalsa_util = shared_library('libalsa_util',
+libalsa_util = shared_library('alsa-util',
   libalsa_util_sources,
   libalsa_util_headers,
   c_args : [pa_c_args, server_c_args],

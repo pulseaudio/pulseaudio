@@ -14,7 +14,7 @@ librtp_headers = [
   'headerlist.h',
 ]
 
-librtp = shared_library('librtp',
+librtp = shared_library('rtp',
   librtp_sources,
   librtp_headers,
   c_args : [pa_c_args, server_c_args],

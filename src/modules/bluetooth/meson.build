@@ -20,7 +20,7 @@ if get_option('bluez5-ofono-headset')
   libbluez5_util_sources += [ 'backend-ofono.c' ]
 endif
 
-libbluez5_util = shared_library('libbluez5_util',
+libbluez5_util = shared_library('bluez5-util',
   libbluez5_util_sources,
   libbluez5_util_headers,
   c_args : [pa_c_args, server_c_args],

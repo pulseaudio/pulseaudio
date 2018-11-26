@@ -14,7 +14,7 @@ libraop_headers = [
   'raop-util.h',
 ]
 
-libraop = shared_library('libraop',
+libraop = shared_library('raop',
   libraop_sources,
   libraop_headers,
   c_args : [pa_c_args, server_c_args],
