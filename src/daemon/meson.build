@@ -44,6 +44,22 @@ if x11_dep.found()
     install : true,
     install_dir : bindir,
   )
+
+  desktop_file = i18n.merge_file(
+    input : 'pulseaudio.desktop.in',
+    output : 'pulseaudio.desktop',
+    po_dir : po_dir,
+    type : 'desktop',
+    install : true,
+    install_dir : join_paths(sysconfdir, 'xdg', 'autostart'),
+  )
+
+  desktop_utils = find_program('desktop-file-validate', required: false)
+  if desktop_utils.found()
+    test('Validate desktop file', desktop_utils,
+      args: [ desktop_file ],
+    )
+  endif
 endif
 
 # Configuration files
