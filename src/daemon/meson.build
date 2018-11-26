@@ -134,3 +134,20 @@ if dbus_dep.found()
     install_dir : join_paths(sysconfdir, 'dbus-1', 'system.d')
   )
 endif
+
+if systemd_dep.found()
+  sd_user_service_conf = configuration_data()
+  sd_user_service_conf.set('PA_BINARY', cdata.get_unquoted('PA_BINARY'))
+
+  sd_user_service_file = configure_file(
+    input : 'systemd/user/pulseaudio.service.in',
+    output : 'pulseaudio.service',
+    configuration : sd_user_service_conf,
+    install : true,
+    install_dir : systemduserunitdir,
+  )
+
+  install_data('systemd/user/pulseaudio.socket',
+    install_dir: systemduserunitdir,
+  )
+endif
