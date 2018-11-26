@@ -36,4 +36,14 @@ libalsa_util = shared_library('libalsa_util',
   install_dir : modlibexecdir,
 )
 
+alsa_udevrules = [
+  '90-pulseaudio.rules',
+]
+
+if udev_dep.found()
+  install_data(alsa_udevrules,
+    install_dir : udevrulesdir,
+  )
+endif
+
 subdir('mixer')
