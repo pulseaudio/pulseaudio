@@ -69,6 +69,11 @@ endif
 systemduserunitdir = get_option('systemduserunitdir')
 # the default value is set below
 
+udevrulesdir = get_option('udevrulesdir')
+if udevrulesdir == ''
+  udevrulesdir = join_paths('lib', 'udev', 'rules.d')
+endif
+
 vapidir = join_paths(datadir, 'vala', 'vapi')
 
 bashcompletiondir = get_option('bashcompletiondir')

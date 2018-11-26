@@ -33,6 +33,9 @@ option('modlibexecdir',
 option('systemduserunitdir',
        type : 'string',
        description : 'Directory for systemd user service files')
+option('udevrulesdir',
+       type : 'string',
+       description : 'Directory for udev rules (defaults to /lib/udev/rules.d)')
 option('bashcompletiondir',
        type : 'string',
        description : 'Directory for bash completion files')
