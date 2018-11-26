@@ -54,9 +54,11 @@ foreach tuple : manpages
     install_dir : mandirn,
   )
 
-  foreach alias : aliases
+  foreach alias_stem : aliases
+    alias = alias_stem + '.' + section
     dst = join_paths(mandirn, alias)
-    meson.add_install_script('ln', '-fs', man, dst)
+    cmd = 'ln -fs @0@ $DESTDIR@1@'.format(man, dst)
+    meson.add_install_script('sh', '-c', cmd)
   endforeach
 
   if xmllint.found()
