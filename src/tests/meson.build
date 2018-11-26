@@ -142,7 +142,7 @@ endforeach
 
 norun_tests += [
   [ 'echo-cancel-test', echo_cancel_test_sources,
-    module_echo_cancel_deps + [ libpulse_dep, libpulsecore_dep ],
+    module_echo_cancel_deps + [ libpulse_dep, libpulsecommon_dep, libpulsecore_dep ],
     module_echo_cancel_libs,
     module_echo_cancel_flags + server_c_args + [ '-DPA_MODULE_NAME=module_echo_cancel', '-DECHO_CANCEL_TEST=1' ] ]
 ]
