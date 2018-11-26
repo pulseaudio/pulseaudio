@@ -445,6 +445,13 @@ if webrtc_dep.found()
   cdata.set('HAVE_WEBRTC', 1)
 endif
 
+# These are required for the CMake file generation
+cdata.set('PA_LIBDIR', libdir)
+cdata.set('PA_INCDIR', includedir)
+if glib_dep.found()
+  cdata.set('HAVE_GLIB20', 1) # to match the AM_CONDITIONAL for CMake file generation
+endif
+
 # Test dependencies
 
 check_dep = dependency('check', version : '>= 0.9.10', required : get_option('tests'))
@@ -485,6 +492,36 @@ foreach file : pc_files
     configuration : pc_cdata,
     install_dir : pkgconfigdir)
 endforeach
+
+# CMake files
+
+m4 = find_program('m4', required: true)
+
+cmakedir = join_paths(libdir, 'cmake', 'PulseAudio')
+
+cmake_template_file = configure_file(
+  input : 'PulseAudioConfig.cmake.in',
+  output : 'PulseAudioConfig.cmake.tmp',
+  configuration: cdata,
+)
+
+custom_target('PulseAudioConfig.cmake',
+  input : cmake_template_file,
+  output : 'PulseAudioConfig.cmake',
+  capture : true,
+  command : [m4, '@INPUT@'],
+  build_by_default : true,
+  install : true,
+  install_dir : cmakedir,
+)
+
+configure_file(
+  input : 'PulseAudioConfigVersion.cmake.in',
+  output : 'PulseAudioConfigVersion.cmake',
+  configuration: cdata,
+  install : true,
+  install_dir : cmakedir,
+)
 
 # Subdirs
 
