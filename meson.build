@@ -487,6 +487,7 @@ endforeach
 
 # Subdirs
 
+subdir('po')
 if get_option('man')
   subdir('man')
 endif
