@@ -342,6 +342,19 @@ if gtk_dep.found()
   cdata.set('HAVE_GTK', 1)
 endif
 
+have_orcc = false
+orcc_args = []
+orc_dep = dependency('orc-0.4', version : '>= 0.4.11', required : get_option('orc'))
+orcc = find_program('orcc', required : get_option('orc'))
+if orc_dep.found() and orcc.found()
+  have_orcc = true
+  orcc_args = [orcc]
+  #orcc_args = [orcc, '--include', 'glib.h']
+  cdata.set('HAVE_ORC', 1)
+else
+  cdata.set('DISABLE_ORC', 1)
+endif
+
 samplerate_dep = dependency('samplerate', version : '>= 0.1.0', required : get_option('samplerate'))
 if samplerate_dep.found()
   cdata.set('HAVE_LIBSAMPLERATE', 1)
@@ -373,9 +386,6 @@ if x11_dep.found()
   xtst_dep = dependency('xtst', required : true)
   cdata.set('HAVE_X11', 1)
 endif
-
-# FIXME: support ORC
-cdata.set('DISABLE_ORC', 1)
 
 # Module dependencies
 
@@ -590,7 +600,7 @@ summary = [
   'Enable IPv6:                   @0@'.format(get_option('ipv6')),
   'Enable OpenSSL (for Airtunes): @0@'.format(openssl_dep.found()),
   'Enable FFTW:                   @0@'.format(fftw_dep.found()),
-#  'Enable orc:                    @0@'.format(${ENABLE_ORC}),
+  'Enable ORC:                    @0@'.format(have_orcc),
   'Enable Adrian echo canceller:  @0@'.format(get_option('adrian-aec')),
   'Enable Speex (resampler, AEC): @0@'.format(speex_dep.found()),
   'Enable SoXR (resampler):       @0@'.format(soxr_dep.found()),

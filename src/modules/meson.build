@@ -206,6 +206,7 @@ module_echo_cancel_sources = [
   'echo-cancel/module-echo-cancel.c',
   'echo-cancel/null.c',
 ]
+module_echo_cancel_orc_sources = []
 module_echo_cancel_flags = []
 module_echo_cancel_deps = []
 module_echo_cancel_libs = []
@@ -216,15 +217,25 @@ if get_option('adrian-aec')
     'echo-cancel/adrian-aec.c', 'echo-cancel/adrian-aec.h',
   ]
   module_echo_cancel_flags += ['-DHAVE_ADRIAN_EC=1']
-  module_echo_cancel_deps = [libm_dep]
-endif
+  module_echo_cancel_deps += [libm_dep]
 
-# FIXME: support ORC (depends on Adrian)
-#ORC_SOURCE += modules/echo-cancel/adrian-aec
-#module_echo_cancel_sources += [
-#  'echo-cancel/adrian-aec-orc-gen.c', 'echo-cancel/adrian-aec-orc-gen.h'
-#]
-#module_echo_cancel_deps += [orc_dep]
+  if have_orcc
+    orcsrc = 'adrian-aec'
+    orc_h = custom_target(orcsrc + '-orc-gen.h',
+      input : join_paths('echo-cancel', orcsrc + '.orc'),
+      output : orcsrc + '-orc-gen.h',
+      command : orcc_args + ['--header', '-o', '@OUTPUT@', '@INPUT@']
+    )
+    orc_c = custom_target(orcsrc + '-orc-gen.c',
+      input : join_paths('echo-cancel', orcsrc + '.orc'),
+      output : orcsrc + '-orc-gen.c',
+      command : orcc_args + ['--implementation', '-o', '@OUTPUT@', '@INPUT@']
+    )
+    module_echo_cancel_orc_sources += [orc_c, orc_h]
+    module_echo_cancel_deps += [orc_dep]
+  endif
+
+endif
 
 if speex_dep.found()
   module_echo_cancel_sources += ['echo-cancel/speex.c']
@@ -238,7 +249,7 @@ endif
 
 all_modules += [
   [ 'module-echo-cancel',
-    module_echo_cancel_sources,
+    module_echo_cancel_sources + module_echo_cancel_orc_sources,
     [],
     module_echo_cancel_flags,
     module_echo_cancel_deps,

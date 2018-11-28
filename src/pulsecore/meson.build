@@ -145,6 +145,24 @@ if x11_dep.found()
   libpulsecore_headers += ['x11wrap.h']
 endif
 
+orc_sources = []
+orc_headers = []
+if have_orcc
+  orcsrc = 'svolume'
+  orc_h = custom_target(orcsrc + '-ocr-gen.h',
+    input : orcsrc + '.orc',
+    output : orcsrc + '-orc-gen.h',
+    command : orcc_args + ['--header', '-o', '@OUTPUT@', '@INPUT@']
+  )
+  orc_c = custom_target(orcsrc + '-orc-gen.c',
+    input : orcsrc + '.orc',
+    output : orcsrc + '-orc-gen.c',
+    command : orcc_args + ['--implementation', '-o', '@OUTPUT@', '@INPUT@']
+  )
+  orc_sources = [orc_c, 'svolume_orc.c']
+  orc_headers = [orc_h]
+endif
+
 # FIXME: walk through dependencies and add files
 
 # FIXME: SIMD support (ORC)
@@ -167,14 +185,14 @@ cdata.merge_from(libpulsecore_simd[1])
 #'thread-win32.c',
 
 libpulsecore = shared_library('pulsecore-' + pa_version_major_minor,
-  libpulsecore_sources,
-  libpulsecore_headers,
+  libpulsecore_sources, libpulsecore_headers,
+  orc_sources, orc_headers,
   include_directories : [configinc, topinc],
   c_args : [pa_c_args, server_c_args],
   install : true,
   install_dir : privlibdir,
   link_with : libpulsecore_simd_lib,
-  dependencies : [libm_dep, libpulsecommon_dep, libpulse_dep, ltdl_dep, shm_dep, sndfile_dep, database_dep, dbus_dep, samplerate_dep, soxr_dep, speex_dep, x11_dep],
+  dependencies : [libm_dep, libpulsecommon_dep, libpulse_dep, ltdl_dep, shm_dep, sndfile_dep, database_dep, dbus_dep, orc_dep, samplerate_dep, soxr_dep, speex_dep, x11_dep],
   implicit_include_directories : false)
 
 libpulsecore_dep = declare_dependency(link_with: libpulsecore)

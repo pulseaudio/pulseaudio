@@ -93,6 +93,9 @@ option('lirc',
 option('openssl',
        type : 'feature', value : 'auto',
        description : 'Optional OpenSSL support (used for Airtunes/RAOP)')
+option('orc',
+       type : 'feature', value : 'auto',
+       description : 'Optimized Inner Loop Runtime Compiler')
 option('samplerate',
        type : 'feature', value : 'disabled',
        description : 'Optional libsamplerate support (DEPRECATED)')

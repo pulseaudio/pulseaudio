@@ -139,6 +139,7 @@ echo_cancel_test_sources = []
 foreach s : module_echo_cancel_sources
   echo_cancel_test_sources += '../modules/' + s
 endforeach
+echo_cancel_test_sources += module_echo_cancel_orc_sources
 
 norun_tests += [
   [ 'echo-cancel-test', echo_cancel_test_sources,
