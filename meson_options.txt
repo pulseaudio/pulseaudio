@@ -1,3 +1,6 @@
+option('gcov',
+       type : 'boolean',
+       description : 'Enable optional gcov coverage analysis')
 option('man',
        type : 'boolean',
        description : 'Enable building and installation of man pages')

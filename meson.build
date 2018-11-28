@@ -267,6 +267,13 @@ pa_c_args = ['-DHAVE_CONFIG_H', '-D_GNU_SOURCE']
 server_c_args = ['-D__INCLUDED_FROM_PULSE_AUDIO']
 cdata.set('MESON_BUILD', 1)
 
+# Code coverage
+
+if get_option('gcov')
+  add_project_arguments('--coverage', language: ['c', 'cpp'])
+  add_project_link_arguments('--coverage', language: ['c', 'cpp'])
+endif
+
 # Core Dependencies
 
 libm_dep = cc.find_library('m', required : true)
@@ -605,7 +612,7 @@ summary = [
   'Enable Speex (resampler, AEC): @0@'.format(speex_dep.found()),
   'Enable SoXR (resampler):       @0@'.format(soxr_dep.found()),
   'Enable WebRTC echo canceller:  @0@'.format(webrtc_dep.found()),
-#  'Enable gcov coverage:          @0@'.format(${ENABLE_GCOV}),
+  'Enable Gcov coverage:          @0@'.format(get_option('gcov')),
   'Enable man pages:              @0@'.format(get_option('man')),
   'Enable unit tests:             @0@'.format(get_option('tests')),
   '',
