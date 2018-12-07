@@ -2573,9 +2573,11 @@ static int path_verify(pa_alsa_path *p) {
 }
 
 static const char *get_default_paths_dir(void) {
+#ifdef HAVE_RUNNING_FROM_BUILD_TREE
     if (pa_run_from_build_tree())
         return PA_SRCDIR "/modules/alsa/mixer/paths/";
     else
+#endif
         return PA_ALSA_PATHS_DIR;
 }
 
@@ -4458,7 +4460,9 @@ pa_alsa_profile_set* pa_alsa_profile_set_new(const char *fname, const pa_channel
         fname = "default.conf";
 
     fn = pa_maybe_prefix_path(fname,
+#ifdef HAVE_RUNNING_FROM_BUILD_TREE
                               pa_run_from_build_tree() ? PA_SRCDIR "/modules/alsa/mixer/profile-sets/" :
+#endif
                               PA_ALSA_PROFILE_SETS_DIR);
 
     r = pa_config_parse(fn, NULL, items, NULL, false, ps);

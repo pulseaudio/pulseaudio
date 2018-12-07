@@ -3269,15 +3269,17 @@ void pa_reset_personality(void) {
 }
 
 bool pa_run_from_build_tree(void) {
-    char *rp;
     static bool b = false;
 
+#ifdef HAVE_RUNNING_FROM_BUILD_TREE
+    char *rp;
     PA_ONCE_BEGIN {
         if ((rp = pa_readlink("/proc/self/exe"))) {
             b = pa_startswith(rp, PA_BUILDDIR);
             pa_xfree(rp);
         }
     } PA_ONCE_END;
+#endif
 
     return b;
 }

@@ -989,6 +989,16 @@ AS_IF([test "x$enable_asyncns" = "xyes" && test "x$HAVE_LIBASYNCNS" = "x0"],
 AM_CONDITIONAL([HAVE_LIBASYNCNS], [test "x$HAVE_LIBASYNCNS" = x1])
 AS_IF([test "x$HAVE_LIBASYNCNS" = "x1"], AC_DEFINE([HAVE_LIBASYNCNS], 1, [Have libasyncns?]))
 
+#### Running from build tree (optional) ####
+
+AC_ARG_ENABLE([running-from-build-tree],
+    AS_HELP_STRING([--disable-running-from-build-tree],[Disable running from build tree]))
+
+AS_IF([test "x$enable_running_from_build_tree" != "xno"],
+      AC_DEFINE([HAVE_RUNNING_FROM_BUILD_TREE], 1, [Have running from build tree]))
+
+AC_SUBST(HAVE_RUNNING_FROM_BUILD_TREE)
+
 #### TCP wrappers (optional) ####
 
 AC_ARG_ENABLE([tcpwrap],

@@ -941,6 +941,12 @@ int main(int argc, char *argv[]) {
 
     pa_log_debug("Running in VM: %s", pa_yes_no(pa_running_in_vm()));
 
+#ifdef HAVE_RUNNING_FROM_BUILD_TREE
+    pa_log_debug("Running from build tree: %s", pa_yes_no(pa_run_from_build_tree()));
+#else
+    pa_log_debug("Running from build tree: no");
+#endif
+
 #ifdef __OPTIMIZE__
     pa_log_debug("Optimized build: yes");
 #else
