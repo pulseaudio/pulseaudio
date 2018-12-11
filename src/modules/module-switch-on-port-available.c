@@ -277,6 +277,10 @@ static void switch_from_port(pa_device_port *port) {
 
     pa_log_debug("Trying to switch away from port %s, found %s", port->name, best_port ? best_port->name : "no better option");
 
+    /* If there is no available port to switch to we need check if the active
+     * profile is still available in the
+     * PA_CORE_HOOK_CARD_PROFILE_AVAILABLE_CHANGED callback, as at this point
+     * the profile availability hasn't been updated yet. */
     if (best_port)
         switch_to_port(best_port);
 }
@@ -310,6 +314,43 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
     }
 
     return PA_HOOK_OK;
+}
+
+static pa_card_profile *find_best_profile(pa_card *card) {
+    pa_card_profile *profile, *best_profile;
+    void *state;
+
+    pa_assert(card);
+    best_profile = pa_hashmap_get(card->profiles, "off");
+
+    PA_HASHMAP_FOREACH(profile, card->profiles, state) {
+        if (profile->available == PA_AVAILABLE_NO)
+            continue;
+
+        if (profile->priority > best_profile->priority)
+            best_profile = profile;
+    }
+
+    return best_profile;
+}
+
+static pa_hook_result_t card_profile_available_hook_callback(pa_core *c, pa_card_profile *profile, struct userdata *u) {
+    pa_card *card;
+
+    pa_assert(profile);
+    pa_assert_se(card = profile->card);
+
+    if (profile->available != PA_AVAILABLE_NO)
+        return PA_HOOK_OK;
+
+    if (!pa_streq(profile->name, card->active_profile->name))
+        return PA_HOOK_OK;
+
+    pa_log_debug("Active profile %s on card %s became unavailable, switching to another profile", profile->name, card->name);
+    pa_card_set_profile(card, find_best_profile(card), false);
+
+    return PA_HOOK_OK;
+
 }
 
 static void handle_all_unavailable(pa_core *core) {
@@ -514,6 +555,8 @@ int pa__init(pa_module*m) {
                            PA_HOOK_NORMAL, (pa_hook_cb_t) source_new_hook_callback, NULL);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_PORT_AVAILABLE_CHANGED],
                            PA_HOOK_LATE, (pa_hook_cb_t) port_available_hook_callback, NULL);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_PROFILE_AVAILABLE_CHANGED],
+                           PA_HOOK_LATE, (pa_hook_cb_t) card_profile_available_hook_callback, NULL);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_PUT],
                            PA_HOOK_NORMAL, (pa_hook_cb_t) card_put_hook_callback, u);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_UNLINK],
