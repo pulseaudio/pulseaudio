@@ -368,6 +368,7 @@ static int report_jack_state(snd_mixer_elem_t *melem, unsigned int mask) {
     pa_alsa_jack *jack;
     struct temp_port_avail *tp, *tports;
     pa_card_profile *profile;
+    pa_available_t active_available = PA_AVAILABLE_UNKNOWN;
 
     pa_assert(u);
 
@@ -463,6 +464,8 @@ static int report_jack_state(snd_mixer_elem_t *melem, unsigned int mask) {
      *
      * If there are no output ports at all, but the profile contains at least
      * one sink, then the output is considered to be available. */
+    if (u->card->active_profile)
+        active_available = u->card->active_profile->available;
     PA_HASHMAP_FOREACH(profile, u->card->profiles, state) {
         pa_device_port *port;
         void *state2;
@@ -492,8 +495,17 @@ static int report_jack_state(snd_mixer_elem_t *melem, unsigned int mask) {
         if ((has_input_port && !found_available_input_port) || (has_output_port && !found_available_output_port))
             available = PA_AVAILABLE_NO;
 
-        pa_card_profile_set_available(profile, available);
+        /* We want to update the active profile's status last, so logic that
+         * may change the active profile based on profile availability status
+         * has an updated view of all profiles' availabilities. */
+        if (profile == u->card->active_profile)
+            active_available = available;
+        else
+            pa_card_profile_set_available(profile, available);
     }
+
+    if (u->card->active_profile)
+        pa_card_profile_set_available(u->card->active_profile, active_available);
 
     pa_xfree(tports);
     return 0;
