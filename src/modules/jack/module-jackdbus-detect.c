@@ -38,6 +38,8 @@ PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_USAGE(
     "channels=<number of channels> "
+    "source_channels=<number of channels> "
+    "sink_channels=<number of channels> "
     "connect=<connect ports?>");
 
 #define JACK_SERVICE_NAME "org.jackaudio.service"
@@ -59,6 +61,8 @@ PA_MODULE_USAGE(
 
 static const char* const valid_modargs[] = {
     "channels",
+    "source_channels",
+    "sink_channels",
     "connect",
     NULL
 };
@@ -79,7 +83,7 @@ struct userdata {
     bool filter_added, match_added;
     bool is_service_started;
     bool autoconnect_ports;
-    uint32_t channels;
+    uint32_t channels[JACK_SS_COUNT];
     /* Using index here protects us from module unloading without us knowing */
     int jack_module_index[JACK_SS_COUNT];
 };
@@ -104,8 +108,8 @@ static void ensure_ports_started(struct userdata* u) {
         if (!u->jack_module_index[i]) {
             char* args;
             pa_module* m;
-            if (u->channels > 0) {
-                args = pa_sprintf_malloc("connect=%s channels=%" PRIu32, pa_yes_no(u->autoconnect_ports), u->channels);
+            if (u->channels[i] > 0) {
+                args = pa_sprintf_malloc("connect=%s channels=%" PRIu32, pa_yes_no(u->autoconnect_ports), u->channels[i]);
             } else {
                 args = pa_sprintf_malloc("connect=%s", pa_yes_no(u->autoconnect_ports));
             }
@@ -213,6 +217,8 @@ int pa__init(pa_module *m) {
     pa_dbus_connection *connection = NULL;
     struct userdata *u = NULL;
     pa_modargs *ma;
+    uint32_t channels = 0;
+    int i;
 
     pa_assert(m);
 
@@ -227,15 +233,27 @@ int pa__init(pa_module *m) {
     u->core = m->core;
     u->module = m;
     u->autoconnect_ports = true;
-    u->channels = 0;
 
     if (pa_modargs_get_value_boolean(ma, "connect", &u->autoconnect_ports) < 0) {
         pa_log("Failed to parse connect= argument.");
         goto fail;
     }
 
-    if (pa_modargs_get_value_u32(ma, "channels", &u->channels) < 0 || (u->channels > 0 && !pa_channels_valid(u->channels))) {
+    if (pa_modargs_get_value_u32(ma, "channels", &channels) < 0 || (channels > 0 && !pa_channels_valid(channels))) {
         pa_log("Failed to parse channels= argument.");
+        goto fail;
+    }
+    for (i = 0; i < JACK_SS_COUNT; i++) {
+        u->channels[i] = channels;
+    }
+
+    if (pa_modargs_get_value_u32(ma, "source_channels", &u->channels[JACK_SS_SOURCE]) < 0 || (u->channels[JACK_SS_SOURCE] > 0 && !pa_channels_valid(u->channels[JACK_SS_SOURCE]))) {
+        pa_log("Failed to parse source_channels= argument.");
+        goto fail;
+    }
+
+    if (pa_modargs_get_value_u32(ma, "sink_channels", &u->channels[JACK_SS_SINK]) < 0 || (u->channels[JACK_SS_SINK] > 0 && !pa_channels_valid(u->channels[JACK_SS_SINK]))) {
+        pa_log("Failed to parse sink_channels= argument.");
         goto fail;
     }
 
