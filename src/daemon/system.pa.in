@@ -29,10 +29,6 @@ ifelse(@HAVE_UDEV@, 1, [dnl
 .ifexists module-udev-detect@PA_SOEXT@
 load-module module-udev-detect
 .else
-], @HAVE_HAL@, 1, [dnl
-.ifexists module-hal-detect@PA_SOEXT@
-load-module module-hal-detect
-.else
 ], @HAVE_COREAUDIO@, 1, [dnl
 .ifexists module-coreaudio-detect@PA_SOEXT@
 load-module module-coreaudio-detect
