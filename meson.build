@@ -85,6 +85,9 @@ cdata.set_quoted('PA_ALSA_PROFILE_SETS_DIR', join_paths(datadir, 'pulseaudio', '
 cdata.set_quoted('DESKTOPFILEDIR', join_paths(datadir, 'applications'))
 
 # Platform specifics
+# First some defaults to keep config file generation happy
+cdata.set('HAVE_COREAUDIO', 0)
+cdata.set('HAVE_WAVEOUT', 0)
 # FIXME: This was not tested. Maybe some flags should better be CFLAGS,
 # rather than ending up in the config.h file?
 if host_machine.system() == 'darwin'
