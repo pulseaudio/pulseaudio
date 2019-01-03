@@ -89,7 +89,8 @@ void pa_card_profile_set_available(pa_card_profile *c, pa_available_t available)
     pa_assert_se(core = c->card->core);
     pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, c->card->index);
 
-    pa_hook_fire(&core->hooks[PA_CORE_HOOK_CARD_PROFILE_AVAILABLE_CHANGED], c);
+    if (c->card->linked)
+        pa_hook_fire(&core->hooks[PA_CORE_HOOK_CARD_PROFILE_AVAILABLE_CHANGED], c);
 }
 
 pa_card_new_data* pa_card_new_data_init(pa_card_new_data *data) {
