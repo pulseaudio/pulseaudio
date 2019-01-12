@@ -1045,7 +1045,7 @@ static void source_output_toggle_mute_callback(pa_context *c, const pa_source_ou
 #define MAX_FORMATS 256
 
 static void set_sink_formats(pa_context *c, uint32_t sink, const char *str) {
-    pa_format_info *f_arr[MAX_FORMATS];
+    pa_format_info *f_arr[MAX_FORMATS] = { 0, };
     char *format = NULL;
     const char *state = NULL;
     int i = 0;
@@ -1072,13 +1072,13 @@ static void set_sink_formats(pa_context *c, uint32_t sink, const char *str) {
 done:
     if (format)
         pa_xfree(format);
-    while(i--)
+    while (f_arr[i] && i--)
         pa_format_info_free(f_arr[i]);
 
     return;
 
 error:
-    while(i--)
+    while (f_arr[i] && i--)
         pa_format_info_free(f_arr[i]);
     quit(1);
     goto done;
