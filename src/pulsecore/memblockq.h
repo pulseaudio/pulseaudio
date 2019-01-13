@@ -27,7 +27,7 @@
 #include <pulsecore/memchunk.h>
 #include <pulse/def.h>
 
-/* A memblockq is a queue of pa_memchunks (yepp, the name is not
+/* A memblockq is a queue of pa_memchunks (yep, the name is not
  * perfect). It is similar to the ring buffers used by most other
  * audio software. In contrast to a ring buffer this memblockq data
  * type doesn't need to copy any data around, it just maintains
