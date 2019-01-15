@@ -124,7 +124,7 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, void* 
     }
 
     PA_IDXSET_FOREACH(i, old_default_sink->inputs, idx) {
-        if (i->save_sink || !PA_SINK_INPUT_IS_LINKED(i->state))
+        if (pa_safe_streq(i->sink->name, i->preferred_sink) || !PA_SINK_INPUT_IS_LINKED(i->state))
             continue;
 
         if (pa_sink_input_move_to(i, sink, false) < 0)

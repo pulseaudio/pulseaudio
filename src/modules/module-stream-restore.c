@@ -1311,15 +1311,17 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
             mute_updated = !created_new_entry && (!old->muted_valid || entry->muted != old->muted);
         }
 
-        if (sink_input->save_sink) {
+        if (sink_input->preferred_sink != NULL) {
+            pa_sink *s;
             pa_xfree(entry->device);
-            entry->device = pa_xstrdup(sink_input->sink->name);
+            entry->device = pa_xstrdup(sink_input->preferred_sink);
             entry->device_valid = true;
 
             device_updated = !created_new_entry && (!old->device_valid || !pa_streq(entry->device, old->device));
-            if (sink_input->sink->card) {
+            s = pa_namereg_get(c, entry->device, PA_NAMEREG_SINK);
+            if (s && s->card) {
                 pa_xfree(entry->card);
-                entry->card = pa_xstrdup(sink_input->sink->card->name);
+                entry->card = pa_xstrdup(s->card->name);
                 entry->card_valid = true;
             }
         }
@@ -1650,12 +1652,12 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, struct
         if (si->sink == sink)
             continue;
 
-        if (si->save_sink)
-            continue;
-
         /* Skip this if it is already in the process of being moved
          * anyway */
         if (!si->sink)
+            continue;
+
+        if (pa_safe_streq(si->sink->name, si->preferred_sink))
             continue;
 
         /* Skip this sink input if it is connecting a filter sink to
@@ -1951,12 +1953,13 @@ static void entry_apply(struct userdata *u, const char *name, struct entry *e) {
 
         if (u->restore_device) {
             if (!e->device_valid) {
-                if (si->save_sink) {
+                if (si->preferred_sink != NULL) {
                     pa_log_info("Ensuring device is not saved for stream %s.", name);
                     /* If the device is not valid we should make sure the
-                       save flag is cleared as the user may have specifically
+                       preferred_sink is cleared as the user may have specifically
                        removed the sink element from the rule. */
-                    si->save_sink = false;
+                    pa_xfree(si->preferred_sink);
+                    si->preferred_sink = NULL;
                     /* This is cheating a bit. The sink input itself has not changed
                        but the rules governing its routing have, so we fire this event
                        such that other routing modules (e.g. module-device-manager)

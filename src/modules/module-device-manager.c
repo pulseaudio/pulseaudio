@@ -656,12 +656,12 @@ static void route_sink_input(struct userdata *u, pa_sink_input *si) {
     pa_assert(u);
     pa_assert(u->do_routing);
 
-    /* Don't override user or application routing requests. */
-    if (si->save_sink || si->sink_requested_by_application)
-        return;
-
     /* Skip this if it is already in the process of being moved anyway */
     if (!si->sink)
+        return;
+
+    /* Don't override user or application routing requests. */
+    if (pa_safe_streq(si->sink->name, si->preferred_sink) || si->sink_requested_by_application)
         return;
 
     auto_filtered_prop = pa_proplist_gets(si->proplist, "module-device-manager.auto_filtered");

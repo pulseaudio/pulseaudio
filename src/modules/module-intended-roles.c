@@ -175,12 +175,12 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, struct
         if (si->sink == sink)
             continue;
 
-        if (si->save_sink)
-            continue;
-
         /* Skip this if it is already in the process of being moved
          * anyway */
         if (!si->sink)
+            continue;
+
+        if (pa_safe_streq(si->sink->name, si->preferred_sink))
             continue;
 
         /* It might happen that a stream and a sink are set up at the
