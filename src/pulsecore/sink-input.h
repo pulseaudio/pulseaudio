@@ -461,6 +461,8 @@ void pa_sink_input_set_volume_direct(pa_sink_input *i, const pa_cvolume *volume)
  * i->reference_ratio and logs a message if the value changes. */
 void pa_sink_input_set_reference_ratio(pa_sink_input *i, const pa_cvolume *ratio);
 
+void pa_sink_input_set_preferred_sink(pa_sink_input *i, pa_sink *s);
+
 #define pa_sink_input_assert_io_context(s) \
     pa_assert(pa_thread_mq_get() || !PA_SINK_INPUT_IS_LINKED((s)->state))
 

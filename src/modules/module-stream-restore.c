@@ -1958,17 +1958,11 @@ static void entry_apply(struct userdata *u, const char *name, struct entry *e) {
                     /* If the device is not valid we should make sure the
                        preferred_sink is cleared as the user may have specifically
                        removed the sink element from the rule. */
-                    pa_xfree(si->preferred_sink);
-                    si->preferred_sink = NULL;
-                    /* This is cheating a bit. The sink input itself has not changed
-                       but the rules governing its routing have, so we fire this event
-                       such that other routing modules (e.g. module-device-manager)
-                       will pick up the change and reapply their routing */
-                    pa_subscription_post(si->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT|PA_SUBSCRIPTION_EVENT_CHANGE, si->index);
+                    pa_sink_input_set_preferred_sink(si, NULL);
                 }
             } else if ((s = pa_namereg_get(u->core, e->device, PA_NAMEREG_SINK))) {
                 pa_log_info("Restoring device for stream %s.", name);
-                pa_sink_input_move_to(si, s, true);
+                pa_sink_input_set_preferred_sink(si, s);
             }
         }
     }

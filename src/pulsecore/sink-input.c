@@ -2421,3 +2421,17 @@ void pa_sink_input_set_reference_ratio(pa_sink_input *i, const pa_cvolume *ratio
                  pa_cvolume_snprint_verbose(old_ratio_str, sizeof(old_ratio_str), &old_ratio, &i->channel_map, true),
                  pa_cvolume_snprint_verbose(new_ratio_str, sizeof(new_ratio_str), ratio, &i->channel_map, true));
 }
+
+/* Called from the main thread. */
+void pa_sink_input_set_preferred_sink(pa_sink_input *i, pa_sink *s) {
+    pa_assert(i);
+
+    pa_xfree(i->preferred_sink);
+    if (s) {
+        i->preferred_sink = pa_xstrdup(s->name);
+        pa_sink_input_move_to(i, s, false);
+    } else {
+        i->preferred_sink = NULL;
+        pa_sink_input_move_to(i, i->core->default_sink, false);
+    }
+}
