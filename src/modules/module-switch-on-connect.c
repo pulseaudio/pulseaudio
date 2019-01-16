@@ -57,9 +57,6 @@ struct userdata {
 };
 
 static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, void* userdata) {
-    pa_sink_input *i;
-    uint32_t idx;
-    pa_sink *old_default_sink;
     const char *s;
     struct userdata *u = userdata;
 
@@ -112,28 +109,8 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, void* 
             return PA_HOOK_OK;
         }
 
-    old_default_sink = c->default_sink;
-
     /* Actually do the switch to the new sink */
     pa_core_set_configured_default_sink(c, sink->name);
-
-    /* Now move all old inputs over */
-    if (pa_idxset_size(old_default_sink->inputs) <= 0) {
-        pa_log_debug("No sink inputs to move away.");
-        return PA_HOOK_OK;
-    }
-
-    PA_IDXSET_FOREACH(i, old_default_sink->inputs, idx) {
-        if (pa_safe_streq(i->sink->name, i->preferred_sink) || !PA_SINK_INPUT_IS_LINKED(i->state))
-            continue;
-
-        if (pa_sink_input_move_to(i, sink, false) < 0)
-            pa_log_info("Failed to move sink input %u \"%s\" to %s.", i->index,
-                        pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_APPLICATION_NAME)), sink->name);
-        else
-            pa_log_info("Successfully moved sink input %u \"%s\" to %s.", i->index,
-                        pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_APPLICATION_NAME)), sink->name);
-    }
 
     return PA_HOOK_OK;
 }
