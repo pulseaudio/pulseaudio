@@ -1930,8 +1930,12 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, bool save) {
        save the preferred_sink */
     if (save) {
         pa_xfree(i->preferred_sink);
-        i->preferred_sink = pa_xstrdup(dest->name);
+        if (dest == dest->core->default_sink)
+            i->preferred_sink = NULL;
+        else
+            i->preferred_sink = pa_xstrdup(dest->name);
     }
+
     pa_idxset_put(dest->inputs, pa_sink_input_ref(i), NULL);
 
     PA_HASHMAP_FOREACH(v, i->volume_factor_sink_items, state)

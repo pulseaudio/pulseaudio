@@ -1311,21 +1311,24 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
             mute_updated = !created_new_entry && (!old->muted_valid || entry->muted != old->muted);
         }
 
-        if (sink_input->preferred_sink != NULL) {
-            pa_sink *s;
+        if (sink_input->preferred_sink != NULL || !created_new_entry) {
+            pa_sink *s = NULL;
+
             pa_xfree(entry->device);
             entry->device = pa_xstrdup(sink_input->preferred_sink);
             entry->device_valid = true;
+            if (!entry->device)
+                entry->device_valid = false;
 
-            device_updated = !created_new_entry && (!old->device_valid || !pa_streq(entry->device, old->device));
-            s = pa_namereg_get(c, entry->device, PA_NAMEREG_SINK);
-            if (s && s->card) {
-                pa_xfree(entry->card);
+            device_updated = !created_new_entry && !pa_safe_streq(entry->device, old->device);
+            pa_xfree(entry->card);
+            entry->card = NULL;
+            entry->card_valid = false;
+            if (entry->device_valid && (s = pa_namereg_get(c, entry->device, PA_NAMEREG_SINK)) && s->card) {
                 entry->card = pa_xstrdup(s->card->name);
                 entry->card_valid = true;
             }
         }
-
     } else {
         pa_source_output *source_output;
 
