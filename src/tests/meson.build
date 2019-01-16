@@ -191,7 +191,8 @@ foreach t : default_tests + norun_tests
   )
 
   test(name, exe,
-    env : test_env
+    env : test_env,
+    timeout : 120,
   )
 endforeach
 
