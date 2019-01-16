@@ -96,7 +96,6 @@ struct userdata {
         *source_output_new_hook_slot,
         *source_output_fixate_hook_slot,
         *source_put_hook_slot,
-        *sink_unlink_hook_slot,
         *source_unlink_hook_slot,
         *connection_unlink_hook_slot;
     pa_time_event *save_time_event;
@@ -1691,54 +1690,6 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
     return PA_HOOK_OK;
 }
 
-static pa_hook_result_t sink_unlink_hook_callback(pa_core *c, pa_sink *sink, struct userdata *u) {
-    pa_sink_input *si;
-    uint32_t idx;
-
-    pa_assert(c);
-    pa_assert(sink);
-    pa_assert(u);
-    pa_assert(u->on_rescue && u->restore_device);
-
-    /* There's no point in doing anything if the core is shut down anyway */
-    if (c->state == PA_CORE_SHUTDOWN)
-        return PA_HOOK_OK;
-
-    PA_IDXSET_FOREACH(si, sink->inputs, idx) {
-        char *name;
-        struct entry *e;
-
-        if (!si->sink)
-            continue;
-
-        /* Skip this sink input if it is connecting a filter sink to
-         * the master */
-        if (si->origin_sink)
-            continue;
-
-        if (!(name = pa_proplist_get_stream_group(si->proplist, "sink-input", IDENTIFICATION_PROPERTY)))
-            continue;
-
-        if ((e = entry_read(u, name))) {
-
-            if (e->device_valid) {
-                pa_sink *d;
-
-                if ((d = pa_namereg_get(c, e->device, PA_NAMEREG_SINK)) &&
-                    d != sink &&
-                    PA_SINK_IS_LINKED(d->state))
-                    pa_sink_input_move_to(si, d, true);
-            }
-
-            entry_free(e);
-        }
-
-        pa_xfree(name);
-    }
-
-    return PA_HOOK_OK;
-}
-
 static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *source, struct userdata *u) {
     pa_source_output *so;
     uint32_t idx;
@@ -2418,7 +2369,6 @@ int pa__init(pa_module*m) {
 
     if (restore_device && on_rescue) {
         /* A little bit earlier than module-intended-roles, module-rescue-streams, ... */
-        pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) sink_unlink_hook_callback, u);
         pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) source_unlink_hook_callback, u);
     }
 

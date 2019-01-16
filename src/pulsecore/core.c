@@ -352,7 +352,7 @@ void pa_core_update_default_sink(pa_core *core) {
 
     /* try to move the streams from old_default_sink to the new default_sink conditionally */
     if (old_default_sink)
-	pa_sink_move_streams_to_default_sink(core, old_default_sink);
+        pa_sink_move_streams_to_default_sink(core, old_default_sink, true);
 }
 
 /* a  < b  ->  return -1

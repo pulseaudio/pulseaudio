@@ -562,7 +562,7 @@ void pa_sink_set_reference_volume_direct(pa_sink *s, const pa_cvolume *volume);
  * PA_AVAILABLE_NO, this function is called to move the streams of the old
  * default_sink or the sink with active_port equals PA_AVAILABLE_NO to the
  * current default_sink conditionally*/
-void pa_sink_move_streams_to_default_sink(pa_core *core, pa_sink *old_sink);
+void pa_sink_move_streams_to_default_sink(pa_core *core, pa_sink *old_sink, bool default_sink_changed);
 
 /* Verify that we called in IO context (aka 'thread context), or that
  * the sink is not yet set up, i.e. the thread not set up yet. See
