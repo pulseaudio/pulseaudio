@@ -278,4 +278,6 @@ static const size_t PA_SUSPEND_CAUSE_TO_STRING_BUF_SIZE =
  * provided buffer. The same buffer is the return value of this function. */
 const char *pa_suspend_cause_to_string(pa_suspend_cause_t cause, char buf[PA_SUSPEND_CAUSE_TO_STRING_BUF_SIZE]);
 
+void pa_core_move_streams_to_newly_available_preferred_sink(pa_core *c, pa_sink *s);
+
 #endif

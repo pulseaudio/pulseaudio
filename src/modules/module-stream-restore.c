@@ -95,7 +95,6 @@ struct userdata {
         *sink_input_fixate_hook_slot,
         *source_output_new_hook_slot,
         *source_output_fixate_hook_slot,
-        *sink_put_hook_slot,
         *source_put_hook_slot,
         *sink_unlink_hook_slot,
         *source_unlink_hook_slot,
@@ -1639,57 +1638,6 @@ static pa_hook_result_t source_output_fixate_hook_callback(pa_core *c, pa_source
     return PA_HOOK_OK;
 }
 
-static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, struct userdata *u) {
-    pa_sink_input *si;
-    uint32_t idx;
-
-    pa_assert(c);
-    pa_assert(sink);
-    pa_assert(u);
-    pa_assert(u->on_hotplug && u->restore_device);
-
-    PA_IDXSET_FOREACH(si, c->sink_inputs, idx) {
-        char *name;
-        struct entry *e;
-
-        if (si->sink == sink)
-            continue;
-
-        /* Skip this if it is already in the process of being moved
-         * anyway */
-        if (!si->sink)
-            continue;
-
-        if (pa_safe_streq(si->sink->name, si->preferred_sink))
-            continue;
-
-        /* Skip this sink input if it is connecting a filter sink to
-         * the master */
-        if (si->origin_sink)
-            continue;
-
-        /* It might happen that a stream and a sink are set up at the
-           same time, in which case we want to make sure we don't
-           interfere with that */
-        if (!PA_SINK_INPUT_IS_LINKED(si->state))
-            continue;
-
-        if (!(name = pa_proplist_get_stream_group(si->proplist, "sink-input", IDENTIFICATION_PROPERTY)))
-            continue;
-
-        if ((e = entry_read(u, name))) {
-            if (e->device_valid && pa_streq(e->device, sink->name))
-                pa_sink_input_move_to(si, sink, true);
-
-            entry_free(e);
-        }
-
-        pa_xfree(name);
-    }
-
-    return PA_HOOK_OK;
-}
-
 static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, struct userdata *u) {
     pa_source_output *so;
     uint32_t idx;
@@ -2465,7 +2413,6 @@ int pa__init(pa_module*m) {
 
     if (restore_device && on_hotplug) {
         /* A little bit earlier than module-intended-roles ... */
-        pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_LATE, (pa_hook_cb_t) sink_put_hook_callback, u);
         pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], PA_HOOK_LATE, (pa_hook_cb_t) source_put_hook_callback, u);
     }
 
