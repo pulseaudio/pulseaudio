@@ -100,6 +100,18 @@ void pa_device_port_set_available(pa_device_port *p, pa_available_t status) {
         else
             pa_core_update_default_source(p->core);
 
+        if (p->direction == PA_DIRECTION_OUTPUT) {
+            pa_sink *sink;
+
+            sink = pa_device_port_get_sink(p);
+            if (sink && p == sink->active_port) {
+                if (sink->active_port->available == PA_AVAILABLE_NO)
+                    pa_sink_move_streams_to_default_sink(p->core, sink);
+                else
+                    pa_core_move_streams_to_newly_available_preferred_sink(p->core, sink);
+            }
+        }
+
         pa_subscription_post(p->core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, p->card->index);
         pa_hook_fire(&p->core->hooks[PA_CORE_HOOK_PORT_AVAILABLE_CHANGED], p);
     }
@@ -223,4 +235,17 @@ pa_device_port *pa_device_port_find_best(pa_hashmap *ports)
     }
 
     return best;
+}
+
+pa_sink *pa_device_port_get_sink(pa_device_port *p) {
+    pa_sink *rs = NULL;
+    pa_sink *sink;
+    uint32_t state;
+
+    PA_IDXSET_FOREACH(sink, p->card->sinks, state)
+        if (p == pa_hashmap_get(sink->ports, p->name)) {
+            rs = sink;
+            break;
+        }
+    return rs;
 }

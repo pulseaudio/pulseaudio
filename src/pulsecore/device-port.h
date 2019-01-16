@@ -87,4 +87,6 @@ void pa_device_port_set_preferred_profile(pa_device_port *p, const char *new_pp)
 
 pa_device_port *pa_device_port_find_best(pa_hashmap *ports);
 
+pa_sink *pa_device_port_get_sink(pa_device_port *p);
+
 #endif
