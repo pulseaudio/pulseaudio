@@ -318,6 +318,10 @@ if get_option('legacy-database-entry-format')
   cdata.set('ENABLE_LEGACY_DATABASE_ENTRY_FORMAT', 1)
 endif
 
+if get_option('running-from-build-tree')
+  cdata.set('HAVE_RUNNING_FROM_BUILD_TREE', 1)
+endif
+
 alsa_dep = dependency('alsa', version : '>= 1.0.24', required : get_option('alsa'))
 if alsa_dep.found()
   cdata.set('HAVE_ALSA', 1)
@@ -618,6 +622,7 @@ summary = [
   '',
   'Database:                      @0@'.format(get_option('database')),
   'Legacy Database Entry Support: @0@'.format(get_option('legacy-database-entry-format')),
+  'Running from build tree:       @0@'.format(get_option('running-from-build-tree')),
   'System User:                   @0@'.format(cdata.get_unquoted('PA_SYSTEM_USER')),
   'System Group:                  @0@'.format(cdata.get_unquoted('PA_SYSTEM_GROUP')),
   'Access Group:                  @0@'.format(cdata.get_unquoted('PA_ACCESS_GROUP')),

@@ -24,6 +24,9 @@ option('database',
 option('legacy-database-entry-format',
        type : 'boolean',
        description : 'Try to load legacy (< 1.0) database files (card, device and volume restore)')
+option('running-from-build-tree',
+       type : 'boolean',
+       description : 'Enable running from build tree')
 
 # Paths
 
