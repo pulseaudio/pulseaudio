@@ -505,7 +505,12 @@ static int a2dp_process_render(struct userdata *u) {
     /* write it to the fifo */
     memset(sbc_info->buffer, 0, sizeof(*header) + sizeof(*payload));
     header->v = 2;
-    header->pt = 1;
+
+    /* A2DP spec: "A payload type in the RTP dynamic range shall be chosen".
+     * RFC3551 defines the dynamic range to span from 96 to 127, and 96 appears
+     * to be the most common choice in A2DP implementations. */
+    header->pt = 96;
+
     header->sequence_number = htons(sbc_info->seq_num++);
     header->timestamp = htonl(u->write_index / pa_frame_size(&u->sample_spec));
     header->ssrc = htonl(1);
