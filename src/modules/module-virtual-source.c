@@ -38,6 +38,7 @@
 #include <pulsecore/sample-util.h>
 #include <pulsecore/ltdl-helper.h>
 #include <pulsecore/mix.h>
+#include <pulsecore/rtpoll.h>
 
 PA_MODULE_AUTHOR("Pierre-Louis Bossart");
 PA_MODULE_DESCRIPTION("Virtual source");
@@ -77,6 +78,7 @@ struct userdata {
     pa_sink *sink;
     pa_usec_t block_usec;
     pa_memblockq *sink_memblockq;
+    pa_rtpoll *rtpoll;
 
 };
 
@@ -543,6 +545,13 @@ int pa__init(pa_module*m) {
     }
     u->channels = ss.channels;
 
+    /* The rtpoll created here is never run. It is only necessary to avoid crashes
+     * when module-virtual-source is used together with module-loopback or
+     * module-combine-sink. Both modules base their asyncmsq on the rtpoll provided
+     * by the sink. module-loopback and combine-sink only work because they
+     * call pa_asyncmsq_process_one() themselves. */
+    u->rtpoll = pa_rtpoll_new();
+
     /* Create source */
     pa_source_new_data_init(&source_data);
     source_data.driver = __FILE__;
@@ -671,6 +680,7 @@ int pa__init(pa_module*m) {
         u->sink->userdata = u;
 
         pa_sink_set_asyncmsgq(u->sink, master->asyncmsgq);
+        pa_sink_set_rtpoll(u->sink, u->rtpoll);
 
         /* FIXME: no idea what I am doing here */
         u->block_usec = BLOCK_USEC;
@@ -732,14 +742,19 @@ void pa__done(pa_module*m) {
     if (u->source)
         pa_source_unref(u->source);
 
-    if (u->sink)
+    if (u->sink) {
+        pa_sink_unlink(u->sink);
         pa_sink_unref(u->sink);
+    }
 
     if (u->memblockq)
         pa_memblockq_free(u->memblockq);
 
     if (u->sink_memblockq)
         pa_memblockq_free(u->sink_memblockq);
+
+    if (u->rtpoll)
+        pa_rtpoll_free(u->rtpoll);
 
     pa_xfree(u);
 }
