@@ -707,6 +707,19 @@ static void sink_input_mute_changed_cb(pa_sink_input *i) {
     pa_sink_mute_changed(u->sink, i->muted);
 }
 
+/* Called from main context */
+static void sink_input_suspend_cb(pa_sink_input *i, pa_sink_state_t old_state, pa_suspend_cause_t old_suspend_cause) {
+    struct userdata *u;
+
+    pa_sink_input_assert_ref(i);
+    pa_assert_se(u = i->userdata);
+
+    if (i->sink->state != PA_SINK_SUSPENDED || i->sink->suspend_cause == PA_SUSPEND_IDLE)
+        pa_sink_suspend(u->sink, false, PA_SUSPEND_UNAVAILABLE);
+    else
+        pa_sink_suspend(u->sink, true, PA_SUSPEND_UNAVAILABLE);
+}
+
 static int parse_control_parameters(struct userdata *u, const char *cdata, double *read_values, bool *use_default) {
     unsigned long p = 0;
     const char *state = NULL;
@@ -1346,6 +1359,7 @@ int pa__init(pa_module*m) {
     u->sink_input->may_move_to = sink_input_may_move_to_cb;
     u->sink_input->moving = sink_input_moving_cb;
     u->sink_input->mute_changed = sink_input_mute_changed_cb;
+    u->sink_input->suspend = sink_input_suspend_cb;
     u->sink_input->userdata = u;
 
     u->sink->input_to_master = u->sink_input;
