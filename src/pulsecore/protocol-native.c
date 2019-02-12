@@ -241,7 +241,7 @@ enum {
 static bool sink_input_process_underrun_cb(pa_sink_input *i);
 static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk);
 static void sink_input_kill_cb(pa_sink_input *i);
-static void sink_input_suspend_cb(pa_sink_input *i, bool suspend);
+static void sink_input_suspend_cb(pa_sink_input *i, pa_sink_state_t old_state, pa_suspend_cause_t old_suspend_cause);
 static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest);
 static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes);
 static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes);
@@ -253,7 +253,7 @@ static void playback_stream_request_bytes(struct playback_stream*s);
 
 static void source_output_kill_cb(pa_source_output *o);
 static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk);
-static void source_output_suspend_cb(pa_source_output *o, bool suspend);
+static void source_output_suspend_cb(pa_source_output *o, pa_source_state_t old_state, pa_suspend_cause_t old_suspend_cause);
 static void source_output_moving_cb(pa_source_output *o, pa_source *dest);
 static pa_usec_t source_output_get_latency_cb(pa_source_output *o);
 static void source_output_send_event_cb(pa_source_output *o, const char *event, pa_proplist *pl);
@@ -1618,11 +1618,19 @@ static void sink_input_send_event_cb(pa_sink_input *i, const char *event, pa_pro
 }
 
 /* Called from main context */
-static void sink_input_suspend_cb(pa_sink_input *i, bool suspend) {
+static void sink_input_suspend_cb(pa_sink_input *i, pa_sink_state_t old_state, pa_suspend_cause_t old_suspend_cause) {
     playback_stream *s;
     pa_tagstruct *t;
+    bool suspend;
 
     pa_sink_input_assert_ref(i);
+
+    /* State has not changed, nothing to do */
+    if (old_state == i->sink->state)
+        return;
+
+    suspend = (i->sink->state == PA_SINK_SUSPENDED);
+
     s = PLAYBACK_STREAM(i->userdata);
     playback_stream_assert_ref(s);
 
@@ -1756,11 +1764,19 @@ static void source_output_send_event_cb(pa_source_output *o, const char *event, 
 }
 
 /* Called from main context */
-static void source_output_suspend_cb(pa_source_output *o, bool suspend) {
+static void source_output_suspend_cb(pa_source_output *o, pa_source_state_t old_state, pa_suspend_cause_t old_suspend_cause) {
     record_stream *s;
     pa_tagstruct *t;
+    bool suspend;
 
     pa_source_output_assert_ref(o);
+
+    /* State has not changed, nothing to do */
+    if (old_state == o->source->state)
+        return;
+
+    suspend = (o->source->state == PA_SOURCE_SUSPENDED);
+
     s = RECORD_STREAM(o->userdata);
     record_stream_assert_ref(s);
 

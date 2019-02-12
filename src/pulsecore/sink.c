@@ -400,6 +400,8 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state, pa_suspend_cause_t 
     bool suspend_cause_changed;
     bool suspending;
     bool resuming;
+    pa_sink_state_t old_state;
+    pa_suspend_cause_t old_suspend_cause;
 
     pa_assert(s);
     pa_assert_ctl_context();
@@ -469,6 +471,7 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state, pa_suspend_cause_t 
         }
     }
 
+    old_suspend_cause = s->suspend_cause;
     if (suspend_cause_changed) {
         char old_cause_buf[PA_SUSPEND_CAUSE_TO_STRING_BUF_SIZE];
         char new_cause_buf[PA_SUSPEND_CAUSE_TO_STRING_BUF_SIZE];
@@ -478,6 +481,7 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state, pa_suspend_cause_t 
         s->suspend_cause = suspend_cause;
     }
 
+    old_state = s->state;
     if (state_changed) {
         pa_log_debug("%s: state: %s -> %s", s->name, pa_sink_state_to_string(s->state), pa_sink_state_to_string(state));
         s->state = state;
@@ -490,7 +494,7 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state, pa_suspend_cause_t 
         }
     }
 
-    if (suspending || resuming) {
+    if (suspending || resuming || suspend_cause_changed) {
         pa_sink_input *i;
         uint32_t idx;
 
@@ -501,7 +505,7 @@ static int sink_set_state(pa_sink *s, pa_sink_state_t state, pa_suspend_cause_t 
                 (i->flags & PA_SINK_INPUT_KILL_ON_SUSPEND))
                 pa_sink_input_kill(i);
             else if (i->suspend)
-                i->suspend(i, state == PA_SINK_SUSPENDED);
+                i->suspend(i, old_state, old_suspend_cause);
     }
 
     if ((suspending || resuming || suspend_cause_changed) && s->monitor_source && state != PA_SINK_UNLINKED)

@@ -150,8 +150,9 @@ struct pa_source_output {
     void (*detach) (pa_source_output *o);           /* may be NULL */
 
     /* If non-NULL called whenever the source this output is attached
-     * to suspends or resumes. Called from main context */
-    void (*suspend) (pa_source_output *o, bool b);   /* may be NULL */
+     * to suspends or resumes or if the suspend cause changes.
+     * Called from main context */
+    void (*suspend) (pa_source_output *o, pa_source_state_t old_state, pa_suspend_cause_t old_suspend_cause);   /* may be NULL */
 
     /* If non-NULL called whenever the source this output is attached
      * to suspends or resumes. Called from IO context */

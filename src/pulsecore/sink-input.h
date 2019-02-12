@@ -179,8 +179,9 @@ struct pa_sink_input {
     void (*detach) (pa_sink_input *i);           /* may be NULL */
 
     /* If non-NULL called whenever the sink this input is attached
-     * to suspends or resumes. Called from main context */
-    void (*suspend) (pa_sink_input *i, bool b);   /* may be NULL */
+     * to suspends or resumes or if the suspend cause changes.
+     * Called from main context */
+    void (*suspend) (pa_sink_input *i, pa_sink_state_t old_state, pa_suspend_cause_t old_suspend_cause);   /* may be NULL */
 
     /* If non-NULL called whenever the sink this input is attached
      * to suspends or resumes. Called from IO context */

@@ -761,12 +761,19 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
 }
 
 /* Called from main thread */
-static void source_output_suspend_cb(pa_source_output *o, bool suspended) {
+static void source_output_suspend_cb(pa_source_output *o, pa_source_state_t old_state, pa_suspend_cause_t old_suspend_cause) {
     struct userdata *u;
+    bool suspended;
 
     pa_source_output_assert_ref(o);
     pa_assert_ctl_context();
     pa_assert_se(u = o->userdata);
+
+    /* State has not changed, nothing to do */
+    if (old_state == o->source->state)
+        return;
+
+    suspended = (o->source->state == PA_SOURCE_SUSPENDED);
 
     /* If the source has been suspended, we need to handle this like
      * a source change when the source is resumed */
@@ -1160,12 +1167,19 @@ static bool sink_input_may_move_to_cb(pa_sink_input *i, pa_sink *dest) {
 }
 
 /* Called from main thread */
-static void sink_input_suspend_cb(pa_sink_input *i, bool suspended) {
+static void sink_input_suspend_cb(pa_sink_input *i, pa_sink_state_t old_state, pa_suspend_cause_t old_suspend_cause) {
     struct userdata *u;
+    bool suspended;
 
     pa_sink_input_assert_ref(i);
     pa_assert_ctl_context();
     pa_assert_se(u = i->userdata);
+
+    /* State has not changed, nothing to do */
+    if (old_state == i->sink->state)
+        return;
+
+    suspended = (i->sink->state == PA_SINK_SUSPENDED);
 
     /* If the sink has been suspended, we need to handle this like
      * a sink change when the sink is resumed. Because the sink

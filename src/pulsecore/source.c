@@ -354,6 +354,8 @@ static int source_set_state(pa_source *s, pa_source_state_t state, pa_suspend_ca
     bool suspend_cause_changed;
     bool suspending;
     bool resuming;
+    pa_source_state_t old_state;
+    pa_suspend_cause_t old_suspend_cause;
 
     pa_assert(s);
     pa_assert_ctl_context();
@@ -423,6 +425,7 @@ static int source_set_state(pa_source *s, pa_source_state_t state, pa_suspend_ca
         }
     }
 
+    old_suspend_cause = s->suspend_cause;
     if (suspend_cause_changed) {
         char old_cause_buf[PA_SUSPEND_CAUSE_TO_STRING_BUF_SIZE];
         char new_cause_buf[PA_SUSPEND_CAUSE_TO_STRING_BUF_SIZE];
@@ -432,6 +435,7 @@ static int source_set_state(pa_source *s, pa_source_state_t state, pa_suspend_ca
         s->suspend_cause = suspend_cause;
     }
 
+    old_state = s->state;
     if (state_changed) {
         pa_log_debug("%s: state: %s -> %s", s->name, pa_source_state_to_string(s->state), pa_source_state_to_string(state));
         s->state = state;
@@ -444,7 +448,7 @@ static int source_set_state(pa_source *s, pa_source_state_t state, pa_suspend_ca
         }
     }
 
-    if (suspending || resuming) {
+    if (suspending || resuming || suspend_cause_changed) {
         pa_source_output *o;
         uint32_t idx;
 
@@ -455,7 +459,7 @@ static int source_set_state(pa_source *s, pa_source_state_t state, pa_suspend_ca
                 (o->flags & PA_SOURCE_OUTPUT_KILL_ON_SUSPEND))
                 pa_source_output_kill(o);
             else if (o->suspend)
-                o->suspend(o, state == PA_SOURCE_SUSPENDED);
+                o->suspend(o, old_state, old_suspend_cause);
     }
 
     return ret;
