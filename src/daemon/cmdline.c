@@ -132,7 +132,7 @@ void pa_cmdline_help(const char *argv0) {
            "      --realtime[=BOOL]                 Try to enable realtime scheduling\n"
            "                                        (only available as root, when SUID or\n"
            "                                        with elevated RLIMIT_RTPRIO)\n"
-           "      --disallow-module-loading[=BOOL]  Disallow module user requested module\n"
+           "      --disallow-module-loading[=BOOL]  Disallow user requested module\n"
            "                                        loading/unloading after startup\n"
            "      --disallow-exit[=BOOL]            Disallow user requested exit\n"
            "      --exit-idle-time=SECS             Terminate the daemon when idle and this\n"
