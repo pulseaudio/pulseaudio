@@ -325,7 +325,7 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
             case ARG_LOG_TARGET:
                 if (pa_daemon_conf_set_log_target(conf, optarg) < 0) {
 #ifdef HAVE_SYSTEMD_JOURNAL
-                    pa_log(_("Invalid log target: use either 'syslog', 'journal','stderr' or 'auto' or a valid file name 'file:<path>', 'newfile:<path>'."));
+                    pa_log(_("Invalid log target: use either 'syslog', 'journal', 'stderr' or 'auto' or a valid file name 'file:<path>', 'newfile:<path>'."));
 #else
                     pa_log(_("Invalid log target: use either 'syslog', 'stderr' or 'auto' or a valid file name 'file:<path>', 'newfile:<path>'."));
 #endif
