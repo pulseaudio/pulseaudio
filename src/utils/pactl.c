@@ -887,8 +887,8 @@ static void fill_volume(pa_cvolume *cv, unsigned supported) {
     if (volume.channels == 1) {
         pa_cvolume_set(&volume, supported, volume.values[0]);
     } else if (volume.channels != supported) {
-        pa_log(ngettext("Failed to set volume: You tried to set volumes for %d channel, whereas channel/s supported = %d\n",
-                        "Failed to set volume: You tried to set volumes for %d channels, whereas channel/s supported = %d\n",
+        pa_log(ngettext("Failed to set volume: You tried to set volumes for %d channel, whereas channel(s) supported = %d\n",
+                        "Failed to set volume: You tried to set volumes for %d channels, whereas channel(s) supported = %d\n",
                         volume.channels),
                volume.channels, supported);
         quit(1);
