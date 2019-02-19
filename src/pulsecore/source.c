@@ -438,7 +438,7 @@ static int source_set_state(pa_source *s, pa_source_state_t state, pa_suspend_ca
 
         /* If we enter UNLINKED state, then we don't send change notifications.
          * pa_source_unlink() will send unlink notifications instead. */
-        if (state == PA_SOURCE_UNLINKED) {
+        if (state != PA_SOURCE_UNLINKED) {
             pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_STATE_CHANGED], s);
             pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
         }
