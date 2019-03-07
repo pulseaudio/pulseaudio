@@ -3978,6 +3978,24 @@ static int mapping_parse_fallback(pa_config_parser_state *state) {
     return 0;
 }
 
+static int mapping_parse_intended_roles(pa_config_parser_state *state) {
+    pa_alsa_profile_set *ps;
+    pa_alsa_mapping *m;
+
+    pa_assert(state);
+
+    ps = state->userdata;
+
+    if (!(m = pa_alsa_mapping_get(ps, state->section))) {
+        pa_log("[%s:%u] %s invalid in section %s", state->filename, state->lineno, state->lvalue, state->section);
+        return -1;
+    }
+
+    pa_proplist_sets(m->proplist, PA_PROP_DEVICE_INTENDED_ROLES, state->rvalue);
+
+    return 0;
+}
+
 
 static int profile_parse_mappings(pa_config_parser_state *state) {
     pa_alsa_profile_set *ps;
@@ -4569,6 +4587,7 @@ pa_alsa_profile_set* pa_alsa_profile_set_new(const char *fname, const pa_channel
         { "element-output",         mapping_parse_element,        NULL, NULL },
         { "direction",              mapping_parse_direction,      NULL, NULL },
         { "exact-channels",         mapping_parse_exact_channels, NULL, NULL },
+        { "intended-roles",         mapping_parse_intended_roles, NULL, NULL },
 
         /* Shared by [Mapping ...] and [Profile ...] */
         { "description",            mapping_parse_description,    NULL, NULL },
