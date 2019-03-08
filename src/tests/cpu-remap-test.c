@@ -212,7 +212,7 @@ static void remap_init_test_channels(
         unsigned out_channels,
         bool rearrange) {
 
-    pa_remap_t remap_orig, remap_func;
+    pa_remap_t remap_orig = {0}, remap_func = {0};
 
     setup_remap_channels(&remap_orig, f, in_channels, out_channels, rearrange);
     orig_init_func(&remap_orig);
