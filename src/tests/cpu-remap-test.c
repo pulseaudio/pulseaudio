@@ -386,6 +386,11 @@ START_TEST (rearrange_neon_test) {
     pa_log_debug("Checking NEON remap (s16, stereo rearrange)");
     remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S16NE, 2, 2, true);
 
+    pa_log_debug("Checking NEON remap (float, 2-channel->4-channel rearrange)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_FLOAT32NE, 2, 4, true);
+    pa_log_debug("Checking NEON remap (s16, 2-channel->4-channel rearrange)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S16NE, 2, 4, true);
+
     pa_log_debug("Checking NEON remap (float, 4-channel rearrange)");
     remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_FLOAT32NE, 4, 4, true);
     pa_log_debug("Checking NEON remap (s16, 4-channel rearrange)");
