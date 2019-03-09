@@ -1090,6 +1090,11 @@ int pa_alsa_recover_from_poll(snd_pcm_t *pcm, int revents) {
 
     switch (state) {
 
+        case SND_PCM_STATE_DISCONNECTED:
+            /* Do not try to recover */
+            pa_log_info("Device disconnected.");
+            return -1;
+
         case SND_PCM_STATE_XRUN:
             if ((err = snd_pcm_recover(pcm, -EPIPE, 1)) != 0) {
                 pa_log_warn("Could not recover from POLLERR|POLLNVAL|POLLHUP and XRUN: %s", pa_alsa_strerror(err));
@@ -1098,21 +1103,21 @@ int pa_alsa_recover_from_poll(snd_pcm_t *pcm, int revents) {
             break;
 
         case SND_PCM_STATE_SUSPENDED:
-            if ((err = snd_pcm_recover(pcm, -ESTRPIPE, 1)) != 0) {
-                pa_log_warn("Could not recover from POLLERR|POLLNVAL|POLLHUP and SUSPENDED: %s", pa_alsa_strerror(err));
-                return -1;
+            /* Retry resume 3 times before giving up, then fallback to restarting the stream. */
+            for (int i = 0; i < 3; i++) {
+                if ((err = snd_pcm_resume(pcm)) == 0)
+                    return 0;
+                if (err != -EAGAIN)
+                    break;
+                pa_msleep(25);
             }
-            break;
+            pa_log_warn("Could not recover alsa device from SUSPENDED state, trying to restart PCM");
+            /* Fall through */
 
         default:
 
             snd_pcm_drop(pcm);
-
-            if ((err = snd_pcm_prepare(pcm)) < 0) {
-                pa_log_warn("Could not recover from POLLERR|POLLNVAL|POLLHUP with snd_pcm_prepare(): %s", pa_alsa_strerror(err));
-                return -1;
-            }
-            break;
+            return 1;
     }
 
     return 0;

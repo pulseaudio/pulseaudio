@@ -177,6 +177,7 @@ enum {
 };
 
 static void userdata_free(struct userdata *u);
+static int unsuspend(struct userdata *u, bool recovering);
 
 /* FIXME: Is there a better way to do this than device names? */
 static bool is_iec958(struct userdata *u) {
@@ -412,6 +413,39 @@ restart:
     u->watermark_dec_not_before = now + TSCHED_WATERMARK_VERIFY_AFTER_USEC;
 }
 
+/* Called from IO Context on unsuspend or from main thread when creating sink */
+static void reset_watermark(struct userdata *u, size_t tsched_watermark, pa_sample_spec *ss,
+                            bool in_thread) {
+    u->tsched_watermark = pa_convert_size(tsched_watermark, ss, &u->sink->sample_spec);
+
+    u->watermark_inc_step = pa_usec_to_bytes(TSCHED_WATERMARK_INC_STEP_USEC, &u->sink->sample_spec);
+    u->watermark_dec_step = pa_usec_to_bytes(TSCHED_WATERMARK_DEC_STEP_USEC, &u->sink->sample_spec);
+
+    u->watermark_inc_threshold = pa_usec_to_bytes_round_up(TSCHED_WATERMARK_INC_THRESHOLD_USEC, &u->sink->sample_spec);
+    u->watermark_dec_threshold = pa_usec_to_bytes_round_up(TSCHED_WATERMARK_DEC_THRESHOLD_USEC, &u->sink->sample_spec);
+
+    fix_min_sleep_wakeup(u);
+    fix_tsched_watermark(u);
+
+    if (in_thread)
+        pa_sink_set_latency_range_within_thread(u->sink,
+                                                u->min_latency_ref,
+                                                pa_bytes_to_usec(u->hwbuf_size, ss));
+    else {
+        pa_sink_set_latency_range(u->sink,
+                                  0,
+                                  pa_bytes_to_usec(u->hwbuf_size, ss));
+
+        /* work-around assert in pa_sink_set_latency_within_thead,
+           keep track of min_latency and reuse it when
+           this routine is called from IO context */
+        u->min_latency_ref = u->sink->thread_info.min_latency;
+    }
+
+    pa_log_info("Time scheduling watermark is %0.2fms",
+                (double) u->tsched_watermark_usec / PA_USEC_PER_MSEC);
+}
+
 static void hw_sleep_time(struct userdata *u, pa_usec_t *sleep_usec, pa_usec_t*process_usec) {
     pa_usec_t usec, wm;
 
@@ -442,6 +476,31 @@ static void hw_sleep_time(struct userdata *u, pa_usec_t *sleep_usec, pa_usec_t*p
 #endif
 }
 
+/* Reset smoother and counters */
+static void reset_vars(struct userdata *u) {
+
+    pa_smoother_reset(u->smoother, pa_rtclock_now(), true);
+    u->smoother_interval = SMOOTHER_MIN_INTERVAL;
+    u->last_smoother_update = 0;
+
+    u->first = true;
+    u->since_start = 0;
+    u->write_count = 0;
+}
+
+/* Called from IO context */
+static void close_pcm(struct userdata *u) {
+    /* Let's suspend -- we don't call snd_pcm_drain() here since that might
+     * take awfully long with our long buffer sizes today. */
+    snd_pcm_close(u->pcm_handle);
+    u->pcm_handle = NULL;
+
+    if (u->alsa_rtpoll_item) {
+        pa_rtpoll_item_free(u->alsa_rtpoll_item);
+        u->alsa_rtpoll_item = NULL;
+    }
+}
+
 static int try_recover(struct userdata *u, const char *call, int err) {
     pa_assert(u);
     pa_assert(call);
@@ -458,12 +517,17 @@ static int try_recover(struct userdata *u, const char *call, int err) {
         pa_log_debug("%s: System suspended!", call);
 
     if ((err = snd_pcm_recover(u->pcm_handle, err, 1)) < 0) {
-        pa_log("%s: %s", call, pa_alsa_strerror(err));
-        return -1;
+        pa_log("%s: %s, trying to restart PCM", call, pa_alsa_strerror(err));
+
+        /* As a last measure, restart the PCM and inform the caller about it. */
+        close_pcm(u);
+        if (unsuspend(u, true) < 0)
+            return -1;
+
+        return 1;
     }
 
-    u->first = true;
-    u->since_start = 0;
+    reset_vars(u);
     return 0;
 }
 
@@ -548,7 +612,7 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, bool polled, bo
 
         if (PA_UNLIKELY((n = pa_alsa_safe_avail(u->pcm_handle, u->hwbuf_size, &u->sink->sample_spec)) < 0)) {
 
-            if ((r = try_recover(u, "snd_pcm_avail", (int) n)) == 0)
+            if ((r = try_recover(u, "snd_pcm_avail", (int) n)) >= 0)
                 continue;
 
             return r;
@@ -639,6 +703,9 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, bool polled, bo
                 if ((r = try_recover(u, "snd_pcm_mmap_begin", err)) == 0)
                     continue;
 
+                if (r == 1)
+                    break;
+
                 return r;
             }
 
@@ -676,6 +743,9 @@ static int mmap_write(struct userdata *u, pa_usec_t *sleep_usec, bool polled, bo
 
                 if ((r = try_recover(u, "snd_pcm_mmap_commit", (int) sframes)) == 0)
                     continue;
+
+                if (r == 1)
+                    break;
 
                 return r;
             }
@@ -736,7 +806,7 @@ static int unix_write(struct userdata *u, pa_usec_t *sleep_usec, bool polled, bo
 
         if (PA_UNLIKELY((n = pa_alsa_safe_avail(u->pcm_handle, u->hwbuf_size, &u->sink->sample_spec)) < 0)) {
 
-            if ((r = try_recover(u, "snd_pcm_avail", (int) n)) == 0)
+            if ((r = try_recover(u, "snd_pcm_avail", (int) n)) >= 0)
                 continue;
 
             return r;
@@ -824,6 +894,9 @@ static int unix_write(struct userdata *u, pa_usec_t *sleep_usec, bool polled, bo
 
                 if ((r = try_recover(u, "snd_pcm_writei", (int) frames)) == 0)
                     continue;
+
+                if (r == 1)
+                    break;
 
                 return r;
             }
@@ -956,19 +1029,16 @@ static int build_pollfd(struct userdata *u) {
 /* Called from IO context */
 static void suspend(struct userdata *u) {
     pa_assert(u);
-    pa_assert(u->pcm_handle);
+
+    /* Handle may have been invalidated due to a device failure.
+     * In that case there is nothing to do. */
+    if (!u->pcm_handle)
+        return;
 
     pa_smoother_pause(u->smoother, pa_rtclock_now());
 
-    /* Let's suspend -- we don't call snd_pcm_drain() here since that might
-     * take awfully long with our long buffer sizes today. */
-    snd_pcm_close(u->pcm_handle);
-    u->pcm_handle = NULL;
-
-    if (u->alsa_rtpoll_item) {
-        pa_rtpoll_item_free(u->alsa_rtpoll_item);
-        u->alsa_rtpoll_item = NULL;
-    }
+    /* Close PCM device */
+    close_pcm(u);
 
     /* We reset max_rewind/max_request here to make sure that while we
      * are suspended the old max_request/max_rewind values set before
@@ -1057,39 +1127,6 @@ static int update_sw_params(struct userdata *u, bool may_need_rewind) {
     return 0;
 }
 
-/* Called from IO Context on unsuspend or from main thread when creating sink */
-static void reset_watermark(struct userdata *u, size_t tsched_watermark, pa_sample_spec *ss,
-                            bool in_thread) {
-    u->tsched_watermark = pa_convert_size(tsched_watermark, ss, &u->sink->sample_spec);
-
-    u->watermark_inc_step = pa_usec_to_bytes(TSCHED_WATERMARK_INC_STEP_USEC, &u->sink->sample_spec);
-    u->watermark_dec_step = pa_usec_to_bytes(TSCHED_WATERMARK_DEC_STEP_USEC, &u->sink->sample_spec);
-
-    u->watermark_inc_threshold = pa_usec_to_bytes_round_up(TSCHED_WATERMARK_INC_THRESHOLD_USEC, &u->sink->sample_spec);
-    u->watermark_dec_threshold = pa_usec_to_bytes_round_up(TSCHED_WATERMARK_DEC_THRESHOLD_USEC, &u->sink->sample_spec);
-
-    fix_min_sleep_wakeup(u);
-    fix_tsched_watermark(u);
-
-    if (in_thread)
-        pa_sink_set_latency_range_within_thread(u->sink,
-                                                u->min_latency_ref,
-                                                pa_bytes_to_usec(u->hwbuf_size, ss));
-    else {
-        pa_sink_set_latency_range(u->sink,
-                                  0,
-                                  pa_bytes_to_usec(u->hwbuf_size, ss));
-
-        /* work-around assert in pa_sink_set_latency_within_thead,
-           keep track of min_latency and reuse it when
-           this routine is called from IO context */
-        u->min_latency_ref = u->sink->thread_info.min_latency;
-    }
-
-    pa_log_info("Time scheduling watermark is %0.2fms",
-                (double) u->tsched_watermark_usec / PA_USEC_PER_MSEC);
-}
-
 /* Called from IO Context on unsuspend */
 static void update_size(struct userdata *u, pa_sample_spec *ss) {
     pa_assert(u);
@@ -1112,7 +1149,7 @@ static void update_size(struct userdata *u, pa_sample_spec *ss) {
 }
 
 /* Called from IO context */
-static int unsuspend(struct userdata *u) {
+static int unsuspend(struct userdata *u, bool recovering) {
     pa_sample_spec ss;
     int err;
     bool b, d;
@@ -1190,16 +1227,10 @@ static int unsuspend(struct userdata *u) {
     if (build_pollfd(u) < 0)
         goto fail;
 
-    u->write_count = 0;
-    pa_smoother_reset(u->smoother, pa_rtclock_now(), true);
-    u->smoother_interval = SMOOTHER_MIN_INTERVAL;
-    u->last_smoother_update = 0;
-
-    u->first = true;
-    u->since_start = 0;
+    reset_vars(u);
 
     /* reset the watermark to the value defined when sink was created */
-    if (u->use_tsched)
+    if (u->use_tsched && !recovering)
         reset_watermark(u, u->tsched_watermark_ref, &u->sink->sample_spec, true);
 
     pa_log_info("Resumed successfully...");
@@ -1359,7 +1390,7 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
             }
 
             if (s->thread_info.state == PA_SINK_SUSPENDED) {
-                if ((r = unsuspend(u)) < 0)
+                if ((r = unsuspend(u, false)) < 0)
                     return r;
             }
 
@@ -1756,6 +1787,7 @@ static void sink_reconfigure_cb(pa_sink *s, pa_sample_spec *spec, bool passthrou
 static int process_rewind(struct userdata *u) {
     snd_pcm_sframes_t unused;
     size_t rewind_nbytes, unused_nbytes, limit_nbytes;
+    int err;
     pa_assert(u);
 
     if (!PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
@@ -1769,10 +1801,12 @@ static int process_rewind(struct userdata *u) {
     pa_log_debug("Requested to rewind %lu bytes.", (unsigned long) rewind_nbytes);
 
     if (PA_UNLIKELY((unused = pa_alsa_safe_avail(u->pcm_handle, u->hwbuf_size, &u->sink->sample_spec)) < 0)) {
-        if (try_recover(u, "snd_pcm_avail", (int) unused) < 0) {
+        if ((err = try_recover(u, "snd_pcm_avail", (int) unused)) < 0) {
             pa_log_warn("Trying to recover from underrun failed during rewind");
             return -1;
         }
+        if (err == 1)
+            goto rewind_done;
     }
 
     unused_nbytes = (size_t) unused * u->frame_size;
@@ -1797,8 +1831,10 @@ static int process_rewind(struct userdata *u) {
         pa_log_debug("before: %lu", (unsigned long) in_frames);
         if ((out_frames = snd_pcm_rewind(u->pcm_handle, (snd_pcm_uframes_t) in_frames)) < 0) {
             pa_log("snd_pcm_rewind() failed: %s", pa_alsa_strerror((int) out_frames));
-            if (try_recover(u, "process_rewind", out_frames) < 0)
+            if ((err = try_recover(u, "process_rewind", out_frames)) < 0)
                 return -1;
+            if (err == 1)
+                goto rewind_done;
             out_frames = 0;
         }
 
@@ -1819,6 +1855,7 @@ static int process_rewind(struct userdata *u) {
     } else
         pa_log_debug("Mhmm, actually there is nothing to rewind.");
 
+rewind_done:
     pa_sink_process_rewind(u->sink, 0);
     return 0;
 }
@@ -1974,11 +2011,17 @@ static void thread_func(void *userdata) {
             }
 
             if (revents & ~POLLOUT) {
-                if (pa_alsa_recover_from_poll(u->pcm_handle, revents) < 0)
+                if ((err = pa_alsa_recover_from_poll(u->pcm_handle, revents)) < 0)
                     goto fail;
 
-                u->first = true;
-                u->since_start = 0;
+                /* Stream needs to be restarted */
+                if (err == 1) {
+                    close_pcm(u);
+                    if (unsuspend(u, true) < 0)
+                        goto fail;
+                } else
+                    reset_vars(u);
+
                 revents = 0;
             } else if (revents && u->use_tsched && pa_log_ratelimit(PA_LOG_DEBUG))
                 pa_log_debug("Wakeup from ALSA!");
