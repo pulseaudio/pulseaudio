@@ -55,14 +55,29 @@ struct userdata {
         *sink_input_move_finish_slot,
         *sink_input_state_changed_slot,
         *sink_input_mute_changed_slot,
-        *sink_input_proplist_changed_slot;
+        *sink_input_proplist_changed_slot,
+        *source_output_put_slot,
+        *source_output_unlink_slot,
+        *source_output_move_start_slot,
+        *source_output_move_finish_slot,
+        *source_output_state_changed_slot,
+        *source_output_mute_changed_slot,
+        *source_output_proplist_changed_slot;
 };
 
-static const char *get_trigger_role(struct userdata *u, pa_sink_input *i, struct group *g) {
+static inline pa_object* GET_DEVICE_FROM_STREAM(pa_object *stream) {
+    return pa_sink_input_isinstance(stream) ? PA_OBJECT(PA_SINK_INPUT(stream)->sink) : PA_OBJECT(PA_SOURCE_OUTPUT(stream)->source);
+}
+
+static inline pa_proplist* GET_PROPLIST_FROM_STREAM(pa_object *stream) {
+    return pa_sink_input_isinstance(stream) ? PA_SINK_INPUT(stream)->proplist : PA_SOURCE_OUTPUT(stream)->proplist;
+}
+
+static const char *get_trigger_role(struct userdata *u, pa_object *stream, struct group *g) {
     const char *role, *trigger_role;
     uint32_t role_idx;
 
-    if (!(role = pa_proplist_gets(i->proplist, PA_PROP_MEDIA_ROLE)))
+    if (!(role = pa_proplist_gets(GET_PROPLIST_FROM_STREAM(stream), PA_PROP_MEDIA_ROLE)))
         role = "no_role";
 
     if (g == NULL) {
@@ -84,39 +99,49 @@ static const char *get_trigger_role(struct userdata *u, pa_sink_input *i, struct
     return NULL;
 }
 
-static const char *find_trigger_stream(struct userdata *u, pa_sink *s, pa_sink_input *ignore, struct group *g) {
-    pa_sink_input *j;
+static const char *find_trigger_stream(struct userdata *u, pa_object *device, pa_object *ignore_stream, struct group *g) {
+    pa_object *j;
     uint32_t idx;
     const char *trigger_role;
 
     pa_assert(u);
-    pa_sink_assert_ref(s);
+    pa_object_assert_ref(device);
 
-    for (j = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx)); j; j = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx))) {
-
-        if (j == ignore)
+    PA_IDXSET_FOREACH(j, pa_sink_isinstance(device) ? PA_SINK(device)->inputs : PA_SOURCE(device)->outputs, idx) {
+        if (j == ignore_stream)
             continue;
 
-        trigger_role = get_trigger_role(u, j, g);
-        if (trigger_role && !j->muted && j->state != PA_SINK_INPUT_CORKED)
+        if (!(trigger_role = get_trigger_role(u, PA_OBJECT(j), g)))
+            continue;
+
+        if (pa_sink_isinstance(device) ? !PA_SINK_INPUT(j)->muted && PA_SINK_INPUT(j)->state != PA_SINK_INPUT_CORKED :
+                            !PA_SOURCE_OUTPUT(j)->muted && PA_SOURCE_OUTPUT(j)->state != PA_SOURCE_OUTPUT_CORKED) {
             return trigger_role;
+        }
     }
 
     return NULL;
 }
 
-static const char *find_global_trigger_stream(struct userdata *u, pa_sink *s, pa_sink_input *ignore, struct group *g) {
+static const char *find_global_trigger_stream(struct userdata *u, pa_object *ignore_stream, struct group *g) {
     const char *trigger_role = NULL;
+    pa_sink *sink;
+    pa_source *source;
+    uint32_t idx;
 
     pa_assert(u);
 
-    if (u->global) {
-        uint32_t idx;
-        PA_IDXSET_FOREACH(s, u->core->sinks, idx)
-            if ((trigger_role = find_trigger_stream(u, s, ignore, g)))
-                break;
-    } else
-        trigger_role = find_trigger_stream(u, s, ignore, g);
+    /* Find any trigger role among the sink-inputs and source-outputs. */
+    PA_IDXSET_FOREACH(sink, u->core->sinks, idx)
+        if ((trigger_role = find_trigger_stream(u, PA_OBJECT(sink), ignore_stream, g)))
+            break;
+
+    if (trigger_role)
+        return trigger_role;
+
+    PA_IDXSET_FOREACH(source, u->core->sources, idx)
+        if ((trigger_role = find_trigger_stream(u, PA_OBJECT(source), ignore_stream, g)))
+            break;
 
     return trigger_role;
 }
@@ -153,7 +178,7 @@ static void uncork_or_unduck(struct userdata *u, pa_sink_input *i, const char *i
     }
 }
 
-static inline void apply_interaction_to_sink(struct userdata *u, pa_sink *s, const char *new_trigger, pa_sink_input *ignore, bool new_stream, struct group *g) {
+static inline void apply_interaction_to_sink(struct userdata *u, pa_sink *s, const char *new_trigger, pa_sink_input *ignore_stream, bool new_stream, struct group *g) {
     pa_sink_input *j;
     uint32_t idx, role_idx;
     const char *interaction_role;
@@ -166,7 +191,7 @@ static inline void apply_interaction_to_sink(struct userdata *u, pa_sink *s, con
         bool corked, interaction_applied;
         const char *role;
 
-        if (j == ignore)
+        if (j == ignore_stream)
             continue;
 
         if (!(role = pa_proplist_gets(j->proplist, PA_PROP_MEDIA_ROLE)))
@@ -175,8 +200,8 @@ static inline void apply_interaction_to_sink(struct userdata *u, pa_sink *s, con
         PA_IDXSET_FOREACH(interaction_role, g->interaction_roles, role_idx) {
             if ((trigger = pa_streq(role, interaction_role)))
                 break;
-            if ((trigger = (pa_streq(interaction_role, "any_role") && !get_trigger_role(u, j, g))))
-               break;
+            if ((trigger = (pa_streq(interaction_role, "any_role") && !get_trigger_role(u, PA_OBJECT(j), g))))
+                break;
         }
         if (!trigger)
             continue;
@@ -204,15 +229,14 @@ static inline void apply_interaction_to_sink(struct userdata *u, pa_sink *s, con
     }
 }
 
-static void apply_interaction(struct userdata *u, pa_sink *s, const char *trigger_role, pa_sink_input *ignore, bool new_stream, struct group *g) {
+static void apply_interaction_global(struct userdata *u, const char *trigger_role, pa_sink_input *ignore_stream, bool new_stream, struct group *g) {
+    uint32_t idx;
+    pa_sink *s;
+
     pa_assert(u);
 
-    if (u->global) {
-        uint32_t idx;
-        PA_IDXSET_FOREACH(s, u->core->sinks, idx)
-            apply_interaction_to_sink(u, s, trigger_role, ignore, new_stream, g);
-    } else
-        apply_interaction_to_sink(u, s, trigger_role, ignore, new_stream, g);
+    PA_IDXSET_FOREACH(s, u->core->sinks, idx)
+        apply_interaction_to_sink(u, s, trigger_role, ignore_stream, new_stream, g);
 }
 
 static void remove_interactions(struct userdata *u, struct group *g) {
@@ -236,23 +260,35 @@ static void remove_interactions(struct userdata *u, struct group *g) {
     }
 }
 
-static pa_hook_result_t process(struct userdata *u, pa_sink_input *i, bool create, bool new_stream) {
+static pa_hook_result_t process(struct userdata *u, pa_object *stream, bool create, bool new_stream) {
     const char *trigger_role;
     uint32_t j;
 
     pa_assert(u);
-    pa_sink_input_assert_ref(i);
+    pa_object_assert_ref(stream);
 
     if (!create)
         for (j = 0; j < u->n_groups; j++)
-            pa_hashmap_remove(u->groups[j]->interaction_state, i);
+            if (pa_sink_input_isinstance(stream))
+                pa_hashmap_remove(u->groups[j]->interaction_state, stream);
 
-    if (!i->sink)
+    if ((pa_sink_input_isinstance(stream) && !PA_SINK_INPUT(stream)->sink) ||
+        (pa_source_output_isinstance(stream) && !PA_SOURCE_OUTPUT(stream)->source))
+        return PA_HOOK_OK;
+
+    /* If it is triggered from source-output with false of global option, no need to apply interaction. */
+    if (!u->global && pa_source_output_isinstance(stream))
         return PA_HOOK_OK;
 
     for (j = 0; j < u->n_groups; j++) {
-        trigger_role = find_global_trigger_stream(u, i->sink, create ? NULL : i, u->groups[j]);
-        apply_interaction(u, i->sink, trigger_role, create ? NULL : i, new_stream, u->groups[j]);
+        if (u->global) {
+            trigger_role = find_global_trigger_stream(u, create ? NULL : stream, u->groups[j]);
+            apply_interaction_global(u, trigger_role, create ? NULL : (pa_sink_input_isinstance(stream) ? PA_SINK_INPUT(stream) : NULL), new_stream, u->groups[j]);
+        } else {
+            trigger_role = find_trigger_stream(u, GET_DEVICE_FROM_STREAM(stream), create ? NULL : stream, u->groups[j]);
+            if (pa_sink_input_isinstance(stream))
+                apply_interaction_to_sink(u, PA_SINK_INPUT(stream)->sink, trigger_role, create ? NULL : PA_SINK_INPUT(stream), new_stream, u->groups[j]);
+        }
     }
 
     return PA_HOOK_OK;
@@ -262,35 +298,35 @@ static pa_hook_result_t sink_input_put_cb(pa_core *core, pa_sink_input *i, struc
     pa_core_assert_ref(core);
     pa_sink_input_assert_ref(i);
 
-    return process(u, i, true, true);
+    return process(u, PA_OBJECT(i), true, true);
 }
 
 static pa_hook_result_t sink_input_unlink_cb(pa_core *core, pa_sink_input *i, struct userdata *u) {
     pa_sink_input_assert_ref(i);
 
-    return process(u, i, false, false);
+    return process(u, PA_OBJECT(i), false, false);
 }
 
 static pa_hook_result_t sink_input_move_start_cb(pa_core *core, pa_sink_input *i, struct userdata *u) {
     pa_core_assert_ref(core);
     pa_sink_input_assert_ref(i);
 
-    return process(u, i, false, false);
+    return process(u, PA_OBJECT(i), false, false);
 }
 
 static pa_hook_result_t sink_input_move_finish_cb(pa_core *core, pa_sink_input *i, struct userdata *u) {
     pa_core_assert_ref(core);
     pa_sink_input_assert_ref(i);
 
-    return process(u, i, true, false);
+    return process(u, PA_OBJECT(i), true, false);
 }
 
 static pa_hook_result_t sink_input_state_changed_cb(pa_core *core, pa_sink_input *i, struct userdata *u) {
     pa_core_assert_ref(core);
     pa_sink_input_assert_ref(i);
 
-    if (PA_SINK_INPUT_IS_LINKED(i->state) && get_trigger_role(u, i, NULL))
-        return process(u, i, true, false);
+    if (PA_SINK_INPUT_IS_LINKED(i->state) && get_trigger_role(u, PA_OBJECT(i), NULL))
+        return process(u, PA_OBJECT(i), true, false);
 
     return PA_HOOK_OK;
 }
@@ -299,8 +335,8 @@ static pa_hook_result_t sink_input_mute_changed_cb(pa_core *core, pa_sink_input 
     pa_core_assert_ref(core);
     pa_sink_input_assert_ref(i);
 
-    if (PA_SINK_INPUT_IS_LINKED(i->state) && get_trigger_role(u, i, NULL))
-        return process(u, i, true, false);
+    if (PA_SINK_INPUT_IS_LINKED(i->state) && get_trigger_role(u, PA_OBJECT(i), NULL))
+        return process(u, PA_OBJECT(i), true, false);
 
     return PA_HOOK_OK;
 }
@@ -310,7 +346,64 @@ static pa_hook_result_t sink_input_proplist_changed_cb(pa_core *core, pa_sink_in
     pa_sink_input_assert_ref(i);
 
     if (PA_SINK_INPUT_IS_LINKED(i->state))
-        return process(u, i, true, false);
+        return process(u, PA_OBJECT(i), true, false);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_output_put_cb(pa_core *core, pa_source_output *o, struct userdata *u) {
+    pa_core_assert_ref(core);
+    pa_source_output_assert_ref(o);
+
+    return process(u, PA_OBJECT(o), true, true);
+}
+
+static pa_hook_result_t source_output_unlink_cb(pa_core *core, pa_source_output *o, struct userdata *u) {
+    pa_source_output_assert_ref(o);
+
+    return process(u, PA_OBJECT(o), false, false);
+}
+
+static pa_hook_result_t source_output_move_start_cb(pa_core *core, pa_source_output *o, struct userdata *u) {
+    pa_core_assert_ref(core);
+    pa_source_output_assert_ref(o);
+
+    return process(u, PA_OBJECT(o), false, false);
+}
+
+static pa_hook_result_t source_output_move_finish_cb(pa_core *core, pa_source_output *o, struct userdata *u) {
+    pa_core_assert_ref(core);
+    pa_source_output_assert_ref(o);
+
+    return process(u, PA_OBJECT(o), true, false);
+}
+
+static pa_hook_result_t source_output_state_changed_cb(pa_core *core, pa_source_output *o, struct userdata *u) {
+    pa_core_assert_ref(core);
+    pa_source_output_assert_ref(o);
+
+    if (PA_SOURCE_OUTPUT_IS_LINKED(o->state) && get_trigger_role(u, PA_OBJECT(o), NULL))
+        return process(u, PA_OBJECT(o), true, false);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_output_mute_changed_cb(pa_core *core, pa_source_output*o, struct userdata *u) {
+    pa_core_assert_ref(core);
+    pa_source_output_assert_ref(o);
+
+    if (PA_SOURCE_OUTPUT_IS_LINKED(o->state) && get_trigger_role(u, PA_OBJECT(o), NULL))
+        return process(u, PA_OBJECT(o), true, false);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t source_output_proplist_changed_cb(pa_core *core, pa_source_output *o, struct userdata *u) {
+    pa_core_assert_ref(core);
+    pa_source_output_assert_ref(o);
+
+    if (PA_SOURCE_OUTPUT_IS_LINKED(o->state))
+        return process(u, PA_OBJECT(o), true, false);
 
     return PA_HOOK_OK;
 }
@@ -496,6 +589,13 @@ int pa_stream_interaction_init(pa_module *m, const char* const v_modargs[]) {
     u->sink_input_state_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_STATE_CHANGED], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_state_changed_cb, u);
     u->sink_input_mute_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_MUTE_CHANGED], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_mute_changed_cb, u);
     u->sink_input_proplist_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_PROPLIST_CHANGED], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_proplist_changed_cb, u);
+    u->source_output_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PUT], PA_HOOK_LATE, (pa_hook_cb_t) source_output_put_cb, u);
+    u->source_output_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) source_output_unlink_cb, u);
+    u->source_output_move_start_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_START], PA_HOOK_LATE, (pa_hook_cb_t) source_output_move_start_cb, u);
+    u->source_output_move_finish_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_FINISH], PA_HOOK_LATE, (pa_hook_cb_t) source_output_move_finish_cb, u);
+    u->source_output_state_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_STATE_CHANGED], PA_HOOK_LATE, (pa_hook_cb_t) source_output_state_changed_cb, u);
+    u->source_output_mute_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MUTE_CHANGED], PA_HOOK_LATE, (pa_hook_cb_t) source_output_mute_changed_cb, u);
+    u->source_output_proplist_changed_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PROPLIST_CHANGED], PA_HOOK_LATE, (pa_hook_cb_t) source_output_proplist_changed_cb, u);
 
     pa_modargs_free(ma);
 
@@ -549,6 +649,20 @@ void pa_stream_interaction_done(pa_module *m) {
         pa_hook_slot_free(u->sink_input_mute_changed_slot);
     if (u->sink_input_proplist_changed_slot)
         pa_hook_slot_free(u->sink_input_proplist_changed_slot);
+    if (u->source_output_put_slot)
+        pa_hook_slot_free(u->source_output_put_slot);
+    if (u->source_output_unlink_slot)
+        pa_hook_slot_free(u->source_output_unlink_slot);
+    if (u->source_output_move_start_slot)
+        pa_hook_slot_free(u->source_output_move_start_slot);
+    if (u->source_output_move_finish_slot)
+        pa_hook_slot_free(u->source_output_move_finish_slot);
+    if (u->source_output_state_changed_slot)
+        pa_hook_slot_free(u->source_output_state_changed_slot);
+    if (u->source_output_mute_changed_slot)
+        pa_hook_slot_free(u->source_output_mute_changed_slot);
+    if (u->source_output_proplist_changed_slot)
+        pa_hook_slot_free(u->source_output_proplist_changed_slot);
 
     pa_xfree(u);
 
