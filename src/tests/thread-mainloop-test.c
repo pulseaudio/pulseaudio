@@ -30,14 +30,21 @@
 #include <pulse/util.h>
 #include <pulse/thread-mainloop.h>
 
-#include <pulsecore/macro.h>
 #include <pulsecore/core-rtclock.h>
+#include <pulsecore/macro.h>
+#include <pulsecore/mutex.h>
 
 static void tcb(pa_mainloop_api *a, pa_time_event *e, const struct timeval *tv, void *userdata) {
     pa_assert_se(pa_threaded_mainloop_in_thread(userdata));
     fprintf(stderr, "TIME EVENT START\n");
     pa_threaded_mainloop_signal(userdata, 1);
     fprintf(stderr, "TIME EVENT END\n");
+}
+
+static void ocb(pa_threaded_mainloop *m, void *userdata) {
+    pa_threaded_mainloop_lock(m);
+    pa_threaded_mainloop_signal(m, 0);
+    pa_threaded_mainloop_unlock(m);
 }
 
 START_TEST (thread_mainloop_test) {
@@ -68,6 +75,17 @@ START_TEST (thread_mainloop_test) {
 
     fprintf(stderr, "waiting 5s (sleep)\n");
     pa_msleep(5000);
+
+    /* Test pa_threaded_mainloop_once_unlocked() */
+    pa_threaded_mainloop_lock(m);
+
+    fprintf(stderr, "scheduling unlocked callback\n");
+    pa_threaded_mainloop_once_unlocked(m, ocb, NULL);
+
+    pa_threaded_mainloop_wait(m);
+    fprintf(stderr, "got unlocked callback\n");
+
+    pa_threaded_mainloop_unlock(m);
 
     pa_threaded_mainloop_stop(m);
 

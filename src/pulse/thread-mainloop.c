@@ -44,6 +44,7 @@
 struct pa_threaded_mainloop {
     pa_mainloop *real_mainloop;
     volatile int n_waiting, n_waiting_for_accept;
+    pa_atomic_t in_once_unlocked;
 
     pa_thread* thread;
     pa_mutex* mutex;
@@ -174,8 +175,8 @@ void pa_threaded_mainloop_stop(pa_threaded_mainloop *m) {
 void pa_threaded_mainloop_lock(pa_threaded_mainloop *m) {
     pa_assert(m);
 
-    /* Make sure that this function is not called from the helper thread */
-    pa_assert(!m->thread || !pa_thread_is_running(m->thread) || !in_worker(m));
+    /* Make sure that this function is not called from the helper thread, unless it is unlocked */
+    pa_assert(!m->thread || !pa_thread_is_running(m->thread) || !in_worker(m) || pa_atomic_load(&m->in_once_unlocked));
 
     pa_mutex_lock(m->mutex);
 }
@@ -183,8 +184,8 @@ void pa_threaded_mainloop_lock(pa_threaded_mainloop *m) {
 void pa_threaded_mainloop_unlock(pa_threaded_mainloop *m) {
     pa_assert(m);
 
-    /* Make sure that this function is not called from the helper thread */
-    pa_assert(!m->thread || !pa_thread_is_running(m->thread) || !in_worker(m));
+    /* Make sure that this function is not called from the helper thread, unless it is unlocked */
+    pa_assert(!m->thread || !pa_thread_is_running(m->thread) || !in_worker(m) || pa_atomic_load(&m->in_once_unlocked));
 
     pa_mutex_unlock(m->mutex);
 }
@@ -257,4 +258,44 @@ void pa_threaded_mainloop_set_name(pa_threaded_mainloop *m, const char *name) {
 
     if (m->thread)
         pa_thread_set_name(m->thread, m->name);
+}
+
+typedef struct {
+    pa_threaded_mainloop *mainloop;
+    void (*callback)(pa_threaded_mainloop *m, void *userdata);
+    void *userdata;
+} once_unlocked_data;
+
+static void once_unlocked_cb(pa_mainloop_api *api, void *userdata) {
+    once_unlocked_data *data = userdata;
+
+    pa_assert(userdata);
+
+    pa_atomic_store(&data->mainloop->in_once_unlocked, 1);
+    pa_mutex_unlock(data->mainloop->mutex);
+
+    data->callback(data->mainloop, data->userdata);
+
+    pa_mutex_lock(data->mainloop->mutex);
+    pa_atomic_store(&data->mainloop->in_once_unlocked, 0);
+}
+
+void pa_threaded_mainloop_once_unlocked(pa_threaded_mainloop *m, void (*callback)(pa_threaded_mainloop *m, void *userdata),
+        void *userdata) {
+    pa_mainloop_api *api;
+    once_unlocked_data *data;
+
+    pa_assert(m);
+    pa_assert(callback);
+    /* Make sure that this function is not called from the helper thread */
+    pa_assert((m->thread && !pa_thread_is_running(m->thread)) || !in_worker(m));
+
+    api = pa_mainloop_get_api(m->real_mainloop);
+    data = pa_xnew0(once_unlocked_data, 1);
+
+    data->mainloop = m;
+    data->callback = callback;
+    data->userdata = userdata;
+
+    pa_mainloop_api_once(api, once_unlocked_cb, data);
 }
