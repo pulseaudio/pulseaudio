@@ -187,7 +187,7 @@ static inline void apply_interaction_to_sink(struct userdata *u, pa_sink *s, con
     pa_assert(u);
     pa_sink_assert_ref(s);
 
-    for (j = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx)); j; j = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx))) {
+    PA_IDXSET_FOREACH(j, s->inputs, idx) {
         bool corked, interaction_applied;
         const char *role;
 
@@ -247,9 +247,7 @@ static void remove_interactions(struct userdata *u, struct group *g) {
     const char *role;
 
     PA_IDXSET_FOREACH(s, u->core->sinks, idx) {
-
-        for (j = PA_SINK_INPUT(pa_idxset_first(s->inputs, &idx_input)); j; j = PA_SINK_INPUT(pa_idxset_next(s->inputs, &idx_input))) {
-
+        PA_IDXSET_FOREACH(j, s->inputs, idx_input) {
             if(!!pa_hashmap_get(g->interaction_state, j)) {
                 corked = (j->state == PA_SINK_INPUT_CORKED);
                 if (!(role = pa_proplist_gets(j->proplist, PA_PROP_MEDIA_ROLE)))
