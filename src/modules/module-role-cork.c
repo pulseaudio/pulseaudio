@@ -32,12 +32,15 @@ PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE(
         "trigger_roles=<Comma separated list of roles which will trigger a cork> "
         "cork_roles=<Comma separated list of roles which will be corked> "
-        "global=<Should we operate globally or only inside the same device?>");
+        "global=<Should we operate globally or only inside the same device?>"
+        "use_source_trigger=<Do we trigger a cork by a role of source-output as well as sink-input's? Default: false>"
+        );
 
 static const char* const valid_modargs[] = {
     "trigger_roles",
     "cork_roles",
     "global",
+    "use_source_trigger",
     NULL
 };
 

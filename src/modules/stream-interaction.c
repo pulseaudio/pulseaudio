@@ -48,6 +48,7 @@ struct userdata {
     struct group **groups;
     bool global:1;
     bool duck:1;
+    bool source_trigger:1;
     pa_hook_slot
         *sink_input_put_slot,
         *sink_input_unlink_slot,
@@ -114,9 +115,14 @@ static const char *find_trigger_stream(struct userdata *u, pa_object *device, pa
         if (!(trigger_role = get_trigger_role(u, PA_OBJECT(j), g)))
             continue;
 
-        if (pa_sink_isinstance(device) ? !PA_SINK_INPUT(j)->muted && PA_SINK_INPUT(j)->state != PA_SINK_INPUT_CORKED :
-                            !PA_SOURCE_OUTPUT(j)->muted && PA_SOURCE_OUTPUT(j)->state != PA_SOURCE_OUTPUT_CORKED) {
-            return trigger_role;
+        if (pa_sink_isinstance(device)) {
+            if (!PA_SINK_INPUT(j)->muted &&
+                PA_SINK_INPUT(j)->state != PA_SINK_INPUT_CORKED)
+                return trigger_role;
+        } else {
+            if (!PA_SOURCE_OUTPUT(j)->muted &&
+                PA_SOURCE_OUTPUT(j)->state != PA_SOURCE_OUTPUT_CORKED)
+                return trigger_role;
         }
     }
 
@@ -136,7 +142,7 @@ static const char *find_global_trigger_stream(struct userdata *u, pa_object *ign
         if ((trigger_role = find_trigger_stream(u, PA_OBJECT(sink), ignore_stream, g)))
             break;
 
-    if (trigger_role)
+    if (!u->source_trigger || trigger_role)
         return trigger_role;
 
     PA_IDXSET_FOREACH(source, u->core->sources, idx)
@@ -274,9 +280,13 @@ static pa_hook_result_t process(struct userdata *u, pa_object *stream, bool crea
         (pa_source_output_isinstance(stream) && !PA_SOURCE_OUTPUT(stream)->source))
         return PA_HOOK_OK;
 
-    /* If it is triggered from source-output with false of global option, no need to apply interaction. */
-    if (!u->global && pa_source_output_isinstance(stream))
-        return PA_HOOK_OK;
+    if (pa_source_output_isinstance(stream)) {
+        if (!u->source_trigger)
+            return PA_HOOK_OK;
+        /* If it is triggered from source-output with false of global option, no need to apply interaction. */
+        if (!u->global)
+            return PA_HOOK_OK;
+    }
 
     for (j = 0; j < u->n_groups; j++) {
         if (u->global) {
@@ -412,6 +422,7 @@ int pa_stream_interaction_init(pa_module *m, const char* const v_modargs[]) {
     const char *roles;
     char *roles_in_group = NULL;
     bool global = false;
+    bool source_trigger = false;
     uint32_t i = 0;
 
     pa_assert(m);
@@ -579,6 +590,12 @@ int pa_stream_interaction_init(pa_module *m, const char* const v_modargs[]) {
         goto fail;
     }
     u->global = global;
+
+    if (pa_modargs_get_value_boolean(ma, "use_source_trigger", &source_trigger) < 0) {
+        pa_log("Invalid boolean parameter: use_source_trigger");
+        goto fail;
+    }
+    u->source_trigger = source_trigger;
 
     u->sink_input_put_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_PUT], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_put_cb, u);
     u->sink_input_unlink_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_INPUT_UNLINK], PA_HOOK_LATE, (pa_hook_cb_t) sink_input_unlink_cb, u);
