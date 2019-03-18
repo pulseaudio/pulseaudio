@@ -109,9 +109,9 @@ static inline const char *pa_strna(const char *x) {
 }
 
 char *pa_split(const char *c, const char *delimiters, const char **state);
-const char *pa_split_in_place(const char *c, const char *delimiters, int *n, const char **state);
+const char *pa_split_in_place(const char *c, const char *delimiters, size_t *n, const char **state);
 char *pa_split_spaces(const char *c, const char **state);
-const char *pa_split_spaces_in_place(const char *c, int *n, const char **state);
+const char *pa_split_spaces_in_place(const char *c, size_t *n, const char **state);
 
 char *pa_strip_nl(char *s);
 char *pa_strip(char *s);

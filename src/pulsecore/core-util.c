@@ -924,7 +924,7 @@ char *pa_split(const char *c, const char *delimiter, const char**state) {
  * as-is without the length parameter, since it is merely pointing to a point
  * within the original string. The variable state points to, should be
  * initialized to NULL before the first call. */
-const char *pa_split_in_place(const char *c, const char *delimiter, int *n, const char**state) {
+const char *pa_split_in_place(const char *c, const char *delimiter, size_t *n, const char**state) {
     const char *current = *state ? *state : c;
     size_t l;
 
@@ -960,7 +960,7 @@ char *pa_split_spaces(const char *c, const char **state) {
 /* Similar to pa_split_spaces, except this returns a string in-place.
    Returned string is generally not NULL-terminated.
    See pa_split_in_place(). */
-const char *pa_split_spaces_in_place(const char *c, int *n, const char **state) {
+const char *pa_split_spaces_in_place(const char *c, size_t *n, const char **state) {
     const char *current = *state ? *state : c;
     size_t l;
 
@@ -2859,7 +2859,7 @@ bool pa_str_in_list(const char *haystack, const char *delimiters, const char *ne
 /* Checks a whitespace-separated list of words in haystack for needle */
 bool pa_str_in_list_spaces(const char *haystack, const char *needle) {
     const char *s;
-    int n;
+    size_t n;
     const char *state = NULL;
 
     if (!haystack || !needle)

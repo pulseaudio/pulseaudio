@@ -801,7 +801,7 @@ static int ucm_port_contains(const char *port_name, const char *dev_name, bool i
     int ret = 0;
     const char *r;
     const char *state = NULL;
-    int len;
+    size_t len;
 
     if (!port_name || !dev_name)
         return false;
