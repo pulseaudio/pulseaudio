@@ -249,6 +249,8 @@ if get_option('database') == 'tdb'
   database_dep = dependency('tdb')
 elif get_option('database') == 'gdbm'
   database_dep = cc.find_library('gdbm', required : true)
+else
+  database_dep = dependency('', required:false)
 endif
 
 if get_option('ipv6')
