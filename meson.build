@@ -335,7 +335,7 @@ if get_option('hal-compat')
   cdata.set('HAVE_HAL_COMPAT', 1)
 endif
 
-avahi_dep = dependency('avahi-client', version : '>= 0.6.0', required : get_option('avahi'))
+avahi_dep = dependency('avahi-client', version : '>= 0.6.0', required : get_option('avahi'), disabler : true)
 if avahi_dep.found()
   cdata.set('HAVE_AVAHI', 1)
 endif
