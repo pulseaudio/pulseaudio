@@ -7,8 +7,8 @@ msgstr ""
 "Project-Id-Version: PulseAudio master\n"
 "Report-Msgid-Bugs-To: "
 "https://gitlab.freedesktop.org/pulseaudio/pulseaudio/issues\n"
-"POT-Creation-Date: 2019-02-15 03:27+0000\n"
-"PO-Revision-Date: 2019-02-15 16:45+0200\n"
+"POT-Creation-Date: 2019-03-25 15:29+0000\n"
+"PO-Revision-Date: 2019-03-25 17:38+0200\n"
 "Last-Translator: scootergrisen\n"
 "Language-Team: Danish\n"
 "Language: da\n"
@@ -48,8 +48,7 @@ msgid ""
 "                                        (only available as root, when SUID "
 "or\n"
 "                                        with elevated RLIMIT_RTPRIO)\n"
-"      --disallow-module-loading[=BOOL]  Disallow module user requested "
-"module\n"
+"      --disallow-module-loading[=BOOL]  Disallow user requested module\n"
 "                                        loading/unloading after startup\n"
 "      --disallow-exit[=BOOL]            Disallow user requested exit\n"
 "      --exit-idle-time=SECS             Terminate the daemon when idle and "
@@ -200,10 +199,10 @@ msgstr "--use-pid-file venter boolesk argument"
 
 #: src/daemon/cmdline.c:328
 msgid ""
-"Invalid log target: use either 'syslog', 'journal','stderr' or 'auto' or a "
+"Invalid log target: use either 'syslog', 'journal', 'stderr' or 'auto' or a "
 "valid file name 'file:<path>', 'newfile:<path>'."
 msgstr ""
-"Ugyldigt logmål: brug enten 'syslog', 'journal','stderr' eller 'auto' eller "
+"Ugyldigt logmål: brug enten 'syslog', 'journal', 'stderr' eller 'auto' eller "
 "et gyldigt filnavn 'file:<sti>', 'newfile:<sti>'."
 
 #: src/daemon/cmdline.c:330
@@ -533,8 +532,8 @@ msgid ""
 msgstr ""
 "OK, så du kører PA i systemtilstand. Sørg venligst for at du faktisk gerne "
 "vil have det på den måde.\n"
-"Læs venligst http://www.freedesktop.org/wiki/Software/PulseAudio/Documentati"
-"on/User/WhatIsWrongWithSystemWide/ for en forklaring på hvorfor "
+"Læs venligst http://www.freedesktop.org/wiki/Software/PulseAudio/"
+"Documentation/User/WhatIsWrongWithSystemWide/ for en forklaring på hvorfor "
 "systemtilstand typisk er en dårlig ide."
 
 #: src/daemon/main.c:1007
@@ -795,7 +794,7 @@ msgid "Digital Stereo (IEC958)"
 msgstr "Digital stereo (IEC958)"
 
 #: src/modules/alsa/alsa-mixer.c:4088
-msgid "Digital Passthrough  (IEC958)"
+msgid "Digital Passthrough (IEC958)"
 msgstr "Digital gennemsending (IEC958)"
 
 #: src/modules/alsa/alsa-mixer.c:4089
@@ -853,7 +852,7 @@ msgstr "%s-output"
 msgid "%s Input"
 msgstr "%s-input"
 
-#: src/modules/alsa/alsa-sink.c:587
+#: src/modules/alsa/alsa-sink.c:651 src/modules/alsa/alsa-sink.c:841
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -870,24 +869,7 @@ msgstr ""
 "Vi blev vækket med POLLOUT indstillet -- men en efterfølgende "
 "snd_pcm_avail() returnerede 0 eller en anden værdi < min_avail."
 
-#: src/modules/alsa/alsa-sink.c:771
-#, c-format
-msgid ""
-"ALSA woke us up to write new data to the device, but there was actually "
-"nothing to write!\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers.\n"
-"We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
-"returned 0 or another value < min_avail."
-msgstr ""
-"ALSA vækkede os ved at skrive ny data til enheden, men der var faktisk ikke "
-"noget at skrive!\n"
-"Det er højst sandsynligt en fejl i ALSA-driveren '%s'. Rapportér det "
-"venligst til ALSA-udviklerne.\n"
-"Vi blev vækket med POLLOUT indstillet -- men en efterfølgende "
-"snd_pcm_avail() returnerede 0 eller en anden værdi < min_avail."
-
-#: src/modules/alsa/alsa-source.c:543
+#: src/modules/alsa/alsa-source.c:610 src/modules/alsa/alsa-source.c:776
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -904,24 +886,7 @@ msgstr ""
 "Vi blev vækket med POLLIN indstillet -- men en efterfølgende snd_pcm_avail() "
 "returnerede 0 eller en anden værdi < min_avail."
 
-#: src/modules/alsa/alsa-source.c:694
-#, c-format
-msgid ""
-"ALSA woke us up to read new data from the device, but there was actually "
-"nothing to read!\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers.\n"
-"We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
-"returned 0 or another value < min_avail."
-msgstr ""
-"ALSA vækkede os ved at læse ny data til enheden, men der var faktisk ikke "
-"noget at læse!\n"
-"Det er højst sandsynligt en fejl i ALSA-driveren '%s'. Rapportér det "
-"venligst til ALSA-udviklerne.\n"
-"Vi blev vækket med POLLIN indstillet -- men en efterfølgende snd_pcm_avail() "
-"returnerede 0 eller en anden værdi < min_avail."
-
-#: src/modules/alsa/alsa-util.c:1168 src/modules/alsa/alsa-util.c:1262
+#: src/modules/alsa/alsa-util.c:1173 src/modules/alsa/alsa-util.c:1267
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu byte (%lu "
@@ -944,7 +909,7 @@ msgstr[1] ""
 "Det er højst sandsynligt en fejl i ALSA-driveren '%s'. Rapportér det "
 "venligst til ALSA-udviklerne."
 
-#: src/modules/alsa/alsa-util.c:1234
+#: src/modules/alsa/alsa-util.c:1239
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li byte (%s"
@@ -962,12 +927,12 @@ msgstr[0] ""
 "Det er højst sandsynligt en fejl i ALSA-driveren '%s'. Rapportér det "
 "venligst til ALSA-udviklerne."
 msgstr[1] ""
-"snd_pcm_delay() returnerede en værdi som er usædvanlig stor: %li bytes (%s%"
-"lu ms).\n"
+"snd_pcm_delay() returnerede en værdi som er usædvanlig stor: %li bytes (%s"
+"%lu ms).\n"
 "Det er højst sandsynligt en fejl i ALSA-driveren '%s'. Rapportér det "
 "venligst til ALSA-udviklerne."
 
-#: src/modules/alsa/alsa-util.c:1281
+#: src/modules/alsa/alsa-util.c:1286
 #, c-format
 msgid ""
 "snd_pcm_avail_delay() returned strange values: delay %lu is less than avail "
@@ -980,7 +945,7 @@ msgstr ""
 "Det er højst sandsynligt en fejl i ALSA-driveren '%s'. Rapportér det "
 "venligst til ALSA-udviklerne."
 
-#: src/modules/alsa/alsa-util.c:1324
+#: src/modules/alsa/alsa-util.c:1329
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu byte "
@@ -993,8 +958,8 @@ msgid_plural ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr[0] ""
-"snd_pcm_mmap_begin() returnerede en værdi som er usædvanlig stor: %lu byte ("
-"%lu ms).\n"
+"snd_pcm_mmap_begin() returnerede en værdi som er usædvanlig stor: %lu byte "
+"(%lu ms).\n"
 "Det er højst sandsynligt en fejl i ALSA-driveren '%s'. Rapportér det "
 "venligst til ALSA-udviklerne."
 msgstr[1] ""
@@ -1152,9 +1117,8 @@ msgstr ""
 "channel_map=<kanalkort for input> plugin=<navn på ladspa-plugin> "
 "label=<etiket på ladspa-plugin> control=<kommasepareret liste over værdier "
 "for inputstyring> input_ladspaport_map=<kommasepareret liste over LADSPA-"
-"portnavne for input> output_ladspaport_map=<kommasepareret liste over "
-"LADSPA-portnavne for output> autoloaded=<indstil hvis modulet indlæses "
-"automatisk> "
+"portnavne for input> output_ladspaport_map=<kommasepareret liste over LADSPA-"
+"portnavne for output> autoloaded=<indstil hvis modulet indlæses automatisk> "
 
 #: src/modules/module-null-sink.c:46
 msgid "Clocked NULL sink"
@@ -1504,7 +1468,7 @@ msgstr "ugyldig"
 #, c-format
 msgid ""
 "XDG_RUNTIME_DIR (%s) is not owned by us (uid %d), but by uid %d! (This could "
-"e g happen if you try to connect to a non-root PulseAudio as a root user, "
+"e.g. happen if you try to connect to a non-root PulseAudio as a root user, "
 "over the native protocol. Don't do that.)"
 msgstr ""
 "XDG_RUNTIME_DIR (%s) ejes ikke af os (uid %d), men af uid'et %d! (det kan "
@@ -1540,11 +1504,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "Ugyldigt logmål."
 
-#: src/pulsecore/sink.c:3507
+#: src/pulsecore/sink.c:3511
 msgid "Built-in Audio"
 msgstr "Indbygget lyd"
 
-#: src/pulsecore/sink.c:3512
+#: src/pulsecore/sink.c:3516
 msgid "Modem"
 msgstr "Modem"
 
@@ -1959,8 +1923,8 @@ msgstr ""
 "      --fix-format                      Tag sampleformatet fra sinken/kilden "
 "som strømmen\n"
 "                                        forbindes til.\n"
-"      --fix-rate                        Tag samplingfrekvensen fra "
-"sinken/kilden som strømmen\n"
+"      --fix-rate                        Tag samplingfrekvensen fra sinken/"
+"kilden som strømmen\n"
 "                                        forbindes til.\n"
 "      --fix-channels                    Tag antal kanaler og kanalkort fra "
 "sinken/kilden som strømmen\n"
@@ -1972,7 +1936,8 @@ msgstr ""
 "bytes.\n"
 "      --process-time=BYTES              Anmod den angive procestid pr. "
 "anmodning i bytes.\n"
-"      --latency-msec=MSEK               Anmod den angive forsinkelse i msek.\n"
+"      --latency-msec=MSEK               Anmod den angive forsinkelse i "
+"msek.\n"
 "      --process-time-msec=MSEK          Anmod den angive procestid pr. "
 "anmodning i msek.\n"
 "      --property=EGENSKAB=VÆRDI         Indstil den angivne egenskab til den "
@@ -2266,8 +2231,7 @@ msgstr ""
 #: src/utils/pacmd.c:142
 msgid "No PulseAudio daemon running, or not running as session daemon."
 msgstr ""
-"Der kører ikke nogen PulseAudio-dæmon eller den kører ikke som "
-"sessionsdæmon."
+"Der kører ikke nogen PulseAudio-dæmon eller den kører ikke som sessionsdæmon."
 
 #: src/utils/pacmd.c:147
 #, c-format
@@ -2712,10 +2676,10 @@ msgstr "Kunne ikke udlæse modul: Modulet %s er ikke indlæst"
 #, c-format
 msgid ""
 "Failed to set volume: You tried to set volumes for %d channel, whereas "
-"channel/s supported = %d\n"
+"channel(s) supported = %d\n"
 msgid_plural ""
 "Failed to set volume: You tried to set volumes for %d channels, whereas "
-"channel/s supported = %d\n"
+"channel(s) supported = %d\n"
 msgstr[0] "Kunne ikke indstille lydstyrke: Du prøvede at indstille lydstyrker for %d "
 "kanal, mens kanal(er) understøttede = %d\n"
 msgstr[1] "Kunne ikke indstille lydstyrke: Du prøvede at indstille lydstyrker for %d "
@@ -3007,8 +2971,7 @@ msgstr "Ugyldig mute-specifikation"
 msgid ""
 "You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
 msgstr ""
-"Du skal angive et kildenavn/-indeks og en mute-handling (0, 1 eller "
-"'toggle')"
+"Du skal angive et kildenavn/-indeks og en mute-handling (0, 1 eller 'toggle')"
 
 #: src/utils/pactl.c:1994
 msgid ""
@@ -3043,8 +3006,7 @@ msgstr ""
 #: src/utils/pactl.c:2046
 msgid "You have to specify a card name/index, a port name and a latency offset"
 msgstr ""
-"Du skal angive et kortnavn/-indeks, et portnavn og en forsinkelse-"
-"forskydning"
+"Du skal angive et kortnavn/-indeks, et portnavn og en forsinkelse-forskydning"
 
 #: src/utils/pactl.c:2053
 msgid "Could not parse latency offset"
