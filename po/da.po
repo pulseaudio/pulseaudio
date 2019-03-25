@@ -1,0 +1,3210 @@
+# Danish translation for PulseAudio.
+# Copyright (C) 2019 PulseAudio's COPYRIGHT HOLDER
+# This file is distributed under the same license as the PulseAudio package.
+# scootergrisen, 2019.
+msgid ""
+msgstr ""
+"Project-Id-Version: PulseAudio master\n"
+"Report-Msgid-Bugs-To: "
+"https://gitlab.freedesktop.org/pulseaudio/pulseaudio/issues\n"
+"POT-Creation-Date: 2019-02-15 03:27+0000\n"
+"PO-Revision-Date: 2019-02-15 16:45+0200\n"
+"Last-Translator: scootergrisen\n"
+"Language-Team: Danish\n"
+"Language: da\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/daemon/cmdline.c:113
+#, c-format
+msgid ""
+"%s [options]\n"
+"\n"
+"COMMANDS:\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"      --dump-conf                       Dump default configuration\n"
+"      --dump-modules                    Dump list of available modules\n"
+"      --dump-resample-methods           Dump available resample methods\n"
+"      --cleanup-shm                     Cleanup stale shared memory "
+"segments\n"
+"      --start                           Start the daemon if it is not "
+"running\n"
+"  -k  --kill                            Kill a running daemon\n"
+"      --check                           Check for a running daemon (only "
+"returns exit code)\n"
+"\n"
+"OPTIONS:\n"
+"      --system[=BOOL]                   Run as system-wide instance\n"
+"  -D, --daemonize[=BOOL]                Daemonize after startup\n"
+"      --fail[=BOOL]                     Quit when startup fails\n"
+"      --high-priority[=BOOL]            Try to set high nice level\n"
+"                                        (only available as root, when SUID "
+"or\n"
+"                                        with elevated RLIMIT_NICE)\n"
+"      --realtime[=BOOL]                 Try to enable realtime scheduling\n"
+"                                        (only available as root, when SUID "
+"or\n"
+"                                        with elevated RLIMIT_RTPRIO)\n"
+"      --disallow-module-loading[=BOOL]  Disallow module user requested "
+"module\n"
+"                                        loading/unloading after startup\n"
+"      --disallow-exit[=BOOL]            Disallow user requested exit\n"
+"      --exit-idle-time=SECS             Terminate the daemon when idle and "
+"this\n"
+"                                        time passed\n"
+"      --scache-idle-time=SECS           Unload autoloaded samples when idle "
+"and\n"
+"                                        this time passed\n"
+"      --log-level[=LEVEL]               Increase or set verbosity level\n"
+"  -v  --verbose                         Increase the verbosity level\n"
+"      --log-target={auto,syslog,stderr,file:PATH,newfile:PATH}\n"
+"                                        Specify the log target\n"
+"      --log-meta[=BOOL]                 Include code location in log "
+"messages\n"
+"      --log-time[=BOOL]                 Include timestamps in log messages\n"
+"      --log-backtrace=FRAMES            Include a backtrace in log messages\n"
+"  -p, --dl-search-path=PATH             Set the search path for dynamic "
+"shared\n"
+"                                        objects (plugins)\n"
+"      --resample-method=METHOD          Use the specified resampling method\n"
+"                                        (See --dump-resample-methods for\n"
+"                                        possible values)\n"
+"      --use-pid-file[=BOOL]             Create a PID file\n"
+"      --no-cpu-limit[=BOOL]             Do not install CPU load limiter on\n"
+"                                        platforms that support it.\n"
+"      --disable-shm[=BOOL]              Disable shared memory support.\n"
+"      --enable-memfd[=BOOL]             Enable memfd shared memory support.\n"
+"\n"
+"STARTUP SCRIPT:\n"
+"  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module "
+"with\n"
+"                                        the specified argument\n"
+"  -F, --file=FILENAME                   Run the specified script\n"
+"  -C                                    Open a command line on the running "
+"TTY\n"
+"                                        after startup\n"
+"\n"
+"  -n                                    Don't load default script file\n"
+msgstr ""
+"%s [tilvalg]\n"
+"\n"
+"KOMMANDOER:\n"
+"  -h, --help                            Vis denne hjælp\n"
+"      --version                         Vis version\n"
+"      --dump-conf                       Dump standardkonfiguration\n"
+"      --dump-modules                    Dump liste over tilgængelige moduler\n"
+"      --dump-resample-methods           Dump tilgængelige resample-metoder\n"
+"      --cleanup-shm                     Ryd op i gamle segmenter i delt "
+"hukommelse\n"
+"      --start                           Start dæmonen, hvis ikke den kører\n"
+"  -k  --kill                            Dræb en kørende dæmon\n"
+"      --check                           Tjek om der findes en kørende dæmon "
+"(returnerer kun afslutningskoden)\n"
+"\n"
+"TILVALG:\n"
+"      --system[=BOOL]                   Kør som systembred instans\n"
+"  -D, --daemonize[=BOOL]                Dæmoniser efter opstart\n"
+"      --fail[=BOOL]                     Afslut når opstart mislykkes\n"
+"      --high-priority[=BOOL]            Prøv at indstille højt nice-niveau\n"
+"                                        (kun tilgængelig som root, når SUID "
+"eller\n"
+"                                        med ophøjet RLIMIT_NICE)\n"
+"      --realtime[=BOOL]                 Prøv at aktivere planlægning i "
+"realtid\n"
+"                                        (kun tilgængelig som root, når SUID "
+"eller\n"
+"                                        med ophøjet RLIMIT_RTPRIO)\n"
+"      --disallow-module-loading[=BOOL]  Tillad ikke brugeranmodet "
+"indlæsning/\n"
+"                                        udlæsning af modul efter opstart\n"
+"      --disallow-exit[=BOOL]            Tillad ikke brugeranmodet afslutning\n"
+"      --exit-idle-time=SEK              Afslut dæmonen ved inaktivitet når "
+"tiden\n"
+"                                        er passeret\n"
+"      --scache-idle-time=SEK            Udlæs automatisk indlæste "
+"datapunkter ved\n"
+"                                        inaktivitet når tiden er passeret\n"
+"      --log-level[=NIVEAU]              Øg eller indstil uddybende niveau\n"
+"  -v  --verbose                         Øg uddybende niveau\n"
+"      --log-target={auto,syslog,stderr,file:STI,newfile:STI}\n"
+"                                        Angiv logmålet\n"
+"      --log-meta[=BOOL]                 Inkluder kodeplacering i "
+"logmeddelelser\n"
+"      --log-time[=BOOL]                 Inkluder tidsstempler i "
+"logmeddelelser\n"
+"      --log-backtrace=FRAMES            Inkluder et backtrace i "
+"logmeddelelser\n"
+"  -p, --dl-search-path=STI              Indstil søgestien for objekter som "
+"er\n"
+"                                        delt dynamisk (plugins)\n"
+"      --resample-method=METODE          Brug den angivne resampling-metode\n"
+"                                        (se --dump-resample-methods for\n"
+"                                        mulige værdier)\n"
+"      --use-pid-file[=BOOL]             Opret en PID-fil\n"
+"      --no-cpu-limit[=BOOL]             Installer ikke CPU-"
+"belastningsbegrænser på\n"
+"                                        platforme der understøtter det.\n"
+"      --disable-shm[=BOOL]              Deaktivér understøttelse af delt "
+"hukommelse.\n"
+"      --enable-memfd[=BOOL]             Aktivér understøttelse af delt "
+"hukommelse for memfd.\n"
+"\n"
+"OPSTARTSSCRIPT:\n"
+"  -L, --load=\"MODUL ARGUMENTER\"         Indlæs det angive plugin-modul med\n"
+"                                        det angivne argument\n"
+"  -F, --file=FILNAVN                    Kør det angivne script\n"
+"  -C                                    Åbn en kommandolinje på den kørende "
+"TTY\n"
+"                                        efter opstart\n"
+"\n"
+"  -n                                    Indlæs ikke standard scriptfil\n"
+
+#: src/daemon/cmdline.c:246
+msgid "--daemonize expects boolean argument"
+msgstr "--daemonize venter boolesk argument"
+
+#: src/daemon/cmdline.c:254
+msgid "--fail expects boolean argument"
+msgstr "--fail venter boolesk argument"
+
+#: src/daemon/cmdline.c:265
+msgid ""
+"--log-level expects log level argument (either numeric in range 0..4 or one "
+"of debug, info, notice, warn, error)."
+msgstr ""
+"--log-level venter logniveau argument (enten numerisk i området 0..4 eller "
+"en af debug, info, notice, warn, error)."
+
+#: src/daemon/cmdline.c:277
+msgid "--high-priority expects boolean argument"
+msgstr "--high-priority venter boolesk argument"
+
+#: src/daemon/cmdline.c:285
+msgid "--realtime expects boolean argument"
+msgstr "--realtime venter boolesk argument"
+
+#: src/daemon/cmdline.c:293
+msgid "--disallow-module-loading expects boolean argument"
+msgstr "--disallow-module-loading venter boolesk argument"
+
+#: src/daemon/cmdline.c:301
+msgid "--disallow-exit expects boolean argument"
+msgstr "--disallow-exit venter boolesk argument"
+
+#: src/daemon/cmdline.c:309
+msgid "--use-pid-file expects boolean argument"
+msgstr "--use-pid-file venter boolesk argument"
+
+#: src/daemon/cmdline.c:328
+msgid ""
+"Invalid log target: use either 'syslog', 'journal','stderr' or 'auto' or a "
+"valid file name 'file:<path>', 'newfile:<path>'."
+msgstr ""
+"Ugyldigt logmål: brug enten 'syslog', 'journal','stderr' eller 'auto' eller "
+"et gyldigt filnavn 'file:<sti>', 'newfile:<sti>'."
+
+#: src/daemon/cmdline.c:330
+msgid ""
+"Invalid log target: use either 'syslog', 'stderr' or 'auto' or a valid file "
+"name 'file:<path>', 'newfile:<path>'."
+msgstr ""
+"Ugyldigt logmål: brug enten 'syslog', 'stderr' eller 'auto' eller et gyldigt "
+"filnavn 'file:<sti>', 'newfile:<sti>'."
+
+#: src/daemon/cmdline.c:338
+msgid "--log-time expects boolean argument"
+msgstr "--log-time venter boolesk argument"
+
+#: src/daemon/cmdline.c:346
+msgid "--log-meta expects boolean argument"
+msgstr "--log-meta venter boolesk argument"
+
+#: src/daemon/cmdline.c:366
+#, c-format
+msgid "Invalid resample method '%s'."
+msgstr "Ugyldig resample-metode '%s'."
+
+#: src/daemon/cmdline.c:373
+msgid "--system expects boolean argument"
+msgstr "--system venter boolesk argument"
+
+#: src/daemon/cmdline.c:381
+msgid "--no-cpu-limit expects boolean argument"
+msgstr "--no-cpu-limit venter boolesk argument"
+
+#: src/daemon/cmdline.c:389
+msgid "--disable-shm expects boolean argument"
+msgstr "--disable-shm venter boolesk argument"
+
+#: src/daemon/cmdline.c:397
+msgid "--enable-memfd expects boolean argument"
+msgstr "--enable-memfd venter boolesk argument"
+
+#: src/daemon/daemon-conf.c:268
+#, c-format
+msgid "[%s:%u] Invalid log target '%s'."
+msgstr "[%s:%u] Ugyldigt logmål '%s'."
+
+#: src/daemon/daemon-conf.c:283
+#, c-format
+msgid "[%s:%u] Invalid log level '%s'."
+msgstr "[%s:%u] Ugyldigt logniveau '%s'."
+
+#: src/daemon/daemon-conf.c:298
+#, c-format
+msgid "[%s:%u] Invalid resample method '%s'."
+msgstr "[%s:%u] Ugyldig resample-metode '%s'."
+
+#: src/daemon/daemon-conf.c:320
+#, c-format
+msgid "[%s:%u] Invalid rlimit '%s'."
+msgstr "[%s:%u] Ugyldig rlimit '%s'."
+
+#: src/daemon/daemon-conf.c:340
+#, c-format
+msgid "[%s:%u] Invalid sample format '%s'."
+msgstr "[%s:%u] Ugyldig sampleformat '%s'."
+
+#: src/daemon/daemon-conf.c:357 src/daemon/daemon-conf.c:374
+#, c-format
+msgid "[%s:%u] Invalid sample rate '%s'."
+msgstr "[%s:%u] Ugyldig samplefrekvens '%s'."
+
+#: src/daemon/daemon-conf.c:397
+#, c-format
+msgid "[%s:%u] Invalid sample channels '%s'."
+msgstr "[%s:%u] Ugyldige samplekanaler '%s'."
+
+#: src/daemon/daemon-conf.c:414
+#, c-format
+msgid "[%s:%u] Invalid channel map '%s'."
+msgstr "[%s:%u] Ugyldigt kanalkort '%s'."
+
+#: src/daemon/daemon-conf.c:431
+#, c-format
+msgid "[%s:%u] Invalid number of fragments '%s'."
+msgstr "[%s:%u] Ugyldigt antal fragmenter '%s'."
+
+#: src/daemon/daemon-conf.c:448
+#, c-format
+msgid "[%s:%u] Invalid fragment size '%s'."
+msgstr "[%s:%u] Ugyldig fragmentstørrelse '%s'."
+
+#: src/daemon/daemon-conf.c:465
+#, c-format
+msgid "[%s:%u] Invalid nice level '%s'."
+msgstr "[%s:%u] Ugyldigt nice-niveau '%s'."
+
+#: src/daemon/daemon-conf.c:508
+#, c-format
+msgid "[%s:%u] Invalid server type '%s'."
+msgstr "[%s:%u] Ugyldig servertype '%s'."
+
+#: src/daemon/daemon-conf.c:626
+#, c-format
+msgid "Failed to open configuration file: %s"
+msgstr "Kunne ikke åbne konfigurationsfil: %s"
+
+#: src/daemon/daemon-conf.c:642
+msgid ""
+"The specified default channel map has a different number of channels than "
+"the specified default number of channels."
+msgstr ""
+"Det angivne standard kanalkort har et andet antal kanaler end det angivne "
+"standard antal kanaler."
+
+#: src/daemon/daemon-conf.c:729
+#, c-format
+msgid "### Read from configuration file: %s ###\n"
+msgstr "### Læs fra konfigurationsfil: %s ###\n"
+
+#: src/daemon/dumpmodules.c:57
+#, c-format
+msgid "Name: %s\n"
+msgstr "Navn: %s\n"
+
+#: src/daemon/dumpmodules.c:60
+#, c-format
+msgid "No module information available\n"
+msgstr "Ingen tilgængelig information for modul\n"
+
+#: src/daemon/dumpmodules.c:63
+#, c-format
+msgid "Version: %s\n"
+msgstr "Version: %s\n"
+
+#: src/daemon/dumpmodules.c:65
+#, c-format
+msgid "Description: %s\n"
+msgstr "Beskrivelse: %s\n"
+
+#: src/daemon/dumpmodules.c:67
+#, c-format
+msgid "Author: %s\n"
+msgstr "Forfatter: %s\n"
+
+#: src/daemon/dumpmodules.c:69
+#, c-format
+msgid "Usage: %s\n"
+msgstr "Anvendelse: %s\n"
+
+#: src/daemon/dumpmodules.c:70
+#, c-format
+msgid "Load Once: %s\n"
+msgstr "Indlæs når: %s\n"
+
+#: src/daemon/dumpmodules.c:72
+#, c-format
+msgid "DEPRECATION WARNING: %s\n"
+msgstr "ADVARSEL OM UDGÅELSE: %s\n"
+
+#: src/daemon/dumpmodules.c:76
+#, c-format
+msgid "Path: %s\n"
+msgstr "Sti: %s\n"
+
+#: src/daemon/ltdl-bind-now.c:75
+#, c-format
+msgid "Failed to open module %s: %s"
+msgstr "Kunne ikke åbne modulet %s: %s"
+
+#: src/daemon/ltdl-bind-now.c:126
+msgid "Failed to find original lt_dlopen loader."
+msgstr "Kunne ikke finde oprindelige lt_dlopen-indlæser."
+
+#: src/daemon/ltdl-bind-now.c:131
+msgid "Failed to allocate new dl loader."
+msgstr "Kunne ikke allokere ny dl-indlæser."
+
+#: src/daemon/ltdl-bind-now.c:144
+msgid "Failed to add bind-now-loader."
+msgstr "Kunne ikke tilføje bind-now-loader."
+
+#: src/daemon/main.c:171
+#, c-format
+msgid "Failed to find user '%s'."
+msgstr "Kunne ikke finde brugeren '%s'."
+
+#: src/daemon/main.c:176
+#, c-format
+msgid "Failed to find group '%s'."
+msgstr "Kunne ikke finde gruppen '%s'."
+
+#: src/daemon/main.c:185
+#, c-format
+msgid "GID of user '%s' and of group '%s' don't match."
+msgstr "GID for brugeren '%s' og for gruppen '%s' er ikke ens."
+
+#: src/daemon/main.c:190
+#, c-format
+msgid "Home directory of user '%s' is not '%s', ignoring."
+msgstr "Hjemmemappen for brugeren '%s' er ikke '%s', ignorerer."
+
+#: src/daemon/main.c:193 src/daemon/main.c:198
+#, c-format
+msgid "Failed to create '%s': %s"
+msgstr "Kunne ikke oprette '%s': %s"
+
+#: src/daemon/main.c:205
+#, c-format
+msgid "Failed to change group list: %s"
+msgstr "Kunne ikke skifte gruppeliste: %s"
+
+#: src/daemon/main.c:221
+#, c-format
+msgid "Failed to change GID: %s"
+msgstr "Kunne ikke skifte GID: %s"
+
+#: src/daemon/main.c:237
+#, c-format
+msgid "Failed to change UID: %s"
+msgstr "Kunne ikke skifte UID: %s"
+
+#: src/daemon/main.c:266
+msgid "System wide mode unsupported on this platform."
+msgstr "Platformen understøtter ikke systembred tilstand."
+
+#: src/daemon/main.c:495
+msgid "Failed to parse command line."
+msgstr "Kunne ikke fortolke kommandolinje."
+
+#: src/daemon/main.c:534
+msgid ""
+"System mode refused for non-root user. Only starting the D-Bus server lookup "
+"service."
+msgstr ""
+"Systemtilstand nægtet for bruger som ikke er root. Starter kun D-Bus-"
+"serverens opslagstjeneste."
+
+#: src/daemon/main.c:633
+#, c-format
+msgid "Failed to kill daemon: %s"
+msgstr "Kunne ikke dræbe dæmon: %s"
+
+#: src/daemon/main.c:662
+msgid ""
+"This program is not intended to be run as root (unless --system is "
+"specified)."
+msgstr ""
+"Programmet er ikke beregnet til at blive kørt som root (medmindre --system "
+"angives)."
+
+#: src/daemon/main.c:665
+msgid "Root privileges required."
+msgstr "Der kræves root-rettigheder."
+
+#: src/daemon/main.c:672
+msgid "--start not supported for system instances."
+msgstr "--start understøttes ikke af systeminstanser."
+
+#: src/daemon/main.c:712
+#, c-format
+msgid "User-configured server at %s, refusing to start/autospawn."
+msgstr "Brugerkonfigureret server på %s, nægter at starter/autospawn."
+
+#: src/daemon/main.c:718
+#, c-format
+msgid ""
+"User-configured server at %s, which appears to be local. Probing deeper."
+msgstr ""
+"Brugerkonfigureret server på %s, som ser ud til at være lokal. Undersøger "
+"nærmere."
+
+#: src/daemon/main.c:723
+msgid "Running in system mode, but --disallow-exit not set."
+msgstr "Kører i systemtilstand, men --disallow-exit er ikke indstillet."
+
+#: src/daemon/main.c:726
+msgid "Running in system mode, but --disallow-module-loading not set."
+msgstr ""
+"Kører i systemtilstand, men --disallow-module-loading er ikke indstillet."
+
+#: src/daemon/main.c:729
+msgid "Running in system mode, forcibly disabling SHM mode."
+msgstr "Kører i systemtilstand, og tvangsdeaktiverer SHM-tilstand."
+
+#: src/daemon/main.c:734
+msgid "Running in system mode, forcibly disabling exit idle time."
+msgstr ""
+"Kører i systemtilstand, og tvangsdeaktiverer inaktivitetstid for afslutning."
+
+#: src/daemon/main.c:767
+msgid "Failed to acquire stdio."
+msgstr "Kunne ikke indhente stdio."
+
+#: src/daemon/main.c:773 src/daemon/main.c:844
+#, c-format
+msgid "pipe() failed: %s"
+msgstr "pipe() mislykkedes: %s"
+
+#: src/daemon/main.c:778 src/daemon/main.c:849
+#, c-format
+msgid "fork() failed: %s"
+msgstr "fork() mislykkedes: %s"
+
+#: src/daemon/main.c:793 src/daemon/main.c:864 src/utils/pacat.c:562
+#, c-format
+msgid "read() failed: %s"
+msgstr "read() mislykkedes: %s"
+
+#: src/daemon/main.c:799
+msgid "Daemon startup failed."
+msgstr "Opstart af dæmon mislykkedes."
+
+#: src/daemon/main.c:832
+#, c-format
+msgid "setsid() failed: %s"
+msgstr "setsid() mislykkedes: %s"
+
+#: src/daemon/main.c:965
+msgid "Failed to get machine ID"
+msgstr "Kunne ikke hente maskin-id"
+
+#: src/daemon/main.c:991
+msgid ""
+"OK, so you are running PA in system mode. Please make sure that you actually "
+"do want to do that.\n"
+"Please read http://www.freedesktop.org/wiki/Software/PulseAudio/"
+"Documentation/User/WhatIsWrongWithSystemWide/ for an explanation why system "
+"mode is usually a bad idea."
+msgstr ""
+"OK, så du kører PA i systemtilstand. Sørg venligst for at du faktisk gerne "
+"vil have det på den måde.\n"
+"Læs venligst http://www.freedesktop.org/wiki/Software/PulseAudio/Documentati"
+"on/User/WhatIsWrongWithSystemWide/ for en forklaring på hvorfor "
+"systemtilstand typisk er en dårlig ide."
+
+#: src/daemon/main.c:1007
+msgid "pa_pid_file_create() failed."
+msgstr "pa_pid_file_create() mislykkedes."
+
+#: src/daemon/main.c:1039
+msgid "pa_core_new() failed."
+msgstr "pa_core_new() mislykkedes."
+
+#: src/daemon/main.c:1109
+msgid "Failed to initialize daemon."
+msgstr "Kunne ikke initiere dæmon."
+
+#: src/daemon/main.c:1114
+msgid "Daemon startup without any loaded modules, refusing to work."
+msgstr "Opstart af dæmon uden nogen indlæste moduler, nægter at arbejde."
+
+#: src/daemon/pulseaudio.desktop.in:4
+msgid "PulseAudio Sound System"
+msgstr "PulseAudio-lydsystem"
+
+#: src/daemon/pulseaudio.desktop.in:5
+msgid "Start the PulseAudio Sound System"
+msgstr "Start PulseAudio-lydsystemet"
+
+#: src/modules/alsa/alsa-mixer.c:2443
+msgid "Input"
+msgstr "Input"
+
+#: src/modules/alsa/alsa-mixer.c:2444
+msgid "Docking Station Input"
+msgstr "Input til dokingstation"
+
+#: src/modules/alsa/alsa-mixer.c:2445
+msgid "Docking Station Microphone"
+msgstr "Mikrofon for dokingstation"
+
+#: src/modules/alsa/alsa-mixer.c:2446
+msgid "Docking Station Line In"
+msgstr "Line in for dokingstation"
+
+#: src/modules/alsa/alsa-mixer.c:2447 src/modules/alsa/alsa-mixer.c:2532
+msgid "Line In"
+msgstr "Line in"
+
+#: src/modules/alsa/alsa-mixer.c:2448 src/modules/alsa/alsa-mixer.c:2526
+#: src/modules/bluetooth/module-bluez5-device.c:1909
+msgid "Microphone"
+msgstr "Mikrofon"
+
+#: src/modules/alsa/alsa-mixer.c:2449 src/modules/alsa/alsa-mixer.c:2527
+msgid "Front Microphone"
+msgstr "Mikrofon foran"
+
+#: src/modules/alsa/alsa-mixer.c:2450 src/modules/alsa/alsa-mixer.c:2528
+msgid "Rear Microphone"
+msgstr "Mikrofon bagved"
+
+#: src/modules/alsa/alsa-mixer.c:2451
+msgid "External Microphone"
+msgstr "Ekstern mikrofon"
+
+#: src/modules/alsa/alsa-mixer.c:2452 src/modules/alsa/alsa-mixer.c:2530
+msgid "Internal Microphone"
+msgstr "Intern mikrofon"
+
+#: src/modules/alsa/alsa-mixer.c:2453 src/modules/alsa/alsa-mixer.c:2533
+msgid "Radio"
+msgstr "Radio"
+
+#: src/modules/alsa/alsa-mixer.c:2454 src/modules/alsa/alsa-mixer.c:2534
+msgid "Video"
+msgstr "Video"
+
+#: src/modules/alsa/alsa-mixer.c:2455
+msgid "Automatic Gain Control"
+msgstr "Automatisk styring af gain"
+
+#: src/modules/alsa/alsa-mixer.c:2456
+msgid "No Automatic Gain Control"
+msgstr "Ingen automatisk styring af gain"
+
+#: src/modules/alsa/alsa-mixer.c:2457
+msgid "Boost"
+msgstr "Boost"
+
+#: src/modules/alsa/alsa-mixer.c:2458
+msgid "No Boost"
+msgstr "Ingen boost"
+
+#: src/modules/alsa/alsa-mixer.c:2459
+msgid "Amplifier"
+msgstr "Forstærker"
+
+#: src/modules/alsa/alsa-mixer.c:2460
+msgid "No Amplifier"
+msgstr "Ingen forstærker"
+
+#: src/modules/alsa/alsa-mixer.c:2461
+msgid "Bass Boost"
+msgstr "Bas boost"
+
+#: src/modules/alsa/alsa-mixer.c:2462
+msgid "No Bass Boost"
+msgstr "Ingen bas boost"
+
+#: src/modules/alsa/alsa-mixer.c:2463
+#: src/modules/bluetooth/module-bluez5-device.c:1916
+msgid "Speaker"
+msgstr "Højttaler"
+
+#: src/modules/alsa/alsa-mixer.c:2464 src/modules/alsa/alsa-mixer.c:2536
+msgid "Headphones"
+msgstr "Hovedtelefoner"
+
+#: src/modules/alsa/alsa-mixer.c:2525
+msgid "Analog Input"
+msgstr "Analog input"
+
+#: src/modules/alsa/alsa-mixer.c:2529
+msgid "Dock Microphone"
+msgstr "Dokmikrofon"
+
+#: src/modules/alsa/alsa-mixer.c:2531
+msgid "Headset Microphone"
+msgstr "Mikrofon for headset"
+
+#: src/modules/alsa/alsa-mixer.c:2535
+msgid "Analog Output"
+msgstr "Analog output"
+
+#: src/modules/alsa/alsa-mixer.c:2537
+msgid "Headphones Mono Output"
+msgstr "Mono output for hovedtelefoner"
+
+#: src/modules/alsa/alsa-mixer.c:2538
+msgid "LFE on Separate Mono Output"
+msgstr "LFE på separat mono output"
+
+#: src/modules/alsa/alsa-mixer.c:2539
+msgid "Line Out"
+msgstr "Line out"
+
+#: src/modules/alsa/alsa-mixer.c:2540
+msgid "Analog Mono Output"
+msgstr "Analog mono output"
+
+#: src/modules/alsa/alsa-mixer.c:2541
+msgid "Speakers"
+msgstr "Højttalere"
+
+#: src/modules/alsa/alsa-mixer.c:2542
+msgid "HDMI / DisplayPort"
+msgstr "HDMI/DisplayPort"
+
+#: src/modules/alsa/alsa-mixer.c:2543
+msgid "Digital Output (S/PDIF)"
+msgstr "Digital output (S/PDIF)"
+
+#: src/modules/alsa/alsa-mixer.c:2544
+msgid "Digital Input (S/PDIF)"
+msgstr "Digital input (S/PDIF)"
+
+#: src/modules/alsa/alsa-mixer.c:2545
+msgid "Digital Passthrough (S/PDIF)"
+msgstr "Digital gennemsending (S/PDIF)"
+
+#: src/modules/alsa/alsa-mixer.c:2546
+msgid "Multichannel Input"
+msgstr "Multikanal input"
+
+#: src/modules/alsa/alsa-mixer.c:2547
+msgid "Multichannel Output"
+msgstr "Multikanal output"
+
+#: src/modules/alsa/alsa-mixer.c:2548
+msgid "Game Output"
+msgstr "Spilouput"
+
+#: src/modules/alsa/alsa-mixer.c:2549
+msgid "Chat Output"
+msgstr "Chatoutput"
+
+#: src/modules/alsa/alsa-mixer.c:4063
+msgid "Analog Mono"
+msgstr "Analog mono"
+
+#. Note: Not translated to "Analog Stereo Input", because the source
+#. * name gets "Input" appended to it automatically, so adding "Input"
+#. * here would lead to the source name to become "Analog Stereo Input
+#. * Input". The same logic applies to analog-stereo-output,
+#. * multichannel-input and multichannel-output.
+#: src/modules/alsa/alsa-mixer.c:4064 src/modules/alsa/alsa-mixer.c:4072
+#: src/modules/alsa/alsa-mixer.c:4073
+msgid "Analog Stereo"
+msgstr "Analog stereo"
+
+#: src/modules/alsa/alsa-mixer.c:4065 src/pulse/channelmap.c:103
+#: src/pulse/channelmap.c:771
+msgid "Mono"
+msgstr "Mono"
+
+#: src/modules/alsa/alsa-mixer.c:4066 src/pulse/channelmap.c:775
+msgid "Stereo"
+msgstr "Stereo"
+
+#: src/modules/alsa/alsa-mixer.c:4074 src/modules/alsa/alsa-mixer.c:4075
+msgid "Multichannel"
+msgstr "Multikanal"
+
+#: src/modules/alsa/alsa-mixer.c:4076
+msgid "Analog Surround 2.1"
+msgstr "Analog surround 2.1"
+
+#: src/modules/alsa/alsa-mixer.c:4077
+msgid "Analog Surround 3.0"
+msgstr "Analog surround 3.0"
+
+#: src/modules/alsa/alsa-mixer.c:4078
+msgid "Analog Surround 3.1"
+msgstr "Analog surround 3.1"
+
+#: src/modules/alsa/alsa-mixer.c:4079
+msgid "Analog Surround 4.0"
+msgstr "Analog surround 4.0"
+
+#: src/modules/alsa/alsa-mixer.c:4080
+msgid "Analog Surround 4.1"
+msgstr "Analog surround 4.1"
+
+#: src/modules/alsa/alsa-mixer.c:4081
+msgid "Analog Surround 5.0"
+msgstr "Analog surround 5.0"
+
+#: src/modules/alsa/alsa-mixer.c:4082
+msgid "Analog Surround 5.1"
+msgstr "Analog surround 5.1"
+
+#: src/modules/alsa/alsa-mixer.c:4083
+msgid "Analog Surround 6.0"
+msgstr "Analog surround 6.0"
+
+#: src/modules/alsa/alsa-mixer.c:4084
+msgid "Analog Surround 6.1"
+msgstr "Analog surround 6.1"
+
+#: src/modules/alsa/alsa-mixer.c:4085
+msgid "Analog Surround 7.0"
+msgstr "Analog surround 7.0"
+
+#: src/modules/alsa/alsa-mixer.c:4086
+msgid "Analog Surround 7.1"
+msgstr "Analog surround 7.1"
+
+#: src/modules/alsa/alsa-mixer.c:4087
+msgid "Digital Stereo (IEC958)"
+msgstr "Digital stereo (IEC958)"
+
+#: src/modules/alsa/alsa-mixer.c:4088
+msgid "Digital Passthrough  (IEC958)"
+msgstr "Digital gennemsending (IEC958)"
+
+#: src/modules/alsa/alsa-mixer.c:4089
+msgid "Digital Surround 4.0 (IEC958/AC3)"
+msgstr "Digital surround 4.0 (IEC958/AC3)"
+
+#: src/modules/alsa/alsa-mixer.c:4090
+msgid "Digital Surround 5.1 (IEC958/AC3)"
+msgstr "Digital surround 5.1 (IEC958/AC3)"
+
+#: src/modules/alsa/alsa-mixer.c:4091
+msgid "Digital Surround 5.1 (IEC958/DTS)"
+msgstr "Digital surround 5.1 (IEC958/DTS)"
+
+#: src/modules/alsa/alsa-mixer.c:4092
+msgid "Digital Stereo (HDMI)"
+msgstr "Digital stereo (HDMI)"
+
+#: src/modules/alsa/alsa-mixer.c:4093
+msgid "Digital Surround 5.1 (HDMI)"
+msgstr "Digital surround 5.1 (HDMI)"
+
+#: src/modules/alsa/alsa-mixer.c:4226
+msgid "Analog Mono Duplex"
+msgstr "Analog mono dupleks"
+
+#: src/modules/alsa/alsa-mixer.c:4227
+msgid "Analog Stereo Duplex"
+msgstr "Analog stereo dupleks"
+
+#: src/modules/alsa/alsa-mixer.c:4228
+msgid "Digital Stereo Duplex (IEC958)"
+msgstr "Digital stereo dupleks (IEC958)"
+
+#: src/modules/alsa/alsa-mixer.c:4229
+msgid "Multichannel Duplex"
+msgstr "Multikanal dupleks"
+
+#: src/modules/alsa/alsa-mixer.c:4230
+msgid "Stereo Duplex"
+msgstr "Stereo dupleks"
+
+#: src/modules/alsa/alsa-mixer.c:4231 src/modules/alsa/module-alsa-card.c:187
+#: src/modules/bluetooth/module-bluez5-device.c:2164
+msgid "Off"
+msgstr "Fra"
+
+#: src/modules/alsa/alsa-mixer.c:4330
+#, c-format
+msgid "%s Output"
+msgstr "%s-output"
+
+#: src/modules/alsa/alsa-mixer.c:4338
+#, c-format
+msgid "%s Input"
+msgstr "%s-input"
+
+#: src/modules/alsa/alsa-sink.c:587
+#, c-format
+msgid ""
+"ALSA woke us up to write new data to the device, but there was actually "
+"nothing to write.\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers.\n"
+"We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
+msgstr ""
+"ALSA vækkede os ved at skrive ny data til enheden, men der var faktisk ikke "
+"noget at skrive.\n"
+"Det er højst sandsynligt en fejl i ALSA-driveren '%s'. Rapportér det "
+"venligst til ALSA-udviklerne.\n"
+"Vi blev vækket med POLLOUT indstillet -- men en efterfølgende "
+"snd_pcm_avail() returnerede 0 eller en anden værdi < min_avail."
+
+#: src/modules/alsa/alsa-sink.c:771
+#, c-format
+msgid ""
+"ALSA woke us up to write new data to the device, but there was actually "
+"nothing to write!\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers.\n"
+"We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
+msgstr ""
+"ALSA vækkede os ved at skrive ny data til enheden, men der var faktisk ikke "
+"noget at skrive!\n"
+"Det er højst sandsynligt en fejl i ALSA-driveren '%s'. Rapportér det "
+"venligst til ALSA-udviklerne.\n"
+"Vi blev vækket med POLLOUT indstillet -- men en efterfølgende "
+"snd_pcm_avail() returnerede 0 eller en anden værdi < min_avail."
+
+#: src/modules/alsa/alsa-source.c:543
+#, c-format
+msgid ""
+"ALSA woke us up to read new data from the device, but there was actually "
+"nothing to read.\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers.\n"
+"We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
+msgstr ""
+"ALSA vækkede os ved at læse ny data til enheden, men der var faktisk ikke "
+"noget at læse.\n"
+"Det er højst sandsynligt en fejl i ALSA-driveren '%s'. Rapportér det "
+"venligst til ALSA-udviklerne.\n"
+"Vi blev vækket med POLLIN indstillet -- men en efterfølgende snd_pcm_avail() "
+"returnerede 0 eller en anden værdi < min_avail."
+
+#: src/modules/alsa/alsa-source.c:694
+#, c-format
+msgid ""
+"ALSA woke us up to read new data from the device, but there was actually "
+"nothing to read!\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers.\n"
+"We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
+msgstr ""
+"ALSA vækkede os ved at læse ny data til enheden, men der var faktisk ikke "
+"noget at læse!\n"
+"Det er højst sandsynligt en fejl i ALSA-driveren '%s'. Rapportér det "
+"venligst til ALSA-udviklerne.\n"
+"Vi blev vækket med POLLIN indstillet -- men en efterfølgende snd_pcm_avail() "
+"returnerede 0 eller en anden værdi < min_avail."
+
+#: src/modules/alsa/alsa-util.c:1168 src/modules/alsa/alsa-util.c:1262
+#, c-format
+msgid ""
+"snd_pcm_avail() returned a value that is exceptionally large: %lu byte (%lu "
+"ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgid_plural ""
+"snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
+"ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgstr[0] ""
+"snd_pcm_avail() returnerede en værdi som er usædvanlig stor: %lu byte (%lu "
+"ms).\n"
+"Det er højst sandsynligt en fejl i ALSA-driveren '%s'. Rapportér det "
+"venligst til ALSA-udviklerne."
+msgstr[1] ""
+"snd_pcm_avail() returnerede en værdi som er usædvanlig stor: %lu bytes (%lu "
+"ms).\n"
+"Det er højst sandsynligt en fejl i ALSA-driveren '%s'. Rapportér det "
+"venligst til ALSA-udviklerne."
+
+#: src/modules/alsa/alsa-util.c:1234
+#, c-format
+msgid ""
+"snd_pcm_delay() returned a value that is exceptionally large: %li byte (%s"
+"%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgid_plural ""
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s"
+"%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgstr[0] ""
+"snd_pcm_delay() returnerede en værdi som er usædvanlig stor: %li byte (%s%lu "
+"ms).\n"
+"Det er højst sandsynligt en fejl i ALSA-driveren '%s'. Rapportér det "
+"venligst til ALSA-udviklerne."
+msgstr[1] ""
+"snd_pcm_delay() returnerede en værdi som er usædvanlig stor: %li bytes (%s%"
+"lu ms).\n"
+"Det er højst sandsynligt en fejl i ALSA-driveren '%s'. Rapportér det "
+"venligst til ALSA-udviklerne."
+
+#: src/modules/alsa/alsa-util.c:1281
+#, c-format
+msgid ""
+"snd_pcm_avail_delay() returned strange values: delay %lu is less than avail "
+"%lu.\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgstr ""
+"snd_pcm_avail_delay() returnerede underlige værdier: forsinkelsen %lu er "
+"mindre end tilgængelige %lu.\n"
+"Det er højst sandsynligt en fejl i ALSA-driveren '%s'. Rapportér det "
+"venligst til ALSA-udviklerne."
+
+#: src/modules/alsa/alsa-util.c:1324
+#, c-format
+msgid ""
+"snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu byte "
+"(%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgid_plural ""
+"snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
+"(%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgstr[0] ""
+"snd_pcm_mmap_begin() returnerede en værdi som er usædvanlig stor: %lu byte ("
+"%lu ms).\n"
+"Det er højst sandsynligt en fejl i ALSA-driveren '%s'. Rapportér det "
+"venligst til ALSA-udviklerne."
+msgstr[1] ""
+"snd_pcm_mmap_begin() returnerede en værdi som er usædvanlig stor: %lu bytes "
+"(%lu ms).\n"
+"Det er højst sandsynligt en fejl i ALSA-driveren '%s'. Rapportér det "
+"venligst til ALSA-udviklerne."
+
+#: src/modules/bluetooth/module-bluez5-device.c:1893
+#: src/modules/bluetooth/module-bluez5-device.c:1915
+#: src/modules/bluetooth/module-bluez5-device.c:1921
+#: src/modules/bluetooth/module-bluez5-device.c:1947
+msgid "Bluetooth Input"
+msgstr "Bluetooth-input"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1894
+#: src/modules/bluetooth/module-bluez5-device.c:1910
+#: src/modules/bluetooth/module-bluez5-device.c:1948
+msgid "Bluetooth Output"
+msgstr "Bluetooth-output"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1899
+msgid "Headset"
+msgstr "Headset"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1904
+msgid "Handsfree"
+msgstr "Håndfri"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1922
+msgid "Headphone"
+msgstr "Hovedtelefon"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1927
+msgid "Portable"
+msgstr "Bærbar"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1932
+msgid "Car"
+msgstr "Bil"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1937
+msgid "HiFi"
+msgstr "HiFi"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1942
+msgid "Phone"
+msgstr "Telefon"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1989
+msgid "High Fidelity Playback (A2DP Sink)"
+msgstr "Hi-fi-afspilning (A2DP-sink)"
+
+#: src/modules/bluetooth/module-bluez5-device.c:2001
+msgid "High Fidelity Capture (A2DP Source)"
+msgstr "Hi-fi-optagelse (A2DP-kilde)"
+
+#: src/modules/bluetooth/module-bluez5-device.c:2013
+msgid "Headset Head Unit (HSP/HFP)"
+msgstr "Headset-hovedenhed (HSP/HFP)"
+
+#: src/modules/bluetooth/module-bluez5-device.c:2026
+msgid "Headset Audio Gateway (HSP/HFP)"
+msgstr "Headset-lydport (HSP/HFP)"
+
+#: src/modules/echo-cancel/module-echo-cancel.c:59
+msgid ""
+"source_name=<name for the source> source_properties=<properties for the "
+"source> source_master=<name of source to filter> sink_name=<name for the "
+"sink> sink_properties=<properties for the sink> sink_master=<name of sink to "
+"filter> adjust_time=<how often to readjust rates in s> adjust_threshold=<how "
+"much drift to readjust after in ms> format=<sample format> rate=<sample "
+"rate> channels=<number of channels> channel_map=<channel map> "
+"aec_method=<implementation to use> aec_args=<parameters for the AEC engine> "
+"save_aec=<save AEC data in /tmp> autoloaded=<set if this module is being "
+"loaded automatically> use_volume_sharing=<yes or no> use_master_format=<yes "
+"or no> "
+msgstr ""
+"source_name=<navnet på kilden> source_properties=<egenskaber for kilden> "
+"source_master=<navn på kilde som skal filtreres> sink_name=<navn på sinken> "
+"sink_properties=<egenskaber for sinken> sink_master=<navn på sink som skal "
+"filtreres> adjust_time=<hvor ofte frekvenser skal justeres i s> "
+"adjust_threshold=<hvor meget skred som der skal genjusteres efter i ms> "
+"format=<sampleformat> rate=<samplefrekvens> channels=<antal kanaler> "
+"channel_map=<kanalkort> aec_method=<implementering som skal bruges> "
+"aec_args=<parametre til AEC-motoren> save_aec=<gem AEC-data i /tmp> "
+"autoloaded=<indstil hvis modulet indlæses automatisk> "
+"use_volume_sharing=<yes eller no> use_master_format=<yes eller no> "
+
+#. add on profile
+#: src/modules/macosx/module-coreaudio-device.c:824
+msgid "On"
+msgstr "Til"
+
+#: src/modules/module-allow-passthrough.c:71
+#: src/modules/module-always-sink.c:80
+msgid "Dummy Output"
+msgstr "Prøveoutput"
+
+#: src/modules/module-always-sink.c:34
+msgid "Always keeps at least one sink loaded even if it's a null one"
+msgstr "Hold altid mindst én sink indlæst, selv hvis det er den med null"
+
+#: src/modules/module-always-source.c:35
+msgid "Always keeps at least one source loaded even if it's a null one"
+msgstr "Hold altid mindst én kilde indlæst, selv hvis det er den med null"
+
+#: src/modules/module-equalizer-sink.c:68
+msgid "General Purpose Equalizer"
+msgstr "Equalizer til almen brug"
+
+#: src/modules/module-equalizer-sink.c:72
+msgid ""
+"sink_name=<name of the sink> sink_properties=<properties for the sink> "
+"sink_master=<sink to connect to> format=<sample format> rate=<sample rate> "
+"channels=<number of channels> channel_map=<channel map> autoloaded=<set if "
+"this module is being loaded automatically> use_volume_sharing=<yes or no> "
+msgstr ""
+"sink_name=<navn på sinken> sink_properties=<egenskaber for sinken> "
+"sink_master=<sink som der skal oprettes forbindelse til> "
+"format=<sampleformat> rate=<samplefrekvens> channels=<antal kanaler> "
+"channel_map=<kanalkort> autoloaded=<indstil hvis modulet indlæses "
+"automatisk> use_volume_sharing=<yes eller no> "
+
+#: src/modules/module-equalizer-sink.c:1094
+#: src/modules/module-equalizer-sink.c:1217
+#, c-format
+msgid "FFT based equalizer on %s"
+msgstr "FFT-baseret equalizer på %s"
+
+#: src/modules/module-filter-apply.c:47
+msgid "autoclean=<automatically unload unused filters?>"
+msgstr "autoclean=<udlæs automatisk ubrugte filtre?>"
+
+#: src/modules/module-ladspa-sink.c:50
+msgid "Virtual LADSPA sink"
+msgstr "Virtuel LADSPA-sink"
+
+#: src/modules/module-ladspa-sink.c:54
+msgid ""
+"sink_name=<name for the sink> sink_properties=<properties for the sink> "
+"sink_input_properties=<properties for the sink input> master=<name of sink "
+"to filter> sink_master=<name of sink to filter> format=<sample format> "
+"rate=<sample rate> channels=<number of channels> channel_map=<input channel "
+"map> plugin=<ladspa plugin name> label=<ladspa plugin label> control=<comma "
+"separated list of input control values> input_ladspaport_map=<comma "
+"separated list of input LADSPA port names> output_ladspaport_map=<comma "
+"separated list of output LADSPA port names> autoloaded=<set if this module "
+"is being loaded automatically> "
+msgstr ""
+"sink_name=<navn på sinken> sink_properties=<egenskaber for sinken> "
+"sink_input_properties=<egenskaber for sinkinputtet> master=<navn på sink som "
+"skal filtreres> sink_master=<navn på sink som skal filtreres> "
+"format=<sampleformat> rate=<samplefrekvens> channels=<antal kanaler> "
+"channel_map=<kanalkort for input> plugin=<navn på ladspa-plugin> "
+"label=<etiket på ladspa-plugin> control=<kommasepareret liste over værdier "
+"for inputstyring> input_ladspaport_map=<kommasepareret liste over LADSPA-"
+"portnavne for input> output_ladspaport_map=<kommasepareret liste over "
+"LADSPA-portnavne for output> autoloaded=<indstil hvis modulet indlæses "
+"automatisk> "
+
+#: src/modules/module-null-sink.c:46
+msgid "Clocked NULL sink"
+msgstr "Clocked NULL-sink"
+
+#: src/modules/module-null-sink.c:322
+msgid "Null Output"
+msgstr "Null-output"
+
+#: src/modules/module-null-sink.c:334 src/utils/pactl.c:1058
+#, c-format
+msgid "Failed to set format: invalid format string %s"
+msgstr "Kunne ikke indstille format: ugyldig formatstreng %s"
+
+#: src/modules/module-rygel-media-server.c:506
+#: src/modules/module-rygel-media-server.c:544
+#: src/modules/module-rygel-media-server.c:903
+msgid "Output Devices"
+msgstr "Outputenheder"
+
+#: src/modules/module-rygel-media-server.c:507
+#: src/modules/module-rygel-media-server.c:545
+#: src/modules/module-rygel-media-server.c:904
+msgid "Input Devices"
+msgstr "Inputenheder"
+
+#: src/modules/module-rygel-media-server.c:1061
+msgid "Audio on @HOSTNAME@"
+msgstr "Lyd på @HOSTNAME@"
+
+#. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
+#. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
+#: src/modules/module-tunnel-sink-new.c:307
+#: src/modules/module-tunnel-source-new.c:305
+#, c-format
+msgid "Tunnel for %s@%s"
+msgstr "Tunnel for %s@%s"
+
+#: src/modules/module-tunnel-sink-new.c:544
+#: src/modules/module-tunnel-source-new.c:540
+#, c-format
+msgid "Tunnel to %s/%s"
+msgstr "Tunnel til %s/%s"
+
+#: src/modules/module-virtual-surround-sink.c:45
+msgid "Virtual surround sink"
+msgstr "Virtuel surround-sink"
+
+#: src/modules/module-virtual-surround-sink.c:49
+msgid ""
+"sink_name=<name for the sink> sink_properties=<properties for the sink> "
+"master=<name of sink to filter> sink_master=<name of sink to filter> "
+"format=<sample format> rate=<sample rate> channels=<number of channels> "
+"channel_map=<channel map> use_volume_sharing=<yes or no> "
+"force_flat_volume=<yes or no> hrir=/path/to/left_hrir.wav autoloaded=<set if "
+"this module is being loaded automatically> "
+msgstr ""
+"sink_name=<navn på sinken> sink_properties=<egenskaber for sinken> "
+"master=<name of sink to filter> sink_master=<navn på sink som skal "
+"filtreres> format=<sampleformat> rate=<samplefrekvens> channels=<antal "
+"kanaler> channel_map=<kanalkort> use_volume_sharing=<yes eller no> "
+"force_flat_volume=<yes eller no> hrir=/sti/til/venstre_hrir.wav "
+"autoloaded=<indstil hvis modulet indlæses automatisk> "
+
+#: src/modules/raop/module-raop-discover.c:295
+msgid "Unknown device model"
+msgstr "Ukendt enhedsmodel"
+
+#: src/modules/raop/raop-sink.c:507
+msgid "RAOP standard profile"
+msgstr "RAOP standardprofil"
+
+#: src/modules/reserve-wrap.c:149
+msgid "PulseAudio Sound Server"
+msgstr "PulseAudio-lydserver"
+
+#: src/pulse/channelmap.c:105
+msgid "Front Center"
+msgstr "Front Center"
+
+#: src/pulse/channelmap.c:106
+msgid "Front Left"
+msgstr "Front Left"
+
+#: src/pulse/channelmap.c:107
+msgid "Front Right"
+msgstr "Front Right"
+
+#: src/pulse/channelmap.c:109
+msgid "Rear Center"
+msgstr "Rear Center"
+
+#: src/pulse/channelmap.c:110
+msgid "Rear Left"
+msgstr "Rear Left"
+
+#: src/pulse/channelmap.c:111
+msgid "Rear Right"
+msgstr "Rear Right"
+
+#: src/pulse/channelmap.c:113
+msgid "Subwoofer"
+msgstr "Subwoofer"
+
+#: src/pulse/channelmap.c:115
+msgid "Front Left-of-center"
+msgstr "Front Left-of-center"
+
+#: src/pulse/channelmap.c:116
+msgid "Front Right-of-center"
+msgstr "Front Right-of-center"
+
+#: src/pulse/channelmap.c:118
+msgid "Side Left"
+msgstr "Side Left"
+
+#: src/pulse/channelmap.c:119
+msgid "Side Right"
+msgstr "Side Right"
+
+#: src/pulse/channelmap.c:121
+msgid "Auxiliary 0"
+msgstr "Auxiliary 0"
+
+#: src/pulse/channelmap.c:122
+msgid "Auxiliary 1"
+msgstr "Auxiliary 1"
+
+#: src/pulse/channelmap.c:123
+msgid "Auxiliary 2"
+msgstr "Auxiliary 2"
+
+#: src/pulse/channelmap.c:124
+msgid "Auxiliary 3"
+msgstr "Auxiliary 3"
+
+#: src/pulse/channelmap.c:125
+msgid "Auxiliary 4"
+msgstr "Auxiliary 4"
+
+#: src/pulse/channelmap.c:126
+msgid "Auxiliary 5"
+msgstr "Auxiliary 5"
+
+#: src/pulse/channelmap.c:127
+msgid "Auxiliary 6"
+msgstr "Auxiliary 6"
+
+#: src/pulse/channelmap.c:128
+msgid "Auxiliary 7"
+msgstr "Auxiliary 7"
+
+#: src/pulse/channelmap.c:129
+msgid "Auxiliary 8"
+msgstr "Auxiliary 8"
+
+#: src/pulse/channelmap.c:130
+msgid "Auxiliary 9"
+msgstr "Auxiliary 9"
+
+#: src/pulse/channelmap.c:131
+msgid "Auxiliary 10"
+msgstr "Auxiliary 10"
+
+#: src/pulse/channelmap.c:132
+msgid "Auxiliary 11"
+msgstr "Auxiliary 11"
+
+#: src/pulse/channelmap.c:133
+msgid "Auxiliary 12"
+msgstr "Auxiliary 12"
+
+#: src/pulse/channelmap.c:134
+msgid "Auxiliary 13"
+msgstr "Auxiliary 13"
+
+#: src/pulse/channelmap.c:135
+msgid "Auxiliary 14"
+msgstr "Auxiliary 14"
+
+#: src/pulse/channelmap.c:136
+msgid "Auxiliary 15"
+msgstr "Auxiliary 15"
+
+#: src/pulse/channelmap.c:137
+msgid "Auxiliary 16"
+msgstr "Auxiliary 16"
+
+#: src/pulse/channelmap.c:138
+msgid "Auxiliary 17"
+msgstr "Auxiliary 17"
+
+#: src/pulse/channelmap.c:139
+msgid "Auxiliary 18"
+msgstr "Auxiliary 18"
+
+#: src/pulse/channelmap.c:140
+msgid "Auxiliary 19"
+msgstr "Auxiliary 19"
+
+#: src/pulse/channelmap.c:141
+msgid "Auxiliary 20"
+msgstr "Auxiliary 20"
+
+#: src/pulse/channelmap.c:142
+msgid "Auxiliary 21"
+msgstr "Auxiliary 21"
+
+#: src/pulse/channelmap.c:143
+msgid "Auxiliary 22"
+msgstr "Auxiliary 22"
+
+#: src/pulse/channelmap.c:144
+msgid "Auxiliary 23"
+msgstr "Auxiliary 23"
+
+#: src/pulse/channelmap.c:145
+msgid "Auxiliary 24"
+msgstr "Auxiliary 24"
+
+#: src/pulse/channelmap.c:146
+msgid "Auxiliary 25"
+msgstr "Auxiliary 25"
+
+#: src/pulse/channelmap.c:147
+msgid "Auxiliary 26"
+msgstr "Auxiliary 26"
+
+#: src/pulse/channelmap.c:148
+msgid "Auxiliary 27"
+msgstr "Auxiliary 27"
+
+#: src/pulse/channelmap.c:149
+msgid "Auxiliary 28"
+msgstr "Auxiliary 28"
+
+#: src/pulse/channelmap.c:150
+msgid "Auxiliary 29"
+msgstr "Auxiliary 29"
+
+#: src/pulse/channelmap.c:151
+msgid "Auxiliary 30"
+msgstr "Auxiliary 30"
+
+#: src/pulse/channelmap.c:152
+msgid "Auxiliary 31"
+msgstr "Auxiliary 31"
+
+#: src/pulse/channelmap.c:154
+msgid "Top Center"
+msgstr "Top Center"
+
+#: src/pulse/channelmap.c:156
+msgid "Top Front Center"
+msgstr "Top Front Center"
+
+#: src/pulse/channelmap.c:157
+msgid "Top Front Left"
+msgstr "Top Front Left"
+
+#: src/pulse/channelmap.c:158
+msgid "Top Front Right"
+msgstr "Top Front Right"
+
+#: src/pulse/channelmap.c:160
+msgid "Top Rear Center"
+msgstr "Top Rear Center"
+
+#: src/pulse/channelmap.c:161
+msgid "Top Rear Left"
+msgstr "Top Rear Left"
+
+#: src/pulse/channelmap.c:162
+msgid "Top Rear Right"
+msgstr "Top Rear Right"
+
+#: src/pulse/channelmap.c:479 src/pulse/format.c:123 src/pulse/sample.c:177
+#: src/pulse/volume.c:306 src/pulse/volume.c:332 src/pulse/volume.c:352
+#: src/pulse/volume.c:384 src/pulse/volume.c:424 src/pulse/volume.c:443
+msgid "(invalid)"
+msgstr "(ugyldig)"
+
+#: src/pulse/channelmap.c:780
+msgid "Surround 4.0"
+msgstr "Surround 4.0"
+
+#: src/pulse/channelmap.c:786
+msgid "Surround 4.1"
+msgstr "Surround 4.1"
+
+#: src/pulse/channelmap.c:792
+msgid "Surround 5.0"
+msgstr "Surround 5.0"
+
+#: src/pulse/channelmap.c:798
+msgid "Surround 5.1"
+msgstr "Surround 5.1"
+
+#: src/pulse/channelmap.c:805
+msgid "Surround 7.1"
+msgstr "Surround 7.1"
+
+#: src/pulse/client-conf-x11.c:53 src/utils/pax11publish.c:97
+msgid "xcb_connect() failed"
+msgstr "xcb_connect() mislykkedes"
+
+#: src/pulse/client-conf-x11.c:58 src/utils/pax11publish.c:102
+msgid "xcb_connection_has_error() returned true"
+msgstr "xcb_connection_has_error() returnerede sand"
+
+#: src/pulse/client-conf-x11.c:94
+msgid "Failed to parse cookie data"
+msgstr "Kunne ikke fortolke cookiedata"
+
+#: src/pulse/context.c:705
+#, c-format
+msgid "fork(): %s"
+msgstr "fork(): %s"
+
+#: src/pulse/context.c:760
+#, c-format
+msgid "waitpid(): %s"
+msgstr "waitpid(): %s"
+
+#: src/pulse/context.c:1466
+#, c-format
+msgid "Received message for unknown extension '%s'"
+msgstr "Modtog meddelelse fra ukendt udvidelse '%s'"
+
+#: src/pulse/direction.c:37
+msgid "input"
+msgstr "input"
+
+#: src/pulse/direction.c:39
+msgid "output"
+msgstr "output"
+
+#: src/pulse/direction.c:41
+msgid "bidirectional"
+msgstr "tovejs"
+
+#: src/pulse/direction.c:43
+msgid "invalid"
+msgstr "ugyldig"
+
+#: src/pulsecore/core-util.c:1692
+#, c-format
+msgid ""
+"XDG_RUNTIME_DIR (%s) is not owned by us (uid %d), but by uid %d! (This could "
+"e g happen if you try to connect to a non-root PulseAudio as a root user, "
+"over the native protocol. Don't do that.)"
+msgstr ""
+"XDG_RUNTIME_DIR (%s) ejes ikke af os (uid %d), men af uid'et %d! (det kan "
+"f.eks. ske hvis du som root-bruger prøver at oprette forbindelse til en "
+"ikke-root PulseAudio, over den indbyggede protokol. Undlad at gøre det)."
+
+#: src/pulsecore/core-util.h:96
+msgid "yes"
+msgstr "ja"
+
+#: src/pulsecore/core-util.h:96
+msgid "no"
+msgstr "nej"
+
+#: src/pulsecore/lock-autospawn.c:141 src/pulsecore/lock-autospawn.c:227
+msgid "Cannot access autospawn lock."
+msgstr "Kan ikke tilgå autospawn-lås."
+
+#: src/pulsecore/log.c:165
+#, c-format
+msgid "Failed to open target file '%s'."
+msgstr "Kunne ikke åbne målfilen '%s'."
+
+#: src/pulsecore/log.c:188
+#, c-format
+msgid ""
+"Tried to open target file '%s', '%s.1', '%s.2' ... '%s.%d', but all failed."
+msgstr ""
+"Prøvede på at åbne målfilerne '%s', '%s.1', '%s.2' ... '%s.%d', med det "
+"mislykkedes for allesammen."
+
+#: src/pulsecore/log.c:651
+msgid "Invalid log target."
+msgstr "Ugyldigt logmål."
+
+#: src/pulsecore/sink.c:3507
+msgid "Built-in Audio"
+msgstr "Indbygget lyd"
+
+#: src/pulsecore/sink.c:3512
+msgid "Modem"
+msgstr "Modem"
+
+#: src/pulse/error.c:38
+msgid "OK"
+msgstr "OK"
+
+#: src/pulse/error.c:39
+msgid "Access denied"
+msgstr "Adgang nægtet"
+
+#: src/pulse/error.c:40
+msgid "Unknown command"
+msgstr "Ukendt kommando"
+
+#: src/pulse/error.c:41
+msgid "Invalid argument"
+msgstr "Ugyldigt argument"
+
+#: src/pulse/error.c:42
+msgid "Entity exists"
+msgstr "Entiteten findes"
+
+#: src/pulse/error.c:43
+msgid "No such entity"
+msgstr "Entiteten findes ikke"
+
+#: src/pulse/error.c:44
+msgid "Connection refused"
+msgstr "Forbindelsen blev nægtet"
+
+#: src/pulse/error.c:45
+msgid "Protocol error"
+msgstr "Fejl ved protokol"
+
+#: src/pulse/error.c:46
+msgid "Timeout"
+msgstr "Timeout"
+
+#: src/pulse/error.c:47
+msgid "No authentication key"
+msgstr "Ingen autentifikationsnøgle"
+
+#: src/pulse/error.c:48
+msgid "Internal error"
+msgstr "Intern fejl"
+
+#: src/pulse/error.c:49
+msgid "Connection terminated"
+msgstr "Forbindelsen blev afsluttet"
+
+#: src/pulse/error.c:50
+msgid "Entity killed"
+msgstr "Entitet blev dræbt"
+
+#: src/pulse/error.c:51
+msgid "Invalid server"
+msgstr "Ugyldig server"
+
+#: src/pulse/error.c:52
+msgid "Module initialization failed"
+msgstr "Modulinitiering mislykkedes"
+
+#: src/pulse/error.c:53
+msgid "Bad state"
+msgstr "Dårlig tilstand"
+
+#: src/pulse/error.c:54
+msgid "No data"
+msgstr "Ingen data"
+
+#: src/pulse/error.c:55
+msgid "Incompatible protocol version"
+msgstr "Inkompatibel protokolversion"
+
+#: src/pulse/error.c:56
+msgid "Too large"
+msgstr "For stor"
+
+#: src/pulse/error.c:57
+msgid "Not supported"
+msgstr "Understøttes ikke"
+
+#: src/pulse/error.c:58
+msgid "Unknown error code"
+msgstr "Ukendt fejlkode"
+
+#: src/pulse/error.c:59
+msgid "No such extension"
+msgstr "Udvidelsen findes ikke"
+
+#: src/pulse/error.c:60
+msgid "Obsolete functionality"
+msgstr "Forældet funktionalitet"
+
+#: src/pulse/error.c:61
+msgid "Missing implementation"
+msgstr "Manglende implementering"
+
+#: src/pulse/error.c:62
+msgid "Client forked"
+msgstr "Klient blev forked"
+
+#: src/pulse/error.c:63
+msgid "Input/Output error"
+msgstr "Fejl ved input/output"
+
+#: src/pulse/error.c:64
+msgid "Device or resource busy"
+msgstr "Enheden eller ressourcen er optaget"
+
+#: src/pulse/sample.c:179
+#, c-format
+msgid "%s %uch %uHz"
+msgstr "%s %u kanal %u Hz"
+
+#: src/pulse/sample.c:191
+#, c-format
+msgid "%0.1f GiB"
+msgstr "%0.1f GiB"
+
+#: src/pulse/sample.c:193
+#, c-format
+msgid "%0.1f MiB"
+msgstr "%0.1f MiB"
+
+#: src/pulse/sample.c:195
+#, c-format
+msgid "%0.1f KiB"
+msgstr "%0.1f KiB"
+
+#: src/pulse/sample.c:197
+#, c-format
+msgid "%u B"
+msgstr "%u B"
+
+#: src/utils/pacat.c:134
+#, c-format
+msgid "Failed to drain stream: %s"
+msgstr "Kunne ikke dræne strøm: %s"
+
+#: src/utils/pacat.c:139
+msgid "Playback stream drained."
+msgstr "Afspilningsstrøm drænet."
+
+#: src/utils/pacat.c:150
+msgid "Draining connection to server."
+msgstr "Dræner forbindelsen til serveren."
+
+#: src/utils/pacat.c:163
+#, c-format
+msgid "pa_stream_drain(): %s"
+msgstr "pa_stream_drain(): %s"
+
+#: src/utils/pacat.c:194 src/utils/pacat.c:543
+#, c-format
+msgid "pa_stream_begin_write() failed: %s"
+msgstr "pa_stream_begin_write() mislykkedes: %s"
+
+#: src/utils/pacat.c:244 src/utils/pacat.c:274
+#, c-format
+msgid "pa_stream_peek() failed: %s"
+msgstr "pa_stream_peek() mislykkedes: %s"
+
+#: src/utils/pacat.c:324
+msgid "Stream successfully created."
+msgstr "Strøm blev oprettet."
+
+#: src/utils/pacat.c:327
+#, c-format
+msgid "pa_stream_get_buffer_attr() failed: %s"
+msgstr "pa_stream_get_buffer_attr() mislykkedes: %s"
+
+#: src/utils/pacat.c:331
+#, c-format
+msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
+msgstr "Buffermålinger: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
+
+#: src/utils/pacat.c:334
+#, c-format
+msgid "Buffer metrics: maxlength=%u, fragsize=%u"
+msgstr "Buffermålinger: maxlength=%u, fragsize=%u"
+
+#: src/utils/pacat.c:338
+#, c-format
+msgid "Using sample spec '%s', channel map '%s'."
+msgstr "Brug samplespecifikationen '%s', kanalkortet '%s'."
+
+#: src/utils/pacat.c:342
+#, c-format
+msgid "Connected to device %s (index: %u, suspended: %s)."
+msgstr "Tilsluttet til enheden %s (indeks: %u, suspenderet: %s)."
+
+#: src/utils/pacat.c:352
+#, c-format
+msgid "Stream error: %s"
+msgstr "Fejl ved strøm: %s"
+
+#: src/utils/pacat.c:362
+#, c-format
+msgid "Stream device suspended.%s"
+msgstr "Strømenhed suspenderet.%s"
+
+#: src/utils/pacat.c:364
+#, c-format
+msgid "Stream device resumed.%s"
+msgstr "Strømenhed genoptaget.%s"
+
+#: src/utils/pacat.c:372
+#, c-format
+msgid "Stream underrun.%s"
+msgstr "Strøm underrun.%s"
+
+#: src/utils/pacat.c:379
+#, c-format
+msgid "Stream overrun.%s"
+msgstr "Strøm overrun.%s"
+
+#: src/utils/pacat.c:386
+#, c-format
+msgid "Stream started.%s"
+msgstr "Strøm startet.%s"
+
+#: src/utils/pacat.c:393
+#, c-format
+msgid "Stream moved to device %s (%u, %ssuspended).%s"
+msgstr "Strømmen blev flyttet til enheden %s (%u, %ssuspenderet).%s"
+
+#: src/utils/pacat.c:393
+msgid "not "
+msgstr "ikke "
+
+#: src/utils/pacat.c:400
+#, c-format
+msgid "Stream buffer attributes changed.%s"
+msgstr "Strømmens buffer-attributter blev ændret.%s"
+
+#: src/utils/pacat.c:415
+msgid "Cork request stack is empty: corking stream"
+msgstr "Cork-anmodningsstak er tom: corking strøm"
+
+#: src/utils/pacat.c:421
+msgid "Cork request stack is empty: uncorking stream"
+msgstr "Cork-anmodningsstak er tom: uncorking strøm"
+
+#: src/utils/pacat.c:425
+msgid "Warning: Received more uncork requests than cork requests."
+msgstr "Advarsel: Modtog flere uncork-anmodninger end cork-anmodninger."
+
+#: src/utils/pacat.c:450
+#, c-format
+msgid "Connection established.%s"
+msgstr "Forbindelse etableret.%s"
+
+#: src/utils/pacat.c:453
+#, c-format
+msgid "pa_stream_new() failed: %s"
+msgstr "pa_stream_new() mislykkedes: %s"
+
+#: src/utils/pacat.c:491
+#, c-format
+msgid "pa_stream_connect_playback() failed: %s"
+msgstr "pa_stream_connect_playback() mislykkedes: %s"
+
+#: src/utils/pacat.c:497
+#, c-format
+msgid "Failed to set monitor stream: %s"
+msgstr "Kunne ikke indstille monitorstrøm: %s"
+
+#: src/utils/pacat.c:501
+#, c-format
+msgid "pa_stream_connect_record() failed: %s"
+msgstr "pa_stream_connect_record() mislykkedes: %s"
+
+#: src/utils/pacat.c:514 src/utils/pactl.c:1454
+#, c-format
+msgid "Connection failure: %s"
+msgstr "Fejl ved forbindelse: %s"
+
+#: src/utils/pacat.c:557
+msgid "Got EOF."
+msgstr "Fik EOF."
+
+#: src/utils/pacat.c:581
+#, c-format
+msgid "pa_stream_write() failed: %s"
+msgstr "pa_stream_write() mislykkedes: %s"
+
+#: src/utils/pacat.c:605
+#, c-format
+msgid "write() failed: %s"
+msgstr "write() mislykkedes: %s"
+
+#: src/utils/pacat.c:626
+msgid "Got signal, exiting."
+msgstr "Fik signal, afslutter."
+
+#: src/utils/pacat.c:640
+#, c-format
+msgid "Failed to get latency: %s"
+msgstr "Kunne ikke hente forsinkelse: %s"
+
+#: src/utils/pacat.c:645
+#, c-format
+msgid "Time: %0.3f sec; Latency: %0.0f usec."
+msgstr "Tid: %0.3f sec; Forsinkelse: %0.0f usec."
+
+#: src/utils/pacat.c:666
+#, c-format
+msgid "pa_stream_update_timing_info() failed: %s"
+msgstr "pa_stream_update_timing_info() mislykkedes: %s"
+
+#: src/utils/pacat.c:676
+#, c-format
+msgid ""
+"%s [options]\n"
+"%s\n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"\n"
+"  -r, --record                          Create a connection for recording\n"
+"  -p, --playback                        Create a connection for playback\n"
+"\n"
+"  -v, --verbose                         Enable verbose operations\n"
+"\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -d, --device=DEVICE                   The name of the sink/source to "
+"connect to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
+"      --stream-name=NAME                How to call this stream on the "
+"server\n"
+"      --volume=VOLUME                   Specify the initial (linear) volume "
+"in range 0...65536\n"
+"      --rate=SAMPLERATE                 The sample rate in Hz (defaults to "
+"44100)\n"
+"      --format=SAMPLEFORMAT             The sample type, one of s16le, "
+"s16be, u8, float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, s32be, "
+"s24le, s24be,\n"
+"                                        s24-32le, s24-32be (defaults to "
+"s16ne)\n"
+"      --channels=CHANNELS               The number of channels, 1 for mono, "
+"2 for stereo\n"
+"                                        (defaults to 2)\n"
+"      --channel-map=CHANNELMAP          Channel map to use instead of the "
+"default\n"
+"      --fix-format                      Take the sample format from the sink/"
+"source the stream is\n"
+"                                        being connected to.\n"
+"      --fix-rate                        Take the sampling rate from the sink/"
+"source the stream is\n"
+"                                        being connected to.\n"
+"      --fix-channels                    Take the number of channels and the "
+"channel map\n"
+"                                        from the sink/source the stream is "
+"being connected to.\n"
+"      --no-remix                        Don't upmix or downmix channels.\n"
+"      --no-remap                        Map channels by index instead of "
+"name.\n"
+"      --latency=BYTES                   Request the specified latency in "
+"bytes.\n"
+"      --process-time=BYTES              Request the specified process time "
+"per request in bytes.\n"
+"      --latency-msec=MSEC               Request the specified latency in "
+"msec.\n"
+"      --process-time-msec=MSEC          Request the specified process time "
+"per request in msec.\n"
+"      --property=PROPERTY=VALUE         Set the specified property to the "
+"specified value.\n"
+"      --raw                             Record/play raw PCM data.\n"
+"      --passthrough                     Passthrough data.\n"
+"      --file-format[=FFORMAT]           Record/play formatted PCM data.\n"
+"      --list-file-formats               List available file formats.\n"
+"      --monitor-stream=INDEX            Record from the sink input with "
+"index INDEX.\n"
+msgstr ""
+"%s [tilvalg]\n"
+"%s\n"
+"\n"
+"  -h, --help                            Vis denne hjælp\n"
+"      --version                         Vis version\n"
+"\n"
+"  -r, --record                          Opret en forbindelse for optagelse\n"
+"  -p, --playback                        Opret en forbindelse for afspilning\n"
+"\n"
+"  -v, --verbose                         Aktivér uddybende handlinger\n"
+"\n"
+"  -s, --server=SERVER                   Navnet på serveren som der skal "
+"oprettes forbindelse til\n"
+"  -d, --device=ENHED                    Navnet på sinken/kilden som der skal "
+"oprettes forbindelse til\n"
+"  -n, --client-name=NAVN                Klientens navn på serveren\n"
+"      --stream-name=NAVN                Strømmens navn på serveren\n"
+"      --volume=LYDSTYRKE                Angiv den indledende (lineære) "
+"lydstyrke i området 0...65536\n"
+"      --rate=SAMPLEFREKVENS             Samplefrekvensen i Hz (standard er "
+"44100)\n"
+"      --format=SAMPLEFORMAT             Sampletypen, en af s16le, s16be, u8, "
+"float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, s32be, "
+"s24le, s24be,\n"
+"                                        s24-32le, s24-32be (standard er "
+"s16ne)\n"
+"      --channels=KANALER                Antal kanaler, 1 for mono, 2 for "
+"stereo\n"
+"                                        (standard er 2)\n"
+"      --channel-map=KANALKORT           Kanalkort som skal bruges i stedet "
+"for standarden\n"
+"      --fix-format                      Tag sampleformatet fra sinken/kilden "
+"som strømmen\n"
+"                                        forbindes til.\n"
+"      --fix-rate                        Tag samplingfrekvensen fra "
+"sinken/kilden som strømmen\n"
+"                                        forbindes til.\n"
+"      --fix-channels                    Tag antal kanaler og kanalkort fra "
+"sinken/kilden som strømmen\n"
+"                                        forbindes til.\n"
+"      --no-remix                        Op- eller nedmiks ikke kanaler.\n"
+"      --no-remap                        Kortlæg kanaler efter indeks i "
+"stedet for navn.\n"
+"      --latency=BYTES                   Anmod den angive forsinkelse i "
+"bytes.\n"
+"      --process-time=BYTES              Anmod den angive procestid pr. "
+"anmodning i bytes.\n"
+"      --latency-msec=MSEK               Anmod den angive forsinkelse i msek.\n"
+"      --process-time-msec=MSEK          Anmod den angive procestid pr. "
+"anmodning i msek.\n"
+"      --property=EGENSKAB=VÆRDI         Indstil den angivne egenskab til den "
+"angive værdi.\n"
+"      --raw                             Optag/afspil rå PCM-data.\n"
+"      --passthrough                     Gennemsend data.\n"
+"      --file-format[=FFORMAT]           Optag/afspil formateret PCM-data.\n"
+"      --list-file-formats               Oplist tilgængelige filformater.\n"
+"      --monitor-stream=INDEKS           Optag fra sinkinputtet med indekset "
+"INDEKS.\n"
+
+#: src/utils/pacat.c:793
+msgid "Play back encoded audio files on a PulseAudio sound server."
+msgstr "Afspil kodet lydfiler på en PulseAudio-lydserver."
+
+#: src/utils/pacat.c:797
+msgid ""
+"Capture audio data from a PulseAudio sound server and write it to a file."
+msgstr "Indfang lyddata fra en PulseAudio-lydserver og skriv det til en fil."
+
+#: src/utils/pacat.c:801
+msgid ""
+"Capture audio data from a PulseAudio sound server and write it to STDOUT or "
+"the specified file."
+msgstr ""
+"Indfang lyddata fra en PulseAudio-lydserver og skriv det til STDOUT eller "
+"den angivne fil."
+
+#: src/utils/pacat.c:805
+msgid ""
+"Play back audio data from STDIN or the specified file on a PulseAudio sound "
+"server."
+msgstr ""
+"Afspil lyddata fra STDIN eller den angivne fil på en PulseAudio-lydserver."
+
+#: src/utils/pacat.c:819
+#, c-format
+msgid ""
+"pacat %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+"pacat %s\n"
+"Kompileret med libpulse %s\n"
+"Linket med libpulse %s\n"
+
+#: src/utils/pacat.c:852 src/utils/pactl.c:1656
+#, c-format
+msgid "Invalid client name '%s'"
+msgstr "Ugyldigt klientnavn '%s'"
+
+#: src/utils/pacat.c:867
+#, c-format
+msgid "Invalid stream name '%s'"
+msgstr "Ugyldigt strømnavn '%s'"
+
+#: src/utils/pacat.c:904
+#, c-format
+msgid "Invalid channel map '%s'"
+msgstr "Ugyldigt kanalkort '%s'"
+
+#: src/utils/pacat.c:933 src/utils/pacat.c:947
+#, c-format
+msgid "Invalid latency specification '%s'"
+msgstr "Ugyldig specifikation for forsinkelse '%s'"
+
+#: src/utils/pacat.c:940 src/utils/pacat.c:954
+#, c-format
+msgid "Invalid process time specification '%s'"
+msgstr "Ugyldig specifikation for procestid '%s'"
+
+#: src/utils/pacat.c:966
+#, c-format
+msgid "Invalid property '%s'"
+msgstr "Ugyldig egenskab '%s'"
+
+#: src/utils/pacat.c:985
+#, c-format
+msgid "Unknown file format %s."
+msgstr "Ukendt filformat %s."
+
+#: src/utils/pacat.c:1000
+msgid "Failed to parse the argument for --monitor-stream"
+msgstr "Kunne ikke fortolke argumentet for --monitor-stream"
+
+#: src/utils/pacat.c:1011
+msgid "Invalid sample specification"
+msgstr "Ugyldig specifikaton for sample"
+
+#: src/utils/pacat.c:1021
+#, c-format
+msgid "open(): %s"
+msgstr "open(): %s"
+
+#: src/utils/pacat.c:1026
+#, c-format
+msgid "dup2(): %s"
+msgstr "dup2(): %s"
+
+#: src/utils/pacat.c:1033
+msgid "Too many arguments."
+msgstr "For mange argumenter."
+
+#: src/utils/pacat.c:1044
+msgid "Failed to generate sample specification for file."
+msgstr "Kunne ikke generere samplespecifikation til fil."
+
+#: src/utils/pacat.c:1070
+msgid "Failed to open audio file."
+msgstr "Kunne ikke åbne lydfil."
+
+#: src/utils/pacat.c:1076
+msgid ""
+"Warning: specified sample specification will be overwritten with "
+"specification from file."
+msgstr ""
+"Advarsel: angivne samplespecifikation overskrives med specifikation fra fil."
+
+#: src/utils/pacat.c:1079 src/utils/pactl.c:1720
+msgid "Failed to determine sample specification from file."
+msgstr "Kunne ikke fastslå samplespecifikation ud fra fil."
+
+#: src/utils/pacat.c:1088
+msgid "Warning: Failed to determine channel map from file."
+msgstr "Advarsel: Kunne ikke fastslå kanalkort ud fra fil."
+
+#: src/utils/pacat.c:1099
+msgid "Channel map doesn't match sample specification"
+msgstr "Kanalkort matcher ikke samplespecifikation"
+
+#: src/utils/pacat.c:1110
+msgid "Warning: failed to write channel map to file."
+msgstr "Advarsel: kunne ikke skrive kanalkort til fil."
+
+#: src/utils/pacat.c:1125
+#, c-format
+msgid ""
+"Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgstr "Åbner en %s-strøm med samplespecifikationen '%s' og kanalkortet '%s'."
+
+#: src/utils/pacat.c:1126
+msgid "recording"
+msgstr "optagelse"
+
+#: src/utils/pacat.c:1126
+msgid "playback"
+msgstr "afspilning"
+
+#: src/utils/pacat.c:1150
+msgid "Failed to set media name."
+msgstr "Kunne ikke indstille medienavn."
+
+#: src/utils/pacat.c:1160 src/utils/pactl.c:2070
+msgid "pa_mainloop_new() failed."
+msgstr "pa_mainloop_new() mislykkedes."
+
+#: src/utils/pacat.c:1183
+msgid "io_new() failed."
+msgstr "io_new() mislykkedes."
+
+#: src/utils/pacat.c:1190 src/utils/pactl.c:2082
+msgid "pa_context_new() failed."
+msgstr "pa_context_new() mislykkedes."
+
+#: src/utils/pacat.c:1198 src/utils/pactl.c:2088
+#, c-format
+msgid "pa_context_connect() failed: %s"
+msgstr "pa_context_connect() mislykkedes: %s"
+
+#: src/utils/pacat.c:1204
+msgid "pa_context_rttime_new() failed."
+msgstr "pa_context_rttime_new() mislykkedes."
+
+#: src/utils/pacat.c:1211 src/utils/pactl.c:2093
+msgid "pa_mainloop_run() failed."
+msgstr "pa_mainloop_run() mislykkedes."
+
+#: src/utils/pacmd.c:51 src/utils/pactl.c:1578
+msgid "NAME [ARGS ...]"
+msgstr "NAVN [ARGUMENTER ...]"
+
+#: src/utils/pacmd.c:52 src/utils/pacmd.c:60 src/utils/pactl.c:1579
+msgid "NAME|#N"
+msgstr "NAVN|#N"
+
+#: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:1577
+#: src/utils/pactl.c:1583
+msgid "NAME"
+msgstr "NAVN"
+
+#: src/utils/pacmd.c:54
+msgid "NAME|#N VOLUME"
+msgstr "NAME|#N VOLUME"
+
+#: src/utils/pacmd.c:55
+msgid "#N VOLUME"
+msgstr "#N LYDSTYRKE"
+
+#: src/utils/pacmd.c:56 src/utils/pacmd.c:70 src/utils/pactl.c:1581
+msgid "NAME|#N 1|0"
+msgstr "NAVN|#N 1|0"
+
+#: src/utils/pacmd.c:57
+msgid "#N 1|0"
+msgstr "#N 1|0"
+
+#: src/utils/pacmd.c:58
+msgid "NAME|#N KEY=VALUE"
+msgstr "NAVN|#N NØGLE=VÆRDI"
+
+#: src/utils/pacmd.c:59
+msgid "#N KEY=VALUE"
+msgstr "#N NØGLE=VÆRDI"
+
+#: src/utils/pacmd.c:61
+msgid "#N"
+msgstr "#N"
+
+#: src/utils/pacmd.c:62
+msgid "NAME SINK|#N"
+msgstr "NAVN SINK|#N"
+
+#: src/utils/pacmd.c:64 src/utils/pacmd.c:65
+msgid "NAME FILENAME"
+msgstr "NAVN FILNAVN"
+
+#: src/utils/pacmd.c:66
+msgid "PATHNAME"
+msgstr "STINAVN"
+
+#: src/utils/pacmd.c:67
+msgid "FILENAME SINK|#N"
+msgstr "FILNAVN SINK|#N"
+
+#: src/utils/pacmd.c:69 src/utils/pactl.c:1580
+msgid "#N SINK|SOURCE"
+msgstr "#N SINK|KILDE"
+
+#: src/utils/pacmd.c:71 src/utils/pacmd.c:77 src/utils/pacmd.c:78
+msgid "1|0"
+msgstr "1|0"
+
+#: src/utils/pacmd.c:72 src/utils/pactl.c:1582
+msgid "CARD PROFILE"
+msgstr "KORT PROFIL"
+
+#: src/utils/pacmd.c:73 src/utils/pactl.c:1584
+msgid "NAME|#N PORT"
+msgstr "NAVN|#N PORT"
+
+#: src/utils/pacmd.c:74 src/utils/pactl.c:1590
+msgid "CARD-NAME|CARD-#N PORT OFFSET"
+msgstr "KORTNAVN|KORT-#N PORT FORSKYDNING"
+
+#: src/utils/pacmd.c:75
+msgid "TARGET"
+msgstr "MÅL"
+
+#: src/utils/pacmd.c:76
+msgid "NUMERIC-LEVEL"
+msgstr "NUMERISK-NIVEAU"
+
+#: src/utils/pacmd.c:79
+msgid "FRAMES"
+msgstr "FRAMES"
+
+#: src/utils/pacmd.c:81
+#, c-format
+msgid ""
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"When no command is given pacmd starts in the interactive mode.\n"
+msgstr ""
+"\n"
+"  -h, --help                            Vis denne hjælp\n"
+"      --version                         Vis version\n"
+"Uden en kommando starter pacmd i interaktiv tilstand.\n"
+
+#: src/utils/pacmd.c:128
+#, c-format
+msgid ""
+"pacmd %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+"pacmd %s\n"
+"Kompileret med libpulse %s\n"
+"Linket med libpulse %s\n"
+
+#: src/utils/pacmd.c:142
+msgid "No PulseAudio daemon running, or not running as session daemon."
+msgstr ""
+"Der kører ikke nogen PulseAudio-dæmon eller den kører ikke som "
+"sessionsdæmon."
+
+#: src/utils/pacmd.c:147
+#, c-format
+msgid "socket(PF_UNIX, SOCK_STREAM, 0): %s"
+msgstr "socket(PF_UNIX, SOCK_STREAM, 0): %s"
+
+#: src/utils/pacmd.c:164
+#, c-format
+msgid "connect(): %s"
+msgstr "connect(): %s"
+
+#: src/utils/pacmd.c:172
+msgid "Failed to kill PulseAudio daemon."
+msgstr "Kunne ikke dræbe PulseAudio-dæmon."
+
+#: src/utils/pacmd.c:180
+msgid "Daemon not responding."
+msgstr "Dæmon svarer ikke."
+
+#: src/utils/pacmd.c:212 src/utils/pacmd.c:321 src/utils/pacmd.c:339
+#, c-format
+msgid "write(): %s"
+msgstr "write(): %s"
+
+#: src/utils/pacmd.c:268
+#, c-format
+msgid "poll(): %s"
+msgstr "poll(): %s"
+
+#: src/utils/pacmd.c:279 src/utils/pacmd.c:299
+#, c-format
+msgid "read(): %s"
+msgstr "read(): %s"
+
+#: src/utils/pactl.c:164
+#, c-format
+msgid "Failed to get statistics: %s"
+msgstr "Kunne ikke hente statistik: %s"
+
+#: src/utils/pactl.c:170
+#, c-format
+msgid "Currently in use: %u block containing %s bytes total.\n"
+msgid_plural "Currently in use: %u blocks containing %s bytes total.\n"
+msgstr[0] "Bruges på nuværende tidspunkt: %u blok med i alt %s bytes.\n"
+msgstr[1] "Bruges på nuværende tidspunkt: %u blokke med i alt %s bytes.\n"
+
+#: src/utils/pactl.c:176
+#, c-format
+msgid "Allocated during whole lifetime: %u block containing %s bytes total.\n"
+msgid_plural ""
+"Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
+msgstr[0] "Allokeret i hele levetiden: %u blok med i alt %s bytes.\n"
+msgstr[1] "Allokeret i hele levetiden: %u blokke med i alt %s bytes.\n"
+
+#: src/utils/pactl.c:182
+#, c-format
+msgid "Sample cache size: %s\n"
+msgstr "Størrelse på mellemlager for sample: %s\n"
+
+#: src/utils/pactl.c:191
+#, c-format
+msgid "Failed to get server information: %s"
+msgstr "Kunne ikke hente information for server: %s"
+
+#: src/utils/pactl.c:196
+#, c-format
+msgid ""
+"Server String: %s\n"
+"Library Protocol Version: %u\n"
+"Server Protocol Version: %u\n"
+"Is Local: %s\n"
+"Client Index: %u\n"
+"Tile Size: %zu\n"
+msgstr ""
+"Serverstreng: %s\n"
+"Version for biblioteksprotokol: %u\n"
+"Version for serverprotokol: %u\n"
+"Er lokal: %s\n"
+"Klient-indeks: %u\n"
+"Flisestørrelse: %zu\n"
+
+#: src/utils/pactl.c:212
+#, c-format
+msgid ""
+"User Name: %s\n"
+"Host Name: %s\n"
+"Server Name: %s\n"
+"Server Version: %s\n"
+"Default Sample Specification: %s\n"
+"Default Channel Map: %s\n"
+"Default Sink: %s\n"
+"Default Source: %s\n"
+"Cookie: %04x:%04x\n"
+msgstr ""
+"Brugernavn: %s\n"
+"Værtsnavn: %s\n"
+"Servernavn: %s\n"
+"Serverversion: %s\n"
+"Standard samplespecifikation: %s\n"
+"Standard kanalkort: %s\n"
+"Standard sink: %s\n"
+"Standard kilde: %s\n"
+"Cookie: %04x:%04x\n"
+
+#: src/utils/pactl.c:261 src/utils/pactl.c:908 src/utils/pactl.c:986
+#, c-format
+msgid "Failed to get sink information: %s"
+msgstr "Kunne ikke hente information for sink: %s"
+
+#: src/utils/pactl.c:287
+#, c-format
+msgid ""
+"Sink #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tOwner Module: %u\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s\n"
+"\tMonitor Source: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tFlags: %s%s%s%s%s%s%s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Sink #%u\n"
+"\tTilstand: %s\n"
+"\tNavn: %s\n"
+"\tBeskrivelse: %s\n"
+"\tDriver: %s\n"
+"\tSamplespecifikation: %s\n"
+"\tKanalkort: %s\n"
+"\tEjermodul: %u\n"
+"\tMute: %s\n"
+"\tLydstyrke: %s\n"
+"\t        balance %0.2f\n"
+"\tGrundlydstyrke: %s\n"
+"\tKilde for monitor: %s\n"
+"\tForsinkelse: %0.0f usec, konfigureret %0.0f usec\n"
+"\tFlag: %s%s%s%s%s%s%s\n"
+"\tEgenskaber:\n"
+"\t\t%s\n"
+
+#: src/utils/pactl.c:331 src/utils/pactl.c:437 src/utils/pactl.c:598
+#, c-format
+msgid "\tPorts:\n"
+msgstr "\tPorte:\n"
+
+#: src/utils/pactl.c:338 src/utils/pactl.c:444
+#, c-format
+msgid "\tActive Port: %s\n"
+msgstr "\tAktiv port: %s\n"
+
+#: src/utils/pactl.c:344 src/utils/pactl.c:450
+#, c-format
+msgid "\tFormats:\n"
+msgstr "\tFormater:\n"
+
+#: src/utils/pactl.c:368 src/utils/pactl.c:928 src/utils/pactl.c:1001
+#, c-format
+msgid "Failed to get source information: %s"
+msgstr "Kunne ikke hente information for kilde: %s"
+
+#: src/utils/pactl.c:394
+#, c-format
+msgid ""
+"Source #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tOwner Module: %u\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s\n"
+"\tMonitor of Sink: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tFlags: %s%s%s%s%s%s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Kilde #%u\n"
+"\tTilstand: %s\n"
+"\tNavn: %s\n"
+"\tBeskrivelse: %s\n"
+"\tDriver: %s\n"
+"\tSamplespecifikation: %s\n"
+"\tKanalkort: %s\n"
+"\tEjermodul: %u\n"
+"\tMute: %s\n"
+"\tLydstyrke: %s\n"
+"\t        balance %0.2f\n"
+"\tGrundlydstyrke: %s\n"
+"\tMonitor for sink: %s\n"
+"\tForsinkelse: %0.0f usec, konfigureret %0.0f usec\n"
+"\tFlag: %s%s%s%s%s%s\n"
+"\tEgenskaber:\n"
+"\t\t%s\n"
+
+#: src/utils/pactl.c:422 src/utils/pactl.c:492 src/utils/pactl.c:535
+#: src/utils/pactl.c:577 src/utils/pactl.c:675 src/utils/pactl.c:676
+#: src/utils/pactl.c:687 src/utils/pactl.c:745 src/utils/pactl.c:746
+#: src/utils/pactl.c:757 src/utils/pactl.c:808 src/utils/pactl.c:809
+#: src/utils/pactl.c:815
+msgid "n/a"
+msgstr "-"
+
+#: src/utils/pactl.c:461 src/utils/pactl.c:865
+#, c-format
+msgid "Failed to get module information: %s"
+msgstr "Kunne ikke hente information for modul: %s"
+
+#: src/utils/pactl.c:484
+#, c-format
+msgid ""
+"Module #%u\n"
+"\tName: %s\n"
+"\tArgument: %s\n"
+"\tUsage counter: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Modul #%u\n"
+"\tNavn: %s\n"
+"\tArgument: %s\n"
+"\tTæller for anvendelse: %s\n"
+"\tEgenskaber:\n"
+"\t\t%s\n"
+
+#: src/utils/pactl.c:503
+#, c-format
+msgid "Failed to get client information: %s"
+msgstr "Kunne ikke hente information for klient: %s"
+
+#: src/utils/pactl.c:529
+#, c-format
+msgid ""
+"Client #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Klient #%u\n"
+"\tDriver: %s\n"
+"\tEjermodul: %s\n"
+"\tEgenskaber:\n"
+"\t\t%s\n"
+
+#: src/utils/pactl.c:546
+#, c-format
+msgid "Failed to get card information: %s"
+msgstr "Kunne ikke hente information for kort: %s"
+
+#: src/utils/pactl.c:569
+#, c-format
+msgid ""
+"Card #%u\n"
+"\tName: %s\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Kort #%u\n"
+"\tNavn: %s\n"
+"\tDriver: %s\n"
+"\tEjermodul: %s\n"
+"\tEgenskaber:\n"
+"\t\t%s\n"
+
+#: src/utils/pactl.c:585
+#, c-format
+msgid "\tProfiles:\n"
+msgstr "\tProfiler:\n"
+
+#: src/utils/pactl.c:587
+#, c-format
+msgid "\t\t%s: %s (sinks: %u, sources: %u, priority: %u, available: %s)\n"
+msgstr "\t\t%s: %s (sinks: %u, kilder: %u, prioritet: %u, tilgængelige: %s)\n"
+
+#: src/utils/pactl.c:592
+#, c-format
+msgid "\tActive Profile: %s\n"
+msgstr "\tAktive profil: %s\n"
+
+#: src/utils/pactl.c:606
+#, c-format
+msgid ""
+"\t\t\tProperties:\n"
+"\t\t\t\t%s\n"
+msgstr ""
+"\t\t\tEgenskaber:\n"
+"\t\t\t\t%s\n"
+
+#: src/utils/pactl.c:611
+#, c-format
+msgid "\t\t\tPart of profile(s): %s"
+msgstr "\t\t\tDel af profil(er): %s"
+
+#: src/utils/pactl.c:628 src/utils/pactl.c:948 src/utils/pactl.c:1016
+#, c-format
+msgid "Failed to get sink input information: %s"
+msgstr "Kunne ikke hente information for sinkinput: %s"
+
+#: src/utils/pactl.c:657
+#, c-format
+msgid ""
+"Sink Input #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tClient: %s\n"
+"\tSink: %u\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tFormat: %s\n"
+"\tCorked: %s\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        balance %0.2f\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSink Latency: %0.0f usec\n"
+"\tResample method: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Sinkinput #%u\n"
+"\tDriver: %s\n"
+"\tEjermodul: %s\n"
+"\tKlient: %s\n"
+"\tSink: %u\n"
+"\tSamplespecifikation: %s\n"
+"\tKanalkort: %s\n"
+"\tFormat: %s\n"
+"\tCorked: %s\n"
+"\tMute: %s\n"
+"\tLydstyrke: %s\n"
+"\t        balance %0.2f\n"
+"\tForsinkelse på buffer: %0.0f usec\n"
+"\tForsinkelse på sink: %0.0f usec\n"
+"\tResample-metode: %s\n"
+"\tEgenskaber:\n"
+"\t\t%s\n"
+
+#: src/utils/pactl.c:698 src/utils/pactl.c:968 src/utils/pactl.c:1031
+#, c-format
+msgid "Failed to get source output information: %s"
+msgstr "Kunne ikke hente information for kildeoutput: %s"
+
+#: src/utils/pactl.c:727
+#, c-format
+msgid ""
+"Source Output #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tClient: %s\n"
+"\tSource: %u\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tFormat: %s\n"
+"\tCorked: %s\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        balance %0.2f\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSource Latency: %0.0f usec\n"
+"\tResample method: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Kildeoutput #%u\n"
+"\tDriver: %s\n"
+"\tEjermodul: %s\n"
+"\tKlient: %s\n"
+"\tKilde: %u\n"
+"\tSamplespecifikation: %s\n"
+"\tKanalkort: %s\n"
+"\tFormat: %s\n"
+"\tCorked: %s\n"
+"\tMute: %s\n"
+"\tLydstyrke: %s\n"
+"\t        balance %0.2f\n"
+"\tForsinkelse på buffer: %0.0f usec\n"
+"\tForsinkelse på kilde: %0.0f usec\n"
+"\tResample-metode: %s\n"
+"\tEgenskaber:\n"
+"\t\t%s\n"
+
+#: src/utils/pactl.c:768
+#, c-format
+msgid "Failed to get sample information: %s"
+msgstr "Kunne ikke hente information for sample: %s"
+
+#: src/utils/pactl.c:795
+#, c-format
+msgid ""
+"Sample #%u\n"
+"\tName: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tVolume: %s\n"
+"\t        balance %0.2f\n"
+"\tDuration: %0.1fs\n"
+"\tSize: %s\n"
+"\tLazy: %s\n"
+"\tFilename: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+"Sample #%u\n"
+"\tNavn: %s\n"
+"\tSamplespecifikation: %s\n"
+"\tKanalkort: %s\n"
+"\tLydstyrke: %s\n"
+"\t        balance %0.2f\n"
+"\tVarighed: %0.1fs\n"
+"\tStørrelse: %s\n"
+"\tDoven: %s\n"
+"\tFilnavn: %s\n"
+"\tEgenskaber:\n"
+"\t\t%s\n"
+
+#: src/utils/pactl.c:823 src/utils/pactl.c:833
+#, c-format
+msgid "Failure: %s"
+msgstr "Fejl: %s"
+
+#: src/utils/pactl.c:872
+#, c-format
+msgid "Failed to unload module: Module %s not loaded"
+msgstr "Kunne ikke udlæse modul: Modulet %s er ikke indlæst"
+
+#: src/utils/pactl.c:890
+#, c-format
+msgid ""
+"Failed to set volume: You tried to set volumes for %d channel, whereas "
+"channel/s supported = %d\n"
+msgid_plural ""
+"Failed to set volume: You tried to set volumes for %d channels, whereas "
+"channel/s supported = %d\n"
+msgstr[0] "Kunne ikke indstille lydstyrke: Du prøvede at indstille lydstyrker for %d "
+"kanal, mens kanal(er) understøttede = %d\n"
+msgstr[1] "Kunne ikke indstille lydstyrke: Du prøvede at indstille lydstyrker for %d "
+"kanaler, mens kanal(er) understøttede = %d\n"
+
+#: src/utils/pactl.c:1101
+#, c-format
+msgid "Failed to upload sample: %s"
+msgstr "Kunne ikke uploade sample: %s"
+
+#: src/utils/pactl.c:1118
+msgid "Premature end of file"
+msgstr "For tidlig slutning på fil"
+
+#: src/utils/pactl.c:1138
+msgid "new"
+msgstr "ny"
+
+#: src/utils/pactl.c:1141
+msgid "change"
+msgstr "skift"
+
+#: src/utils/pactl.c:1144
+msgid "remove"
+msgstr "fjern"
+
+#: src/utils/pactl.c:1147 src/utils/pactl.c:1182
+msgid "unknown"
+msgstr "ukendt"
+
+#: src/utils/pactl.c:1155
+msgid "sink"
+msgstr "sink"
+
+#: src/utils/pactl.c:1158
+msgid "source"
+msgstr "kilde"
+
+#: src/utils/pactl.c:1161
+msgid "sink-input"
+msgstr "input for sink"
+
+#: src/utils/pactl.c:1164
+msgid "source-output"
+msgstr "output for kilde"
+
+#: src/utils/pactl.c:1167
+msgid "module"
+msgstr "modul"
+
+#: src/utils/pactl.c:1170
+msgid "client"
+msgstr "klient"
+
+#: src/utils/pactl.c:1173
+msgid "sample-cache"
+msgstr "mellemlager for sample"
+
+#: src/utils/pactl.c:1176
+msgid "server"
+msgstr "server"
+
+#: src/utils/pactl.c:1179
+msgid "card"
+msgstr "kort"
+
+#: src/utils/pactl.c:1188
+#, c-format
+msgid "Event '%s' on %s #%u\n"
+msgstr "Hændelsen '%s' på %s #%u\n"
+
+#: src/utils/pactl.c:1460
+msgid "Got SIGINT, exiting."
+msgstr "Fik SIGINT, afslutter."
+
+#: src/utils/pactl.c:1493
+msgid "Invalid volume specification"
+msgstr "Ugyldig lydstyrkespecifikation"
+
+#: src/utils/pactl.c:1516
+msgid "Volume outside permissible range.\n"
+msgstr "Lydstyrke er udenfor det tilladte område.\n"
+
+#: src/utils/pactl.c:1529
+msgid "Invalid number of volume specifications.\n"
+msgstr "Ugyldigt antal lydstyrkespecifikationer.\n"
+
+#: src/utils/pactl.c:1541
+msgid "Inconsistent volume specification.\n"
+msgstr "Usammenhængende lydstyrkespecifikation.\n"
+
+#: src/utils/pactl.c:1571 src/utils/pactl.c:1572 src/utils/pactl.c:1573
+#: src/utils/pactl.c:1574 src/utils/pactl.c:1575 src/utils/pactl.c:1576
+#: src/utils/pactl.c:1577 src/utils/pactl.c:1578 src/utils/pactl.c:1579
+#: src/utils/pactl.c:1580 src/utils/pactl.c:1581 src/utils/pactl.c:1582
+#: src/utils/pactl.c:1583 src/utils/pactl.c:1584 src/utils/pactl.c:1585
+#: src/utils/pactl.c:1586 src/utils/pactl.c:1587 src/utils/pactl.c:1588
+#: src/utils/pactl.c:1589 src/utils/pactl.c:1590 src/utils/pactl.c:1591
+msgid "[options]"
+msgstr "[tilvalg]"
+
+#: src/utils/pactl.c:1573
+msgid "[TYPE]"
+msgstr "[TYPE]"
+
+#: src/utils/pactl.c:1575
+msgid "FILENAME [NAME]"
+msgstr "FILNAVN [NAVN]"
+
+#: src/utils/pactl.c:1576
+msgid "NAME [SINK]"
+msgstr "NAVN [SINK]"
+
+#: src/utils/pactl.c:1585
+msgid "NAME|#N VOLUME [VOLUME ...]"
+msgstr "NAVN|#N LYDSTYRKE [LYDSTYRKE ...]"
+
+#: src/utils/pactl.c:1586
+msgid "#N VOLUME [VOLUME ...]"
+msgstr "#N LYDSTYRKE [LYDSTYRKE ...]"
+
+#: src/utils/pactl.c:1587
+msgid "NAME|#N 1|0|toggle"
+msgstr "NAVN|#N 1|0|toggle"
+
+#: src/utils/pactl.c:1588
+msgid "#N 1|0|toggle"
+msgstr "#N 1|0|toggle"
+
+#: src/utils/pactl.c:1589
+msgid "#N FORMATS"
+msgstr "#N FORMATER"
+
+#: src/utils/pactl.c:1592
+#, c-format
+msgid ""
+"\n"
+"The special names @DEFAULT_SINK@, @DEFAULT_SOURCE@ and @DEFAULT_MONITOR@\n"
+"can be used to specify the default sink, source and monitor.\n"
+msgstr ""
+"\n"
+"De specielle navne @DEFAULT_SINK@, @DEFAULT_SOURCE@ og @DEFAULT_MONITOR@\n"
+"kan bruges til at angive standardsinken, kilde og monitor.\n"
+
+#: src/utils/pactl.c:1595
+#, c-format
+msgid ""
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
+msgstr ""
+"\n"
+"  -h, --help                            Vis denne hjælp\n"
+"      --version                         Vis version\n"
+"\n"
+"  -s, --server=SERVER                   Navnet på serveren, som der skal "
+"oprettes forbindelse til\n"
+"  -n, --client-name=NAVN                Hvordan klienten skal kaldes på "
+"serveren\n"
+
+#: src/utils/pactl.c:1636
+#, c-format
+msgid ""
+"pactl %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+"pactl %s\n"
+"Kompileret med libpulse %s\n"
+"Linket med libpulse %s\n"
+
+#: src/utils/pactl.c:1692
+#, c-format
+msgid "Specify nothing, or one of: %s"
+msgstr "Angiv intet, eller en af: %s"
+
+#: src/utils/pactl.c:1702
+msgid "Please specify a sample file to load"
+msgstr "Angiv venligst en samplefil som skal indlæses"
+
+#: src/utils/pactl.c:1715
+msgid "Failed to open sound file."
+msgstr "Kunne ikke åbne lydfil."
+
+#: src/utils/pactl.c:1727
+msgid "Warning: Failed to determine sample specification from file."
+msgstr "Advarsel: Kunne ikke fastslå samplespecifikation ud fra fil."
+
+#: src/utils/pactl.c:1737
+msgid "You have to specify a sample name to play"
+msgstr "Du skal angive et samplenavn som skal afspilles"
+
+#: src/utils/pactl.c:1749
+msgid "You have to specify a sample name to remove"
+msgstr "Du skal angive et samplenavn som skal fjernes"
+
+#: src/utils/pactl.c:1758
+msgid "You have to specify a sink input index and a sink"
+msgstr "Du skal angive et sinkinput-indeks eller en sink"
+
+#: src/utils/pactl.c:1768
+msgid "You have to specify a source output index and a source"
+msgstr "Du skal angive et kildeoutput-indeks eller en kilde"
+
+#: src/utils/pactl.c:1783
+msgid "You have to specify a module name and arguments."
+msgstr "Du skal angive et modulnavn og argumenter."
+
+#: src/utils/pactl.c:1803
+msgid "You have to specify a module index or name"
+msgstr "Du skal angive et modulindeks eller navn"
+
+#: src/utils/pactl.c:1816
+msgid ""
+"You may not specify more than one sink. You have to specify a boolean value."
+msgstr "Du må ikke angive mere end én sink. Du skal angive en boolesk værdi."
+
+#: src/utils/pactl.c:1821 src/utils/pactl.c:1841
+msgid "Invalid suspend specification."
+msgstr "Ugyldig suspendspecifikation."
+
+#: src/utils/pactl.c:1836
+msgid ""
+"You may not specify more than one source. You have to specify a boolean "
+"value."
+msgstr "Du må ikke angive mere end én kilde. Du skal angive en boolesk værdi."
+
+#: src/utils/pactl.c:1853
+msgid "You have to specify a card name/index and a profile name"
+msgstr "Du skal angive et kortnavn/-indeks og et profilnavn"
+
+#: src/utils/pactl.c:1864
+msgid "You have to specify a sink name/index and a port name"
+msgstr "Du skal angive et sinknavn/-indeks og et portnavn"
+
+#: src/utils/pactl.c:1875
+msgid "You have to specify a sink name"
+msgstr "Du skal angive et sinknavn"
+
+#: src/utils/pactl.c:1885
+msgid "You have to specify a source name/index and a port name"
+msgstr "Du skal angive et kildenavn/-indeks og et portnavn"
+
+#: src/utils/pactl.c:1896
+msgid "You have to specify a source name"
+msgstr "Du skal angive et kildenavn"
+
+#: src/utils/pactl.c:1906
+msgid "You have to specify a sink name/index and a volume"
+msgstr "Du skal angive et sinknavn/-indeks og en lydstyrke"
+
+#: src/utils/pactl.c:1919
+msgid "You have to specify a source name/index and a volume"
+msgstr "Du skal angive et kildenavn/-indeks og en lydstyrke"
+
+#: src/utils/pactl.c:1932
+msgid "You have to specify a sink input index and a volume"
+msgstr "Du skal angive et sinkinput-indeks og en lydstyrke"
+
+#: src/utils/pactl.c:1937
+msgid "Invalid sink input index"
+msgstr "Ugyldigt sinkinput-indeks"
+
+#: src/utils/pactl.c:1948
+msgid "You have to specify a source output index and a volume"
+msgstr "Du skal angive et kildeoutput-indeks og en lydstyrke"
+
+#: src/utils/pactl.c:1953
+msgid "Invalid source output index"
+msgstr "Ugyldigt kildeoutput-indeks"
+
+#: src/utils/pactl.c:1964
+msgid ""
+"You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"
+msgstr ""
+"Du skal angive et sinknavn/-indeks og en mute-handling (0, 1 eller 'toggle')"
+
+#: src/utils/pactl.c:1969 src/utils/pactl.c:1984 src/utils/pactl.c:2004
+#: src/utils/pactl.c:2022
+msgid "Invalid mute specification"
+msgstr "Ugyldig mute-specifikation"
+
+#: src/utils/pactl.c:1979
+msgid ""
+"You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
+msgstr ""
+"Du skal angive et kildenavn/-indeks og en mute-handling (0, 1 eller "
+"'toggle')"
+
+#: src/utils/pactl.c:1994
+msgid ""
+"You have to specify a sink input index and a mute action (0, 1, or 'toggle')"
+msgstr ""
+"Du skal angive et sinkinput-indeks og en mute-handling (0, 1 eller 'toggle')"
+
+#: src/utils/pactl.c:1999
+msgid "Invalid sink input index specification"
+msgstr "Ugyldig specifikation for sinkinput-indeks"
+
+#: src/utils/pactl.c:2012
+msgid ""
+"You have to specify a source output index and a mute action (0, 1, or "
+"'toggle')"
+msgstr ""
+"Du skal angive et kildeoutput-indeks og en mute-handling (0, 1 eller "
+"'toggle')"
+
+#: src/utils/pactl.c:2017
+msgid "Invalid source output index specification"
+msgstr "Ugyldig specifikation for kildeoutput-indeks"
+
+#: src/utils/pactl.c:2034
+msgid ""
+"You have to specify a sink index and a semicolon-separated list of supported "
+"formats"
+msgstr ""
+"Du skal angive et sink-indeks og en semikolonsepareret list over "
+"understøttede formater"
+
+#: src/utils/pactl.c:2046
+msgid "You have to specify a card name/index, a port name and a latency offset"
+msgstr ""
+"Du skal angive et kortnavn/-indeks, et portnavn og en forsinkelse-"
+"forskydning"
+
+#: src/utils/pactl.c:2053
+msgid "Could not parse latency offset"
+msgstr "Kunne ikke fortolke forsinkelse-forskydning"
+
+#: src/utils/pactl.c:2065
+msgid "No valid command specified."
+msgstr "Der er ikke angivet nogen gyldig kommando."
+
+#: src/utils/pasuspender.c:79
+#, c-format
+msgid "fork(): %s\n"
+msgstr "fork(): %s\n"
+
+#: src/utils/pasuspender.c:92
+#, c-format
+msgid "execvp(): %s\n"
+msgstr "execvp(): %s\n"
+
+#: src/utils/pasuspender.c:111
+#, c-format
+msgid "Failure to resume: %s\n"
+msgstr "Kunne ikke genoptage: %s\n"
+
+#: src/utils/pasuspender.c:145
+#, c-format
+msgid "Failure to suspend: %s\n"
+msgstr "Kunne ikke suspendere: %s\n"
+
+#: src/utils/pasuspender.c:170
+#, c-format
+msgid "WARNING: Sound server is not local, not suspending.\n"
+msgstr "ADVARSEL: Lydserver er ikke lokal, suspenderer ikke.\n"
+
+#: src/utils/pasuspender.c:183
+#, c-format
+msgid "Connection failure: %s\n"
+msgstr "Fejl ved forbindelse: %s\n"
+
+#: src/utils/pasuspender.c:201
+#, c-format
+msgid "Got SIGINT, exiting.\n"
+msgstr "Fik SIGINT, afslutter.\n"
+
+#: src/utils/pasuspender.c:219
+#, c-format
+msgid "WARNING: Child process terminated by signal %u\n"
+msgstr "ADVARSEL: Barneproces blev afsluttet af signalet %u\n"
+
+#: src/utils/pasuspender.c:228
+#, c-format
+msgid ""
+"%s [options] ... \n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"\n"
+msgstr ""
+"%s [tilvalg] ... \n"
+"\n"
+"  -h, --help                            Vis denne hjælp\n"
+"      --version                         Vis version\n"
+"  -s, --server=SERVER                   Navnet på serveren, som der skal "
+"oprettes forbindelse til\n"
+"\n"
+
+#: src/utils/pasuspender.c:266
+#, c-format
+msgid ""
+"pasuspender %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+"pasuspender %s\n"
+"Kompileret med libpulse %s\n"
+"Linket med libpulse %s\n"
+
+#: src/utils/pasuspender.c:295
+#, c-format
+msgid "pa_mainloop_new() failed.\n"
+msgstr "pa_mainloop_new() mislykkedes.\n"
+
+#: src/utils/pasuspender.c:308
+#, c-format
+msgid "pa_context_new() failed.\n"
+msgstr "pa_context_new() mislykkedes.\n"
+
+#: src/utils/pasuspender.c:320
+#, c-format
+msgid "pa_mainloop_run() failed.\n"
+msgstr "pa_mainloop_run() mislykkedes.\n"
+
+#: src/utils/pax11publish.c:58
+#, c-format
+msgid ""
+"%s [-D display] [-S server] [-O sink] [-I source] [-c file]  [-d|-e|-i|-r]\n"
+"\n"
+" -d    Show current PulseAudio data attached to X11 display (default)\n"
+" -e    Export local PulseAudio data to X11 display\n"
+" -i    Import PulseAudio data from X11 display to local environment "
+"variables and cookie file.\n"
+" -r    Remove PulseAudio data from X11 display\n"
+msgstr ""
+"%s [-D display] [-S server] [-O sink] [-I kilde] [-c fil]  [-d|-e|-i|-r]\n"
+"\n"
+" -d    Vis nuværende PulseAudio-data som er tilkoblet til X11-displayet "
+"(standard)\n"
+" -e    Eksportér lokal PulseAudio-data til X11-displayet\n"
+" -i    Importér PulseAudio-data fra X11-displayet til lokale miljøvariabler "
+"og cookiefil.\n"
+" -r    Fjern PulseAudio-data fra X11-displayet\n"
+
+#: src/utils/pax11publish.c:91
+#, c-format
+msgid "Failed to parse command line.\n"
+msgstr "Kunne ikke fortolke kommandolinje.\n"
+
+#: src/utils/pax11publish.c:110
+#, c-format
+msgid "Server: %s\n"
+msgstr "Server: %s\n"
+
+#: src/utils/pax11publish.c:112
+#, c-format
+msgid "Source: %s\n"
+msgstr "Kilde: %s\n"
+
+#: src/utils/pax11publish.c:114
+#, c-format
+msgid "Sink: %s\n"
+msgstr "Sink: %s\n"
+
+#: src/utils/pax11publish.c:116
+#, c-format
+msgid "Cookie: %s\n"
+msgstr "Cookie: %s\n"
+
+#: src/utils/pax11publish.c:134
+#, c-format
+msgid "Failed to parse cookie data\n"
+msgstr "Kunne ikke fortolke cookiedata\n"
+
+#: src/utils/pax11publish.c:139
+#, c-format
+msgid "Failed to save cookie data\n"
+msgstr "Kunne ikke gemme cookiedata\n"
+
+#: src/utils/pax11publish.c:168
+#, c-format
+msgid "Failed to get FQDN.\n"
+msgstr "Kunne ikke hente FQDN.\n"
+
+#: src/utils/pax11publish.c:188
+#, c-format
+msgid "Failed to load cookie data\n"
+msgstr "Kunne ikke indlæse cookiedata\n"
+
+#: src/utils/pax11publish.c:206
+#, c-format
+msgid "Not yet implemented.\n"
+msgstr "Ikke implementeret endnu.\n"
