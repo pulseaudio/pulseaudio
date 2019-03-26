@@ -103,6 +103,7 @@ pa_core* pa_core_new(pa_mainloop_api *m, bool shared, bool enable_memfd, size_t 
 
     c->namereg = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     c->shared = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+    c->message_handlers = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
     c->default_source = NULL;
     c->default_sink = NULL;
@@ -203,6 +204,9 @@ static void core_free(pa_object *o) {
 
     pa_assert(pa_hashmap_isempty(c->shared));
     pa_hashmap_free(c->shared);
+
+    pa_assert(pa_hashmap_isempty(c->message_handlers));
+    pa_hashmap_free(c->message_handlers);
 
     pa_assert(pa_hashmap_isempty(c->modules_pending_unload));
     pa_hashmap_free(c->modules_pending_unload);
