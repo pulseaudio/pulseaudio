@@ -286,6 +286,14 @@ static pa_sample_format_t choose_work_format(
                 work_format = a;
                 break;
             }
+            /* If both input and output are using S32NE and we don't
+             * need any resampling we can use S32NE directly, avoiding
+             * converting back and forth between S32NE and
+             * FLOAT32NE. */
+            if ((a == PA_SAMPLE_S32NE) && (b == PA_SAMPLE_S32NE)) {
+                work_format = PA_SAMPLE_S32NE;
+                break;
+            }
             /* Else fall through */
         case PA_RESAMPLER_PEAKS:
             /* PEAKS, COPY and TRIVIAL do not benefit from increased

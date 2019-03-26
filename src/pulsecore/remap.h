@@ -55,6 +55,6 @@ void pa_set_init_remap_func(pa_init_remap_func_t func);
 bool pa_setup_remap_arrange(const pa_remap_t *m, int8_t arrange[PA_CHANNELS_MAX]);
 
 void pa_set_remap_func(pa_remap_t *m, pa_do_remap_func_t func_s16,
-    pa_do_remap_func_t func_float);
+    pa_do_remap_func_t func_s32, pa_do_remap_func_t func_float);
 
 #endif /* fooremapfoo */

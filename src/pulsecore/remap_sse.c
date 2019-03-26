@@ -110,7 +110,8 @@ static void remap_mono_to_stereo_s16ne_sse2(pa_remap_t *m, int16_t *dst, const i
     );
 }
 
-static void remap_mono_to_stereo_float32ne_sse2(pa_remap_t *m, float *dst, const float *src, unsigned n) {
+/* Works for both S32NE and FLOAT32NE */
+static void remap_mono_to_stereo_any32ne_sse2(pa_remap_t *m, float *dst, const float *src, unsigned n) {
     pa_reg_x86 temp, temp2;
 
     __asm__ __volatile__ (
@@ -134,7 +135,8 @@ static void init_remap_sse2(pa_remap_t *m) {
 
         pa_log_info("Using SSE2 mono to stereo remapping");
         pa_set_remap_func(m, (pa_do_remap_func_t) remap_mono_to_stereo_s16ne_sse2,
-            (pa_do_remap_func_t) remap_mono_to_stereo_float32ne_sse2);
+            (pa_do_remap_func_t) remap_mono_to_stereo_any32ne_sse2,
+            (pa_do_remap_func_t) remap_mono_to_stereo_any32ne_sse2);
     }
 }
 #endif /* defined (__i386__) || defined (__amd64__) */

@@ -141,6 +141,60 @@ static void run_remap_test_s16(
     }
 }
 
+
+static void run_remap_test_s32(
+        pa_remap_t *remap_func,
+        pa_remap_t *remap_orig,
+        int align,
+        bool correct,
+        bool perf) {
+
+    PA_DECLARE_ALIGNED(8, int32_t, out_buf_ref[SAMPLES*8]) = { 0 };
+    PA_DECLARE_ALIGNED(8, int32_t, out_buf[SAMPLES*8]) = { 0 };
+    PA_DECLARE_ALIGNED(8, int32_t, in_buf[SAMPLES*8]);
+    int32_t *out, *out_ref;
+    int32_t *in;
+    unsigned n_ic = remap_func->i_ss.channels;
+    unsigned n_oc = remap_func->o_ss.channels;
+    unsigned i, nsamples;
+
+    pa_assert(n_ic >= 1 && n_ic <= 8);
+    pa_assert(n_oc >= 1 && n_oc <= 8);
+
+    /* Force sample alignment as requested */
+    out = out_buf + (8 - align);
+    out_ref = out_buf_ref + (8 - align);
+    in = in_buf + (8 - align);
+    nsamples = SAMPLES - (8 - align);
+
+    pa_random(in, nsamples * n_ic * sizeof(int32_t));
+
+    if (correct) {
+        remap_orig->do_remap(remap_orig, out_ref, in, nsamples);
+        remap_func->do_remap(remap_func, out, in, nsamples);
+
+        for (i = 0; i < nsamples * n_oc; i++) {
+            if (abs(out[i] - out_ref[i]) > 4) {
+                pa_log_debug("Correctness test failed: align=%d", align);
+                pa_log_debug("%d: %d != %d", i, out[i], out_ref[i]);
+                ck_abort();
+            }
+        }
+    }
+
+    if (perf) {
+        pa_log_debug("Testing remap performance with %d sample alignment", align);
+
+        PA_RUNTIME_TEST_RUN_START("func", TIMES, TIMES2) {
+            remap_func->do_remap(remap_func, out, in, nsamples);
+        } PA_RUNTIME_TEST_RUN_STOP
+
+        PA_RUNTIME_TEST_RUN_START("orig", TIMES, TIMES2) {
+            remap_orig->do_remap(remap_orig, out_ref, in, nsamples);
+        } PA_RUNTIME_TEST_RUN_STOP
+    }
+}
+
 static void setup_remap_channels(
     pa_remap_t *m,
     pa_sample_format_t f,
@@ -192,6 +246,12 @@ static void remap_test_channels(
         run_remap_test_float(remap_func, remap_orig, 1, true, false);
         run_remap_test_float(remap_func, remap_orig, 2, true, false);
         run_remap_test_float(remap_func, remap_orig, 3, true, true);
+        break;
+    case PA_SAMPLE_S32NE:
+        run_remap_test_s32(remap_func, remap_orig, 0, true, false);
+        run_remap_test_s32(remap_func, remap_orig, 1, true, false);
+        run_remap_test_s32(remap_func, remap_orig, 2, true, false);
+        run_remap_test_s32(remap_func, remap_orig, 3, true, true);
         break;
     case PA_SAMPLE_S16NE:
         run_remap_test_s16(remap_func, remap_orig, 0, true, false);
@@ -251,6 +311,11 @@ START_TEST (remap_special_test) {
     pa_log_debug("Checking special remap (float, mono->4-channel)");
     remap_init2_test_channels(PA_SAMPLE_FLOAT32NE, 1, 4, false);
 
+    pa_log_debug("Checking special remap (s32, mono->stereo)");
+    remap_init2_test_channels(PA_SAMPLE_S32NE, 1, 2, false);
+    pa_log_debug("Checking special remap (s32, mono->4-channel)");
+    remap_init2_test_channels(PA_SAMPLE_S32NE, 1, 4, false);
+
     pa_log_debug("Checking special remap (s16, mono->stereo)");
     remap_init2_test_channels(PA_SAMPLE_S16NE, 1, 2, false);
     pa_log_debug("Checking special remap (s16, mono->4-channel)");
@@ -260,6 +325,11 @@ START_TEST (remap_special_test) {
     remap_init2_test_channels(PA_SAMPLE_FLOAT32NE, 2, 1, false);
     pa_log_debug("Checking special remap (float, 4-channel->mono)");
     remap_init2_test_channels(PA_SAMPLE_FLOAT32NE, 4, 1, false);
+
+    pa_log_debug("Checking special remap (s32, stereo->mono)");
+    remap_init2_test_channels(PA_SAMPLE_S32NE, 2, 1, false);
+    pa_log_debug("Checking special remap (s32, 4-channel->mono)");
+    remap_init2_test_channels(PA_SAMPLE_S32NE, 4, 1, false);
 
     pa_log_debug("Checking special remap (s16, stereo->mono)");
     remap_init2_test_channels(PA_SAMPLE_S16NE, 2, 1, false);
@@ -271,11 +341,15 @@ END_TEST
 START_TEST (rearrange_special_test) {
     pa_log_debug("Checking special remap (s16, stereo rearrange)");
     remap_init2_test_channels(PA_SAMPLE_S16NE, 2, 2, true);
+    pa_log_debug("Checking special remap (s32, stereo rearrange)");
+    remap_init2_test_channels(PA_SAMPLE_S32NE, 2, 2, true);
     pa_log_debug("Checking special remap (float, stereo rearrange)");
     remap_init2_test_channels(PA_SAMPLE_FLOAT32NE, 2, 2, true);
 
     pa_log_debug("Checking special remap (s16, 4-channel rearrange)");
     remap_init2_test_channels(PA_SAMPLE_S16NE, 4, 4, true);
+    pa_log_debug("Checking special remap (s32, 4-channel rearrange)");
+    remap_init2_test_channels(PA_SAMPLE_S32NE, 4, 4, true);
     pa_log_debug("Checking special remap (float, 4-channel rearrange)");
     remap_init2_test_channels(PA_SAMPLE_FLOAT32NE, 4, 4, true);
 }
@@ -298,6 +372,9 @@ START_TEST (remap_mmx_test) {
     init_func = pa_get_init_remap_func();
     remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_FLOAT32NE, 1, 2, false);
 
+    pa_log_debug("Checking MMX remap (s32, mono->stereo)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S32NE, 1, 2, false);
+
     pa_log_debug("Checking MMX remap (s16, mono->stereo)");
     remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S16NE, 1, 2, false);
 }
@@ -318,6 +395,9 @@ START_TEST (remap_sse2_test) {
     pa_remap_func_init_sse(flags);
     init_func = pa_get_init_remap_func();
     remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_FLOAT32NE, 1, 2, false);
+
+    pa_log_debug("Checking SSE2 remap (s32, mono->stereo)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S32NE, 1, 2, false);
 
     pa_log_debug("Checking SSE2 remap (s16, mono->stereo)");
     remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S16NE, 1, 2, false);
@@ -345,6 +425,11 @@ START_TEST (remap_neon_test) {
     pa_log_debug("Checking NEON remap (float, mono->4-channel)");
     remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_FLOAT32NE, 1, 4, false);
 
+    pa_log_debug("Checking NEON remap (s32, mono->stereo)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S32NE, 1, 2, false);
+    pa_log_debug("Checking NEON remap (s32, mono->4-channel)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S32NE, 1, 4, false);
+
     pa_log_debug("Checking NEON remap (s16, mono->stereo)");
     remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S16NE, 1, 2, false);
     pa_log_debug("Checking NEON remap (s16, mono->4-channel)");
@@ -355,6 +440,11 @@ START_TEST (remap_neon_test) {
     pa_log_debug("Checking NEON remap (float, 4-channel->mono)");
     remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_FLOAT32NE, 4, 1, false);
 
+    pa_log_debug("Checking NEON remap (s32, stereo->mono)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S32NE, 2, 1, false);
+    pa_log_debug("Checking NEON remap (s32, 4-channel->mono)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S32NE, 4, 1, false);
+
     pa_log_debug("Checking NEON remap (s16, stereo->mono)");
     remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S16NE, 2, 1, false);
     pa_log_debug("Checking NEON remap (s16, 4-channel->mono)");
@@ -362,6 +452,8 @@ START_TEST (remap_neon_test) {
 
     pa_log_debug("Checking NEON remap (float, 4-channel->4-channel)");
     remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_FLOAT32NE, 4, 4, false);
+    pa_log_debug("Checking NEON remap (s32, 4-channel->4-channel)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S32NE, 4, 4, false);
     pa_log_debug("Checking NEON remap (s16, 4-channel->4-channel)");
     remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S16NE, 4, 4, false);
 }
@@ -383,16 +475,22 @@ START_TEST (rearrange_neon_test) {
 
     pa_log_debug("Checking NEON remap (float, stereo rearrange)");
     remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_FLOAT32NE, 2, 2, true);
+    pa_log_debug("Checking NEON remap (s32, stereo rearrange)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S32NE, 2, 2, true);
     pa_log_debug("Checking NEON remap (s16, stereo rearrange)");
     remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S16NE, 2, 2, true);
 
     pa_log_debug("Checking NEON remap (float, 2-channel->4-channel rearrange)");
     remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_FLOAT32NE, 2, 4, true);
+    pa_log_debug("Checking NEON remap (s32, 2-channel->4-channel rearrange)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S32NE, 2, 4, true);
     pa_log_debug("Checking NEON remap (s16, 2-channel->4-channel rearrange)");
     remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S16NE, 2, 4, true);
 
     pa_log_debug("Checking NEON remap (float, 4-channel rearrange)");
     remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_FLOAT32NE, 4, 4, true);
+    pa_log_debug("Checking NEON remap (s32, 4-channel rearrange)");
+    remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S32NE, 4, 4, true);
     pa_log_debug("Checking NEON remap (s16, 4-channel rearrange)");
     remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S16NE, 4, 4, true);
 }
