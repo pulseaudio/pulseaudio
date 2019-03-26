@@ -3093,23 +3093,39 @@ char *pa_replace(const char*s, const char*a, const char *b) {
 char *pa_escape(const char *p, const char *chars) {
     const char *s;
     const char *c;
-    pa_strbuf *buf = pa_strbuf_new();
+    char *out_string, *output;
+    int char_count = strlen(p);
 
+    /* Maximum number of characters in output string
+     * including trailing 0. */
+    char_count = 2 * char_count + 1;
+
+    /* allocate output string */
+    out_string = pa_xmalloc(char_count);
+    output = out_string;
+
+    /* write output string */
     for (s = p; *s; ++s) {
         if (*s == '\\')
-            pa_strbuf_putc(buf, '\\');
+            *output++ = '\\';
         else if (chars) {
             for (c = chars; *c; ++c) {
                 if (*s == *c) {
-                    pa_strbuf_putc(buf, '\\');
+                    *output++ = '\\';
                     break;
                 }
             }
         }
-        pa_strbuf_putc(buf, *s);
+        *output++ = *s;
     }
 
-    return pa_strbuf_to_string_free(buf);
+    *output = 0;
+
+    /* Remove trailing garbage */
+    output = pa_xstrdup(out_string);
+
+    pa_xfree(out_string);
+    return output;
 }
 
 char *pa_unescape(char *p) {
