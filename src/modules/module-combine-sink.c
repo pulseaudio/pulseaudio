@@ -65,7 +65,7 @@ PA_MODULE_USAGE(
 
 #define MEMBLOCKQ_MAXLENGTH (1024*1024*16)
 
-#define DEFAULT_ADJUST_TIME_USEC (10*PA_USEC_PER_SEC)
+#define DEFAULT_ADJUST_TIME_USEC (1*PA_USEC_PER_SEC)
 
 #define BLOCK_USEC (PA_USEC_PER_MSEC * 200)
 
@@ -1423,7 +1423,7 @@ int pa__init(pa_module*m) {
     struct userdata *u;
     pa_modargs *ma = NULL;
     const char *slaves, *rm;
-    int resample_method = PA_RESAMPLER_TRIVIAL;
+    int resample_method;
     pa_sample_spec ss;
     pa_channel_map map;
     struct output *o;
@@ -1439,6 +1439,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
+    resample_method = m->core->resample_method;
     if ((rm = pa_modargs_get_value(ma, "resample_method", NULL))) {
         if ((resample_method = pa_parse_resample_method(rm)) < 0) {
             pa_log("invalid resample method '%s'", rm);
