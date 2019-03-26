@@ -52,12 +52,11 @@ PA_MODULE_USAGE(
         "rate=<sample rate> "
         "source_name=<name of source> "
         "channel_map=<channel map> "
-        "description=<description for the source> "
-        "latency_time=<latency time in ms>");
+        "description=<description for the source> ");
 
 #define DEFAULT_SOURCE_NAME "source.null"
-#define DEFAULT_LATENCY_TIME 20
 #define MAX_LATENCY_USEC (PA_USEC_PER_SEC * 2)
+#define MIN_LATENCY_USEC (500)
 
 struct userdata {
     pa_core *core;
@@ -72,7 +71,6 @@ struct userdata {
 
     pa_usec_t block_usec;
     pa_usec_t timestamp;
-    pa_usec_t latency_time;
 };
 
 static const char* const valid_modargs[] = {
@@ -82,7 +80,6 @@ static const char* const valid_modargs[] = {
     "source_name",
     "channel_map",
     "description",
-    "latency_time",
     NULL
 };
 
@@ -94,7 +91,7 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
             pa_usec_t now;
 
             now = pa_rtclock_now();
-            *((int64_t*) data) = (int64_t)u->timestamp - (int64_t)now;
+            *((int64_t*) data) = (int64_t)now - (int64_t)u->timestamp;
 
             return 0;
         }
@@ -110,8 +107,10 @@ static int source_set_state_in_io_thread_cb(pa_source *s, pa_source_state_t new_
     pa_assert(s);
     pa_assert_se(u = s->userdata);
 
-    if (new_state == PA_SOURCE_RUNNING)
-        u->timestamp = pa_rtclock_now();
+    if (s->thread_info.state == PA_SOURCE_SUSPENDED || s->thread_info.state == PA_SOURCE_INIT) {
+        if (PA_SOURCE_IS_OPENED(new_state))
+            u->timestamp = pa_rtclock_now();
+    }
 
     return 0;
 }
@@ -124,10 +123,14 @@ static void source_update_requested_latency_cb(pa_source *s) {
     pa_assert(u);
 
     u->block_usec = pa_source_get_requested_latency_within_thread(s);
+    if (u->block_usec == (pa_usec_t)-1)
+        u->block_usec = u->source->thread_info.max_latency;
 }
 
 static void thread_func(void *userdata) {
     struct userdata *u = userdata;
+    bool timer_elapsed = false;
+    size_t max_block_size;
 
     pa_assert(u);
 
@@ -138,6 +141,7 @@ static void thread_func(void *userdata) {
 
     pa_thread_mq_install(&u->thread_mq);
 
+    max_block_size = pa_frame_align(pa_mempool_block_size_max(u->core->mempool), &u->source->sample_spec);
     u->timestamp = pa_rtclock_now();
 
     for (;;) {
@@ -150,23 +154,28 @@ static void thread_func(void *userdata) {
 
             now = pa_rtclock_now();
 
-            if ((chunk.length = pa_usec_to_bytes(now - u->timestamp, &u->source->sample_spec)) > 0) {
+            if (timer_elapsed && (chunk.length = pa_usec_to_bytes(now - u->timestamp, &u->source->sample_spec)) > 0) {
 
-                chunk.memblock = pa_memblock_new(u->core->mempool, (size_t) -1); /* or chunk.length? */
+                chunk.length = PA_MIN(max_block_size, chunk.length);
+
+                chunk.memblock = pa_memblock_new(u->core->mempool, chunk.length);
                 chunk.index = 0;
+                pa_silence_memchunk(&chunk, &u->source->sample_spec);
                 pa_source_post(u->source, &chunk);
                 pa_memblock_unref(chunk.memblock);
 
-                u->timestamp = now;
+                u->timestamp += pa_bytes_to_usec(chunk.length, &u->source->sample_spec);
             }
 
-            pa_rtpoll_set_timer_absolute(u->rtpoll, u->timestamp + u->latency_time * PA_USEC_PER_MSEC);
+            pa_rtpoll_set_timer_absolute(u->rtpoll, u->timestamp + u->block_usec);
         } else
             pa_rtpoll_set_timer_disabled(u->rtpoll);
 
         /* Hmm, nothing to do. Let's sleep */
         if ((ret = pa_rtpoll_run(u->rtpoll)) < 0)
             goto fail;
+
+        timer_elapsed = pa_rtpoll_timer_elapsed(u->rtpoll);
 
         if (ret == 0)
             goto finish;
@@ -188,7 +197,6 @@ int pa__init(pa_module*m) {
     pa_channel_map map;
     pa_modargs *ma = NULL;
     pa_source_new_data data;
-    uint32_t latency_time = DEFAULT_LATENCY_TIME;
 
     pa_assert(m);
 
@@ -231,13 +239,6 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    u->latency_time = DEFAULT_LATENCY_TIME;
-    if (pa_modargs_get_value_u32(ma, "latency_time", &latency_time) < 0) {
-        pa_log("Failed to parse latency_time value.");
-        goto fail;
-    }
-    u->latency_time = latency_time;
-
     u->source->parent.process_msg = source_process_msg;
     u->source->set_state_in_io_thread = source_set_state_in_io_thread_cb;
     u->source->update_requested_latency = source_update_requested_latency_cb;
@@ -246,7 +247,7 @@ int pa__init(pa_module*m) {
     pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
     pa_source_set_rtpoll(u->source, u->rtpoll);
 
-    pa_source_set_latency_range(u->source, 0, MAX_LATENCY_USEC);
+    pa_source_set_latency_range(u->source, MIN_LATENCY_USEC, MAX_LATENCY_USEC);
     u->block_usec = u->source->thread_info.max_latency;
 
     u->source->thread_info.max_rewind =
