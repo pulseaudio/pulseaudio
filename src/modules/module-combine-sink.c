@@ -201,6 +201,36 @@ static void output_enable(struct output *o);
 static void output_free(struct output *o);
 static int output_create_sink_input(struct output *o);
 
+/* rate controller, called from main context
+ * - maximum deviation from base rate is less than 1%
+ * - controller step size is limited to 2.01‰
+ * - exhibits hunting with USB or Bluetooth devices
+ */
+static uint32_t rate_controller(
+                struct output *o,
+                uint32_t base_rate, uint32_t old_rate,
+                int32_t latency_difference_usec) {
+
+    double new_rate, new_rate_1, new_rate_2;
+    double min_cycles_1, min_cycles_2;
+
+    /* Calculate next rate that is not more than 2‰ away from the last rate */
+    min_cycles_1 = (double)abs(latency_difference_usec) / o->userdata->adjust_time / 0.002 + 1;
+    new_rate_1 = old_rate + base_rate * (double)latency_difference_usec / min_cycles_1 / o->userdata->adjust_time;
+
+    /* Calculate best rate to correct the current latency offset, limit at
+     * 1% difference from base_rate */
+    min_cycles_2 = (double)abs(latency_difference_usec) / o->userdata->adjust_time / 0.01 + 1;
+    new_rate_2 = (double)base_rate * (1.0 + (double)latency_difference_usec / min_cycles_2 / o->userdata->adjust_time);
+
+    /* Choose the rate that is nearer to base_rate */
+    new_rate = new_rate_2;
+    if (abs(new_rate_1 - base_rate) < abs(new_rate_2 - base_rate))
+        new_rate = new_rate_1;
+
+    return (uint32_t)(new_rate + 0.5);
+}
+
 static void adjust_rates(struct userdata *u) {
     struct output *o;
     struct sink_snapshot rdata;
@@ -299,29 +329,18 @@ static void adjust_rates(struct userdata *u) {
 
     base_rate = u->sink->sample_spec.rate;
 
+    /* Calculate and set rates for the sink inputs. */
     PA_IDXSET_FOREACH(o, u->outputs, idx) {
-        uint32_t new_rate = base_rate;
-        uint32_t current_rate;
+        uint32_t new_rate;
+        int32_t latency_difference;
 
         if (!o->sink_input || !PA_SINK_IS_OPENED(o->sink->state))
             continue;
 
-        current_rate = o->sink_input->sample_spec.rate;
+        latency_difference = (int64_t)o->total_latency - (int64_t)target_latency;
+        new_rate = rate_controller(o, base_rate, o->sink_input->sample_spec.rate, latency_difference);
 
-        if (o->total_latency != target_latency)
-            new_rate += (uint32_t) (((double) o->total_latency - (double) target_latency) / (double) u->adjust_time * (double) new_rate);
-
-        if (new_rate < (uint32_t) (base_rate*0.8) || new_rate > (uint32_t) (base_rate*1.25)) {
-            pa_log_warn("[%s] sample rates too different, not adjusting (%u vs. %u).", o->sink_input->sink->name, base_rate, new_rate);
-            new_rate = base_rate;
-        } else {
-            /* Do the adjustment in small steps; 2‰ can be considered inaudible */
-            if (new_rate < (uint32_t) (current_rate*0.998) || new_rate > (uint32_t) (current_rate*1.002)) {
-                pa_log_info("[%s] new rate of %u Hz not within 2‰ of %u Hz, forcing smaller adjustment", o->sink_input->sink->name, new_rate, current_rate);
-                new_rate = PA_CLAMP(new_rate, (uint32_t) (current_rate*0.998), (uint32_t) (current_rate*1.002));
-            }
-            pa_log_info("[%s] new rate is %u Hz; ratio is %0.3f.", o->sink_input->sink->name, new_rate, (double) new_rate / base_rate);
-        }
+        pa_log_info("[%s] new rate is %u Hz; ratio is %0.3f.", o->sink_input->sink->name, new_rate, (double) new_rate / base_rate);
         pa_sink_input_set_rate(o->sink_input, new_rate);
     }
 
