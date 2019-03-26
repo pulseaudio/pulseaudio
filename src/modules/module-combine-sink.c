@@ -789,9 +789,6 @@ static void unsuspend(struct userdata *u) {
     PA_IDXSET_FOREACH(o, u->outputs, idx)
         output_enable(o);
 
-    if (!u->time_event && u->adjust_time > 0)
-        u->time_event = pa_core_rttime_new(u->core, pa_rtclock_now() + u->adjust_time, time_callback, u);
-
     pa_log_info("Resumed successfully...");
 }
 
@@ -822,6 +819,13 @@ static int sink_set_state_in_main_thread_cb(pa_sink *sink, pa_sink_state_t state
 
             if (u->sink->state == PA_SINK_SUSPENDED)
                 unsuspend(u);
+
+            /* The first smoother update should be done early, otherwise the smoother will
+             * not be aware of the slave sink latencies and report far too small values.
+             * This is especially important if after an unsuspend the sink runs on a different
+             * latency than before. */
+            if (state == PA_SINK_RUNNING && !u->time_event && u->adjust_time > 0)
+                u->time_event = pa_core_rttime_new(u->core, pa_rtclock_now() + pa_sink_get_requested_latency(u->sink), time_callback, u);
 
             break;
 
