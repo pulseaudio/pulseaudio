@@ -79,6 +79,7 @@ PA_MODULE_USAGE(
         "format=<sample format> "
         "channels=<number of channels> "
         "rate=<sample rate> "
+        "latency_msec=<fixed latency in ms> "
         "channel_map=<channel map>");
 #else
 PA_MODULE_DESCRIPTION("Tunnel module for sources");
@@ -92,6 +93,7 @@ PA_MODULE_USAGE(
         "format=<sample format> "
         "channels=<number of channels> "
         "rate=<sample rate> "
+        "latency_msec=<fixed latency in ms> "
         "channel_map=<channel map>");
 #endif
 
@@ -106,6 +108,7 @@ static const char* const valid_modargs[] = {
     "format",
     "channels",
     "rate",
+    "latency_msec",
 #ifdef TUNNEL_SINK
     "sink_name",
     "sink_properties",
@@ -135,8 +138,7 @@ enum {
     SINK_MESSAGE_POST
 };
 
-#define DEFAULT_TLENGTH_MSEC 150
-#define DEFAULT_MINREQ_MSEC 25
+#define DEFAULT_LATENCY_MSEC 100
 
 #else
 
@@ -147,7 +149,7 @@ enum {
     SOURCE_MESSAGE_GET_LATENCY_SNAPSHOT
 };
 
-#define DEFAULT_FRAGSIZE_MSEC 25
+#define DEFAULT_LATENCY_MSEC 25
 
 #endif
 
@@ -213,6 +215,7 @@ struct userdata {
     uint32_t ctag;
     uint32_t device_index;
     uint32_t channel;
+    uint32_t latency;
 
     int64_t counter;
     uint64_t receive_counter;
@@ -1680,11 +1683,11 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
         u->maxlength = 4*1024*1024;
 
 #ifdef TUNNEL_SINK
-    u->tlength = (uint32_t) pa_usec_to_bytes(PA_USEC_PER_MSEC * DEFAULT_TLENGTH_MSEC, &u->sink->sample_spec);
-    u->minreq = (uint32_t) pa_usec_to_bytes(PA_USEC_PER_MSEC * DEFAULT_MINREQ_MSEC, &u->sink->sample_spec);
+    u->tlength = (uint32_t) pa_usec_to_bytes(PA_USEC_PER_MSEC * u->latency, &u->sink->sample_spec);
+    u->minreq = (uint32_t) pa_usec_to_bytes(PA_USEC_PER_MSEC * u->latency / 4, &u->sink->sample_spec);
     u->prebuf = u->tlength;
 #else
-    u->fragsize = (uint32_t) pa_usec_to_bytes(PA_USEC_PER_MSEC * DEFAULT_FRAGSIZE_MSEC, &u->source->sample_spec);
+    u->fragsize = (uint32_t) pa_usec_to_bytes(PA_USEC_PER_MSEC * u->latency, &u->source->sample_spec);
 #endif
 
 #ifdef TUNNEL_SINK
@@ -1954,6 +1957,7 @@ int pa__init(pa_module*m) {
     pa_sample_spec ss;
     pa_channel_map map;
     char *dn = NULL;
+    uint32_t latency_msec;
 #ifdef TUNNEL_SINK
     pa_sink_new_data data;
 #else
@@ -2016,6 +2020,15 @@ int pa__init(pa_module*m) {
         pa_log("Failed to parse argument \"auto\".");
         goto fail;
     }
+
+    /* Allow latencies between 5ms and 500ms */
+    latency_msec = DEFAULT_LATENCY_MSEC;
+    if (pa_modargs_get_value_u32(ma, "latency_msec", &latency_msec) < 0 || latency_msec < 5 || latency_msec > 500) {
+        pa_log("Invalid latency specification");
+        goto fail;
+    }
+
+    u->latency = latency_msec;
 
     cookie_path = pa_modargs_get_value(ma, "cookie", NULL);
     server = pa_xstrdup(pa_modargs_get_value(ma, "server", NULL));
@@ -2198,6 +2211,7 @@ int pa__init(pa_module*m) {
 
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
+    pa_sink_set_fixed_latency(u->sink, latency_msec * PA_USEC_PER_MSEC);
 
 #else
 
@@ -2238,6 +2252,7 @@ int pa__init(pa_module*m) {
 
     pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
     pa_source_set_rtpoll(u->source, u->rtpoll);
+    pa_source_set_fixed_latency(u->source, latency_msec * PA_USEC_PER_MSEC);
 
     u->mcalign = pa_mcalign_new(pa_frame_size(&u->source->sample_spec));
 #endif
