@@ -273,8 +273,7 @@ static pa_hook_result_t process(struct userdata *u, pa_object *stream, bool crea
 
     if (!create)
         for (j = 0; j < u->n_groups; j++)
-            if (pa_sink_input_isinstance(stream))
-                pa_hashmap_remove(u->groups[j]->interaction_state, stream);
+            pa_hashmap_remove(u->groups[j]->interaction_state, stream);
 
     if ((pa_sink_input_isinstance(stream) && !PA_SINK_INPUT(stream)->sink) ||
         (pa_source_output_isinstance(stream) && !PA_SOURCE_OUTPUT(stream)->source))
