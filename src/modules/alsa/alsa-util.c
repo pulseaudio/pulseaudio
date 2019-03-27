@@ -23,7 +23,7 @@
 #endif
 
 #include <sys/types.h>
-#include <asoundlib.h>
+#include <alsa/asoundlib.h>
 
 #include <pulse/sample.h>
 #include <pulse/xmalloc.h>

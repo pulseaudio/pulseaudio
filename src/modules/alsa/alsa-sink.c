@@ -25,7 +25,7 @@
 #include <signal.h>
 #include <stdio.h>
 
-#include <asoundlib.h>
+#include <alsa/asoundlib.h>
 
 #ifdef HAVE_VALGRIND_MEMCHECK_H
 #include <valgrind/memcheck.h>

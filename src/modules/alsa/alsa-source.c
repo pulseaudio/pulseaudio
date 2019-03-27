@@ -25,7 +25,7 @@
 #include <signal.h>
 #include <stdio.h>
 
-#include <asoundlib.h>
+#include <alsa/asoundlib.h>
 
 #include <pulse/rtclock.h>
 #include <pulse/timeval.h>

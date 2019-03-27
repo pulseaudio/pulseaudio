@@ -21,7 +21,7 @@
   along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
 ***/
 
-#include <asoundlib.h>
+#include <alsa/asoundlib.h>
 
 #include <pulse/sample.h>
 #include <pulse/channelmap.h>

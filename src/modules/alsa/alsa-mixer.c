@@ -23,7 +23,7 @@
 #endif
 
 #include <sys/types.h>
-#include <asoundlib.h>
+#include <alsa/asoundlib.h>
 #include <math.h>
 
 #ifdef HAVE_VALGRIND_MEMCHECK_H
