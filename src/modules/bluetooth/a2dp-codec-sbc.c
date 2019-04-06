@@ -314,6 +314,7 @@ static void set_params(struct sbc_info *sbc_info) {
     sbc_info->sbc.mode = sbc_info->mode;
     sbc_info->sbc.allocation = sbc_info->allocation;
     sbc_info->sbc.bitpool = sbc_info->initial_bitpool;
+    sbc_info->sbc.endian = SBC_LE;
 
     sbc_info->codesize = sbc_get_codesize(&sbc_info->sbc);
     sbc_info->frame_length = sbc_get_frame_length(&sbc_info->sbc);
