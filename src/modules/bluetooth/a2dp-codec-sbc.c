@@ -145,6 +145,11 @@ static bool is_configuration_valid(const uint8_t *config_buffer, uint8_t config_
         return false;
     }
 
+    if (config->min_bitpool > config->max_bitpool) {
+        pa_log_error("Invalid bitpool in configuration");
+        return false;
+    }
+
     return true;
 }
 
@@ -289,12 +294,18 @@ static uint8_t fill_preferred_configuration(const pa_sample_spec *default_sample
         config->allocation_method = SBC_ALLOCATION_LOUDNESS;
     else if (capabilities->allocation_method & SBC_ALLOCATION_SNR)
         config->allocation_method = SBC_ALLOCATION_SNR;
+    else {
+        pa_log_error("No supported allocation method");
+        return 0;
+    }
 
     config->min_bitpool = (uint8_t) PA_MAX(SBC_MIN_BITPOOL, capabilities->min_bitpool);
     config->max_bitpool = (uint8_t) PA_MIN(default_bitpool(config->frequency, config->channel_mode), capabilities->max_bitpool);
 
-    if (config->min_bitpool > config->max_bitpool)
+    if (config->min_bitpool > config->max_bitpool) {
+        pa_log_error("No supported bitpool");
         return 0;
+    }
 
     return sizeof(*config);
 }
