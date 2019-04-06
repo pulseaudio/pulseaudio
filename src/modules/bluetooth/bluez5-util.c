@@ -911,8 +911,8 @@ static void register_endpoint(pa_bluetooth_discovery *y, const char *path, const
         capabilities.allocation_method = SBC_ALLOCATION_SNR | SBC_ALLOCATION_LOUDNESS;
         capabilities.subbands = SBC_SUBBANDS_4 | SBC_SUBBANDS_8;
         capabilities.block_length = SBC_BLOCK_LENGTH_4 | SBC_BLOCK_LENGTH_8 | SBC_BLOCK_LENGTH_12 | SBC_BLOCK_LENGTH_16;
-        capabilities.min_bitpool = MIN_BITPOOL;
-        capabilities.max_bitpool = MAX_BITPOOL;
+        capabilities.min_bitpool = SBC_MIN_BITPOOL;
+        capabilities.max_bitpool = 64;
 
         pa_dbus_append_basic_array_variant_dict_entry(&d, "Capabilities", DBUS_TYPE_BYTE, &capabilities, sizeof(capabilities));
     }
@@ -1595,7 +1595,7 @@ static DBusMessage *endpoint_select_configuration(DBusConnection *conn, DBusMess
     else if (cap->allocation_method & SBC_ALLOCATION_SNR)
         config.allocation_method = SBC_ALLOCATION_SNR;
 
-    config.min_bitpool = (uint8_t) PA_MAX(MIN_BITPOOL, cap->min_bitpool);
+    config.min_bitpool = (uint8_t) PA_MAX(SBC_MIN_BITPOOL, cap->min_bitpool);
     config.max_bitpool = (uint8_t) PA_MIN(a2dp_default_bitpool(config.frequency, config.channel_mode), cap->max_bitpool);
 
     if (config.min_bitpool > config.max_bitpool)
