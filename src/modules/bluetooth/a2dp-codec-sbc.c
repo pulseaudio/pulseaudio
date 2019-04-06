@@ -104,7 +104,7 @@ static uint8_t fill_capabilities(uint8_t capabilities_buffer[MAX_A2DP_CAPS_SIZE]
     capabilities->subbands = SBC_SUBBANDS_4 | SBC_SUBBANDS_8;
     capabilities->block_length = SBC_BLOCK_LENGTH_4 | SBC_BLOCK_LENGTH_8 | SBC_BLOCK_LENGTH_12 | SBC_BLOCK_LENGTH_16;
     capabilities->min_bitpool = SBC_MIN_BITPOOL;
-    capabilities->max_bitpool = 64;
+    capabilities->max_bitpool = SBC_BITPOOL_HQ_JOINT_STEREO_44100;
 
     return sizeof(*capabilities);
 }
@@ -158,41 +158,38 @@ static uint8_t default_bitpool(uint8_t freq, uint8_t mode) {
     switch (freq) {
         case SBC_SAMPLING_FREQ_16000:
         case SBC_SAMPLING_FREQ_32000:
-            return 53;
+            switch (mode) {
+                case SBC_CHANNEL_MODE_MONO:
+                case SBC_CHANNEL_MODE_DUAL_CHANNEL:
+                case SBC_CHANNEL_MODE_STEREO:
+                case SBC_CHANNEL_MODE_JOINT_STEREO:
+                    return SBC_BITPOOL_HQ_JOINT_STEREO_44100;
+            }
 
         case SBC_SAMPLING_FREQ_44100:
-
             switch (mode) {
                 case SBC_CHANNEL_MODE_MONO:
                 case SBC_CHANNEL_MODE_DUAL_CHANNEL:
-                    return 31;
+                    return SBC_BITPOOL_HQ_MONO_44100;
 
                 case SBC_CHANNEL_MODE_STEREO:
                 case SBC_CHANNEL_MODE_JOINT_STEREO:
-                    return 53;
+                    return SBC_BITPOOL_HQ_JOINT_STEREO_44100;
             }
-
-            pa_log_warn("Invalid channel mode %u", mode);
-            return 53;
 
         case SBC_SAMPLING_FREQ_48000:
-
             switch (mode) {
                 case SBC_CHANNEL_MODE_MONO:
                 case SBC_CHANNEL_MODE_DUAL_CHANNEL:
-                    return 29;
+                    return SBC_BITPOOL_HQ_MONO_48000;
 
                 case SBC_CHANNEL_MODE_STEREO:
                 case SBC_CHANNEL_MODE_JOINT_STEREO:
-                    return 51;
+                    return SBC_BITPOOL_HQ_JOINT_STEREO_48000;
             }
-
-            pa_log_warn("Invalid channel mode %u", mode);
-            return 51;
     }
 
-    pa_log_warn("Invalid sampling freq %u", freq);
-    return 53;
+    pa_assert_not_reached();
 }
 
 static uint8_t fill_preferred_configuration(const pa_sample_spec *default_sample_spec, const uint8_t *capabilities_buffer, uint8_t capabilities_size, uint8_t config_buffer[MAX_A2DP_CAPS_SIZE]) {
