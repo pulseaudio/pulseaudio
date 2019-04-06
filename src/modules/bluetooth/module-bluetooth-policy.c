@@ -154,10 +154,10 @@ static void card_set_profile(struct userdata *u, pa_card *card, bool revert_to_a
 
         /* Check for correct profile based on revert_to_a2dp */
         if (revert_to_a2dp) {
-            if (!pa_streq(profile->name, "a2dp") && !pa_streq(profile->name, "a2dp_sink"))
+            if (!pa_streq(profile->name, "a2dp_sink"))
                 continue;
         } else {
-            if (!pa_streq(profile->name, "hsp") && !pa_streq(profile->name, "headset_head_unit"))
+            if (!pa_streq(profile->name, "headset_head_unit"))
                 continue;
         }
 
@@ -192,19 +192,19 @@ static void switch_profile(pa_card *card, bool revert_to_a2dp, void *userdata) {
             return;
 
         /* Skip card if does not have active hsp profile */
-        if (!pa_streq(card->active_profile->name, "hsp") && !pa_streq(card->active_profile->name, "headset_head_unit"))
+        if (!pa_streq(card->active_profile->name, "headset_head_unit"))
             return;
 
         /* Skip card if already has active a2dp profile */
-        if (pa_streq(card->active_profile->name, "a2dp") || pa_streq(card->active_profile->name, "a2dp_sink"))
+        if (pa_streq(card->active_profile->name, "a2dp_sink"))
             return;
     } else {
         /* Skip card if does not have active a2dp profile */
-        if (!pa_streq(card->active_profile->name, "a2dp") && !pa_streq(card->active_profile->name, "a2dp_sink"))
+        if (!pa_streq(card->active_profile->name, "a2dp_sink"))
             return;
 
         /* Skip card if already has active hsp profile */
-        if (pa_streq(card->active_profile->name, "hsp") || pa_streq(card->active_profile->name, "headset_head_unit"))
+        if (pa_streq(card->active_profile->name, "headset_head_unit"))
             return;
     }
 
@@ -307,7 +307,6 @@ static pa_hook_result_t card_init_profile_hook_callback(pa_core *c, pa_card *car
 
     /* Ignore card if has already set other initial profile than a2dp */
     if (card->active_profile &&
-        !pa_streq(card->active_profile->name, "a2dp") &&
         !pa_streq(card->active_profile->name, "a2dp_sink"))
         return PA_HOOK_OK;
 
