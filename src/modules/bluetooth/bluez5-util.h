@@ -5,6 +5,7 @@
   This file is part of PulseAudio.
 
   Copyright 2008-2013 João Paulo Rechi Vita
+  Copyrigth 2018-2019 Pali Rohár <pali.rohar@gmail.com>
 
   PulseAudio is free software; you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as
@@ -21,6 +22,8 @@
 ***/
 
 #include <pulsecore/core.h>
+
+#include "a2dp-codec-util.h"
 
 #define PA_BLUETOOTH_UUID_A2DP_SOURCE "0000110a-0000-1000-8000-00805f9b34fb"
 #define PA_BLUETOOTH_UUID_A2DP_SINK   "0000110b-0000-1000-8000-00805f9b34fb"
@@ -81,6 +84,8 @@ struct pa_bluetooth_transport {
     uint8_t codec;
     uint8_t *config;
     size_t config_size;
+
+    const pa_a2dp_codec *a2dp_codec;
 
     uint16_t microphone_gain;
     uint16_t speaker_gain;
