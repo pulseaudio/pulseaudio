@@ -17,10 +17,17 @@ Requires=pulseaudio.socket
 ConditionUser=!root
 
 [Service]
+ExecStart=@PA_BINARY@ --daemonize=no
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+NoNewPrivileges=yes
+Restart=on-failure
+RestrictNamespaces=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
 # Note that notify will only work if --daemonize=no
 Type=notify
-ExecStart=@PA_BINARY@ --daemonize=no
-Restart=on-failure
+UMask=0077
 
 [Install]
 Also=pulseaudio.socket
