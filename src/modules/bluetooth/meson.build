@@ -1,9 +1,13 @@
 libbluez5_util_sources = [
+  'a2dp-codec-sbc.c',
+  'a2dp-codec-util.c',
   'bluez5-util.c',
 ]
 
 libbluez5_util_headers = [
+  'a2dp-codec-api.h',
   'a2dp-codecs.h',
+  'a2dp-codec-util.h',
   'bluez5-util.h',
   'rtp.h',
 ]
@@ -21,6 +25,6 @@ libbluez5_util = shared_library('libbluez5_util',
   libbluez5_util_headers,
   c_args : [pa_c_args, server_c_args],
   include_directories : [configinc, topinc],
-  dependencies : [libpulse_dep, libpulsecommon_dep, libpulsecore_dep, dbus_dep],
+  dependencies : [libpulse_dep, libpulsecommon_dep, libpulsecore_dep, dbus_dep, sbc_dep],
   install : true
 )
