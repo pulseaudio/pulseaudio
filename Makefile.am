@@ -58,7 +58,7 @@ EXTRA_DIST = \
 	src/modules/bluetooth/meson.build \
 	src/modules/echo-cancel/meson.build \
 	src/modules/gsettings/meson.build \
-	src/modules/gsettings/post-install.sh \
+	src/modules/gsettings/meson_post_install.py \
 	src/modules/meson.build \
 	src/modules/oss/meson.build \
 	src/modules/raop/meson.build \

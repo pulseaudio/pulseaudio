@@ -29,7 +29,7 @@ install_data('org.freedesktop.pulseaudio.gschema.xml',
   install_dir : join_paths(datadir, 'glib-2.0', 'schemas')
 )
 
-meson.add_install_script('post-install.sh', datadir)
+meson.add_install_script('meson_post_install.py', datadir)
 
 # Conversion from GConf to GSettings
 
