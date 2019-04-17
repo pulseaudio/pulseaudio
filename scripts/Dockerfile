@@ -43,10 +43,11 @@ RUN apt-get update && apt-get install -y \
     libxtst-dev \
     make \
     ninja-build \
+    python3-setuptools \
     systemd
 
 # Install meson from upstream tarball
-ARG MESON_VERSION=0.47.0
+ARG MESON_VERSION=0.50.0
 RUN apt-get install -y wget && \
     wget -q https://github.com/mesonbuild/meson/releases/download/${MESON_VERSION}/meson-${MESON_VERSION}.tar.gz && \
     tar -xf meson-${MESON_VERSION}.tar.gz && \

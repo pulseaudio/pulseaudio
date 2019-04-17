@@ -1,6 +1,6 @@
 project('pulseaudio', 'c', 'cpp',
         version : run_command(find_program('git-version-gen'), join_paths(meson.current_source_dir(), '.tarball-version')).stdout().strip(),
-        meson_version : '>= 0.47.0',
+        meson_version : '>= 0.50.0',
         default_options : [ 'c_std=gnu11', 'cpp_std=c++11' ]
         )
 
@@ -250,7 +250,7 @@ if get_option('database') == 'tdb'
 elif get_option('database') == 'gdbm'
   database_dep = cc.find_library('gdbm', required : true)
 else
-  database_dep = dependency('', required:false)
+  database_dep = dependency('', required: false)
 endif
 
 if get_option('ipv6')
