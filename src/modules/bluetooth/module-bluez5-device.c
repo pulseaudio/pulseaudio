@@ -548,13 +548,29 @@ static int a2dp_process_push(struct userdata *u) {
     a2dp_prepare_decoder_buffer(u);
 
     for (;;) {
+        uint8_t aux[1024];
+        struct iovec iov;
+        struct cmsghdr *cm;
+        struct msghdr m;
         bool found_tstamp = false;
         pa_usec_t tstamp;
         uint8_t *ptr;
         ssize_t l;
         size_t processed;
 
-        l = pa_read(u->stream_fd, u->decoder_buffer, u->decoder_buffer_size, &u->stream_write_type);
+        pa_zero(m);
+        pa_zero(aux);
+        pa_zero(iov);
+
+        m.msg_iov = &iov;
+        m.msg_iovlen = 1;
+        m.msg_control = aux;
+        m.msg_controllen = sizeof(aux);
+
+        iov.iov_base = u->decoder_buffer;
+        iov.iov_len = u->decoder_buffer_size;
+
+        l = recvmsg(u->stream_fd, &m, 0);
 
         if (l <= 0) {
 
@@ -574,8 +590,21 @@ static int a2dp_process_push(struct userdata *u) {
         pa_assert((size_t) l <= u->decoder_buffer_size);
 
         /* TODO: get timestamp from rtp */
+
+        for (cm = CMSG_FIRSTHDR(&m); cm; cm = CMSG_NXTHDR(&m, cm)) {
+            if (cm->cmsg_level == SOL_SOCKET && cm->cmsg_type == SO_TIMESTAMP) {
+                struct timeval *tv = (struct timeval*) CMSG_DATA(cm);
+                pa_rtclock_from_wallclock(tv);
+                tstamp = pa_timeval_load(tv);
+                found_tstamp = true;
+                break;
+            }
+        }
+
         if (!found_tstamp) {
-            /* pa_log_warn("Couldn't find SO_TIMESTAMP data in auxiliary recvmsg() data!"); */
+            PA_ONCE_BEGIN {
+                pa_log_warn("Couldn't find SO_TIMESTAMP data in auxiliary recvmsg() data!");
+            } PA_ONCE_END;
             tstamp = pa_rtclock_now();
         }
 
