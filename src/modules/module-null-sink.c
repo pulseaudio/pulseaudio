@@ -53,7 +53,8 @@ PA_MODULE_USAGE(
         "rate=<sample rate> "
         "channels=<number of channels> "
         "channel_map=<channel map>"
-        "formats=<semi-colon separated sink formats>");
+        "formats=<semi-colon separated sink formats>"
+        "norewinds=<disable rewinds>");
 
 #define DEFAULT_SINK_NAME "null"
 #define BLOCK_USEC (PA_USEC_PER_SEC * 2)
@@ -71,6 +72,8 @@ struct userdata {
     pa_usec_t timestamp;
 
     pa_idxset *formats;
+
+    bool norewinds;
 };
 
 static const char* const valid_modargs[] = {
@@ -81,6 +84,7 @@ static const char* const valid_modargs[] = {
     "channels",
     "channel_map",
     "formats",
+    "norewinds",
     NULL
 };
 
@@ -168,6 +172,9 @@ static void process_rewind(struct userdata *u, pa_usec_t now) {
     pa_usec_t delay;
 
     pa_assert(u);
+
+    if (u->norewinds)
+        goto do_nothing;
 
     rewind_nbytes = u->sink->thread_info.rewind_nbytes;
 
@@ -347,6 +354,10 @@ int pa__init(pa_module*m) {
         pa_log("Invalid properties");
         pa_sink_new_data_done(&data);
         goto fail;
+    }
+
+    if(pa_modargs_get_value_boolean(ma, "norewinds", &u->norewinds) < 0){
+        pa_log("Failed to disable rewinds.");
     }
 
     u->sink = pa_sink_new(m->core, &data, PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY);
