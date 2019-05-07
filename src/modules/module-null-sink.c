@@ -139,7 +139,13 @@ static void sink_update_requested_latency_cb(pa_sink *s) {
         u->block_usec = s->thread_info.max_latency;
 
     nbytes = pa_usec_to_bytes(u->block_usec, &s->sample_spec);
-    pa_sink_set_max_rewind_within_thread(s, nbytes);
+
+    if(u->norewinds){
+        pa_sink_set_max_rewind_within_thread(s, 0);
+    } else {
+        pa_sink_set_max_rewind_within_thread(s, nbytes);
+    }
+
     pa_sink_set_max_request_within_thread(s, nbytes);
 }
 
@@ -172,9 +178,6 @@ static void process_rewind(struct userdata *u, pa_usec_t now) {
     pa_usec_t delay;
 
     pa_assert(u);
-
-    if (u->norewinds)
-        goto do_nothing;
 
     rewind_nbytes = u->sink->thread_info.rewind_nbytes;
 
@@ -356,10 +359,6 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    if(pa_modargs_get_value_boolean(ma, "norewinds", &u->norewinds) < 0){
-        pa_log("Failed to disable rewinds.");
-    }
-
     u->sink = pa_sink_new(m->core, &data, PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY);
     pa_sink_new_data_done(&data);
 
@@ -381,7 +380,17 @@ int pa__init(pa_module*m) {
 
     u->block_usec = BLOCK_USEC;
     nbytes = pa_usec_to_bytes(u->block_usec, &u->sink->sample_spec);
-    pa_sink_set_max_rewind(u->sink, nbytes);
+
+    if(pa_modargs_get_value_boolean(ma, "norewinds", &u->norewinds) < 0){
+        pa_log("Invalid argument, norewinds expects a boolean value.");
+    }
+
+    if(u->norewinds){
+        pa_sink_set_max_rewind(u->sink, 0);
+    } else {
+        pa_sink_set_max_rewind(u->sink, nbytes);
+    }
+
     pa_sink_set_max_request(u->sink, nbytes);
 
     if (!(u->thread = pa_thread_new("null-sink", thread_func, u))) {
