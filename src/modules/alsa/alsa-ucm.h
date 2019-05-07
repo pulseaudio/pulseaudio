@@ -23,7 +23,7 @@
 ***/
 
 #ifdef HAVE_ALSA_UCM
-#include <use-case.h>
+#include <alsa/use-case.h>
 #else
 typedef void snd_use_case_mgr_t;
 #endif
