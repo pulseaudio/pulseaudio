@@ -58,6 +58,7 @@ PA_MODULE_USAGE(
 
 #define DEFAULT_SINK_NAME "null"
 #define BLOCK_USEC (PA_USEC_PER_SEC * 2)
+#define NOREWINDS_MAX_LATENCY_USEC (50*PA_USEC_PER_MSEC)
 
 struct userdata {
     pa_core *core;
@@ -398,7 +399,11 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    pa_sink_set_latency_range(u->sink, 0, BLOCK_USEC);
+    if(u->norewinds){
+        pa_sink_set_latency_range(u->sink, 0, NOREWINDS_MAX_LATENCY_USEC);
+    } else {
+        pa_sink_set_latency_range(u->sink, 0, BLOCK_USEC);
+    }
 
     pa_sink_put(u->sink);
 
