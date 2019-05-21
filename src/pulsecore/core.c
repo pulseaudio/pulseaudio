@@ -240,6 +240,7 @@ void pa_core_set_configured_default_sink(pa_core *core, const char *sink) {
     core->configured_default_sink = pa_xstrdup(sink);
     pa_log_info("configured_default_sink: %s -> %s",
                 old_sink ? old_sink : "(unset)", sink ? sink : "(unset)");
+    pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_SERVER | PA_SUBSCRIPTION_EVENT_CHANGE, PA_INVALID_INDEX);
 
     pa_core_update_default_sink(core);
 
@@ -261,6 +262,7 @@ void pa_core_set_configured_default_source(pa_core *core, const char *source) {
     core->configured_default_source = pa_xstrdup(source);
     pa_log_info("configured_default_source: %s -> %s",
                 old_source ? old_source : "(unset)", source ? source : "(unset)");
+    pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_SERVER | PA_SUBSCRIPTION_EVENT_CHANGE, PA_INVALID_INDEX);
 
     pa_core_update_default_source(core);
 
