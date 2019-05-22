@@ -78,7 +78,7 @@ msgstr "Siempre tenga al menos un sumidero cargado aunque sea uno nulo"
 
 #: ../src/modules/module-always-sink.c:82
 msgid "Dummy Output"
-msgstr "Salida Boba"
+msgstr "Salida Ficticia"
 
 #: ../src/modules/module-ladspa-sink.c:48
 msgid "Virtual LADSPA sink"
@@ -120,7 +120,7 @@ msgstr "Módem"
 
 #: ../src/daemon/ltdl-bind-now.c:127
 msgid "Failed to find original lt_dlopen loader."
-msgstr "Falló al buscar cargador el cargador llt_dlopen original."
+msgstr "Falló al buscar cargador el cargador lt_dlopen original."
 
 #: ../src/daemon/ltdl-bind-now.c:132
 msgid "Failed to allocate new dl loader."
