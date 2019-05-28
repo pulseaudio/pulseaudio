@@ -980,10 +980,7 @@ static void thread_func(void *userdata) {
 
                     if (t < 0) {
 
-                        if (errno == EINTR)
-                            continue;
-
-                        else if (errno == EAGAIN) {
+                        if (errno == EAGAIN) {
                             pa_log_debug("EAGAIN");
 
                             revents &= ~POLLOUT;
@@ -1087,10 +1084,7 @@ static void thread_func(void *userdata) {
                     if (t < 0) {
                         pa_memblock_unref(memchunk.memblock);
 
-                        if (errno == EINTR)
-                            continue;
-
-                        else if (errno == EAGAIN) {
+                        if (errno == EAGAIN) {
                             pa_log_debug("EAGAIN");
 
                             revents &= ~POLLIN;

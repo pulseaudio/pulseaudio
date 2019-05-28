@@ -279,10 +279,6 @@ static int sco_process_render(struct userdata *u) {
 
         saved_errno = errno;
 
-        if (saved_errno == EINTR)
-            /* Retry right away if we got interrupted */
-            continue;
-
         pa_memblock_unref(memchunk.memblock);
 
         if (saved_errno == EAGAIN) {
@@ -462,11 +458,7 @@ static int a2dp_write_buffer(struct userdata *u, size_t nbytes) {
 
         if (l < 0) {
 
-            if (errno == EINTR)
-                /* Retry right away if we got interrupted */
-                continue;
-
-            else if (errno == EAGAIN) {
+            if (errno == EAGAIN) {
                 /* Hmm, apparently the socket was not writable, give up for now */
                 pa_log_debug("Got EAGAIN on write() after POLLOUT, probably there is a temporary connection loss.");
                 break;

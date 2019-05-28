@@ -151,26 +151,16 @@ static void flush(pa_fdsem *f) {
             uint64_t u;
 
             if ((r = pa_read(f->efd, &u, sizeof(u), NULL)) != sizeof(u)) {
-
-                if (r >= 0 || errno != EINTR) {
-                    pa_log_error("Invalid read from eventfd: %s", r < 0 ? pa_cstrerror(errno) : "EOF");
-                    pa_assert_not_reached();
-                }
-
-                continue;
+                pa_log_error("Invalid read from eventfd: %s", r < 0 ? pa_cstrerror(errno) : "EOF");
+                pa_assert_not_reached();
             }
             r = (ssize_t) u;
         } else
 #endif
 
         if ((r = pa_read(f->fds[0], &x, sizeof(x), NULL)) <= 0) {
-
-            if (r >= 0 || errno != EINTR) {
-                pa_log_error("Invalid read from pipe: %s", r < 0 ? pa_cstrerror(errno) : "EOF");
-                pa_assert_not_reached();
-            }
-
-            continue;
+            pa_log_error("Invalid read from pipe: %s", r < 0 ? pa_cstrerror(errno) : "EOF");
+            pa_assert_not_reached();
         }
 
     } while (pa_atomic_sub(&f->data->in_pipe, (int) r) > (int) r);
@@ -194,23 +184,15 @@ void pa_fdsem_post(pa_fdsem *f) {
                     uint64_t u = 1;
 
                     if ((r = pa_write(f->efd, &u, sizeof(u), &f->write_type)) != sizeof(u)) {
-                        if (r >= 0 || errno != EINTR) {
-                            pa_log_error("Invalid write to eventfd: %s", r < 0 ? pa_cstrerror(errno) : "EOF");
-                            pa_assert_not_reached();
-                        }
-
-                        continue;
+                        pa_log_error("Invalid write to eventfd: %s", r < 0 ? pa_cstrerror(errno) : "EOF");
+                        pa_assert_not_reached();
                     }
                 } else
 #endif
 
                 if ((r = pa_write(f->fds[1], &x, 1, &f->write_type)) != 1) {
-                    if (r >= 0 || errno != EINTR) {
-                        pa_log_error("Invalid write to pipe: %s", r < 0 ? pa_cstrerror(errno) : "EOF");
-                        pa_assert_not_reached();
-                    }
-
-                    continue;
+                    pa_log_error("Invalid write to pipe: %s", r < 0 ? pa_cstrerror(errno) : "EOF");
+                    pa_assert_not_reached();
                 }
 
                 break;
@@ -238,13 +220,8 @@ void pa_fdsem_wait(pa_fdsem *f) {
             uint64_t u;
 
             if ((r = pa_read(f->efd, &u, sizeof(u), NULL)) != sizeof(u)) {
-
-                if (r >= 0 || errno != EINTR) {
-                    pa_log_error("Invalid read from eventfd: %s", r < 0 ? pa_cstrerror(errno) : "EOF");
-                    pa_assert_not_reached();
-                }
-
-                continue;
+                pa_log_error("Invalid read from eventfd: %s", r < 0 ? pa_cstrerror(errno) : "EOF");
+                pa_assert_not_reached();
             }
 
             r = (ssize_t) u;
@@ -252,13 +229,8 @@ void pa_fdsem_wait(pa_fdsem *f) {
 #endif
 
         if ((r = pa_read(f->fds[0], &x, sizeof(x), NULL)) <= 0) {
-
-            if (r >= 0 || errno != EINTR) {
-                pa_log_error("Invalid read from pipe: %s", r < 0 ? pa_cstrerror(errno) : "EOF");
-                pa_assert_not_reached();
-            }
-
-            continue;
+            pa_log_error("Invalid read from pipe: %s", r < 0 ? pa_cstrerror(errno) : "EOF");
+            pa_assert_not_reached();
         }
 
         pa_atomic_sub(&f->data->in_pipe, (int) r);

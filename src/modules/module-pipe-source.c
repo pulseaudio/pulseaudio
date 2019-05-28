@@ -155,9 +155,7 @@ static void thread_func(void *userdata) {
 
             if (l < 0) {
 
-                if (errno == EINTR)
-                    continue;
-                else if (errno != EAGAIN) {
+                if (errno != EAGAIN) {
                     pa_log("Failed to read data from FIFO: %s", pa_cstrerror(errno));
                     goto fail;
                 }

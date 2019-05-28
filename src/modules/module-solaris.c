@@ -714,9 +714,7 @@ static void thread_func(void *userdata) {
                 pa_memblock_release(u->memchunk.memblock);
 
                 if (w <= 0) {
-                    if (errno == EINTR) {
-                        continue;
-                    } else if (errno == EAGAIN) {
+                    if (errno == EAGAIN) {
                         /* We may have realtime priority so yield the CPU to ensure that fd can become writable again. */
                         pa_log_debug("EAGAIN with %llu bytes buffered.", buffered_bytes);
                         break;

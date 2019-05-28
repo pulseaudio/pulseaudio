@@ -249,9 +249,7 @@ static void thread_func(void *userdata) {
 
                     if (l < 0) {
 
-                        if (errno == EINTR)
-                            continue;
-                        else if (errno == EAGAIN) {
+                        if (errno == EAGAIN) {
 
                             /* OK, we filled all socket buffers up
                              * now. */

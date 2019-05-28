@@ -183,7 +183,7 @@ static int do_read(connection *c) {
 
     if (r <= 0) {
 
-        if (r < 0 && (errno == EINTR || errno == EAGAIN))
+        if (r < 0 && errno == EAGAIN)
             return 0;
 
         pa_log_debug("read(): %s", r == 0 ? "EOF" : pa_cstrerror(errno));

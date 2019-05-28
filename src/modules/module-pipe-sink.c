@@ -199,14 +199,13 @@ static ssize_t pipe_sink_write(struct userdata *u, pa_memchunk *pchunk) {
         if (l < 0) {
             if (errno == EAGAIN)
                 break;
-            else if (errno != EINTR) {
-                if (!u->fifo_error) {
-                    pa_log("Failed to write data to FIFO: %s", pa_cstrerror(errno));
-                    u->fifo_error = true;
-                }
-                count = -1 - count;
-                break;
+
+            if (!u->fifo_error) {
+                pa_log("Failed to write data to FIFO: %s", pa_cstrerror(errno));
+                u->fifo_error = true;
             }
+            count = -1 - count;
+            break;
         } else {
             if (u->fifo_error) {
                 pa_log_debug("Recovered from FIFO error");
@@ -288,9 +287,7 @@ static int process_render(struct userdata *u) {
 
         if (l < 0) {
 
-            if (errno == EINTR)
-                continue;
-            else if (errno == EAGAIN)
+            if (errno == EAGAIN)
                 return 0;
             else {
                 pa_log("Failed to write data to FIFO: %s", pa_cstrerror(errno));

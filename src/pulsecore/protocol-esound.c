@@ -1010,7 +1010,7 @@ static int do_read(connection *c) {
                                    ((uint8_t*) &c->request) + c->read_data_length,
                                    sizeof(c->request) - c->read_data_length)) <= 0) {
 
-            if (r < 0 && (errno == EINTR || errno == EAGAIN))
+            if (r < 0 && errno == EAGAIN)
                 return 0;
 
             pa_log_debug("read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
@@ -1066,7 +1066,7 @@ static int do_read(connection *c) {
                                    (uint8_t*) c->read_data + c->read_data_length,
                                    handler->data_length - c->read_data_length)) <= 0) {
 
-            if (r < 0 && (errno == EINTR || errno == EAGAIN))
+            if (r < 0 && errno == EAGAIN)
                 return 0;
 
             pa_log_debug("read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
@@ -1097,7 +1097,7 @@ static int do_read(connection *c) {
         pa_memblock_release(c->scache.memchunk.memblock);
 
         if (r <= 0) {
-            if (r < 0 && (errno == EINTR || errno == EAGAIN))
+            if (r < 0 && errno == EAGAIN)
                 return 0;
 
             pa_log_debug("read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
@@ -1165,7 +1165,7 @@ static int do_read(connection *c) {
 
         if (r <= 0) {
 
-            if (r < 0 && (errno == EINTR || errno == EAGAIN))
+            if (r < 0 && errno == EAGAIN)
                 return 0;
 
             pa_log_debug("read(): %s", r < 0 ? pa_cstrerror(errno) : "EOF");
