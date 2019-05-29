@@ -214,7 +214,7 @@ static void teardown(struct userdata *u) {
      * to the sink input. Also, we need to ensure that new messages won't be
      * written to the queue after we have emptied it.
      *
-     * Emptying the queue can be done in the state_changed() callback of the
+     * Emptying the queue can be done in the state_change() callback of the
      * sink input, when the new state is "unlinked".
      *
      * Preventing new messages from being written to the queue can be achieved
