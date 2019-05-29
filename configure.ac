@@ -246,6 +246,15 @@ fi
 # If everything else fails use libatomic_ops
 need_libatomic_ops=yes
 
+AC_CACHE_CHECK([whether $CC knows __atomic_store_n()],
+    pulseaudio_cv_atomic_store_n, [
+    AC_LINK_IFELSE(
+        [AC_LANG_PROGRAM([], [[int c = 0; __atomic_store_n(&c, 4, __ATOMIC_SEQ_CST);]])],
+        [pulseaudio_cv_atomic_store_n=yes],
+        [pulseaudio_cv_atomic_store_n=no])
+    ])
+
+
 AC_CACHE_CHECK([whether $CC knows __sync_bool_compare_and_swap()],
     pulseaudio_cv_sync_bool_compare_and_swap, [
     AC_LINK_IFELSE(
@@ -256,6 +265,9 @@ AC_CACHE_CHECK([whether $CC knows __sync_bool_compare_and_swap()],
 
 if test "$pulseaudio_cv_sync_bool_compare_and_swap" = "yes" ; then
     AC_DEFINE([HAVE_ATOMIC_BUILTINS], 1, [Have __sync_bool_compare_and_swap() and friends.])
+    if test "$pulseaudio_cv_atomic_store_n" = "yes" ; then
+         AC_DEFINE([HAVE_ATOMIC_BUILTINS_MEMORY_MODEL], 1, [Have __atomic_store_n() and friends.])
+    fi
     need_libatomic_ops=no
 else
     # HW specific atomic ops stuff

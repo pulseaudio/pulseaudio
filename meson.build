@@ -285,12 +285,23 @@ if shm_dep.found()
   cdata.set('HAVE_SHM_OPEN', 1)
 endif
 
+
 atomictest = '''void func() {
   volatile int atomic = 2;
   __sync_bool_compare_and_swap (&atomic, 2, 3);
 }
 '''
 if cc.compiles(atomictest)
+  newatomictest = '''void func() {
+    int c = 0;
+    __atomic_store_n(&c, 4, __ATOMIC_SEQ_CST);
+  }
+  '''
+
+  if(cc.compiles(newatomictest))
+    cdata.set('HAVE_ATOMIC_BUILTINS_MEMORY_MODEL', true)
+  endif
+
   cdata.set('HAVE_ATOMIC_BUILTINS', true)
 else
   # FIXME: check if we need libatomic_ops

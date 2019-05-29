@@ -50,6 +50,20 @@ typedef struct pa_atomic {
 
 #define PA_ATOMIC_INIT(v) { .value = (v) }
 
+#ifdef HAVE_ATOMIC_BUILTINS_MEMORY_MODEL
+
+/* __atomic based implementation */
+
+static inline int pa_atomic_load(const pa_atomic_t *a) {
+    return __atomic_load_n(&a->value, __ATOMIC_SEQ_CST);
+}
+
+static inline void pa_atomic_store(pa_atomic_t *a, int i) {
+    __atomic_store_n(&a->value, i, __ATOMIC_SEQ_CST);
+}
+
+#else
+
 static inline int pa_atomic_load(const pa_atomic_t *a) {
     __sync_synchronize();
     return a->value;
@@ -59,6 +73,9 @@ static inline void pa_atomic_store(pa_atomic_t *a, int i) {
     a->value = i;
     __sync_synchronize();
 }
+
+#endif
+
 
 /* Returns the previously set value */
 static inline int pa_atomic_add(pa_atomic_t *a, int i) {
@@ -91,6 +108,20 @@ typedef struct pa_atomic_ptr {
 
 #define PA_ATOMIC_PTR_INIT(v) { .value = (long) (v) }
 
+#ifdef HAVE_ATOMIC_BUILTINS_MEMORY_MODEL
+
+/* __atomic based implementation */
+
+static inline void* pa_atomic_ptr_load(const pa_atomic_ptr_t *a) {
+    return (void*) __atomic_load_n(&a->value, __ATOMIC_SEQ_CST);
+}
+
+static inline void pa_atomic_ptr_store(pa_atomic_ptr_t *a, void* p) {
+    __atomic_store_n(&a->value, p, __ATOMIC_SEQ_CST);
+}
+
+#else
+
 static inline void* pa_atomic_ptr_load(const pa_atomic_ptr_t *a) {
     __sync_synchronize();
     return (void*) a->value;
@@ -100,6 +131,8 @@ static inline void pa_atomic_ptr_store(pa_atomic_ptr_t *a, void *p) {
     a->value = (unsigned long) p;
     __sync_synchronize();
 }
+
+#endif
 
 static inline bool pa_atomic_ptr_cmpxchg(pa_atomic_ptr_t *a, void *old_p, void* new_p) {
     return __sync_bool_compare_and_swap(&a->value, (long) old_p, (long) new_p);

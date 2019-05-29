@@ -293,7 +293,8 @@ TESTS_norun = \
 		sig2str-test \
 		stripnul \
 		echo-cancel-test \
-		lo-latency-test
+		lo-latency-test \
+		atomic-test
 
 # These tests need a running pulseaudio daemon
 TESTS_daemon = \
@@ -411,6 +412,11 @@ srbchannel_test_SOURCES = tests/srbchannel-test.c
 srbchannel_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
 srbchannel_test_LDADD = $(AM_LDADD) libpulse.la libpulsecommon-@PA_MAJORMINOR@.la
 srbchannel_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
+
+atomic_test_SOURCES = tests/atomic-test.c
+atomic_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
+atomic_test_LDADD = $(AM_LDADD) libpulsecommon-@PA_MAJORMINOR@.la libpulse.la
+atomic_test_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(LIBCHECK_LIBS)
 
 get_binary_name_test_SOURCES = tests/get-binary-name-test.c
 get_binary_name_test_CFLAGS = $(AM_CFLAGS) $(LIBCHECK_CFLAGS)
