@@ -447,7 +447,7 @@ static void enable_adjust_timer(struct userdata *u, bool enable) {
         if (u->time_event)
             u->core->mainloop->time_free(u->time_event);
 
-        u->time_event = pa_core_rttime_new(u->module->core, pa_rtclock_now() + 333 * PA_USEC_PER_MSEC, time_callback, u);
+        u->time_event = pa_core_rttime_new(u->core, pa_rtclock_now() + 333 * PA_USEC_PER_MSEC, time_callback, u);
     } else {
         if (!u->time_event)
             return;
