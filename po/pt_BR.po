@@ -1,5 +1,5 @@
 # Brazilian Portuguese translation for pulseaudio
-# Copyright (C) 2019 freedesktop.org
+# Copyright (C) 2019 Rafael Fontenelle <rafaelff@gnome.org>
 # This file is distributed under the same license as the pulseaudio package.
 # Fabian Affolter <fab@fedoraproject.org>, 2008.
 # Igor Pires Soares <igor@projetofedora.org>, 2009, 2012.
