@@ -367,6 +367,7 @@ pa_sink* pa_sink_new(
     source_data.driver = data->driver;
     source_data.module = data->module;
     source_data.card = data->card;
+    source_data.avoid_resampling = data->avoid_resampling;
 
     dn = pa_proplist_gets(s->proplist, PA_PROP_DEVICE_DESCRIPTION);
     pa_proplist_setf(source_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Monitor of %s", dn ? dn : s->name);
