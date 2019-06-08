@@ -1088,25 +1088,31 @@ int main(int argc, char *argv[]) {
 #ifdef HAVE_DBUS
     pa_assert_se(dbus_threads_init_default());
 
-    if (start_server) {
+    if (start_server)
 #endif
+    {
+        const char *command_source = NULL;
+
         if (conf->load_default_script_file) {
             FILE *f;
 
             if ((f = pa_daemon_conf_open_default_script_file(conf))) {
                 r = pa_cli_command_execute_file_stream(c, f, buf, &conf->fail);
                 fclose(f);
+                command_source = pa_daemon_conf_get_default_script_file(conf);
             }
         }
 
-        if (r >= 0)
+        if (r >= 0) {
             r = pa_cli_command_execute(c, conf->script_commands, buf, &conf->fail);
+            command_source = _("command line arguments");
+        }
 
         pa_log_error("%s", s = pa_strbuf_to_string_free(buf));
         pa_xfree(s);
 
         if (r < 0 && conf->fail) {
-            pa_log(_("Failed to initialize daemon."));
+            pa_log(_("Failed to initialize daemon due to errors while executing startup commands. Source of commands: %s"), command_source);
             goto finish;
         }
 
@@ -1121,8 +1127,8 @@ int main(int argc, char *argv[]) {
          * think there's no way to contact the server, but receiving certain
          * signals could still cause modules to load. */
         conf->disallow_module_loading = true;
-    }
 #endif
+    }
 
     /* We completed the initial module loading, so let's disable it
      * from now on, if requested */
