@@ -201,24 +201,32 @@ endforeach
 # These tests need a running pulseaudio daemon
 
 daemon_tests = [
-  [ 'connect-stress', 'connect-stress.c',
-    [ check_dep, libpulse_dep ] ],
   [ 'extended-test', 'extended-test.c',
     [ check_dep, libm_dep, libpulse_dep ] ],
-  [ 'interpol-test', 'interpol-test.c',
-    [ check_dep, libpulse_dep, libpulsecommon_dep, libpulsecore_dep ] ],
   [ 'sync-playback', 'sync-playback.c',
     [ check_dep, libm_dep, libpulse_dep ] ],
 ]
 
-daemon_test_names = []
+daemon_tests_long = [
+  [ 'connect-stress', 'connect-stress.c',
+    [ check_dep, libpulse_dep ] ],
+  [ 'interpol-test', 'interpol-test.c',
+    [ check_dep, libpulse_dep, libpulsecommon_dep, libpulsecore_dep ] ],
+]
 
-foreach t : daemon_tests
+daemon_test_names = []
+daemon_test_long_names = []
+
+foreach t : daemon_tests + daemon_tests_long
   name = t[0]
   sources = t[1]
   deps = t[2]
 
-  daemon_test_names += name
+  if daemon_tests.contains(t)
+    daemon_test_names += name
+  else
+    daemon_test_long_names += name
+  endif
 
   executable(name, sources,
     c_args : pa_c_args,
@@ -230,4 +238,7 @@ endforeach
 test_daemon_meson_sh = find_program('test-daemon.meson.sh')
 run_target('test-daemon',
   command : [ test_daemon_meson_sh ] + daemon_test_names
+)
+run_target('test-daemon-long',
+  command : [ test_daemon_meson_sh ] + daemon_test_long_names
 )
