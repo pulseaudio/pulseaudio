@@ -190,10 +190,12 @@ foreach t : default_tests + norun_tests
     link_with : extra_libs,
   )
 
-  test(name, exe,
-    env : test_env,
-    timeout : 120,
-  )
+  if default_tests.contains(t)
+    test(name, exe,
+      env : test_env,
+      timeout : 120,
+    )
+  endif
 endforeach
 
 # These tests need a running pulseaudio daemon
