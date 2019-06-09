@@ -802,7 +802,7 @@ int pa_mainloop_prepare(pa_mainloop *m, int timeout) {
             uint64_t u = (uint64_t) timeout * PA_USEC_PER_MSEC;
 
             if (u < m->prepared_timeout || m->prepared_timeout == PA_USEC_INVALID)
-                m->prepared_timeout = timeout;
+                m->prepared_timeout = u;
         }
     }
 
