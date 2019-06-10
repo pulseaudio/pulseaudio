@@ -767,7 +767,11 @@ void pa_sink_unlink(pa_sink* s) {
     }
 
     if (linked)
-        sink_set_state(s, PA_SINK_UNLINKED, 0);
+        /* It's important to keep the suspend cause unchanged when unlinking,
+         * because if we remove the SESSION suspend cause here, the alsa sink
+         * will sync its volume with the hardware while another user is
+         * active, messing up the volume for that other user. */
+        sink_set_state(s, PA_SINK_UNLINKED, s->suspend_cause);
     else
         s->state = PA_SINK_UNLINKED;
 

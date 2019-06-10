@@ -708,7 +708,11 @@ void pa_source_unlink(pa_source *s) {
     }
 
     if (linked)
-        source_set_state(s, PA_SOURCE_UNLINKED, 0);
+        /* It's important to keep the suspend cause unchanged when unlinking,
+         * because if we remove the SESSION suspend cause here, the alsa
+         * source will sync its volume with the hardware while another user is
+         * active, messing up the volume for that other user. */
+        source_set_state(s, PA_SOURCE_UNLINKED, s->suspend_cause);
     else
         s->state = PA_SOURCE_UNLINKED;
 
