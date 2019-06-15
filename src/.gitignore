@@ -33,6 +33,7 @@ alsa-mixer-path-test
 alsa-time-test
 asyncmsgq-test
 asyncq-test
+atomic-test
 channelmap-test
 close-test
 connect-stress
