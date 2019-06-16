@@ -165,6 +165,7 @@ static uint8_t default_bitpool(uint8_t freq, uint8_t mode) {
                 case SBC_CHANNEL_MODE_JOINT_STEREO:
                     return SBC_BITPOOL_HQ_JOINT_STEREO_44100;
             }
+            break;
 
         case SBC_SAMPLING_FREQ_44100:
             switch (mode) {
@@ -176,6 +177,7 @@ static uint8_t default_bitpool(uint8_t freq, uint8_t mode) {
                 case SBC_CHANNEL_MODE_JOINT_STEREO:
                     return SBC_BITPOOL_HQ_JOINT_STEREO_44100;
             }
+            break;
 
         case SBC_SAMPLING_FREQ_48000:
             switch (mode) {
@@ -187,6 +189,7 @@ static uint8_t default_bitpool(uint8_t freq, uint8_t mode) {
                 case SBC_CHANNEL_MODE_JOINT_STEREO:
                     return SBC_BITPOOL_HQ_JOINT_STEREO_48000;
             }
+            break;
     }
 
     pa_assert_not_reached();
