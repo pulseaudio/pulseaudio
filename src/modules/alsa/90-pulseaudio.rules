@@ -119,8 +119,10 @@ ATTRS{idVendor}=="1038", ATTRS{idProduct}=="1294", ENV{PULSE_PROFILE_SET}="steel
 ATTRS{idVendor}=="1038", ATTRS{idProduct}=="1730", ENV{PULSE_PROFILE_SET}="steelseries-arctis-7-usb-audio.conf"
 
 # ID 1038:1250 is for the Arctis 5
-# ID 1038:1252 is for Arctis Pro 2019 edition
+# ID 1037:12aa is for the Arctis 5 2019
+# ID 1038:1252 is for the Arctis Pro 2019 edition
 ATTRS{idVendor}=="1038", ATTRS{idProduct}=="1250", ENV{PULSE_PROFILE_SET}="steelseries-arctis-common-usb-audio.conf"
+ATTRS{idVendor}=="1038", ATTRS{idProduct}=="12aa", ENV{PULSE_PROFILE_SET}="steelseries-arctis-common-usb-audio.conf"
 ATTRS{idVendor}=="1038", ATTRS{idProduct}=="1252", ENV{PULSE_PROFILE_SET}="steelseries-arctis-common-usb-audio.conf"
 
 ATTRS{idVendor}=="147a", ATTRS{idProduct}=="e055", ENV{PULSE_PROFILE_SET}="cmedia-high-speed-true-hdaudio.conf"
