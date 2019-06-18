@@ -753,6 +753,8 @@ static void setup_stream(struct userdata *u) {
     struct pollfd *pollfd;
     int one;
 
+    pa_assert(u->stream_fd >= 0);
+
     /* return if stream is already set up */
     if (u->stream_setup_done)
         return;
@@ -829,7 +831,17 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
         }
 
         case PA_SOURCE_MESSAGE_SETUP_STREAM:
-            setup_stream(u);
+            /* Skip stream setup if stream_fd has been invalidated.
+               This can occur if the stream has already been set up and
+               then immediately received POLLHUP. If the stream has
+               already been set up earlier, then this setup_stream()
+               call is redundant anyway, but currently the code
+               is such that this kind of unnecessary setup_stream()
+               calls can happen. */
+            if (u->stream_fd < 0)
+                pa_log_debug("Skip source stream setup while closing");
+            else
+                setup_stream(u);
             return 0;
 
     }
@@ -1007,7 +1019,17 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
         }
 
         case PA_SINK_MESSAGE_SETUP_STREAM:
-            setup_stream(u);
+            /* Skip stream setup if stream_fd has been invalidated.
+               This can occur if the stream has already been set up and
+               then immediately received POLLHUP. If the stream has
+               already been set up earlier, then this setup_stream()
+               call is redundant anyway, but currently the code
+               is such that this kind of unnecessary setup_stream()
+               calls can happen. */
+            if (u->stream_fd < 0)
+                pa_log_debug("Skip sink stream setup while closing");
+            else
+                setup_stream(u);
             return 0;
     }
 
