@@ -562,6 +562,8 @@ static void device_free(pa_bluetooth_device *d) {
 
     device_stop_waiting_for_profiles(d);
 
+    pa_hook_fire(&d->discovery->hooks[PA_BLUETOOTH_HOOK_DEVICE_UNLINK], d);
+
     for (i = 0; i < PA_BLUETOOTH_PROFILE_COUNT; i++) {
         pa_bluetooth_transport *t;
 

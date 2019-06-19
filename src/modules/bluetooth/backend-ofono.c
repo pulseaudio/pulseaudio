@@ -70,6 +70,7 @@ struct hf_audio_card {
     int (*acquire)(struct hf_audio_card *card);
 
     pa_bluetooth_transport *transport;
+    pa_hook_slot *device_unlink_slot;
 };
 
 struct pa_bluetooth_backend {
@@ -181,6 +182,17 @@ static int card_acquire(struct hf_audio_card *card) {
     return -1;
 }
 
+static void hf_audio_agent_card_removed(pa_bluetooth_backend *backend, const char *path);
+
+static pa_hook_result_t device_unlink_cb(pa_bluetooth_discovery *y, const pa_bluetooth_device *d, struct hf_audio_card *card) {
+    pa_assert(d);
+    pa_assert(card);
+
+    hf_audio_agent_card_removed(card->backend, card->path);
+
+    return PA_HOOK_OK;
+}
+
 static struct hf_audio_card *hf_audio_card_new(pa_bluetooth_backend *backend, const char *path) {
     struct hf_audio_card *card = pa_xnew0(struct hf_audio_card, 1);
 
@@ -189,11 +201,17 @@ static struct hf_audio_card *hf_audio_card_new(pa_bluetooth_backend *backend, co
     card->fd = -1;
     card->acquire = card_acquire;
 
+    card->device_unlink_slot = pa_hook_connect(pa_bluetooth_discovery_hook(backend->discovery, PA_BLUETOOTH_HOOK_DEVICE_UNLINK),
+                                               PA_HOOK_NORMAL, (pa_hook_cb_t) device_unlink_cb, card);
+
     return card;
 }
 
 static void hf_audio_card_free(struct hf_audio_card *card) {
     pa_assert(card);
+
+    if (card->device_unlink_slot)
+        pa_hook_slot_free(card->device_unlink_slot);
 
     if (card->transport)
         pa_bluetooth_transport_free(card->transport);
