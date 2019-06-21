@@ -395,7 +395,9 @@ static int sco_process_push(struct userdata *u) {
         }
 
     if (!found_tstamp) {
-        pa_log_warn("Couldn't find SO_TIMESTAMP data in auxiliary recvmsg() data!");
+        PA_ONCE_BEGIN {
+            pa_log_warn("Couldn't find SO_TIMESTAMP data in auxiliary recvmsg() data!");
+        } PA_ONCE_END;
         tstamp = pa_rtclock_now();
     }
 
