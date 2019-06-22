@@ -43,6 +43,14 @@ int pa_client_conf_from_x11(pa_client_conf *c) {
 
     pa_assert(c);
 
+    /* Local connections will have configuration and X root window
+     * properties match 1:1, these paths are only strictly necessary
+     * for remote clients, so check for SSH_CONNECTION to make sure
+     * this is a remote session with X forwarding.
+     */
+    if (!getenv("SSH_CONNECTION"))
+        goto finish;
+
     if (!(dname = getenv("DISPLAY")))
         goto finish;
 
