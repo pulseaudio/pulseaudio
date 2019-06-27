@@ -165,6 +165,7 @@ check_headers = [
   'sys/capability.h',
   'sys/eventfd.h',
   'sys/ioctl.h',
+  'sys/filio.h',
   'sys/mman.h',
   'sys/prctl.h',
   'sys/resource.h',
