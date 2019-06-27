@@ -394,10 +394,10 @@ if libsystemd_dep.found()
   cdata.set('HAVE_SYSTEMD_DAEMON', 1)
   cdata.set('HAVE_SYSTEMD_LOGIN', 1)
   cdata.set('HAVE_SYSTEMD_JOURNAL', 1)
-  systemd_dep = dependency('systemd', required : get_option('systemd'))
-  if systemd_dep.found() and systemduserunitdir == ''
-    systemduserunitdir = systemd_dep.get_pkgconfig_variable('systemduserunitdir')
-  endif
+endif
+systemd_dep = dependency('systemd', required : get_option('systemd'))
+if systemd_dep.found() and systemduserunitdir == ''
+  systemduserunitdir = systemd_dep.get_pkgconfig_variable('systemduserunitdir')
 endif
 
 x11_dep = dependency('x11-xcb', required : get_option('x11'))
