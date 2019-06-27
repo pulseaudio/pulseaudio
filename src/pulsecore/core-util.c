@@ -2553,7 +2553,7 @@ int pa_close_allv(const int except_fds[]) {
     struct rlimit rl;
     int maxfd, fd;
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__sun)
     int saved_errno;
     DIR *d;
 
