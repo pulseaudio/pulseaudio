@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues\n"
-"POT-Creation-Date: 2019-03-25 08:46+0000\n"
-"PO-Revision-Date: 2019-06-10 15:50+0200\n"
+"POT-Creation-Date: 2019-06-22 15:28+0000\n"
+"PO-Revision-Date: 2019-06-30 16:35+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <trans-pl@lists.fedoraproject.org>\n"
 "Language: pl\n"
@@ -555,11 +555,20 @@ msgstr "pa_pid_file_create() się nie powiodło."
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() się nie powiodło."
 
-#: src/daemon/main.c:1109
-msgid "Failed to initialize daemon."
-msgstr "Zainicjowanie usługi się nie powiodło."
+#: src/daemon/main.c:1108
+msgid "command line arguments"
+msgstr "parametry wiersza poleceń"
 
-#: src/daemon/main.c:1114
+#: src/daemon/main.c:1115
+#, c-format
+msgid ""
+"Failed to initialize daemon due to errors while executing startup commands. "
+"Source of commands: %s"
+msgstr ""
+"Zainicjowanie usługi się nie powiodło z powodu błędów podczas wykonywania "
+"poleceń startowych. Źródło poleceń: %s"
+
+#: src/daemon/main.c:1120
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 "Uruchamianie usługi bez żadnych wczytanych modułów, odmawianie działania."
@@ -593,7 +602,7 @@ msgid "Line In"
 msgstr "Wejście liniowe"
 
 #: src/modules/alsa/alsa-mixer.c:2448 src/modules/alsa/alsa-mixer.c:2526
-#: src/modules/bluetooth/module-bluez5-device.c:1909
+#: src/modules/bluetooth/module-bluez5-device.c:1709
 msgid "Microphone"
 msgstr "Mikrofon"
 
@@ -654,7 +663,7 @@ msgid "No Bass Boost"
 msgstr "Brak podbicia basów"
 
 #: src/modules/alsa/alsa-mixer.c:2463
-#: src/modules/bluetooth/module-bluez5-device.c:1916
+#: src/modules/bluetooth/module-bluez5-device.c:1716
 msgid "Speaker"
 msgstr "Głośnik"
 
@@ -849,8 +858,8 @@ msgstr "Dupleks wielokanałowy"
 msgid "Stereo Duplex"
 msgstr "Dupleks stereo"
 
-#: src/modules/alsa/alsa-mixer.c:4231 src/modules/alsa/module-alsa-card.c:187
-#: src/modules/bluetooth/module-bluez5-device.c:2164
+#: src/modules/alsa/alsa-mixer.c:4231 src/modules/alsa/module-alsa-card.c:189
+#: src/modules/bluetooth/module-bluez5-device.c:1964
 msgid "Off"
 msgstr "Wyłączone"
 
@@ -986,60 +995,60 @@ msgstr[2] ""
 "Prawdopodobnie jest to błąd sterownika ALSA „%s”. Proszę zgłosić ten problem "
 "programistom usługi ALSA."
 
-#: src/modules/bluetooth/module-bluez5-device.c:1893
-#: src/modules/bluetooth/module-bluez5-device.c:1915
-#: src/modules/bluetooth/module-bluez5-device.c:1921
-#: src/modules/bluetooth/module-bluez5-device.c:1947
+#: src/modules/bluetooth/module-bluez5-device.c:1693
+#: src/modules/bluetooth/module-bluez5-device.c:1715
+#: src/modules/bluetooth/module-bluez5-device.c:1721
+#: src/modules/bluetooth/module-bluez5-device.c:1747
 msgid "Bluetooth Input"
 msgstr "Wejście Bluetooth"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1894
-#: src/modules/bluetooth/module-bluez5-device.c:1910
-#: src/modules/bluetooth/module-bluez5-device.c:1948
+#: src/modules/bluetooth/module-bluez5-device.c:1694
+#: src/modules/bluetooth/module-bluez5-device.c:1710
+#: src/modules/bluetooth/module-bluez5-device.c:1748
 msgid "Bluetooth Output"
 msgstr "Wyjście Bluetooth"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1899
+#: src/modules/bluetooth/module-bluez5-device.c:1699
 msgid "Headset"
 msgstr "Słuchawki z mikrofonem"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1904
+#: src/modules/bluetooth/module-bluez5-device.c:1704
 msgid "Handsfree"
 msgstr "Zestaw głośnomówiący"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1922
+#: src/modules/bluetooth/module-bluez5-device.c:1722
 msgid "Headphone"
 msgstr "Słuchawki"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1927
+#: src/modules/bluetooth/module-bluez5-device.c:1727
 msgid "Portable"
 msgstr "Przenośne"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1932
+#: src/modules/bluetooth/module-bluez5-device.c:1732
 msgid "Car"
 msgstr "Samochód"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1937
+#: src/modules/bluetooth/module-bluez5-device.c:1737
 msgid "HiFi"
 msgstr "HiFi"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1942
+#: src/modules/bluetooth/module-bluez5-device.c:1742
 msgid "Phone"
 msgstr "Telefon"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1989
+#: src/modules/bluetooth/module-bluez5-device.c:1789
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "Odtwarzanie o wysokiej dokładności (odpływ A2DP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:2001
+#: src/modules/bluetooth/module-bluez5-device.c:1801
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "Przechwytywanie o wysokiej dokładności (źródło A2DP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:2013
+#: src/modules/bluetooth/module-bluez5-device.c:1813
 msgid "Headset Head Unit (HSP/HFP)"
 msgstr "Jednostka główna słuchawek z mikrofonem (HSP/HFP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:2026
+#: src/modules/bluetooth/module-bluez5-device.c:1826
 msgid "Headset Audio Gateway (HSP/HFP)"
 msgstr "Zestaw słuchawek z mikrofonem (HSP/HFP)"
 
@@ -1147,11 +1156,11 @@ msgstr ""
 msgid "Clocked NULL sink"
 msgstr "Zegarowy PUSTY odpływ"
 
-#: src/modules/module-null-sink.c:322
+#: src/modules/module-null-sink.c:333
 msgid "Null Output"
 msgstr "Puste wyjście"
 
-#: src/modules/module-null-sink.c:334 src/utils/pactl.c:1058
+#: src/modules/module-null-sink.c:345 src/utils/pactl.c:1058
 #, c-format
 msgid "Failed to set format: invalid format string %s"
 msgstr "Ustawienie formatu się nie powiodło: nieprawidłowy ciąg formatu %s"
@@ -1527,11 +1536,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "Nieprawidłowy dziennik docelowy."
 
-#: src/pulsecore/sink.c:3511
+#: src/pulsecore/sink.c:3516
 msgid "Built-in Audio"
 msgstr "Wbudowany dźwięk"
 
-#: src/pulsecore/sink.c:3516
+#: src/pulsecore/sink.c:3521
 msgid "Modem"
 msgstr "Modem"
 
