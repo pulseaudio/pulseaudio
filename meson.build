@@ -47,6 +47,7 @@ libdir = join_paths(prefix, get_option('libdir'))
 libexecdir = join_paths(prefix, get_option('libexecdir'))
 mandir = join_paths(prefix, get_option('mandir'))
 datadir = join_paths(prefix, get_option('datadir'))
+localedir = join_paths(prefix, get_option('localedir'))
 localstatedir = join_paths(prefix, get_option('localstatedir'))
 sysconfdir = join_paths(prefix, get_option('sysconfdir'))
 privlibdir = join_paths(get_option('libdir'), 'pulseaudio')
@@ -123,6 +124,9 @@ cdata.set_quoted('PA_CFLAGS', 'Not yet supported on meson')
 cdata.set_quoted('PA_ALSA_PATHS_DIR', join_paths(alsadatadir, 'paths'))
 cdata.set_quoted('PA_ALSA_PROFILE_SETS_DIR', join_paths(alsadatadir, 'profile-sets'))
 cdata.set_quoted('DESKTOPFILEDIR', join_paths(datadir, 'applications'))
+cdata.set_quoted('PULSE_LOCALEDIR', localedir)
+cdata.set_quoted('GETTEXT_PACKAGE', 'pulseaudio')
+cdata.set('ENABLE_NLS', 1)
 
 # Platform specifics
 # First some defaults to keep config file generation happy
