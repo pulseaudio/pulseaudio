@@ -3518,11 +3518,7 @@ bool pa_running_in_vm(void) {
     /* Both CPUID and DMI are x86 specific interfaces... */
 
 #ifdef HAVE_CPUID_H
-    uint32_t eax;
-    union {
-        uint32_t sig32[3];
-        char text[13];
-    } sig;
+    unsigned int eax, ebx, ecx, edx;
 #endif
 
 #ifdef __linux__
@@ -3559,24 +3555,14 @@ bool pa_running_in_vm(void) {
 
 #ifdef HAVE_CPUID_H
 
-    /* Hypervisors provide their signature on the 0x40000000 cpuid leaf.
-     * http://lwn.net/Articles/301888/
-     *
-     * XXX: Why are we checking a list of signatures instead of the
-     * "hypervisor present bit"? According to the LWN article, the "hypervisor
-     * present bit" would be available on bit 31 of ECX on leaf 0x1, and that
-     * bit would tell us directly whether we're in a virtual machine or not. */
-    pa_zero(sig);
-    if (__get_cpuid(0x40000000, &eax, &sig.sig32[0], &sig.sig32[1], &sig.sig32[2]) == 0)
+    /* Hypervisors provide presence on 0x1 cpuid leaf.
+     * http://lwn.net/Articles/301888/ */
+    if (__get_cpuid(1, &eax, &ebx, &ecx, &edx) == 0)
         return false;
 
-    if (pa_streq(sig.text, "XenVMMXenVMM") ||
-        pa_streq(sig.text, "KVMKVMKVM") ||
-        /* http://kb.vmware.com/selfservice/microsites/search.do?language=en_US&cmd=displayKC&externalId=1009458 */
-        pa_streq(sig.text, "VMwareVMware") ||
-        /* http://msdn.microsoft.com/en-us/library/bb969719.aspx */
-        pa_streq(sig.text, "Microsoft Hv"))
+    if (ecx & 0x80000000)
         return true;
+
 #endif /* HAVE_CPUID_H */
 
 #endif /* defined(__i386__) || defined(__x86_64__) */
