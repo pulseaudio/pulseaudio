@@ -866,7 +866,7 @@ void pa_source_output_process_rewind(pa_source_output *o, size_t nbytes /* in so
             pa_resampler_rewind(o->thread_info.resampler, nbytes);
 
     } else
-        pa_memblockq_rewind(o->thread_info.delay_memblockq, nbytes);
+        pa_memblockq_seek(o->thread_info.delay_memblockq, - ((int64_t) nbytes), PA_SEEK_RELATIVE, true);
 }
 
 /* Called from thread context */
