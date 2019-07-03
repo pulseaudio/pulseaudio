@@ -1094,7 +1094,9 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
         size_t max_rewrite, amount;
 
         /* Calculate how much make sense to rewrite at most */
-        max_rewrite = nbytes + lbq;
+        max_rewrite = nbytes;
+        if (nbytes > 0)
+            max_rewrite += lbq;
 
         /* Transform into local domain */
         if (i->thread_info.resampler)
