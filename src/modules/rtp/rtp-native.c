@@ -63,6 +63,8 @@ pa_rtp_context* pa_rtp_context_new_send(int fd, uint8_t payload, size_t mtu, con
 
     pa_assert(fd >= 0);
 
+    pa_log_info("Initialising native RTP backend for send");
+
     c = pa_xnew0(pa_rtp_context, 1);
 
     c->fd = fd;
@@ -171,6 +173,8 @@ int pa_rtp_send(pa_rtp_context *c, pa_memblockq *q) {
 
 pa_rtp_context* pa_rtp_context_new_recv(int fd, uint8_t payload, const pa_sample_spec *ss) {
     pa_rtp_context *c;
+
+    pa_log_info("Initialising native RTP backend for receive");
 
     c = pa_xnew0(pa_rtp_context, 1);
 
