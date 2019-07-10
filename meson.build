@@ -50,7 +50,7 @@ datadir = join_paths(prefix, get_option('datadir'))
 localedir = join_paths(prefix, get_option('localedir'))
 localstatedir = join_paths(prefix, get_option('localstatedir'))
 sysconfdir = join_paths(prefix, get_option('sysconfdir'))
-privlibdir = join_paths(get_option('libdir'), 'pulseaudio')
+privlibdir = join_paths(libdir, 'pulseaudio')
 alsadatadir = join_paths(datadir, 'pulseaudio', 'alsa-mixer')
 
 pkgconfigdir = join_paths(libdir, 'pkgconfig')
@@ -62,9 +62,14 @@ if modlibexecdir == ''
   modlibexecdir = join_paths(libdir, 'pulse-' + pa_version_major_minor, 'modules')
 endif
 
-pulsedspdir = get_option('pulsedspdir')
-if pulsedspdir == ''
-  pulsedspdir = join_paths(libdir, 'pulseaudio')
+padsplibdir = get_option('padsplibdir')
+if padsplibdir == ''
+  padsplibdir = privlibdir
+endif
+
+pulsedsp_location = get_option('pulsedsp-location')
+if pulsedsp_location == ''
+  pulsedsp_location = join_paths(prefix, padsplibdir)
 endif
 
 systemduserunitdir = get_option('systemduserunitdir')
@@ -419,7 +424,7 @@ endif
 if cc.has_header('sys/soundcard.h')
   cdata.set('HAVE_OSS_OUTPUT', 1)
   cdata.set('HAVE_OSS_WRAPPER', 1)
-  cdata.set_quoted('PULSEDSP_LOCATION',	pulsedspdir)
+  cdata.set('PULSEDSP_LOCATION', pulsedsp_location)
 endif
 
 if get_option('hal-compat')

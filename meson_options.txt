@@ -30,9 +30,15 @@ option('running-from-build-tree',
 
 # Paths
 
-option('pulsedspdir',
+option('padsplibdir',
        type : 'string',
-       description : 'Specify location where OSS wrapper will be installed')
+       description : 'Specify location where OSS wrapper library will be installed')
+# This one gets inserted into a shell double-quoted string, so needs to be escaped (\$LIB). Meson
+# removes a layer of escapes when parsing the description string, so we need to double the
+# backslashes for "meson configure" to display the right text.
+option('pulsedsp-location',
+       type : 'string',
+       description : 'Specify location where OSS wrapper library will be loaded from; can use \\$LIB')
 option('modlibexecdir',
        type : 'string',
        description : 'Specify location where modules will be installed')
