@@ -21,20 +21,35 @@ pa_version_major_minor = pa_version_major + '.' + pa_version_minor
 pa_api_version = 12
 pa_protocol_version = 33
 
-apiversion = '1.0'
-soversion = 0
-# FIXME: this doesn't actually do what we want it to
-# maintaining compatibility with the previous libtool versioning
-# current = minor * 100 + micro
-libversion = '@0@.@1@.0'.format(soversion, pa_version_minor.to_int() * 100 + pa_version_micro.to_int())
+# The stable ABI for client applications, for the version info x:y:z
+# always will hold y=z
+libpulse_version_info = [21, 0, 21]
 
-# A simplified, synchronous, ABI-stable interface for client applications.
-# For the version x:y:z always will hold y=z.
-libpulse_simple_version = '1.1.1'
+# A simplified, synchronous, ABI-stable interface for client
+# applications, for the version info x:y:z always will hold y=z
+libpulse_simple_version_info = [1, 1, 1]
 
-# The ABI-stable GLib adapter for client applications.
-# For the version x:y:z always will hold y=z.
-libpulse_mainloop_glib_version = '0.5.0'
+# The ABI-stable GLib adapter for client applications, for the version
+# info x:y:z always will hold y=z
+libpulse_mainloop_glib_version_info = [0, 5, 0]
+
+libpulse_version = '@0@.@1@.@2@'.format(
+  libpulse_version_info[0] - libpulse_version_info[2],
+  libpulse_version_info[0],
+  libpulse_version_info[1],
+)
+
+libpulse_simple_version = '@0@.@1@.@2@'.format(
+  libpulse_simple_version_info[0] - libpulse_simple_version_info[2],
+  libpulse_simple_version_info[0],
+  libpulse_simple_version_info[1],
+)
+
+libpulse_mainloop_glib_version = '@0@.@1@.@2@'.format(
+  libpulse_mainloop_glib_version_info[0] - libpulse_mainloop_glib_version_info[2],
+  libpulse_mainloop_glib_version_info[0],
+  libpulse_mainloop_glib_version_info[1],
+)
 
 # Paths
 

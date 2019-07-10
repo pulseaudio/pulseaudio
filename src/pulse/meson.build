@@ -68,10 +68,9 @@ endif
 libpulse = shared_library('pulse',
   libpulse_sources,
   libpulse_headers,
-  version : libversion,
+  version : libpulse_version,
   include_directories : [configinc, topinc],
   c_args : [pa_c_args],
-  soversion : soversion,
   install : true,
   dependencies : [libm_dep, thread_dep, libpulsecommon_dep, dbus_dep],
   implicit_include_directories : false)
