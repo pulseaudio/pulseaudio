@@ -1,5 +1,5 @@
 option('gcov',
-       type : 'boolean',
+       type : 'boolean', value : false,
        description : 'Enable optional gcov coverage analysis')
 option('man',
        type : 'boolean',
