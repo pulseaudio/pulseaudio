@@ -147,7 +147,7 @@ static void pa_volume_s16ne_sse2(int16_t *samples, const int32_t *volumes, unsig
         " jne 7b                        \n\t"
         "8:                             \n\t"
 
-        : "+r" (samples), "+r" (volumes), "+r" (length), "=D" (channel), "=&r" (temp)
+        : "+r" (samples), "+r" (volumes), "+r" (length), "=&D" (channel), "=&r" (temp)
 #if defined (__i386__)
         : "m" (channels)
 #else
@@ -239,7 +239,7 @@ static void pa_volume_s16re_sse2(int16_t *samples, const int32_t *volumes, unsig
         " jne 7b                        \n\t"
         "8:                             \n\t"
 
-        : "+r" (samples), "+r" (volumes), "+r" (length), "=D" (channel), "=&r" (temp)
+        : "+r" (samples), "+r" (volumes), "+r" (length), "=&D" (channel), "=&r" (temp)
 #if defined (__i386__)
         : "m" (channels)
 #else
