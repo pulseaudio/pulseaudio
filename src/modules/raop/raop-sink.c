@@ -401,8 +401,12 @@ static void sink_set_volume_cb(pa_sink *s) {
     /* Create a pa_cvolume version of our single value. */
     pa_cvolume_set(&hw, s->sample_spec.channels, v);
 
-    /* Perform any software manipulation of the volume needed. */
-    pa_sw_cvolume_divide(&s->soft_volume, &s->real_volume, &hw);
+    /* Perform any software manipulation of the volume needed.
+     * Given our hw volume as a reference, soft volume is applied only if channel volumes are different each other
+     * so that we keep volume control without latency in the most common cases
+     * Scaling real volume keep relative volume between channels */
+    s->soft_volume = s->real_volume;
+    pa_cvolume_scale(&s->soft_volume, PA_VOLUME_NORM);
 
     pa_log_debug("Requested volume: %s", pa_cvolume_snprint_verbose(t, sizeof(t), &s->real_volume, &s->channel_map, false));
     pa_log_debug("Got hardware volume: %s", pa_cvolume_snprint_verbose(t, sizeof(t), &hw, &s->channel_map, false));
