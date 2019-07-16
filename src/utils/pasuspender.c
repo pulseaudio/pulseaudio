@@ -225,7 +225,8 @@ static void sigchld_callback(pa_mainloop_api *m, pa_signal_event *e, int sig, vo
 
 static void help(const char *argv0) {
 
-    printf(_("%s [options] ... \n\n"
+    printf(_("%s [options] -- PROGRAM [ARGUMENTS ...]\n\n"
+           "Temporarily suspend PulseAudio while PROGRAM runs.\n\n"    
            "  -h, --help                            Show this help\n"
            "      --version                         Show version\n"
            "  -s, --server=SERVER                   The name of the server to connect to\n\n"),
