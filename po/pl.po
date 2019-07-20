@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues\n"
-"POT-Creation-Date: 2019-06-22 15:28+0000\n"
-"PO-Revision-Date: 2019-06-30 16:35+0200\n"
+"POT-Creation-Date: 2019-07-16 15:29+0000\n"
+"PO-Revision-Date: 2019-07-20 14:12+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <trans-pl@lists.fedoraproject.org>\n"
 "Language: pl\n"
@@ -602,7 +602,7 @@ msgid "Line In"
 msgstr "Wejście liniowe"
 
 #: src/modules/alsa/alsa-mixer.c:2448 src/modules/alsa/alsa-mixer.c:2526
-#: src/modules/bluetooth/module-bluez5-device.c:1709
+#: src/modules/bluetooth/module-bluez5-device.c:1731
 msgid "Microphone"
 msgstr "Mikrofon"
 
@@ -663,7 +663,7 @@ msgid "No Bass Boost"
 msgstr "Brak podbicia basów"
 
 #: src/modules/alsa/alsa-mixer.c:2463
-#: src/modules/bluetooth/module-bluez5-device.c:1716
+#: src/modules/bluetooth/module-bluez5-device.c:1738
 msgid "Speaker"
 msgstr "Głośnik"
 
@@ -859,7 +859,7 @@ msgid "Stereo Duplex"
 msgstr "Dupleks stereo"
 
 #: src/modules/alsa/alsa-mixer.c:4231 src/modules/alsa/module-alsa-card.c:189
-#: src/modules/bluetooth/module-bluez5-device.c:1964
+#: src/modules/bluetooth/module-bluez5-device.c:1986
 msgid "Off"
 msgstr "Wyłączone"
 
@@ -995,60 +995,60 @@ msgstr[2] ""
 "Prawdopodobnie jest to błąd sterownika ALSA „%s”. Proszę zgłosić ten problem "
 "programistom usługi ALSA."
 
-#: src/modules/bluetooth/module-bluez5-device.c:1693
 #: src/modules/bluetooth/module-bluez5-device.c:1715
-#: src/modules/bluetooth/module-bluez5-device.c:1721
-#: src/modules/bluetooth/module-bluez5-device.c:1747
+#: src/modules/bluetooth/module-bluez5-device.c:1737
+#: src/modules/bluetooth/module-bluez5-device.c:1743
+#: src/modules/bluetooth/module-bluez5-device.c:1769
 msgid "Bluetooth Input"
 msgstr "Wejście Bluetooth"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1694
-#: src/modules/bluetooth/module-bluez5-device.c:1710
-#: src/modules/bluetooth/module-bluez5-device.c:1748
+#: src/modules/bluetooth/module-bluez5-device.c:1716
+#: src/modules/bluetooth/module-bluez5-device.c:1732
+#: src/modules/bluetooth/module-bluez5-device.c:1770
 msgid "Bluetooth Output"
 msgstr "Wyjście Bluetooth"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1699
+#: src/modules/bluetooth/module-bluez5-device.c:1721
 msgid "Headset"
 msgstr "Słuchawki z mikrofonem"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1704
+#: src/modules/bluetooth/module-bluez5-device.c:1726
 msgid "Handsfree"
 msgstr "Zestaw głośnomówiący"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1722
+#: src/modules/bluetooth/module-bluez5-device.c:1744
 msgid "Headphone"
 msgstr "Słuchawki"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1727
+#: src/modules/bluetooth/module-bluez5-device.c:1749
 msgid "Portable"
 msgstr "Przenośne"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1732
+#: src/modules/bluetooth/module-bluez5-device.c:1754
 msgid "Car"
 msgstr "Samochód"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1737
+#: src/modules/bluetooth/module-bluez5-device.c:1759
 msgid "HiFi"
 msgstr "HiFi"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1742
+#: src/modules/bluetooth/module-bluez5-device.c:1764
 msgid "Phone"
 msgstr "Telefon"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1789
+#: src/modules/bluetooth/module-bluez5-device.c:1811
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "Odtwarzanie o wysokiej dokładności (odpływ A2DP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1801
+#: src/modules/bluetooth/module-bluez5-device.c:1823
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "Przechwytywanie o wysokiej dokładności (źródło A2DP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1813
+#: src/modules/bluetooth/module-bluez5-device.c:1835
 msgid "Headset Head Unit (HSP/HFP)"
 msgstr "Jednostka główna słuchawek z mikrofonem (HSP/HFP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1826
+#: src/modules/bluetooth/module-bluez5-device.c:1848
 msgid "Headset Audio Gateway (HSP/HFP)"
 msgstr "Zestaw słuchawek z mikrofonem (HSP/HFP)"
 
@@ -2960,7 +2960,7 @@ msgstr ""
 
 #: src/utils/pactl.c:1821 src/utils/pactl.c:1841
 msgid "Invalid suspend specification."
-msgstr "Nieprawidłowe określenie uśpienia."
+msgstr "Nieprawidłowe określenie wstrzymania."
 
 #: src/utils/pactl.c:1836
 msgid ""
@@ -3117,7 +3117,9 @@ msgstr "OSTRZEŻENIE: proces potomny został zakończony przez sygnał %u\n"
 #: src/utils/pasuspender.c:228
 #, c-format
 msgid ""
-"%s [options] ... \n"
+"%s [options] -- PROGRAM [ARGUMENTS ...]\n"
+"\n"
+"Temporarily suspend PulseAudio while PROGRAM runs.\n"
 "\n"
 "  -h, --help                            Show this help\n"
 "      --version                         Show version\n"
@@ -3125,14 +3127,16 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
-"%s [opcje] … \n"
+"%s [opcje] — PROGRAM [PARAMETRY…]\n"
+"\n"
+"Tymczasowo wstrzymuje usługę PulseAudio podczas działania PROGRAMU.\n"
 "\n"
 "  -h, --help                            Wyświetla tę pomoc\n"
 "      --version                         Wyświetla wersję\n"
 "  -s, --server=SERWER                   Nazwa serwera do połączenia się\n"
 "\n"
 
-#: src/utils/pasuspender.c:266
+#: src/utils/pasuspender.c:267
 #, c-format
 msgid ""
 "pasuspender %s\n"
@@ -3143,17 +3147,17 @@ msgstr ""
 "Skompilowane za pomocą libpulse %s\n"
 "Skonsolidowane za pomocą libpulse %s\n"
 
-#: src/utils/pasuspender.c:295
+#: src/utils/pasuspender.c:296
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
 msgstr "pa_mainloop_new() się nie powiodło.\n"
 
-#: src/utils/pasuspender.c:308
+#: src/utils/pasuspender.c:309
 #, c-format
 msgid "pa_context_new() failed.\n"
 msgstr "pa_context_new() się nie powiodło.\n"
 
-#: src/utils/pasuspender.c:320
+#: src/utils/pasuspender.c:321
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
 msgstr "pa_mainloop_run() się nie powiodło.\n"
