@@ -3,6 +3,7 @@
  *  BlueZ - Bluetooth protocol stack for Linux
  *
  *  Copyright (C) 2004-2010  Marcel Holtmann <marcel@holtmann.org>
+ *  Copyright (C) 2019       Pali Rohár <pali.rohar@gmail.com>
  *
  *
  *  This library is free software; you can redistribute it and/or
@@ -19,16 +20,20 @@
  *  License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+#include <endian.h>
+#include <stdint.h>
+
+#if defined(__BYTE_ORDER) && defined(__LITTLE_ENDIAN) && \
+	__BYTE_ORDER == __LITTLE_ENDIAN
 
 struct rtp_header {
-	unsigned cc:4;
-	unsigned x:1;
-	unsigned p:1;
-	unsigned v:2;
+	uint8_t cc:4;
+	uint8_t x:1;
+	uint8_t p:1;
+	uint8_t v:2;
 
-	unsigned pt:7;
-	unsigned m:1;
+	uint8_t pt:7;
+	uint8_t m:1;
 
 	uint16_t sequence_number;
 	uint32_t timestamp;
@@ -36,24 +41,25 @@ struct rtp_header {
 	uint32_t csrc[0];
 } __attribute__ ((packed));
 
-struct rtp_payload {
-	unsigned frame_count:4;
-	unsigned rfa0:1;
-	unsigned is_last_fragment:1;
-	unsigned is_first_fragment:1;
-	unsigned is_fragmented:1;
+struct rtp_sbc_payload {
+	uint8_t frame_count:4;
+	uint8_t rfa0:1;
+	uint8_t is_last_fragment:1;
+	uint8_t is_first_fragment:1;
+	uint8_t is_fragmented:1;
 } __attribute__ ((packed));
 
-#elif __BYTE_ORDER == __BIG_ENDIAN
+#elif defined(__BYTE_ORDER) && defined(__BIG_ENDIAN) && \
+	__BYTE_ORDER == __BIG_ENDIAN
 
 struct rtp_header {
-	unsigned v:2;
-	unsigned p:1;
-	unsigned x:1;
-	unsigned cc:4;
+	uint8_t v:2;
+	uint8_t p:1;
+	uint8_t x:1;
+	uint8_t cc:4;
 
-	unsigned m:1;
-	unsigned pt:7;
+	uint8_t m:1;
+	uint8_t pt:7;
 
 	uint16_t sequence_number;
 	uint32_t timestamp;
@@ -61,12 +67,12 @@ struct rtp_header {
 	uint32_t csrc[0];
 } __attribute__ ((packed));
 
-struct rtp_payload {
-	unsigned is_fragmented:1;
-	unsigned is_first_fragment:1;
-	unsigned is_last_fragment:1;
-	unsigned rfa0:1;
-	unsigned frame_count:4;
+struct rtp_sbc_payload {
+	uint8_t is_fragmented:1;
+	uint8_t is_first_fragment:1;
+	uint8_t is_last_fragment:1;
+	uint8_t rfa0:1;
+	uint8_t frame_count:4;
 } __attribute__ ((packed));
 
 #else

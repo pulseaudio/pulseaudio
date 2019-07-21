@@ -485,8 +485,12 @@ static int reset(void *codec_info) {
 
 static size_t get_block_size(void *codec_info, size_t link_mtu) {
     struct sbc_info *sbc_info = (struct sbc_info *) codec_info;
-    size_t rtp_size = sizeof(struct rtp_header) + sizeof(struct rtp_payload);
+    size_t rtp_size = sizeof(struct rtp_header) + sizeof(struct rtp_sbc_payload);
     size_t frame_count = (link_mtu - rtp_size) / sbc_info->frame_length;
+
+    /* frame_count is only 4 bit number */
+    if (frame_count > 15)
+        frame_count = 15;
 
     return frame_count * sbc_info->codesize;
 }
@@ -514,14 +518,14 @@ static size_t reduce_encoder_bitrate(void *codec_info, size_t write_link_mtu) {
 static size_t encode_buffer(void *codec_info, uint32_t timestamp, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed) {
     struct sbc_info *sbc_info = (struct sbc_info *) codec_info;
     struct rtp_header *header;
-    struct rtp_payload *payload;
+    struct rtp_sbc_payload *payload;
     uint8_t *d;
     const uint8_t *p;
     size_t to_write, to_encode;
-    unsigned frame_count;
+    uint8_t frame_count;
 
     header = (struct rtp_header*) output_buffer;
-    payload = (struct rtp_payload*) (output_buffer + sizeof(*header));
+    payload = (struct rtp_sbc_payload*) (output_buffer + sizeof(*header));
 
     frame_count = 0;
 
@@ -531,7 +535,8 @@ static size_t encode_buffer(void *codec_info, uint32_t timestamp, const uint8_t 
     d = output_buffer + sizeof(*header) + sizeof(*payload);
     to_write = output_size - sizeof(*header) - sizeof(*payload);
 
-    while (PA_LIKELY(to_encode > 0 && to_write > 0)) {
+    /* frame_count is only 4 bit number */
+    while (PA_LIKELY(to_encode > 0 && to_write > 0 && frame_count < 15)) {
         ssize_t written;
         ssize_t encoded;
 
@@ -575,7 +580,7 @@ static size_t encode_buffer(void *codec_info, uint32_t timestamp, const uint8_t 
     }
 
     /* write it to the fifo */
-    memset(output_buffer, 0, sizeof(*header) + sizeof(*payload));
+    pa_memzero(output_buffer, sizeof(*header) + sizeof(*payload));
     header->v = 2;
 
     /* A2DP spec: "A payload type in the RTP dynamic range shall be chosen".
@@ -596,13 +601,23 @@ static size_t decode_buffer(void *codec_info, const uint8_t *input_buffer, size_
     struct sbc_info *sbc_info = (struct sbc_info *) codec_info;
 
     struct rtp_header *header;
-    struct rtp_payload *payload;
+    struct rtp_sbc_payload *payload;
     const uint8_t *p;
     uint8_t *d;
     size_t to_write, to_decode;
+    uint8_t frame_count;
 
     header = (struct rtp_header *) input_buffer;
-    payload = (struct rtp_payload*) (input_buffer + sizeof(*header));
+    payload = (struct rtp_sbc_payload*) (input_buffer + sizeof(*header));
+
+    frame_count = payload->frame_count;
+
+    /* TODO: Add support for decoding fragmented SBC frames */
+    if (payload->is_fragmented) {
+        pa_log_error("Unsupported fragmented SBC frame");
+        *processed = 0;
+        return 0;
+    }
 
     p = input_buffer + sizeof(*header) + sizeof(*payload);
     to_decode = input_size - sizeof(*header) - sizeof(*payload);
@@ -610,7 +625,7 @@ static size_t decode_buffer(void *codec_info, const uint8_t *input_buffer, size_
     d = output_buffer;
     to_write = output_size;
 
-    while (PA_LIKELY(to_decode > 0 && to_write > 0)) {
+    while (PA_LIKELY(to_decode > 0 && to_write > 0 && frame_count > 0)) {
         size_t written;
         ssize_t decoded;
 
@@ -638,6 +653,8 @@ static size_t decode_buffer(void *codec_info, const uint8_t *input_buffer, size_
 
         d += written;
         to_write -= written;
+
+        frame_count--;
     }
 
     *processed = p - input_buffer;
