@@ -426,7 +426,11 @@ static void *init(bool for_encoding, bool for_backchannel, const uint8_t *config
     sbc_info->min_bitpool = config->min_bitpool;
     sbc_info->max_bitpool = config->max_bitpool;
 
-    /* Set minimum bitpool for source to get the maximum possible block_size */
+    /* Set minimum bitpool for source to get the maximum possible block_size
+     * in get_block_size() function. This block_size is length of buffer used
+     * for decoded audio data and so is inversely proportional to frame length
+     * which depends on bitpool value. Bitpool is controlled by other side from
+     * range [min_bitpool, max_bitpool]. */
     sbc_info->initial_bitpool = for_encoding ? sbc_info->max_bitpool : sbc_info->min_bitpool;
 
     set_params(sbc_info);
@@ -480,9 +484,10 @@ static void reset(void *codec_info) {
 
 static size_t get_block_size(void *codec_info, size_t link_mtu) {
     struct sbc_info *sbc_info = (struct sbc_info *) codec_info;
+    size_t rtp_size = sizeof(struct rtp_header) + sizeof(struct rtp_payload);
+    size_t frame_count = (link_mtu - rtp_size) / sbc_info->frame_length;
 
-    return (link_mtu - sizeof(struct rtp_header) - sizeof(struct rtp_payload))
-           / sbc_info->frame_length * sbc_info->codesize;
+    return frame_count * sbc_info->codesize;
 }
 
 static size_t reduce_encoder_bitrate(void *codec_info, size_t write_link_mtu) {
@@ -536,8 +541,12 @@ static size_t encode_buffer(void *codec_info, uint32_t timestamp, const uint8_t 
 
         if (PA_UNLIKELY(encoded <= 0)) {
             pa_log_error("SBC encoding error (%li)", (long) encoded);
-            *processed = p - input_buffer;
-            return 0;
+            break;
+        }
+
+        if (PA_UNLIKELY(written < 0)) {
+            pa_log_error("SBC encoding error (%li)", (long) written);
+            break;
         }
 
         pa_assert_fp((size_t) encoded <= to_encode);
@@ -558,6 +567,11 @@ static size_t encode_buffer(void *codec_info, uint32_t timestamp, const uint8_t 
     PA_ONCE_BEGIN {
         pa_log_debug("Using SBC codec implementation: %s", pa_strnull(sbc_get_implementation_info(&sbc_info->sbc)));
     } PA_ONCE_END;
+
+    if (PA_UNLIKELY(frame_count == 0)) {
+        *processed = 0;
+        return 0;
+    }
 
     /* write it to the fifo */
     memset(output_buffer, 0, sizeof(*header) + sizeof(*payload));
@@ -595,7 +609,7 @@ static size_t decode_buffer(void *codec_info, const uint8_t *input_buffer, size_
     d = output_buffer;
     to_write = output_size;
 
-    while (PA_LIKELY(to_decode > 0)) {
+    while (PA_LIKELY(to_decode > 0 && to_write > 0)) {
         size_t written;
         ssize_t decoded;
 
@@ -606,8 +620,7 @@ static size_t decode_buffer(void *codec_info, const uint8_t *input_buffer, size_
 
         if (PA_UNLIKELY(decoded <= 0)) {
             pa_log_error("SBC decoding error (%li)", (long) decoded);
-            *processed = p - input_buffer;
-            return 0;
+            break;
         }
 
         /* Reset frame length, it can be changed due to bitpool change */
@@ -616,6 +629,7 @@ static size_t decode_buffer(void *codec_info, const uint8_t *input_buffer, size_
         pa_assert_fp((size_t) decoded <= to_decode);
         pa_assert_fp((size_t) decoded == sbc_info->frame_length);
 
+        pa_assert_fp((size_t) written <= to_write);
         pa_assert_fp((size_t) written == sbc_info->codesize);
 
         p += decoded;

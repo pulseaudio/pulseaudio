@@ -72,9 +72,11 @@ typedef struct pa_a2dp_codec {
     /* Reset internal state of codec info data in codec_info */
     void (*reset)(void *codec_info);
 
-    /* Get read block size for codec */
+    /* Get read block size for codec, it is minimal size of buffer
+     * needed to decode read_link_mtu bytes of encoded data */
     size_t (*get_read_block_size)(void *codec_info, size_t read_link_mtu);
-    /* Get write block size for codec */
+    /* Get write block size for codec, it is maximal size of buffer
+     * which can produce at most write_link_mtu bytes of encoded data */
     size_t (*get_write_block_size)(void *codec_info, size_t write_link_mtu);
 
     /* Reduce encoder bitrate for codec, returns new write block size or zero
