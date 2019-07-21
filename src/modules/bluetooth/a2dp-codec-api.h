@@ -69,8 +69,9 @@ typedef struct pa_a2dp_codec {
     void *(*init)(bool for_encoding, bool for_backchannel, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *sample_spec);
     /* Deinitialize and release codec info data in codec_info */
     void (*deinit)(void *codec_info);
-    /* Reset internal state of codec info data in codec_info */
-    void (*reset)(void *codec_info);
+    /* Reset internal state of codec info data in codec_info, returns
+     * a negative value on failure */
+    int (*reset)(void *codec_info);
 
     /* Get read block size for codec, it is minimal size of buffer
      * needed to decode read_link_mtu bytes of encoded data */

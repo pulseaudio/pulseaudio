@@ -466,20 +466,21 @@ static void set_bitpool(struct sbc_info *sbc_info, uint8_t bitpool) {
     pa_log_debug("Bitpool has changed to %u", sbc_info->sbc.bitpool);
 }
 
-static void reset(void *codec_info) {
+static int reset(void *codec_info) {
     struct sbc_info *sbc_info = (struct sbc_info *) codec_info;
     int ret;
 
     ret = sbc_reinit(&sbc_info->sbc, 0);
     if (ret != 0) {
         pa_log_error("SBC reinitialization failed: %d", ret);
-        return;
+        return -1;
     }
 
     /* sbc_reinit() sets also default parameters, so reset them back */
     set_params(sbc_info);
 
     sbc_info->seq_num = 0;
+    return 0;
 }
 
 static size_t get_block_size(void *codec_info, size_t link_mtu) {

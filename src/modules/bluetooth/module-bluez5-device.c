@@ -769,7 +769,7 @@ static void transport_config_mtu(struct userdata *u) {
 }
 
 /* Run from I/O thread */
-static void setup_stream(struct userdata *u) {
+static int setup_stream(struct userdata *u) {
     struct pollfd *pollfd;
     int one;
 
@@ -777,16 +777,18 @@ static void setup_stream(struct userdata *u) {
 
     /* return if stream is already set up */
     if (u->stream_setup_done)
-        return;
+        return 0;
 
     pa_log_info("Transport %s resuming", u->transport->path);
 
     if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK) {
         pa_assert(u->a2dp_codec);
-        u->a2dp_codec->reset(u->encoder_info);
+        if (u->a2dp_codec->reset(u->encoder_info) < 0)
+            return -1;
     } else if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE) {
         pa_assert(u->a2dp_codec);
-        u->a2dp_codec->reset(u->decoder_info);
+        if (u->a2dp_codec->reset(u->decoder_info) < 0)
+            return -1;
     }
 
     transport_config_mtu(u);
@@ -811,6 +813,8 @@ static void setup_stream(struct userdata *u) {
 
     if (u->source)
         u->read_smoother = pa_smoother_new(PA_USEC_PER_SEC, 2*PA_USEC_PER_SEC, true, true, 10, pa_rtclock_now(), true);
+
+    return 0;
 }
 
 /* Called from I/O thread, returns true if the transport was acquired or
@@ -822,8 +826,10 @@ static bool setup_transport_and_stream(struct userdata *u) {
     if (transport_error < 0) {
         if (transport_error != -EAGAIN)
             return false;
-    } else
-        setup_stream(u);
+    } else {
+        if (setup_stream(u) < 0)
+            return false;
+    }
     return true;
 }
 
