@@ -175,9 +175,9 @@ PREOPEN_LIBS = $(modlibexec_LTLIBRARIES)
 endif
 
 if FORCE_PREOPEN
-pulseaudio_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(IMMEDIATE_LDFLAGS) -dlpreopen force $(foreach f,$(PREOPEN_LIBS),-dlpreopen $(f))
+pulseaudio_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(IMMEDIATE_LDFLAGS) -ffast-math -dlpreopen force $(foreach f,$(PREOPEN_LIBS),-dlpreopen $(f))
 else
-pulseaudio_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(IMMEDIATE_LDFLAGS) -dlopen force $(foreach f,$(PREOPEN_LIBS),-dlopen $(f))
+pulseaudio_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS) $(IMMEDIATE_LDFLAGS) -ffast-math -dlopen force $(foreach f,$(PREOPEN_LIBS),-dlopen $(f))
 endif
 
 if HAVE_SYSTEMD_DAEMON
