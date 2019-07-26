@@ -1448,7 +1448,7 @@ static int check_ours(const char *p) {
         return -errno;
 
 #ifdef HAVE_GETUID
-    if (st.st_uid != getuid())
+    if (st.st_uid != getuid() && st.st_uid != 0)
         return -EACCES;
 #endif
 
