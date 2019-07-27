@@ -324,7 +324,9 @@ static void handle_get_active_profile(DBusConnection *conn, DBusMessage *msg, vo
 static void handle_set_active_profile(DBusConnection *conn, DBusMessage *msg, DBusMessageIter *iter, void *userdata) {
     pa_dbusiface_card *c = userdata;
     const char *new_active_path;
-    pa_dbusiface_card_profile *new_active;
+    pa_dbusiface_card_profile *profile;
+    void *state;
+    pa_dbusiface_card_profile *new_active = NULL;
     int r;
 
     pa_assert(conn);
@@ -334,7 +336,14 @@ static void handle_set_active_profile(DBusConnection *conn, DBusMessage *msg, DB
 
     dbus_message_iter_get_basic(iter, &new_active_path);
 
-    if (!(new_active = pa_hashmap_get(c->profiles, new_active_path))) {
+    PA_HASHMAP_FOREACH(profile, c->profiles, state) {
+        if (pa_streq(pa_dbusiface_card_profile_get_path(profile), new_active_path)) {
+            new_active = profile;
+            break;
+        }
+    }
+
+    if (!new_active) {
         pa_dbus_send_error(conn, msg, PA_DBUS_ERROR_NOT_FOUND, "%s: No such profile.", new_active_path);
         return;
     }
