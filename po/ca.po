@@ -123,7 +123,7 @@ msgstr "Sortida nul·la"
 
 #: ../src/pulsecore/sink.c:3349
 msgid "Built-in Audio"
-msgstr "Audio intern"
+msgstr "Àudio intern"
 
 #: ../src/pulsecore/sink.c:3354
 msgid "Modem"
@@ -144,7 +144,7 @@ msgstr "No s'ha pogut afegir bind-now-loader."
 #: ../src/daemon/main.c:139
 #, c-format
 msgid "Got signal %s."
-msgstr "S'ha obtingut la senyal %s."
+msgstr "S'ha obtingut el senyal %s."
 
 #: ../src/daemon/main.c:166
 msgid "Exiting."
@@ -246,7 +246,7 @@ msgstr "Es requereixen privilegis de root."
 
 #: ../src/daemon/main.c:667
 msgid "--start not supported for system instances."
-msgstr "La opció --start no està suportada per a instàncies de sistema."
+msgstr "L'opció --start no està suportada per a instàncies de sistema."
 
 #: ../src/daemon/main.c:707
 #, c-format
@@ -410,7 +410,7 @@ msgstr "S'està utilitzant el directori d'estat %s."
 #: ../src/daemon/main.c:959
 #, c-format
 msgid "Using modules directory %s."
-msgstr "S'està utilitzant el directori dels móduls %s."
+msgstr "S'està utilitzant el directori dels mòduls %s."
 
 #: ../src/daemon/main.c:961
 #, c-format
@@ -705,7 +705,7 @@ msgstr "Nom: %s\n"
 #: ../src/daemon/dumpmodules.c:62
 #, c-format
 msgid "No module information available\n"
-msgstr "No hi ha informació del módul disponible\n"
+msgstr "No hi ha informació del mòdul disponible\n"
 
 #: ../src/daemon/dumpmodules.c:65
 #, c-format
@@ -1059,23 +1059,23 @@ msgstr "Estèreo"
 
 #: ../src/pulse/channelmap.c:766
 msgid "Surround 4.0"
-msgstr "Envolvent 4.0"
+msgstr "Envoltant 4.0"
 
 #: ../src/pulse/channelmap.c:772
 msgid "Surround 4.1"
-msgstr "Envolvent 4.1"
+msgstr "Envoltant 4.1"
 
 #: ../src/pulse/channelmap.c:778
 msgid "Surround 5.0"
-msgstr "Envolvent 5.0"
+msgstr "Envoltant 5.0"
 
 #: ../src/pulse/channelmap.c:784
 msgid "Surround 5.1"
-msgstr "Envolvent 5.1"
+msgstr "Envoltant 5.1"
 
 #: ../src/pulse/channelmap.c:791
 msgid "Surround 7.1"
-msgstr "Envolvent 7.1"
+msgstr "Envoltant 7.1"
 
 #: ../src/pulse/error.c:40
 msgid "OK"
@@ -1083,7 +1083,7 @@ msgstr "D'acord"
 
 #: ../src/pulse/error.c:41
 msgid "Access denied"
-msgstr "S'ha denegat l'accès"
+msgstr "S'ha denegat l'accés"
 
 #: ../src/pulse/error.c:42
 msgid "Unknown command"
@@ -1221,7 +1221,7 @@ msgstr ""
 
 #: ../src/pulse/client-conf-x11.c:97
 msgid "Failed to parse cookie data"
-msgstr "Ha fallat el parseig de les dades de la cookie"
+msgstr "Ha fallat l'anàlisi de les dades de la galeta"
 
 #: ../src/pulse/client-conf.c:117
 #, c-format
@@ -1230,7 +1230,7 @@ msgstr "S'ha produït un error en obrir el fitxer de configuració '%s': %s"
 
 #: ../src/pulse/context.c:528
 msgid "No cookie loaded. Attempting to connect without."
-msgstr "No s'ha carregat cap cookie. S'està intentant connectar sense aquesta."
+msgstr "No s'ha carregat cap galeta. S'està intentant connectar sense aquesta."
 
 #: ../src/pulse/context.c:675
 #, c-format
@@ -1250,7 +1250,7 @@ msgstr "S'ha rebut un missatge per a una extensió desconeguda '%s'"
 #: ../src/utils/pacat.c:112
 #, c-format
 msgid "Failed to drain stream: %s"
-msgstr "S'ha produït un error en drenar el fluxe: %s"
+msgstr "S'ha produït un error en drenar el flux: %s"
 
 #: ../src/utils/pacat.c:117
 msgid "Playback stream drained."
@@ -1314,7 +1314,7 @@ msgstr "S'ha connectat al dispositiu %s (%u, %ssuspès)."
 #: ../src/utils/pacat.c:353
 #, c-format
 msgid "Stream error: %s"
-msgstr "S'ha produït un error en l'stream: %s"
+msgstr "S'ha produït un error en el flux: %s"
 
 #: ../src/utils/pacat.c:363
 #, c-format
@@ -1702,12 +1702,12 @@ msgstr "No s'ha pogut suspendre: %s\n"
 #: ../src/utils/pasuspender.c:122
 #, c-format
 msgid "Failure to resume: %s\n"
-msgstr "No s'ha pogut en rependre: %s\n"
+msgstr "No s'ha pogut reprendre: %s\n"
 
 #: ../src/utils/pasuspender.c:145
 #, c-format
 msgid "WARNING: Sound server is not local, not suspending.\n"
-msgstr "ADVERTÈNCIA: el sevidor de so no és local, no s'està suspenent.\n"
+msgstr "ADVERTÈNCIA: el servidor de so no és local, no s'està suspenent.\n"
 
 #: ../src/utils/pasuspender.c:157
 #, c-format
@@ -2370,14 +2370,14 @@ msgstr "Heu d'especificar un índex de mòdul"
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean value."
 msgstr ""
-"No haríeu d'especificar més d'un conducte. Heu d'especificar un valor booleà."
+"No hauríeu d'especificar més d'un conducte. Heu d'especificar un valor booleà."
 
 #: ../src/utils/pactl.c:1573
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
 msgstr ""
-"No haríeu d'especificar més d'una font. Heu d'especificar un valor booleà."
+"No hauríeu d'especificar més d'una font. Heu d'especificar un valor booleà."
 
 #: ../src/utils/pactl.c:1585
 msgid "You have to specify a card name/index and a profile name"
@@ -2482,7 +2482,7 @@ msgstr ""
 "(per omissió)\n"
 " -e    Exporta les dades locals de PulseAudio a una pantalla X11\n"
 " -i    Importa les dades de PulseAudio d'una pantalla X11 a les variables "
-"d'entorn locals i a un fitxer cookie\n"
+"d'entorn locals i a un fitxer galeta\n"
 " -r    Esborra les dades de PulseAudio d'una pantalla X11\n"
 
 #: ../src/utils/pax11publish.c:94
@@ -2513,7 +2513,7 @@ msgstr "Galeta: %s\n"
 #: ../src/utils/pax11publish.c:137
 #, c-format
 msgid "Failed to parse cookie data\n"
-msgstr "No s'han pogut parsejar les dades de la galeta\n"
+msgstr "No s'han pogut analitzar les dades de la galeta\n"
 
 #: ../src/utils/pax11publish.c:142
 #, c-format
@@ -2833,19 +2833,19 @@ msgstr "Envolvent analògic 4.1 "
 
 #: ../src/modules/alsa/alsa-mixer.c:3761
 msgid "Analog Surround 4.0"
-msgstr "Envolvent analògic 4.0 "
+msgstr "Envoltant analògic 4.0 "
 
 #: ../src/modules/alsa/alsa-mixer.c:3762
 msgid "Analog Surround 4.1"
-msgstr "Envolvent analògic 4.1 "
+msgstr "Envoltant analògic 4.1 "
 
 #: ../src/modules/alsa/alsa-mixer.c:3763
 msgid "Analog Surround 5.0"
-msgstr "Envolvent analògic 5.0"
+msgstr "Envoltant analògic 5.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:3764
 msgid "Analog Surround 5.1"
-msgstr "Envolvent analògic 5.1"
+msgstr "Envoltant analògic 5.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:3765
 #, fuzzy
@@ -2864,7 +2864,7 @@ msgstr "Envolvent analògic 4.0 "
 
 #: ../src/modules/alsa/alsa-mixer.c:3768
 msgid "Analog Surround 7.1"
-msgstr "Envolvent analògic 7.1"
+msgstr "Envoltant analògic 7.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:3769
 msgid "Digital Stereo (IEC958)"
@@ -2877,7 +2877,7 @@ msgstr "Estèreo digital (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:3771
 msgid "Digital Surround 4.0 (IEC958/AC3)"
-msgstr "Envolvent digital 4.0 (IEC958/AC3)"
+msgstr "Envoltant digital 4.0 (IEC958/AC3)"
 
 #: ../src/modules/alsa/alsa-mixer.c:3772
 msgid "Digital Surround 5.1 (IEC958/AC3)"
