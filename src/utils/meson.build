@@ -88,7 +88,7 @@ if cc.has_header('sys/soundcard.h')
     install_dir : padsplibdir,
     include_directories : [configinc, topinc],
     link_with : [libpulsecommon, libpulse],
-    link_args : ['-ldl'],
+    link_args : [nodelete_link_args, '-ldl'],
     dependencies: [thread_dep],
     c_args : [pa_c_args, '-Wno-nonnull-compare']
   )

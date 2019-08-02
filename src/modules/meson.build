@@ -275,7 +275,7 @@ foreach m : all_modules
     install : true,
     install_dir : modlibexecdir,
     dependencies : [thread_dep, libpulse_dep, libpulsecommon_dep, libpulsecore_dep] + extra_deps,
-    link_args : [ '-Wl,--no-undefined' ],
+    link_args : [nodelete_link_args, '-Wl,--no-undefined' ],
     link_with : extra_libs,
     name_prefix : '',
     implicit_include_directories : false)

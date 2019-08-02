@@ -286,11 +286,16 @@ cdata.set('GETGROUPS_T', 'gid_t')
 configinc = include_directories('.')
 topinc = include_directories('src')
 
-# CFLAGS
+# CFLAGS/LDFLAGS
 
 pa_c_args = ['-DHAVE_CONFIG_H', '-D_GNU_SOURCE']
 server_c_args = ['-D__INCLUDED_FROM_PULSE_AUDIO']
 cdata.set('MESON_BUILD', 1)
+
+# On ELF systems we don't want the libraries to be unloaded since we don't clean them up properly,
+# so we request the nodelete flag to be enabled.
+# On other systems, we don't really know how to do that, but it's welcome if somebody can tell.
+nodelete_link_args = ['-Wl,-z,nodelete']
 
 # Code coverage
 
