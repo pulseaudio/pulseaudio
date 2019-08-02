@@ -17,5 +17,6 @@ libwebrtc_util = shared_library('webrtc-util',
   dependencies : [libpulse_dep, libpulsecommon_dep, libpulsecore_dep, webrtc_dep],
   link_args : [nodelete_link_args, '-Wl,--unresolved-symbols=ignore-in-object-files'],
   install : true,
+  install_rpath : privlibdir,
   install_dir : modlibexecdir,
 )

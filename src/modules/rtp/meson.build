@@ -22,6 +22,7 @@ librtp = shared_library('rtp',
   include_directories : [configinc, topinc],
   dependencies : [libpulse_dep, libpulsecommon_dep, libpulsecore_dep],
   install : true,
+  install_rpath : privlibdir,
   install_dir : modlibexecdir,
 )
 

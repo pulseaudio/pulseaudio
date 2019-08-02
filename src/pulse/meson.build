@@ -78,6 +78,7 @@ libpulse = shared_library('pulse',
   c_args : [pa_c_args],
   link_args : [nodelete_link_args],
   install : true,
+  install_rpath : privlibdir,
   dependencies : [libm_dep, thread_dep, libpulsecommon_dep, dbus_dep],
   implicit_include_directories : false)
 
@@ -97,6 +98,7 @@ libpulse_simple = shared_library('pulse-simple',
   include_directories : [configinc, topinc],
   dependencies : [libpulse_dep, libpulsecommon_dep],
   install : true,
+  install_rpath : privlibdir,
 )
 
 libpulse_simple_dep = declare_dependency(link_with: libpulse_simple)
@@ -111,6 +113,7 @@ if glib_dep.found()
     include_directories : [configinc, topinc],
     dependencies : [libpulse_dep, libpulsecommon_dep, glib_dep],
     install : true,
+    install_rpath : privlibdir,
   )
 
   libpulse_mainloop_glib_dep = declare_dependency(link_with: libpulse_mainloop_glib)

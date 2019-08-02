@@ -259,6 +259,10 @@ all_modules += [
 
 # Generate a shared module object for each modules
 
+# FIXME: Not all modules actually have a dep in modlibexecdir
+# FIXME: meson doesn't support multiple RPATH arguments currently
+rpath_dirs = join_paths(privlibdir) + ':' + join_paths(modlibexecdir)
+
 foreach m : all_modules
   name = m[0]
   sources = m[1]
@@ -273,6 +277,7 @@ foreach m : all_modules
     include_directories : [configinc, topinc],
     c_args : [pa_c_args, server_c_args, '-DPA_MODULE_NAME=' + name.underscorify()] + extra_flags,
     install : true,
+    install_rpath : rpath_dirs,
     install_dir : modlibexecdir,
     dependencies : [thread_dep, libpulse_dep, libpulsecommon_dep, libpulsecore_dep] + extra_deps,
     link_args : [nodelete_link_args, '-Wl,--no-undefined' ],

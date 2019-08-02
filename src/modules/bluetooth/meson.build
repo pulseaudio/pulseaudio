@@ -28,5 +28,6 @@ libbluez5_util = shared_library('bluez5-util',
   include_directories : [configinc, topinc],
   dependencies : [libpulse_dep, libpulsecommon_dep, libpulsecore_dep, dbus_dep, sbc_dep],
   install : true,
+  install_rpath : privlibdir,
   install_dir : modlibexecdir,
 )

@@ -11,6 +11,7 @@ gsettings_helper = executable('gsettings-helper',
   link_with : [libpulsecommon, libpulse],
   dependencies : [gio_dep],
   install_dir : pulselibexecdir,
+  install_rpath : privlibdir,
   install : true,
 )
 

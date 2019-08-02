@@ -13,5 +13,6 @@ liboss_util = shared_library('oss-util',
   include_directories : [configinc, topinc],
   dependencies : [libpulse_dep, libpulsecommon_dep, libpulsecore_dep],
   install : true,
+  install_rpath : privlibdir,
   install_dir : modlibexecdir,
 )
