@@ -70,13 +70,15 @@ if glib_dep.found()
   libpulse_headers += 'glib-mainloop.h'
 endif
 
+versioning_link_args = '-Wl,-version-script=' + join_paths(meson.source_root(), 'src', 'map-file')
+
 libpulse = shared_library('pulse',
   libpulse_sources,
   libpulse_headers,
   version : libpulse_version,
   include_directories : [configinc, topinc],
   c_args : [pa_c_args],
-  link_args : [nodelete_link_args],
+  link_args : [nodelete_link_args, versioning_link_args],
   install : true,
   install_rpath : privlibdir,
   dependencies : [libm_dep, thread_dep, libpulsecommon_dep, dbus_dep],
@@ -94,7 +96,7 @@ libpulse_simple = shared_library('pulse-simple',
   'simple.h',
   version : libpulse_simple_version,
   c_args : [pa_c_args],
-  link_args : [nodelete_link_args],
+  link_args : [nodelete_link_args, versioning_link_args],
   include_directories : [configinc, topinc],
   dependencies : [libpulse_dep, libpulsecommon_dep],
   install : true,
@@ -109,7 +111,7 @@ if glib_dep.found()
     'glib-mainloop.h',
     version : libpulse_mainloop_glib_version,
     c_args : [pa_c_args],
-    link_args : [nodelete_link_args],
+    link_args : [nodelete_link_args, versioning_link_args],
     include_directories : [configinc, topinc],
     dependencies : [libpulse_dep, libpulsecommon_dep, glib_dep],
     install : true,
