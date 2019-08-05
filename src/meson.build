@@ -61,15 +61,12 @@ libpulsecommon_sources = [
   'pulsecore/socket-util.c',
   'pulsecore/strbuf.c',
   'pulsecore/strlist.c',
-  'pulsecore/svolume_c.c',
-  'pulsecore/svolume_mmx.c',
   'pulsecore/tagstruct.c',
   'pulsecore/thread-posix.c',
   'pulsecore/time-smoother.c',
   'pulsecore/tokenizer.c',
   'pulsecore/usergroup.c',
   'pulsecore/sndfile-util.c',
-  'pulsecore/svolume_arm.c',
 ]
 
 libpulsecommon_headers = [

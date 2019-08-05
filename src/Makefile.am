@@ -753,8 +753,6 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/socket-util.c pulsecore/socket-util.h \
 		pulsecore/strbuf.c pulsecore/strbuf.h \
 		pulsecore/strlist.c pulsecore/strlist.h \
-		pulsecore/svolume_c.c pulsecore/svolume_arm.c \
-		pulsecore/svolume_mmx.c pulsecore/svolume_sse.c \
 		pulsecore/tagstruct.c pulsecore/tagstruct.h \
 		pulsecore/time-smoother.c pulsecore/time-smoother.h \
 		pulsecore/tokenizer.c pulsecore/tokenizer.h \
@@ -1005,6 +1003,8 @@ libpulsecore_@PA_MAJORMINOR@_la_SOURCES = \
 		pulsecore/resampler/trivial.c \
 		pulsecore/rtpoll.c pulsecore/rtpoll.h \
 		pulsecore/stream-util.c pulsecore/stream-util.h \
+		pulsecore/svolume_c.c pulsecore/svolume_arm.c \
+		pulsecore/svolume_mmx.c pulsecore/svolume_sse.c \
 		pulsecore/mix.c pulsecore/mix.h \
 		pulsecore/cpu.c pulsecore/cpu.h \
 		pulsecore/cpu-arm.c pulsecore/cpu-arm.h \

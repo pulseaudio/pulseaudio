@@ -49,6 +49,10 @@ libpulsecore_sources = [
   'source-output.c',
   'start-child.c',
   'stream-util.c',
+  'svolume_arm.c',
+  'svolume_c.c',
+  'svolume_mmx.c',
+  'svolume_sse.c',
   'thread-mq.c',
 ]
 
