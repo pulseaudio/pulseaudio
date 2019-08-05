@@ -149,7 +149,7 @@ orc_sources = []
 orc_headers = []
 if have_orcc
   orcsrc = 'svolume'
-  orc_h = custom_target(orcsrc + '-ocr-gen.h',
+  orc_h = custom_target(orcsrc + '-orc-gen.h',
     input : orcsrc + '.orc',
     output : orcsrc + '-orc-gen.h',
     command : orcc_args + ['--header', '-o', '@OUTPUT@', '@INPUT@']
