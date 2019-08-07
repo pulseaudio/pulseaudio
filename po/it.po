@@ -12,7 +12,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues\n"
 "POT-Creation-Date: 2019-02-16 11:57+0000\n"
-"PO-Revision-Date: 2019-03-12 10:10+0100\n"
+"PO-Revision-Date: 2019-08-07 09:53+0200\n"
 "Last-Translator: Milo Casagrande <milo@milo.name>\n"
 "Language-Team: Italian <tp@lists.linux.it>\n"
 "Language: it\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.2.1\n"
+"X-Generator: Poedit 2.2.3\n"
 
 # mamma mia che impressione
 #: src/daemon/cmdline.c:113
@@ -174,7 +174,7 @@ msgstr ""
 "                                        supportano.\n"
 "      --disable-shm[=BOOL]              Disabilita il supporto alla memoria\n"
 "                                        condivisa.\n"
-"      --enable-memfd[=BOOL]             Abilita il support alla memoria\n"
+"      --enable-memfd[=BOOL]             Abilita il supporto alla memoria\n"
 "                                        condivisa memfd\n"
 "\n"
 "SCRIPT DI AVVIO:\n"
@@ -253,7 +253,7 @@ msgstr "--log-meta richiede un argomento booleano"
 #: src/daemon/cmdline.c:366
 #, c-format
 msgid "Invalid resample method '%s'."
-msgstr "Metodo di ricampionamento \"%s\" non valido."
+msgstr "Metodo di ricampionamento «%s» non valido."
 
 #: src/daemon/cmdline.c:373
 msgid "--system expects boolean argument"
@@ -274,28 +274,28 @@ msgstr "--enable-memfd richiede un argomento booleano"
 #: src/daemon/daemon-conf.c:268
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
-msgstr "[%s:%u] Destinazione di registro \"%s\" non valida."
+msgstr "[%s:%u] Destinazione di registro «%s» non valida."
 
 #: src/daemon/daemon-conf.c:283
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
-msgstr "[%s:%u] Livello di registro \"%s\" non valido."
+msgstr "[%s:%u] Livello di registro «%s» non valido."
 
 #: src/daemon/daemon-conf.c:298
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
-msgstr "[%s:%u] Metodo di ricampionamento \"%s\" non valido."
+msgstr "[%s:%u] Metodo di ricampionamento «%s» non valido."
 
 #: src/daemon/daemon-conf.c:320
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
-msgstr "[%s:%u] rlimit \"%s\" non valido."
+msgstr "[%s:%u] rlimit «%s» non valido."
 
 # o campionamento?? ma campionamento non è sampling?
 #: src/daemon/daemon-conf.c:340
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
-msgstr "[%s:%u] Formato di campionamento \"%s\" non valido."
+msgstr "[%s:%u] Formato di campionamento «%s» non valido."
 
 #: src/daemon/daemon-conf.c:357 src/daemon/daemon-conf.c:374
 #, c-format
@@ -305,32 +305,32 @@ msgstr "[%s:%u] Frequenza di campionamento '%s' non valida."
 #: src/daemon/daemon-conf.c:397
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
-msgstr "[%s:%u] Canali di campionamento \"%s\" non validi."
+msgstr "[%s:%u] Canali di campionamento «%s» non validi."
 
 #: src/daemon/daemon-conf.c:414
 #, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
-msgstr "[%s:%u] Mappa del canale \"%s\" non valida."
+msgstr "[%s:%u] Mappa del canale «%s» non valida."
 
 #: src/daemon/daemon-conf.c:431
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
-msgstr "[%s:%u] Numero di frammenti \"%s\" non valido."
+msgstr "[%s:%u] Numero di frammenti «%s» non valido."
 
 #: src/daemon/daemon-conf.c:448
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
-msgstr "[%s:%u] Dimensione dei frammenti \"%s\" non valida."
+msgstr "[%s:%u] Dimensione dei frammenti «%s» non valida."
 
 #: src/daemon/daemon-conf.c:465
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
-msgstr "[%s:%u] Livello di nice \"%s\" non valido."
+msgstr "[%s:%u] Livello di nice «%s» non valido."
 
 #: src/daemon/daemon-conf.c:508
 #, c-format
 msgid "[%s:%u] Invalid server type '%s'."
-msgstr "[%s:%u] Tipo di server \"%s\" non valido."
+msgstr "[%s:%u] Tipo di server «%s» non valido."
 
 #: src/daemon/daemon-conf.c:626
 #, c-format
@@ -416,27 +416,27 @@ msgstr "Aggiunta di bind-now-loader non riuscita."
 #: src/daemon/main.c:171
 #, c-format
 msgid "Failed to find user '%s'."
-msgstr "Ricerca dell'utente \"%s\" non riuscita."
+msgstr "Ricerca dell'utente «%s» non riuscita."
 
 #: src/daemon/main.c:176
 #, c-format
 msgid "Failed to find group '%s'."
-msgstr "Ricerca del gruppo \"%s\" non riuscita."
+msgstr "Ricerca del gruppo «%s» non riuscita."
 
 #: src/daemon/main.c:185
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
-msgstr "Il GID dell'utente \"%s\" e del gruppo \"%s\" non corrispondono."
+msgstr "Il GID dell'utente «%s» e del gruppo «%s» non corrispondono."
 
 #: src/daemon/main.c:190
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
-msgstr "La directory home dell'utente \"%s\" non è \"%s\", ignorato."
+msgstr "La directory home dell'utente «%s» non è «%s», ignorato."
 
 #: src/daemon/main.c:193 src/daemon/main.c:198
 #, c-format
 msgid "Failed to create '%s': %s"
-msgstr "Creazione di \"%s\" non riuscita: %s"
+msgstr "Creazione di «%s» non riuscita: %s"
 
 # group list ????
 #: src/daemon/main.c:205
@@ -902,9 +902,9 @@ msgid ""
 msgstr ""
 "Attivazione da parte di ALSA per scrivere nuovi dati sul dispositivo, ma non "
 "c'era nulla da scrivere.\n"
-"Molto probabilmente si tratta di un bug nei driver ALSA \"%s\". Segnalare "
+"Molto probabilmente si tratta di un bug nei driver ALSA «%s». Segnalare "
 "questo problema agli sviluppatori di ALSA.\n"
-"Attivazione avvenuta con POLLOUT impostato -- tuttavia, una successiva "
+"Attivazione avvenuta con POLLOUT impostato; tuttavia, una successiva "
 "snd_pcm_avail() ha ritornato 0 o un altro valore < min_avail."
 
 #: src/modules/alsa/alsa-source.c:543 src/modules/alsa/alsa-source.c:694
@@ -919,9 +919,9 @@ msgid ""
 msgstr ""
 "Attivazione da parte di ALSA per leggere nuovi dati dal dispositivo, ma non "
 "c'era nulla da leggere.\n"
-"Molto probabilmente si tratta di un bug nei driver ALSA \"%s\". Segnalare "
+"Molto probabilmente si tratta di un bug nei driver ALSA «%s». Segnalare "
 "questo problema agli sviluppatori di ALSA.\n"
-"Attivazione avvenuta con POLLIN impostato -- tuttavia, una successiva "
+"Attivazione avvenuta con POLLIN impostato; tuttavia, una successiva "
 "snd_pcm_avail() ha ritornato 0 o un altro valore < min_avail."
 
 #: src/modules/alsa/alsa-util.c:1168 src/modules/alsa/alsa-util.c:1262
@@ -976,7 +976,7 @@ msgid ""
 msgstr ""
 "snd_pcm_avail() ha restituito dei valori strani: delay %lu è minore di avail "
 "%lu.\n"
-"Molto probabilmente si tratta di un bug nel driver ALSA \"%s\". Segnalare "
+"Molto probabilmente si tratta di un bug nel driver ALSA «%s». Segnalare "
 "questo problema agli sviluppatori ALSA."
 
 #: src/modules/alsa/alsa-util.c:1324
@@ -1483,7 +1483,7 @@ msgstr "waitpid(): %s"
 #: src/pulse/context.c:1466
 #, c-format
 msgid "Received message for unknown extension '%s'"
-msgstr "Ricevuto messaggio per l'estensione sconosciuta \"%s\""
+msgstr "Ricevuto messaggio per l'estensione sconosciuta «%s»"
 
 #: src/pulse/direction.c:37
 msgid "input"
@@ -1735,7 +1735,7 @@ msgstr "Metriche del buffer: maxlength=%u, fragsize=%u"
 #: src/utils/pacat.c:338
 #, c-format
 msgid "Using sample spec '%s', channel map '%s'."
-msgstr "In uso specifica di campionamento \"%s\", mappa dei canali \"%s\"."
+msgstr "In uso specifica di campionamento «%s», mappa dei canali «%s»."
 
 #: src/utils/pacat.c:342
 #, c-format
@@ -2043,33 +2043,33 @@ msgstr ""
 #: src/utils/pacat.c:852 src/utils/pactl.c:1656
 #, c-format
 msgid "Invalid client name '%s'"
-msgstr "Nome del client \"%s\" non valido"
+msgstr "Nome del client «%s» non valido"
 
 #: src/utils/pacat.c:867
 #, c-format
 msgid "Invalid stream name '%s'"
-msgstr "Nome dello stream \"%s\" non valido"
+msgstr "Nome dello stream «%s» non valido"
 
 #: src/utils/pacat.c:904
 #, c-format
 msgid "Invalid channel map '%s'"
-msgstr "Mappa dei canali \"%s\" non valida"
+msgstr "Mappa dei canali «%s» non valida"
 
 #: src/utils/pacat.c:933 src/utils/pacat.c:947
 #, c-format
 msgid "Invalid latency specification '%s'"
-msgstr "Specifica di latenza \"%s\" non valida"
+msgstr "Specifica di latenza «%s» non valida"
 
 # esecuzione???
 #: src/utils/pacat.c:940 src/utils/pacat.c:954
 #, c-format
 msgid "Invalid process time specification '%s'"
-msgstr "Specifica di tempo di elaborazione \"%s\" non valida"
+msgstr "Specifica di tempo di elaborazione «%s» non valida"
 
 #: src/utils/pacat.c:966
 #, c-format
 msgid "Invalid property '%s'"
-msgstr "Proprietà \"%s\" non valida"
+msgstr "Proprietà «%s» non valida"
 
 #: src/utils/pacat.c:985
 #, c-format
@@ -2136,8 +2136,8 @@ msgstr "Attenzione: scrittura della mappa dei canali su file non riuscita."
 msgid ""
 "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr ""
-"Apertura di uno stream %s con specifica di campionamento \"%s\" e mappa dei "
-"canali \"%s\"."
+"Apertura di uno stream %s con specifica di campionamento «%s» e mappa dei "
+"canali «%s»."
 
 #: src/utils/pacat.c:1126
 msgid "recording"
@@ -2831,7 +2831,7 @@ msgstr "scheda"
 #: src/utils/pactl.c:1188
 #, c-format
 msgid "Event '%s' on %s #%u\n"
-msgstr "Evento \"%s\" su %s #%u\n"
+msgstr "Evento «%s» su %s #%u\n"
 
 #: src/utils/pactl.c:1460
 msgid "Got SIGINT, exiting."
