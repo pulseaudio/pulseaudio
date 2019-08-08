@@ -127,7 +127,7 @@ norun_tests = [
   [ 'remix-test', 'remix-test.c',
     [ libpulse_dep, libpulsecommon_dep, libpulsecore_dep ] ],
   [ 'rtstutter', 'rtstutter.c',
-    [ libpulse_dep, libpulsecommon_dep, libpulsecore_dep ] ],
+    [ thread_dep, libpulse_dep, libpulsecommon_dep, libpulsecore_dep ] ],
   [ 'sig2str-test', 'sig2str-test.c',
     [ check_dep, libpulse_dep, libpulsecommon_dep, libpulsecore_dep ] ],
   [ 'stripnul', 'stripnul.c',

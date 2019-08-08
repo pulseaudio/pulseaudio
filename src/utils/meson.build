@@ -94,8 +94,8 @@ if cc.has_header('sys/soundcard.h')
     install_rpath : privlibdir,
     include_directories : [configinc, topinc],
     link_with : [libpulsecommon, libpulse],
-    link_args : [nodelete_link_args, '-ldl'],
-    dependencies: [thread_dep],
+    link_args : [nodelete_link_args],
+    dependencies: [thread_dep, dl_dep],
     c_args : [pa_c_args, '-Wno-nonnull-compare']
   )
 

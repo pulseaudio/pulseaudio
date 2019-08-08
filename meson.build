@@ -171,10 +171,13 @@ endif
 
 check_headers = [
   'arpa/inet.h',
+  'byteswap.h',
   'cpuid.h',
+  'dlfcn.h',
   'execinfo.h',
   'grp.h',
   'langinfo.h',
+  'linux/sockios.h',
   'locale.h',
   'netdb.h',
   'netinet/in.h',
@@ -187,16 +190,20 @@ check_headers = [
   'regex.h',
   'sched.h',
   'sys/capability.h',
+  'sys/dl.h',
   'sys/eventfd.h',
-  'sys/ioctl.h',
   'sys/filio.h',
+  'sys/ioctl.h',
   'sys/mman.h',
   'sys/prctl.h',
   'sys/resource.h',
   'sys/select.h',
   'sys/socket.h',
+  'sys/syscall.h',
+  'sys/uio.h',
   'sys/un.h',
   'sys/wait.h',
+  'syslog.h',
   'valgrind/memcheck.h',
   'xlocale.h',
 ]
@@ -218,35 +225,46 @@ endif
 check_functions = [
   'accept4',
   'clock_gettime',
+  'ctime_r',
   'fchmod',
   'fchown',
   'fork',
   'fstat',
   'getaddrinfo',
   'getgrgid_r',
+  'getgrnam_r',
   'getpwnam_r',
+  'getpwuid_r',
   'gettimeofday',
   'getuid',
+  'lrintf',
   'lstat',
   'memfd_create',
   'mkfifo',
   'mlock',
   'nanosleep',
+  'open64',
   'paccept',
   'pipe',
   'pipe2',
+  'posix_fadvise',
   'posix_madvise',
+  'posix_memalign',
+  'ppoll',
   'readlink',
   'setegid',
   'seteuid',
+  'setpgid',
   'setregid',
-  'setreuid',
   'setresgid',
   'setresuid',
+  'setreuid',
   'setsid',
   'sig2str',
   'sigaction',
+  'strerror_r',
   'strtod_l',
+  'strtof',
   'symlink',
   'sysconf',
   'uname',
@@ -307,7 +325,19 @@ endif
 # Core Dependencies
 
 libm_dep = cc.find_library('m', required : true)
+
 thread_dep = dependency('threads')
+foreach f : [
+  'pthread_getname_np',
+  'pthread_setaffinity_np',
+  'pthread_setname_np',
+]
+  if cc.has_function(f, dependencies : thread_dep)
+    define = 'HAVE_' + f.underscorify().to_upper()
+    cdata.set(define, 1)
+  endif
+endforeach
+
 cap_dep = cc.find_library('cap', required : false)
 
 shm_dep = cc.find_library('rt', required : false)
@@ -315,6 +345,30 @@ if shm_dep.found()
   cdata.set('HAVE_SHM_OPEN', 1)
 endif
 
+dl_dep = cc.find_library('dl', required : false)
+if dl_dep.found()
+  cdata.set('HAVE_DLADDR', 1)
+endif
+
+have_iconv = false
+if cc.has_function('iconv_open')
+  iconv_dep = dependency('', required : false)
+  have_iconv = true
+else
+  iconv_dep = cc.find_library('iconv', required : false)
+  have_iconv = iconv_dep.found()
+endif
+if have_iconv
+  cdata.set('HAVE_ICONV', 1)
+  iconvconsttest = '''#include <iconv.h>
+size_t iconv (iconv_t cd, char * *inbuf, size_t *inbytesleft, char * *outbuf, size_t *outbytesleft);
+'''
+  if cc.compiles(iconvconsttest, dependencies : iconv_dep)
+    cdata.set('ICONV_CONST', '')
+  else
+    cdata.set('ICONV_CONST', 'const')
+  endif
+endif
 
 atomictest = '''void func() {
   volatile int atomic = 2;
