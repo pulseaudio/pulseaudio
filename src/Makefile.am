@@ -105,6 +105,7 @@ EXTRA_DIST = \
 		daemon/systemd/user/pulseaudio.socket \
 		utils/padsp.in \
 		utils/qpaeq \
+		utils/pa-info \
 		daemon/pulseaudio.desktop.in \
 		map-file \
 		daemon/pulseaudio-system.conf \
@@ -189,7 +190,8 @@ endif
 #       Utility programs          #
 ###################################
 
-bin_SCRIPTS =
+bin_SCRIPTS = \
+	utils/pa-info
 
 if HAVE_ESOUND
 bin_SCRIPTS += esdcompat

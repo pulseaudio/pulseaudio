@@ -111,3 +111,5 @@ endif
 if dbus_dep.found() and fftw_dep.found()
   install_data('qpaeq', install_dir : bindir)
 endif
+
+install_data('pa-info', install_dir : bindir)
