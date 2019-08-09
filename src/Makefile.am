@@ -1354,7 +1354,7 @@ dist_alsaprofilesets_DATA = \
 		modules/alsa/mixer/profile-sets/kinect-audio.conf \
 		modules/alsa/mixer/profile-sets/sb-omni-surround-5.1.conf \
 		modules/alsa/mixer/profile-sets/steelseries-arctis-common-usb-audio.conf \
-		modules/alsa/mixer/profile-sets/steelseries-arctis-7-usb-audio.conf \
+		modules/alsa/mixer/profile-sets/usb-gaming-headset.conf \
 		modules/alsa/mixer/profile-sets/dell-dock-tb16-usb-audio.conf \
 		modules/alsa/mixer/profile-sets/cmedia-high-speed-true-hdaudio.conf
 
@@ -1401,9 +1401,9 @@ dist_alsapaths_DATA = \
 		modules/alsa/mixer/paths/hdmi-output-7.conf \
 		modules/alsa/mixer/paths/steelseries-arctis-output-chat-common.conf \
 		modules/alsa/mixer/paths/steelseries-arctis-output-game-common.conf \
-		modules/alsa/mixer/paths/steelseries-arctis-7-input.conf \
-		modules/alsa/mixer/paths/steelseries-arctis-7-output-mono.conf \
-		modules/alsa/mixer/paths/steelseries-arctis-7-output-stereo.conf
+		modules/alsa/mixer/paths/usb-gaming-headset-input.conf \
+		modules/alsa/mixer/paths/usb-gaming-headset-output-mono.conf \
+		modules/alsa/mixer/paths/usb-gaming-headset-output-stereo.conf
 
 endif
 

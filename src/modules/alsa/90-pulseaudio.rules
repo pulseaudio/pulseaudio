@@ -113,10 +113,12 @@ ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="4014", ENV{PULSE_PROFILE_SET}="dell-
 
 # ID 1038:12ad is for the 2018 refresh of the Arctis 7.
 # ID 1038:1294 is for Arctis Pro Wireless (which works with the Arctis 7 configuration).
-ATTRS{idVendor}=="1038", ATTRS{idProduct}=="1260", ENV{PULSE_PROFILE_SET}="steelseries-arctis-7-usb-audio.conf"
-ATTRS{idVendor}=="1038", ATTRS{idProduct}=="12ad", ENV{PULSE_PROFILE_SET}="steelseries-arctis-7-usb-audio.conf"
-ATTRS{idVendor}=="1038", ATTRS{idProduct}=="1294", ENV{PULSE_PROFILE_SET}="steelseries-arctis-7-usb-audio.conf"
-ATTRS{idVendor}=="1038", ATTRS{idProduct}=="1730", ENV{PULSE_PROFILE_SET}="steelseries-arctis-7-usb-audio.conf"
+ATTRS{idVendor}=="1038", ATTRS{idProduct}=="1260", ENV{PULSE_PROFILE_SET}="usb-gaming-headset.conf"
+ATTRS{idVendor}=="1038", ATTRS{idProduct}=="12ad", ENV{PULSE_PROFILE_SET}="usb-gaming-headset.conf"
+ATTRS{idVendor}=="1038", ATTRS{idProduct}=="1294", ENV{PULSE_PROFILE_SET}="usb-gaming-headset.conf"
+ATTRS{idVendor}=="1038", ATTRS{idProduct}=="1730", ENV{PULSE_PROFILE_SET}="usb-gaming-headset.conf"
+# Lucidsound LS31
+ATTRS{idVendor}=="2f12", ATTRS{idProduct}=="0109", ENV{PULSE_PROFILE_SET}="usb-gaming-headset.conf"
 
 # ID 1038:1250 is for the Arctis 5
 # ID 1037:12aa is for the Arctis 5 2019
