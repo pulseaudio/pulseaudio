@@ -43,6 +43,6 @@ fi
 autoreconf --force --install --verbose
 
 if test "x$NOCONFIGURE" = "x"; then
-    CFLAGS="$CFLAGS -g -O0" ./configure --sysconfdir=/etc --localstatedir=/var --enable-force-preopen "$@" && \
+    CFLAGS="$CFLAGS -g -O0" ./configure --enable-force-preopen "$@" && \
         make clean
 fi
