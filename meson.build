@@ -189,6 +189,7 @@ check_headers = [
   'pwd.h',
   'regex.h',
   'sched.h',
+  'stdint.h',
   'sys/capability.h',
   'sys/dl.h',
   'sys/eventfd.h',
