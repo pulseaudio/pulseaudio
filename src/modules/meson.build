@@ -101,7 +101,7 @@ if avahi_dep.found()
   ]
 endif
 
-if bluez_dep.found()
+if get_option('bluez5')
   subdir('bluetooth')
   all_modules += [
     [ 'module-bluetooth-discover', 'bluetooth/module-bluetooth-discover.c' ],

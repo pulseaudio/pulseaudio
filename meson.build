@@ -510,9 +510,8 @@ if avahi_dep.found()
   cdata.set('HAVE_AVAHI', 1)
 endif
 
-bluez_dep = dependency('bluez', version : '>= 5.0', required : get_option('bluez5'))
 sbc_dep = dependency('sbc', version : '>= 1.0', required : false)
-if bluez_dep.found()
+if get_option('bluez5')
   assert(dbus_dep.found(), 'BlueZ requires D-Bus support')
   assert(sbc_dep.found(), 'BlueZ requires SBC support')
   cdata.set('HAVE_SBC', 1)
@@ -695,7 +694,7 @@ summary = [
   'Enable Async DNS:              @0@'.format(asyncns_dep.found()),
   'Enable LIRC:                   @0@'.format(lirc_dep.found()),
   'Enable D-Bus:                  @0@'.format(dbus_dep.found()),
-  '  Enable BlueZ 5:              @0@'.format(bluez_dep.found()),
+  '  Enable BlueZ 5:              @0@'.format(get_option('bluez5')),
   '    Enable native headsets:    @0@'.format(get_option('bluez5-native-headset')),
   '    Enable  ofono headsets:    @0@'.format(get_option('bluez5-ofono-headset')),
   'Enable udev:                   @0@'.format(udev_dep.found()),

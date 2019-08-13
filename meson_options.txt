@@ -67,7 +67,7 @@ option('avahi',
        type : 'feature', value : 'auto',
        description : 'Optional Avahi support')
 option('bluez5',
-       type : 'feature', value : 'auto',
+       type : 'boolean', value : 'true',
        description : 'Optional BlueZ 5 support')
 option('bluez5-native-headset',
        type : 'boolean',
