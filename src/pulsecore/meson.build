@@ -174,7 +174,7 @@ simd = import('unstable-simd')
 libpulsecore_simd = simd.check('libpulsecore_simd',
   mmx : ['remap_mmx.c', 'svolume_mmx.c'],
   sse : ['remap_sse.c', 'sconv_sse.c', 'svolume_sse.c'],
-  neon : ['remap_neon.c', 'sconv_neon.c', 'svolume_neon.c'],
+  neon : ['remap_neon.c', 'sconv_neon.c', 'mix_neon.c'],
   c_args : [pa_c_args],
   include_directories : [configinc, topinc],
   implicit_include_directories : false,
