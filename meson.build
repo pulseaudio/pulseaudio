@@ -167,6 +167,10 @@ elif host_machine.system() == 'windows'
 #  cdata.set('__EXTENSIONS__', 1)
 endif
 
+if host_machine.cpu_family() == 'x86_64' or cc.sizeof('void *') >= 8
+  cdata.set('HAVE_FAST_64BIT_OPERATIONS', 1)
+endif
+
 # Headers
 
 check_headers = [
