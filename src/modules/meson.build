@@ -38,8 +38,6 @@ all_modules = [
   [ 'module-native-protocol-unix', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_NATIVE', '-DUSE_UNIX_SOCKETS'], [], libprotocol_native ],
   [ 'module-null-sink', 'module-null-sink.c' ],
   [ 'module-null-source', 'module-null-source.c' ],
-  [ 'module-pipe-sink', 'module-pipe-sink.c' ],
-  [ 'module-pipe-source', 'module-pipe-source.c' ],
   [ 'module-position-event-sounds', 'module-position-event-sounds.c' ],
   [ 'module-remap-sink', 'module-remap-sink.c' ],
   [ 'module-remap-source', 'module-remap-source.c' ],
@@ -80,6 +78,13 @@ if cc.has_header('sys/soundcard.h')
   subdir('oss')
   all_modules += [
     [ 'module-oss', 'oss/module-oss.c', [], [], [], liboss_util ],
+  ]
+endif
+
+if cc.has_function('mkfifo')
+  all_modules += [
+    [ 'module-pipe-sink', 'module-pipe-sink.c' ],
+    [ 'module-pipe-source', 'module-pipe-source.c' ]
   ]
 endif
 

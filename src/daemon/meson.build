@@ -94,6 +94,7 @@ default_conf.set('PA_BINARY', cdata.get_unquoted('PA_BINARY'))
 default_conf.set('PA_SOEXT', cdata.get_unquoted('PA_SOEXT'))
 default_conf.set10('HAVE_AF_UNIX', cc.has_header('sys/un.h'))
 default_conf.set10('OS_IS_WIN32', host_machine.system() == 'windows')
+default_conf.set10('HAVE_MKFIFO', cc.has_function('mkfifo'))
 # We don't support the deprecated GConf option in meson
 default_conf.set10('HAVE_GCONF', 0)
 
