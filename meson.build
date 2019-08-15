@@ -371,12 +371,23 @@ size_t iconv (iconv_t cd, char * *inbuf, size_t *inbytesleft, char * *outbuf, si
   endif
 endif
 
+# Atomic operations
+
+if get_option('atomic-arm-memory-barrier')
+    cdata.set('ATOMIC_ARM_MEMORY_BARRIER_ENABLED', 1)
+endif
+
+need_libatomic_ops = false
+
 atomictest = '''void func() {
   volatile int atomic = 2;
   __sync_bool_compare_and_swap (&atomic, 2, 3);
 }
 '''
+
 if cc.compiles(atomictest)
+  cdata.set('HAVE_ATOMIC_BUILTINS', 1)
+
   newatomictest = '''void func() {
     int c = 0;
     __atomic_store_n(&c, 4, __ATOMIC_SEQ_CST);
@@ -384,12 +395,48 @@ if cc.compiles(atomictest)
   '''
 
   if(cc.compiles(newatomictest))
-    cdata.set('HAVE_ATOMIC_BUILTINS_MEMORY_MODEL', true)
+    cdata.set('HAVE_ATOMIC_BUILTINS_MEMORY_MODEL', 1)
   endif
 
-  cdata.set('HAVE_ATOMIC_BUILTINS', true)
+elif host_machine.cpu_family() == 'arm'
+  if host_machine.system() == 'linux' and get_option('atomic-arm-linux-helpers')
+    cdata.set('ATOMIC_ARM_LINUX_HELPERS', 1)
+  else
+    armatomictest = '''void func() {
+      volatile int a=0;
+      int o=0, n=1, r;
+      asm volatile ("ldrex    %0, [%1]\n"
+      "subs  %0, %0, %2\n"
+      "strexeq %0, %3, [%1]\n"
+      : "=&r" (r)
+      : "r" (&a), "Ir" (o), "r" (n)
+      : "cc");
+      return (a==1 ? 0 : -1);
+    '''
+
+    if cc.compiles(aratomictest)
+      cdata.set('ATOMIC_ARM_INLINE_ASM', 1)
+    else
+      need_libatomic_ops = true
+    endif
+  endif # arm && !linux
+
+elif not ['freebsd', 'netbsd'].contains(host_machine.system())
+  need_libatomic_ops = true
+endif # !atomic helpers && !arm
+
+if need_libatomic_ops
+  assert(cc.has_header('atomic_ops.h'), 'Need libatomic_ops')
+
+  cdata.set('AO_REQUIRE_CAS', 1)
+
+  if host_machine.system() != 'windows'
+    libatomic_ops_dep = cc.find_library('atomic_ops', required : true)
+  else
+    libatomic_ops_dep = dependency('', required: false)
+  endif
 else
-  # FIXME: check if we need libatomic_ops
+  libatomic_ops_dep = dependency('', required: false)
 endif
 
 # FIXME: make sure it's >= 2.2

@@ -82,7 +82,7 @@ endif
 if host_machine.system() != 'darwin'
   default_tests += [
     [ 'once-test', 'once-test.c',
-      [ check_dep, thread_dep, libpulse_dep, libpulsecommon_dep, libpulsecore_dep ] ],
+      [ check_dep, thread_dep, libpulse_dep, libpulsecommon_dep, libpulsecore_dep, libatomic_ops_dep ] ],
   ]
 endif
 

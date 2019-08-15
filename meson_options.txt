@@ -27,6 +27,12 @@ option('legacy-database-entry-format',
 option('running-from-build-tree',
        type : 'boolean',
        description : 'Enable running from build tree')
+option('atomic-arm-linux-helpers',
+       type : 'boolean', value : true,
+       description : 'Use inline asm or libatomic_ops instead')
+option('atomic-arm-memory-barrier',
+       type : 'boolean', value : false,
+       description : 'Enable memory barriers (only really needed in SMP arm systems)')
 
 # Paths
 
