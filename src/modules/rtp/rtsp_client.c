@@ -27,6 +27,8 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <netinet/in.h>
+#include <pulse/rtclock.h>
+#include <pulse/timeval.h>
 
 #ifdef HAVE_SYS_FILIO_H
 #include <sys/filio.h>
@@ -42,8 +44,11 @@
 #include <pulsecore/ioline.h>
 #include <pulsecore/arpa-inet.h>
 #include <pulsecore/random.h>
+#include <pulsecore/core-rtclock.h>
 
 #include "rtsp_client.h"
+
+#define RECONNECT_INTERVAL (5 * PA_USEC_PER_SEC)
 
 struct pa_rtsp_client {
     pa_mainloop_api *mainloop;
@@ -73,9 +78,11 @@ struct pa_rtsp_client {
     uint32_t cseq;
     char *session;
     char *transport;
+    pa_time_event *reconnect_event;
+    bool autoreconnect;
 };
 
-pa_rtsp_client* pa_rtsp_client_new(pa_mainloop_api *mainloop, const char *hostname, uint16_t port, const char *useragent) {
+pa_rtsp_client* pa_rtsp_client_new(pa_mainloop_api *mainloop, const char *hostname, uint16_t port, const char *useragent, bool autoreconnect) {
     pa_rtsp_client *c;
 
     pa_assert(mainloop);
@@ -93,12 +100,23 @@ pa_rtsp_client* pa_rtsp_client_new(pa_mainloop_api *mainloop, const char *hostna
     else
         c->useragent = "PulseAudio RTSP Client";
 
+    c->autoreconnect = autoreconnect;
     return c;
+}
+
+static void free_events(pa_rtsp_client *c) {
+    pa_assert(c);
+
+    if (c->reconnect_event) {
+        c->mainloop->time_free(c->reconnect_event);
+        c->reconnect_event = NULL;
+    }
 }
 
 void pa_rtsp_client_free(pa_rtsp_client *c) {
     pa_assert(c);
 
+    free_events(c);
     if (c->sc)
         pa_socket_client_unref(c->sc);
 
@@ -293,6 +311,13 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
     pa_xfree(s2);
 }
 
+static void reconnect_cb(pa_mainloop_api *a, pa_time_event *e, const struct timeval *t, void *userdata) {
+    if (userdata) {
+        pa_rtsp_client *c = userdata;
+        pa_rtsp_connect(c);
+    }
+}
+
 static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata) {
     pa_rtsp_client *c = userdata;
     union {
@@ -310,7 +335,18 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
     c->sc = NULL;
 
     if (!io) {
-        pa_log("Connection failed: %s", pa_cstrerror(errno));
+        if (c->autoreconnect) {
+            struct timeval tv;
+
+            pa_log_warn("Connection to server %s:%d failed: %s - will try later", c->hostname, c->port, pa_cstrerror(errno));
+
+            if (!c->reconnect_event)
+                c->reconnect_event = c->mainloop->time_new(c->mainloop, pa_timeval_rtstore(&tv, pa_rtclock_now() + RECONNECT_INTERVAL, true), reconnect_cb, c);
+            else
+                c->mainloop->time_restart(c->reconnect_event, pa_timeval_rtstore(&tv, pa_rtclock_now() + RECONNECT_INTERVAL, true));
+        } else {
+            pa_log("Connection to server %s:%d failed: %s", c->hostname, c->port, pa_cstrerror(errno));
+        }
         return;
     }
     pa_assert(!c->ioline);

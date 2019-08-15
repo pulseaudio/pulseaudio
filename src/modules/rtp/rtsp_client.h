@@ -54,7 +54,7 @@ typedef enum pa_rtsp_status {
 
 typedef void (*pa_rtsp_cb_t)(pa_rtsp_client *c, pa_rtsp_state_t state, pa_rtsp_status_t code, pa_headerlist *headers, void *userdata);
 
-pa_rtsp_client* pa_rtsp_client_new(pa_mainloop_api *mainloop, const char *hostname, uint16_t port, const char *useragent);
+pa_rtsp_client* pa_rtsp_client_new(pa_mainloop_api *mainloop, const char *hostname, uint16_t port, const char *useragent, bool autoreconnect);
 void pa_rtsp_client_free(pa_rtsp_client *c);
 
 int pa_rtsp_connect(pa_rtsp_client *c);

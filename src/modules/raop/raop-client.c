@@ -95,6 +95,7 @@ struct pa_raop_client {
     pa_rtsp_client *rtsp;
     char *sci, *sid;
     char *password;
+    bool autoreconnect;
 
     pa_raop_protocol_t protocol;
     pa_raop_encryption_t encryption;
@@ -1379,8 +1380,39 @@ static void rtsp_auth_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_st
     }
 }
 
+
+void pa_raop_client_disconnect(pa_raop_client *c) {
+    c->is_recording = false;
+
+    if (c->tcp_sfd >= 0)
+        pa_close(c->tcp_sfd);
+    c->tcp_sfd = -1;
+
+    if (c->udp_sfd >= 0)
+        pa_close(c->udp_sfd);
+    c->udp_sfd = -1;
+
+    /* Polling sockets will be closed by sink */
+    c->udp_cfd = c->udp_tfd = -1;
+    c->tcp_sfd = -1;
+
+    pa_log_error("RTSP control channel closed (disconnected)");
+
+    if (c->rtsp)
+        pa_rtsp_client_free(c->rtsp);
+    if (c->sid)
+        pa_xfree(c->sid);
+    c->rtsp = NULL;
+    c->sid = NULL;
+
+    if (c->state_callback)
+        c->state_callback((int) PA_RAOP_DISCONNECTED, c->state_userdata);
+
+}
+
+
 pa_raop_client* pa_raop_client_new(pa_core *core, const char *host, pa_raop_protocol_t protocol,
-                                   pa_raop_encryption_t encryption, pa_raop_codec_t codec) {
+                                   pa_raop_encryption_t encryption, pa_raop_codec_t codec, bool autoreconnect) {
     pa_raop_client *c;
 
     pa_parsed_address a;
@@ -1408,6 +1440,7 @@ pa_raop_client* pa_raop_client_new(pa_core *core, const char *host, pa_raop_prot
     c->rtsp = NULL;
     c->sci = c->sid = NULL;
     c->password = NULL;
+    c->autoreconnect = autoreconnect;
 
     c->protocol = protocol;
     c->encryption = encryption;
@@ -1473,7 +1506,7 @@ int pa_raop_client_authenticate (pa_raop_client *c, const char *password) {
     c->password = NULL;
     if (password)
         c->password = pa_xstrdup(password);
-    c->rtsp = pa_rtsp_client_new(c->core->mainloop, c->host, c->port, DEFAULT_USER_AGENT);
+    c->rtsp = pa_rtsp_client_new(c->core->mainloop, c->host, c->port, DEFAULT_USER_AGENT, c->autoreconnect);
 
     pa_assert(c->rtsp);
 
@@ -1502,7 +1535,7 @@ int pa_raop_client_announce(pa_raop_client *c) {
         return 1;
     }
 
-    c->rtsp = pa_rtsp_client_new(c->core->mainloop, c->host, c->port, DEFAULT_USER_AGENT);
+    c->rtsp = pa_rtsp_client_new(c->core->mainloop, c->host, c->port, DEFAULT_USER_AGENT, c->autoreconnect);
 
     pa_assert(c->rtsp);
 
@@ -1545,7 +1578,6 @@ bool pa_raop_client_can_stream(pa_raop_client *c) {
     pa_assert(c);
 
     if (!c->rtsp || !c->sci) {
-        pa_log_debug("Can't stream, connection not established yet...");
         return false;
     }
 
@@ -1727,6 +1759,10 @@ bool pa_raop_client_register_pollfd(pa_raop_client *c, pa_rtpoll *poll, pa_rtpol
     }
 
     return oob;
+}
+
+bool pa_raop_client_is_timing_fd(pa_raop_client *c, const int fd) {
+    return fd == c->udp_tfd;
 }
 
 pa_volume_t pa_raop_client_adjust_volume(pa_raop_client *c, pa_volume_t volume) {

@@ -62,6 +62,7 @@ static const char* const valid_modargs[] = {
     "username",
     "password",
     "latency_msec",
+    "autoreconnect",
     NULL
 };
 
