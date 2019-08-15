@@ -299,6 +299,20 @@ if not cc.has_header_symbol('netinet/in.h', 'INADDR_NONE')
   endif
 endif
 
+check_decls = [
+  [ 'environ', 'unistd.h', '#define _GNU_SOURCE' ],
+  [ 'SOUND_PCM_READ_RATE', 'sys/soundcard.h', '' ],
+  [ 'SOUND_PCM_READ_CHANNELS', 'sys/soundcard.h', '' ],
+  [ 'SOUND_PCM_READ_BITS', 'sys/soundcard.h', '' ],
+]
+
+foreach s : check_decls
+  if cc.has_header_symbol(s[1], s[0], prefix : s[2])
+    define = 'HAVE_DECL_' + s[0].to_upper()
+    cdata.set(define, 1)
+  endif
+endforeach
+
 # Types
 
 # FIXME: do we ever care about gid_t not being defined / smaller than an int?
