@@ -167,6 +167,10 @@ elif host_machine.system() == 'windows'
 #  cdata.set('__EXTENSIONS__', 1)
 endif
 
+if cc.has_type('_Bool')
+  cdata.set('HAVE_STD_BOOL', 1)
+endif
+
 if host_machine.cpu_family() == 'x86_64' or cc.sizeof('void *') >= 8
   cdata.set('HAVE_FAST_64BIT_OPERATIONS', 1)
 endif
@@ -194,7 +198,9 @@ check_headers = [
   'regex.h',
   'sched.h',
   'stdint.h',
+  'sys/atomic.h',
   'sys/capability.h',
+  'sys/conf.h',
   'sys/dl.h',
   'sys/eventfd.h',
   'sys/filio.h',
@@ -223,6 +229,10 @@ endforeach
 # FIXME: move this to the above set
 if cc.has_header('pthread.h')
   cdata.set('HAVE_PTHREAD', 1)
+endif
+
+if cc.has_header_symbol('pthread.h', 'PTHREAD_PRIO_INHERIT')
+  cdata.set('HAVE_PTHREAD_PRIO_INHERIT', 1)
 endif
 
 # Functions
