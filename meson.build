@@ -439,6 +439,30 @@ else
   libatomic_ops_dep = dependency('', required: false)
 endif
 
+# ARM checks
+# ARMV6 instructions we need
+if host_machine.cpu_family() == 'arm'
+  armv6test = '''void func() {
+    volatile int a = -60000, b = 0xaaaabbbb, c = 0xccccdddd;
+    asm volatile ("ldr r0, %2 \n"
+                  "ldr r2, %3 \n"
+                  "ldr r3, %4 \n"
+                  "ssat r1, #8, r0 \n"
+                  "str r1, %0 \n"
+                  "pkhbt r1, r3, r2, LSL #8 \n"
+                  "str r1, %1 \n"
+                  : "=m" (a), "=m" (b)
+                  : "m" (a), "m" (b), "m" (c)
+                  : "r0", "r1", "r2", "r3", "cc");
+    return (a == -128 && b == 0xaabbdddd) ? 0 : -1;
+  '''
+
+  if cc.compiles(armv6test)
+    cdata.set('HAVE_ARMV6', 1)
+  endif
+endif
+# NEON checks are automatically done by the unstable-simd module
+
 # FIXME: make sure it's >= 2.2
 ltdl_dep = cc.find_library('ltdl', required : true)
 # FIXME: can meson support libtool -dlopen/-dlpreopen things?
