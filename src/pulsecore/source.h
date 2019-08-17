@@ -445,6 +445,7 @@ pa_idxset* pa_source_check_formats(pa_source *s, pa_idxset *in_formats);
 
 void pa_source_set_sample_format(pa_source *s, pa_sample_format_t format);
 void pa_source_set_sample_rate(pa_source *s, uint32_t rate);
+void pa_source_set_channel_map(pa_source *s, pa_channel_map *map);
 
 /*** To be called exclusively by the source driver, from IO context */
 

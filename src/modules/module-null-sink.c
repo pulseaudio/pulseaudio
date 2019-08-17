@@ -169,9 +169,12 @@ static int sink_reconfigure_cb(pa_sink *s, pa_sample_spec *spec, pa_channel_map 
     s->sample_spec = *spec;
 
     if (map)
-        s->channel_map = *map;
-    else
-        pa_channel_map_init_auto(&s->channel_map, spec->channels, PA_CHANNEL_MAP_DEFAULT);
+        pa_sink_set_channel_map(s, map);
+    else {
+        pa_channel_map def_map;
+        pa_channel_map_init_auto(&def_map, spec->channels, PA_CHANNEL_MAP_DEFAULT);
+        pa_sink_set_channel_map(s, &def_map);
+    }
 
     nbytes = pa_usec_to_bytes(u->block_usec, &s->sample_spec);
     pa_sink_set_max_rewind(s, nbytes);

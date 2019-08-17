@@ -3970,6 +3970,29 @@ void pa_sink_set_sample_rate(pa_sink *s, uint32_t rate) {
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
 }
 
+/* Called from the main thread */
+void pa_sink_set_channel_map(pa_sink *s, pa_channel_map *map) {
+    pa_channel_map old_map;
+    char old_map_str[PA_CHANNEL_MAP_SNPRINT_MAX];
+    char new_map_str[PA_CHANNEL_MAP_SNPRINT_MAX];
+
+    pa_assert(s);
+    pa_assert(map);
+    pa_assert(pa_channel_map_valid(map));
+
+    old_map = s->channel_map;
+    if (pa_channel_map_equal(&old_map, map))
+        return;
+
+    pa_log_info("%s: channel map: %s -> %s", s->name,
+            pa_channel_map_snprint(old_map_str, sizeof(old_map_str), &old_map),
+            pa_channel_map_snprint(new_map_str, sizeof(new_map_str), map));
+
+    s->channel_map = *map;
+
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+}
+
 /* Called from the main thread. */
 void pa_sink_set_reference_volume_direct(pa_sink *s, const pa_cvolume *volume) {
     pa_cvolume old_volume;
