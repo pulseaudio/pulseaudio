@@ -388,6 +388,10 @@ static void thread_func(void *userdata) {
                 ssize_t read;
 
                 for (i = 0; i < nbfds; i++) {
+                    if (pollfd->revents & POLLERR) {
+                        /* one of UDP fds is in faulty state, may have been disconnected, this is fatal  */
+                        goto fail;
+                    }
                     if (pollfd->revents & pollfd->events) {
                         pollfd->revents = 0;
                         read = pa_read(pollfd->fd, packet, sizeof(packet), NULL);
@@ -431,7 +435,7 @@ static void thread_func(void *userdata) {
                 /* Just try again. */
                 pa_log_debug("Failed to write data to FIFO (EINTR), retrying");
                 goto fail;
-            } else if (errno != EAGAIN) {
+            } else if (errno != EAGAIN && !u->oob) {
                 /* Buffer is full, wait for POLLOUT. */
                 pollfd->events = POLLOUT;
                 pollfd->revents = 0;
