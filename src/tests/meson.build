@@ -193,7 +193,7 @@ foreach t : default_tests + norun_tests
   if default_tests.contains(t)
     test(name, exe,
       env : test_env,
-      timeout : 120,
+      timeout : 300,
     )
   endif
 endforeach
