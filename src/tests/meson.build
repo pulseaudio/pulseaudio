@@ -5,6 +5,17 @@
 #   test name, sources, deps, [extra libs, extra flags]
 #
 
+# Test utility library
+libtest_util = shared_library('test-util',
+  ['test-util.c'],
+  ['test-util.h'],
+  c_args : [pa_c_args, server_c_args],
+  link_args : [nodelete_link_args],
+  include_directories : [configinc, topinc],
+  dependencies : [libpulse_dep, libpulsecommon_dep],
+  install : false,
+)
+
 # Default tests
 
 default_tests = [
@@ -205,6 +216,12 @@ endforeach
 daemon_tests = [
   [ 'extended-test', 'extended-test.c',
     [ check_dep, libm_dep, libpulse_dep ] ],
+  [ 'passthrough-test', 'passthrough-test.c',
+    [ check_dep, libm_dep, libpulse_dep, libpulsecommon_dep],
+    libtest_util ],
+  [ 'reconfigure-test', 'reconfigure-test.c',
+    [ check_dep, libm_dep, libpulse_dep, libpulsecommon_dep],
+    libtest_util ],
   [ 'sync-playback', 'sync-playback.c',
     [ check_dep, libm_dep, libpulse_dep ] ],
 ]
@@ -223,6 +240,7 @@ foreach t : daemon_tests + daemon_tests_long
   name = t[0]
   sources = t[1]
   deps = t[2]
+  extra_libs = t.get(3, [])
 
   if daemon_tests.contains(t)
     daemon_test_names += name
@@ -234,6 +252,7 @@ foreach t : daemon_tests + daemon_tests_long
     c_args : pa_c_args,
     include_directories : [ configinc, topinc ],
     dependencies : deps,
+    link_with : extra_libs,
   )
 endforeach
 
