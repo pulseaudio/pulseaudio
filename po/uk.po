@@ -7,15 +7,15 @@ msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/iss"
 "ues\n"
-"POT-Creation-Date: 2019-03-25 08:46+0000\n"
-"PO-Revision-Date: 2019-04-29 18:35+0300\n"
+"POT-Creation-Date: 2019-07-16 15:29+0000\n"
+"PO-Revision-Date: 2019-08-19 11:14+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
 "Language: uk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 19.03.70\n"
+"X-Generator: Lokalize 19.11.70\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<"
 "=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
@@ -569,11 +569,21 @@ msgstr "Спроба виконання pa_pid_file_create() зазнала не
 msgid "pa_core_new() failed."
 msgstr "Спроба виконання pa_core_new() зазнала невдачі."
 
-#: src/daemon/main.c:1109
-msgid "Failed to initialize daemon."
-msgstr "Не вдалося ініціалізувати фонову службу."
+#: src/daemon/main.c:1108
+#| msgid "Too many arguments."
+msgid "command line arguments"
+msgstr "аргументи командного рядка"
 
-#: src/daemon/main.c:1114
+#: src/daemon/main.c:1115
+#, c-format
+msgid ""
+"Failed to initialize daemon due to errors while executing startup commands. "
+"Source of commands: %s"
+msgstr ""
+"Не вдалося ініціалізувати фонову службу через помилки під час виконання"
+" команд запуску. Джерело команд: %s"
+
+#: src/daemon/main.c:1120
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 "Запуск фонової служби без жодного завантаженого модуля, служба не буде "
@@ -608,7 +618,7 @@ msgid "Line In"
 msgstr "Лінійний вхід"
 
 #: src/modules/alsa/alsa-mixer.c:2448 src/modules/alsa/alsa-mixer.c:2526
-#: src/modules/bluetooth/module-bluez5-device.c:1909
+#: src/modules/bluetooth/module-bluez5-device.c:1731
 msgid "Microphone"
 msgstr "Мікрофон"
 
@@ -669,7 +679,7 @@ msgid "No Bass Boost"
 msgstr "Без підсилення"
 
 #: src/modules/alsa/alsa-mixer.c:2463
-#: src/modules/bluetooth/module-bluez5-device.c:1916
+#: src/modules/bluetooth/module-bluez5-device.c:1738
 msgid "Speaker"
 msgstr "Гучномовець"
 
@@ -864,8 +874,8 @@ msgstr "Багатоканальний двобічний"
 msgid "Stereo Duplex"
 msgstr "Двобічне стерео"
 
-#: src/modules/alsa/alsa-mixer.c:4231 src/modules/alsa/module-alsa-card.c:187
-#: src/modules/bluetooth/module-bluez5-device.c:2164
+#: src/modules/alsa/alsa-mixer.c:4231 src/modules/alsa/module-alsa-card.c:189
+#: src/modules/bluetooth/module-bluez5-device.c:1986
 msgid "Off"
 msgstr "Вимкнено"
 
@@ -954,8 +964,8 @@ msgid_plural ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr[0] ""
-"Функція snd_pcm_delay() повернула винятково велике значення: %li байт (%s"
-"%lu мс).\n"
+"Функція snd_pcm_delay() повернула винятково велике значення: %li байт (%s%lu "
+"мс).\n"
 "Ймовірно, ви натрапили на ваду у драйвері ALSA «%s». Будь ласка, повідомте "
 "про цю ваду розробникам ALSA."
 msgstr[1] ""
@@ -1010,60 +1020,60 @@ msgstr[2] ""
 "Ймовірно, ви натрапили на ваду у драйвері ALSA «%s». Будь ласка, повідомте "
 "про цю ваду розробникам ALSA."
 
-#: src/modules/bluetooth/module-bluez5-device.c:1893
-#: src/modules/bluetooth/module-bluez5-device.c:1915
-#: src/modules/bluetooth/module-bluez5-device.c:1921
-#: src/modules/bluetooth/module-bluez5-device.c:1947
+#: src/modules/bluetooth/module-bluez5-device.c:1715
+#: src/modules/bluetooth/module-bluez5-device.c:1737
+#: src/modules/bluetooth/module-bluez5-device.c:1743
+#: src/modules/bluetooth/module-bluez5-device.c:1769
 msgid "Bluetooth Input"
 msgstr "Bluetooth (вхід)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1894
-#: src/modules/bluetooth/module-bluez5-device.c:1910
-#: src/modules/bluetooth/module-bluez5-device.c:1948
+#: src/modules/bluetooth/module-bluez5-device.c:1716
+#: src/modules/bluetooth/module-bluez5-device.c:1732
+#: src/modules/bluetooth/module-bluez5-device.c:1770
 msgid "Bluetooth Output"
 msgstr "Bluetooth (відтворення)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1899
+#: src/modules/bluetooth/module-bluez5-device.c:1721
 msgid "Headset"
 msgstr "Гарнітура"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1904
+#: src/modules/bluetooth/module-bluez5-device.c:1726
 msgid "Handsfree"
 msgstr "Пристрій гучного зв’язку"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1922
+#: src/modules/bluetooth/module-bluez5-device.c:1744
 msgid "Headphone"
 msgstr "Навушники"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1927
+#: src/modules/bluetooth/module-bluez5-device.c:1749
 msgid "Portable"
 msgstr "Портативна система"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1932
+#: src/modules/bluetooth/module-bluez5-device.c:1754
 msgid "Car"
 msgstr "Автомобільна система"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1937
+#: src/modules/bluetooth/module-bluez5-device.c:1759
 msgid "HiFi"
 msgstr "HiFi"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1942
+#: src/modules/bluetooth/module-bluez5-device.c:1764
 msgid "Phone"
 msgstr "Телефон"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1989
+#: src/modules/bluetooth/module-bluez5-device.c:1811
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "Високоточне відтворення (приймач A2DP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:2001
+#: src/modules/bluetooth/module-bluez5-device.c:1823
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "Високоточне захоплення (джерело A2DP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:2013
+#: src/modules/bluetooth/module-bluez5-device.c:1835
 msgid "Headset Head Unit (HSP/HFP)"
 msgstr "Головний модуль гарнітури (HSP/HFP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:2026
+#: src/modules/bluetooth/module-bluez5-device.c:1848
 msgid "Headset Audio Gateway (HSP/HFP)"
 msgstr "Звуковий шлюз гарнітури (HSP/HFP)"
 
@@ -1171,11 +1181,11 @@ msgstr ""
 msgid "Clocked NULL sink"
 msgstr "NULL-приймач з годинником"
 
-#: src/modules/module-null-sink.c:322
+#: src/modules/module-null-sink.c:333
 msgid "Null Output"
 msgstr "Нуль-відтворення"
 
-#: src/modules/module-null-sink.c:334 src/utils/pactl.c:1058
+#: src/modules/module-null-sink.c:345 src/utils/pactl.c:1058
 #, c-format
 msgid "Failed to set format: invalid format string %s"
 msgstr "Не вдалося встановити формат: некоректний рядок формату %s"
@@ -1554,11 +1564,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "Некоректна адреса файла журналу."
 
-#: src/pulsecore/sink.c:3511
+#: src/pulsecore/sink.c:3516
 msgid "Built-in Audio"
 msgstr "Вбудоване аудіо"
 
-#: src/pulsecore/sink.c:3516
+#: src/pulsecore/sink.c:3521
 msgid "Modem"
 msgstr "Модем"
 
@@ -3139,8 +3149,18 @@ msgstr ""
 
 #: src/utils/pasuspender.c:228
 #, c-format
+#| msgid ""
+#| "%s [options] ... \n"
+#| "\n"
+#| "  -h, --help                            Show this help\n"
+#| "      --version                         Show version\n"
+#| "  -s, --server=SERVER                   The name of the server to connect "
+#| "to\n"
+#| "\n"
 msgid ""
-"%s [options] ... \n"
+"%s [options] -- PROGRAM [ARGUMENTS ...]\n"
+"\n"
+"Temporarily suspend PulseAudio while PROGRAM runs.\n"
 "\n"
 "  -h, --help                            Show this help\n"
 "      --version                         Show version\n"
@@ -3148,7 +3168,9 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
-"%s [параметри] ... \n"
+"%s [параметри] -- ПРОГРАМА [АРГУМЕНТИ ...]\n"
+"\n"
+"Тимчасово призупинити роботу PulseAudio, доки працює ПРОГРАМА.\n"
 "\n"
 "  -h, --help                            Показати цю довідку\n"
 "      --version                         Показати відомості щодо версії\n"
@@ -3156,7 +3178,7 @@ msgstr ""
 "з’єднатися\n"
 "\n"
 
-#: src/utils/pasuspender.c:266
+#: src/utils/pasuspender.c:267
 #, c-format
 msgid ""
 "pasuspender %s\n"
@@ -3167,17 +3189,17 @@ msgstr ""
 "Зібрано з libpulse %s\n"
 "З’єднано з libpulse %s\n"
 
-#: src/utils/pasuspender.c:295
+#: src/utils/pasuspender.c:296
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
 msgstr "Спроба виконання pa_mainloop_new() завершилася невдало.\n"
 
-#: src/utils/pasuspender.c:308
+#: src/utils/pasuspender.c:309
 #, c-format
 msgid "pa_context_new() failed.\n"
 msgstr "Спроба виконання pa_context_new() завершилася невдало.\n"
 
-#: src/utils/pasuspender.c:320
+#: src/utils/pasuspender.c:321
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
 msgstr "Спроба виконання pa_mainloop_run() завершилася невдало.\n"
@@ -3252,4 +3274,3 @@ msgstr "Не вдалося завантажити дані куки\n"
 #, c-format
 msgid "Not yet implemented.\n"
 msgstr "Ще не реалізовано.\n"
-
