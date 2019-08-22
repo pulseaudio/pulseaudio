@@ -674,6 +674,17 @@ endif
 
 check_dep = dependency('check', version : '>= 0.9.10', required : get_option('tests'))
 
+# Subdirs
+
+subdir('po')
+if get_option('man')
+  subdir('man')
+endif
+subdir('shell-completion/bash')
+subdir('shell-completion/zsh')
+subdir('src')
+subdir('vala')
+
 # Now generate config.h from everything above
 configure_file(output : 'config.h', configuration : cdata)
 
@@ -740,17 +751,6 @@ configure_file(
   install : true,
   install_dir : cmakedir,
 )
-
-# Subdirs
-
-subdir('po')
-if get_option('man')
-  subdir('man')
-endif
-subdir('shell-completion/bash')
-subdir('shell-completion/zsh')
-subdir('src')
-subdir('vala')
 
 ############################################################
 
