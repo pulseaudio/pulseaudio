@@ -430,19 +430,21 @@ elif host_machine.cpu_family() == 'arm'
   if host_machine.system() == 'linux' and get_option('atomic-arm-linux-helpers')
     cdata.set('ATOMIC_ARM_LINUX_HELPERS', 1)
   else
-    armatomictest = '''void func() {
+    armatomictest = '''int func() {
       volatile int a=0;
       int o=0, n=1, r;
-      asm volatile ("ldrex    %0, [%1]\n"
-      "subs  %0, %0, %2\n"
-      "strexeq %0, %3, [%1]\n"
-      : "=&r" (r)
-      : "r" (&a), "Ir" (o), "r" (n)
+      asm volatile (
+	      "ldrex    %0, [%1]\n"
+	      "subs  %0, %0, %2\n"
+	      "strexeq %0, %3, [%1]\n"
+	      : "=&r" (r)
+	      : "r" (&a), "Ir" (o), "r" (n)
       : "cc");
       return (a==1 ? 0 : -1);
+    }
     '''
 
-    if cc.compiles(aratomictest)
+    if cc.compiles(armatomictest)
       cdata.set('ATOMIC_ARM_INLINE_ASM', 1)
     else
       need_libatomic_ops = true
@@ -470,7 +472,7 @@ endif
 # ARM checks
 # ARMV6 instructions we need
 if host_machine.cpu_family() == 'arm'
-  armv6test = '''void func() {
+  armv6test = '''int func() {
     volatile int a = -60000, b = 0xaaaabbbb, c = 0xccccdddd;
     asm volatile ("ldr r0, %2 \n"
                   "ldr r2, %3 \n"
@@ -483,6 +485,7 @@ if host_machine.cpu_family() == 'arm'
                   : "m" (a), "m" (b), "m" (c)
                   : "r0", "r1", "r2", "r3", "cc");
     return (a == -128 && b == 0xaabbdddd) ? 0 : -1;
+  }
   '''
 
   if cc.compiles(armv6test)
