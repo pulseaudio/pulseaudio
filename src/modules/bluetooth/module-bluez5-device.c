@@ -1378,7 +1378,7 @@ static void thread_func(void *userdata) {
             if (have_source) {
 
                 /* We should send two blocks to the device before we expect a response. */
-                if (u->write_index == 0 && u->read_index <= 0)
+                if (have_sink && u->write_index == 0 && u->read_index <= 0)
                     blocks_to_write = 2;
 
                 /* If we got woken up by POLLIN let's do some reading */
@@ -1393,7 +1393,7 @@ static void thread_func(void *userdata) {
                     if (n_read < 0)
                         goto fail;
 
-                    if (n_read > 0) {
+                    if (have_sink && n_read > 0) {
                         /* We just read something, so we are supposed to write something, too */
                         bytes_to_write += n_read;
                         blocks_to_write += bytes_to_write / u->write_block_size;
