@@ -23,7 +23,10 @@ if [ x"$DISPLAY" != x ] ; then
     @PACTL_BINARY@ load-module module-x11-cork-request "display=$DISPLAY" > /dev/null
 
     if [ x"$KDE_FULL_SESSION" = x"true" ]; then
-       @PACTL_BINARY@ load-module module-device-manager "do_routing=1" > /dev/null
+        plasmaversion=`grep "X-KDE-PluginInfo-Version" $DESKTOP_SESSION.desktop | cut -d "=" -f2 | cut -d "." -f1,2 | tr -d "."`
+        if [ "$plasmaversion" -lt "517" ]; then
+            @PACTL_BINARY@ load-module module-device-manager "do_routing=1" > /dev/null
+        fi
     fi
 
     if [ x"$SESSION_MANAGER" != x ] ; then
