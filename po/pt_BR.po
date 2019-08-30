@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/issues\n"
-"POT-Creation-Date: 2019-05-14 15:29+0000\n"
-"PO-Revision-Date: 2019-05-14 19:07-0300\n"
+"POT-Creation-Date: 2019-08-30 03:28+0000\n"
+"PO-Revision-Date: 2019-08-30 08:56-0300\n"
 "Last-Translator: Rafael Fontenelle <rafaelff@gnome.org>\n"
 "Language-Team: Brazilian Portuguese <gnome-pt_br-list@gnome.org>\n"
 "Language: pt_BR\n"
@@ -501,11 +501,16 @@ msgstr "pa_pid_file_create() falhou."
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() falhou."
 
-#: src/daemon/main.c:1109
-msgid "Failed to initialize daemon."
-msgstr "Falha em iniciar o daemon."
+#: src/daemon/main.c:1108
+msgid "command line arguments"
+msgstr "argumentos de linha de comando"
 
-#: src/daemon/main.c:1114
+#: src/daemon/main.c:1115
+#, c-format
+msgid "Failed to initialize daemon due to errors while executing startup commands. Source of commands: %s"
+msgstr "Falha ao inicializar o daemon devido a erros ao executar comandos de inicialização. Fonte dos comandos: %s"
+
+#: src/daemon/main.c:1120
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "O Daemon iniciou sem qualquer módulo carregado, recusando-se a trabalhar."
 
@@ -538,7 +543,7 @@ msgid "Line In"
 msgstr "Entrada de linha"
 
 #: src/modules/alsa/alsa-mixer.c:2448 src/modules/alsa/alsa-mixer.c:2526
-#: src/modules/bluetooth/module-bluez5-device.c:1709
+#: src/modules/bluetooth/module-bluez5-device.c:1757
 msgid "Microphone"
 msgstr "Microfone"
 
@@ -605,13 +610,13 @@ msgid "No Bass Boost"
 msgstr "Sem reforço de graves"
 
 #: src/modules/alsa/alsa-mixer.c:2463
-#: src/modules/bluetooth/module-bluez5-device.c:1716
+#: src/modules/bluetooth/module-bluez5-device.c:1764
 msgid "Speaker"
 msgstr "Auto-falante"
 
 #: src/modules/alsa/alsa-mixer.c:2464 src/modules/alsa/alsa-mixer.c:2536
 msgid "Headphones"
-msgstr "Fones de ouvidos"
+msgstr "Fones de ouvido"
 
 #: src/modules/alsa/alsa-mixer.c:2525
 msgid "Analog Input"
@@ -631,7 +636,7 @@ msgstr "Saída analógica"
 
 #: src/modules/alsa/alsa-mixer.c:2537
 msgid "Headphones Mono Output"
-msgstr "Saída analógica fones de ouvidos"
+msgstr "Saída analógica fones de ouvido"
 
 #: src/modules/alsa/alsa-mixer.c:2538
 msgid "LFE on Separate Mono Output"
@@ -800,8 +805,8 @@ msgstr "Duplex multicanal"
 msgid "Stereo Duplex"
 msgstr "Duplex estéreo"
 
-#: src/modules/alsa/alsa-mixer.c:4231 src/modules/alsa/module-alsa-card.c:187
-#: src/modules/bluetooth/module-bluez5-device.c:1964
+#: src/modules/alsa/alsa-mixer.c:4231 src/modules/alsa/module-alsa-card.c:189
+#: src/modules/bluetooth/module-bluez5-device.c:2012
 msgid "Off"
 msgstr "Desligado"
 
@@ -891,62 +896,62 @@ msgstr[1] ""
 "snd_pcm_mmap_begin() retornou um valor que é excepcionalmente grande: %lu bytes (%lu ms).\n"
 "É mais provável que isso seja um erro no driver “%s” do ALSA. Por favor, relate esse problema aos desenvolvedores do ALSA."
 
-#: src/modules/bluetooth/module-bluez5-device.c:1693
-#: src/modules/bluetooth/module-bluez5-device.c:1715
-#: src/modules/bluetooth/module-bluez5-device.c:1721
-#: src/modules/bluetooth/module-bluez5-device.c:1747
+#: src/modules/bluetooth/module-bluez5-device.c:1741
+#: src/modules/bluetooth/module-bluez5-device.c:1763
+#: src/modules/bluetooth/module-bluez5-device.c:1769
+#: src/modules/bluetooth/module-bluez5-device.c:1795
 msgid "Bluetooth Input"
 msgstr "Entrada Bluetooth"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1694
-#: src/modules/bluetooth/module-bluez5-device.c:1710
-#: src/modules/bluetooth/module-bluez5-device.c:1748
+#: src/modules/bluetooth/module-bluez5-device.c:1742
+#: src/modules/bluetooth/module-bluez5-device.c:1758
+#: src/modules/bluetooth/module-bluez5-device.c:1796
 msgid "Bluetooth Output"
 msgstr "Saída Bluetooth"
 
 # Fone de ouvido não se encaixa como tradução aqui, pois há ou pode haver microfone junto.
-#: src/modules/bluetooth/module-bluez5-device.c:1699
+#: src/modules/bluetooth/module-bluez5-device.c:1747
 msgid "Headset"
 msgstr "Headset"
 
 # Desconheço tradução comum para esta palavra.
-#: src/modules/bluetooth/module-bluez5-device.c:1704
+#: src/modules/bluetooth/module-bluez5-device.c:1752
 msgid "Handsfree"
 msgstr "Handsfree"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1722
+#: src/modules/bluetooth/module-bluez5-device.c:1770
 msgid "Headphone"
 msgstr "Fones de ouvido"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1727
+#: src/modules/bluetooth/module-bluez5-device.c:1775
 msgid "Portable"
 msgstr "Portátil"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1732
+#: src/modules/bluetooth/module-bluez5-device.c:1780
 msgid "Car"
 msgstr "Carro"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1737
+#: src/modules/bluetooth/module-bluez5-device.c:1785
 msgid "HiFi"
 msgstr "HiFi"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1742
+#: src/modules/bluetooth/module-bluez5-device.c:1790
 msgid "Phone"
 msgstr "Telefone"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1789
+#: src/modules/bluetooth/module-bluez5-device.c:1837
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "Reprodução de alta fidelidade (Destino A2DP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1801
+#: src/modules/bluetooth/module-bluez5-device.c:1849
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "Captura de alta fidelidade (Fonte A2DP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1813
+#: src/modules/bluetooth/module-bluez5-device.c:1861
 msgid "Headset Head Unit (HSP/HFP)"
 msgstr "Unidade de headset (HSP/HFP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1826
+#: src/modules/bluetooth/module-bluez5-device.c:1874
 msgid "Headset Audio Gateway (HSP/HFP)"
 msgstr "Gateway de Áudio do Headset (HSP/HFP)"
 
@@ -1002,11 +1007,11 @@ msgstr "sink_name=<nome do destino> sink_properties=<propriedades do destino> si
 msgid "Clocked NULL sink"
 msgstr "Destino nulo temporizado"
 
-#: src/modules/module-null-sink.c:322
+#: src/modules/module-null-sink.c:333
 msgid "Null Output"
 msgstr "Saída nula"
 
-#: src/modules/module-null-sink.c:334 src/utils/pactl.c:1058
+#: src/modules/module-null-sink.c:345 src/utils/pactl.c:1058
 #, c-format
 msgid "Failed to set format: invalid format string %s"
 msgstr "Falha ao definir formato: string %s de formato inválida"
@@ -1053,7 +1058,7 @@ msgstr "sink_name=<nome do destino> sink_properties=<propriedades do destino> ma
 msgid "Unknown device model"
 msgstr "Modelo desconhecido de dispositivo"
 
-#: src/modules/raop/raop-sink.c:507
+#: src/modules/raop/raop-sink.c:511
 msgid "RAOP standard profile"
 msgstr "Perfil padrão RAOP"
 
@@ -1287,15 +1292,15 @@ msgstr "Surround 5.1"
 msgid "Surround 7.1"
 msgstr "Surround 7.1"
 
-#: src/pulse/client-conf-x11.c:53 src/utils/pax11publish.c:97
+#: src/pulse/client-conf-x11.c:61 src/utils/pax11publish.c:97
 msgid "xcb_connect() failed"
 msgstr "xcb_connect() falhou"
 
-#: src/pulse/client-conf-x11.c:58 src/utils/pax11publish.c:102
+#: src/pulse/client-conf-x11.c:66 src/utils/pax11publish.c:102
 msgid "xcb_connection_has_error() returned true"
 msgstr "xcb_connection_has_error() retornou verdadeiro"
 
-#: src/pulse/client-conf-x11.c:94
+#: src/pulse/client-conf-x11.c:102
 msgid "Failed to parse cookie data"
 msgstr "Falha ao analisar os dados do cookie"
 
@@ -1361,11 +1366,11 @@ msgstr "Tentado abrir arquivo alvo “%s”, “%s.1”, “%s.2” ... “%s.%d
 msgid "Invalid log target."
 msgstr "Alvo do log inválido."
 
-#: src/pulsecore/sink.c:3511
+#: src/pulsecore/sink.c:3516
 msgid "Built-in Audio"
 msgstr "Áudio interno"
 
-#: src/pulsecore/sink.c:3516
+#: src/pulsecore/sink.c:3521
 msgid "Modem"
 msgstr "Modem"
 
@@ -2846,21 +2851,25 @@ msgstr "AVISO: O processo filho terminou pelo sinal %u\n"
 #: src/utils/pasuspender.c:228
 #, c-format
 msgid ""
-"%s [options] ... \n"
+"%s [options] -- PROGRAM [ARGUMENTS ...]\n"
+"\n"
+"Temporarily suspend PulseAudio while PROGRAM runs.\n"
 "\n"
 "  -h, --help                            Show this help\n"
 "      --version                         Show version\n"
 "  -s, --server=SERVER                   The name of the server to connect to\n"
 "\n"
 msgstr ""
-"%s [opções] ... \n"
+"%s [opções] -- PROGRAMA [ARGUMENTOS ... ]\n"
+"\n"
+"Suspende temporariamente o PulseAudio enquanto o PROGRAMA é executado\n"
 "\n"
 "  -h, --help                            Mostra esta ajuda\n"
 "      --version                         Mostra a versão\n"
 "  -s, --server=SERVIDOR                 Nome do servidor a ser conectado\n"
 "\n"
 
-#: src/utils/pasuspender.c:266
+#: src/utils/pasuspender.c:267
 #, c-format
 msgid ""
 "pasuspender %s\n"
@@ -2871,17 +2880,17 @@ msgstr ""
 "Compilado com libpulse %s\n"
 "Vinculado com libpulse %s\n"
 
-#: src/utils/pasuspender.c:295
+#: src/utils/pasuspender.c:296
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
 msgstr "pa_mainloop_new() falhou.\n"
 
-#: src/utils/pasuspender.c:308
+#: src/utils/pasuspender.c:309
 #, c-format
 msgid "pa_context_new() failed.\n"
 msgstr "pa_context_new() falhou.\n"
 
-#: src/utils/pasuspender.c:320
+#: src/utils/pasuspender.c:321
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
 msgstr "pa_mainloop_run() falhou.\n"
@@ -2953,6 +2962,9 @@ msgstr "Falha ao carregar os dados do cookie\n"
 #, c-format
 msgid "Not yet implemented.\n"
 msgstr "Não implementado ainda.\n"
+
+#~ msgid "Failed to initialize daemon."
+#~ msgstr "Falha em iniciar o daemon."
 
 #~ msgid ""
 #~ "ALSA woke us up to write new data to the device, but there was actually nothing to write!\n"
