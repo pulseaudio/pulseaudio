@@ -62,6 +62,10 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
   </options>
 
   <section name="Commands">
+    <p>
+        When supplied as arguments to the commands below, the special names \@DEFAULT_SINK@, \@DEFAULT_SOURCE@ and \@DEFAULT_MONITOR@ 
+        can be used to specify the default sink, source and monitor respectively.
+    </p>
 
     <option>
       <p><opt>stat</opt></p>
