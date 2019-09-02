@@ -45,15 +45,15 @@ AC_SUBST(PA_API_VERSION, 12)
 AC_SUBST(PA_PROTOCOL_VERSION, 33)
 
 # The stable ABI for client applications, for the version info x:y:z
-# always will hold y=z
+# always will hold x=z
 AC_SUBST(LIBPULSE_VERSION_INFO, [21:1:21])
 
 # A simplified, synchronous, ABI-stable interface for client
-# applications, for the version info x:y:z always will hold y=z
+# applications, for the version info x:y:z always will hold x=z
 AC_SUBST(LIBPULSE_SIMPLE_VERSION_INFO, [1:1:1])
 
 # The ABI-stable GLib adapter for client applications, for the version
-# info x:y:z always will hold y=z
+# info x:y:z always will hold x=z
 AC_SUBST(LIBPULSE_MAINLOOP_GLIB_VERSION_INFO, [0:5:0])
 
 AC_CANONICAL_HOST
