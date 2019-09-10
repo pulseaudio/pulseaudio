@@ -621,6 +621,25 @@ static DBusHandlerResult profile_handler(DBusConnection *c, DBusMessage *m, void
     return DBUS_HANDLER_RESULT_HANDLED;
 }
 
+static pa_hook_result_t adapter_uuids_changed_cb(pa_bluetooth_discovery *y, const pa_bluetooth_adapter *a, pa_bluetooth_backend *b) {
+    pa_assert(a);
+    pa_assert(b);
+
+    if (profile_status_get(b->discovery, PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT) <= PA_BLUETOOTH_PROFILE_STATUS_INACTIVE &&
+        profile_status_get(b->discovery, PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY) <= PA_BLUETOOTH_PROFILE_STATUS_INACTIVE)
+        return PA_HOOK_OK;
+
+    if (profile_status_get(b->discovery, PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT) == PA_BLUETOOTH_PROFILE_STATUS_ACTIVE &&
+        !pa_hashmap_get(a->uuids, PA_BLUETOOTH_UUID_HSP_AG))
+        register_profile(b, HSP_AG_PROFILE, PA_BLUETOOTH_UUID_HSP_AG, PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT);
+
+    if (profile_status_get(b->discovery, PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY) == PA_BLUETOOTH_PROFILE_STATUS_ACTIVE &&
+        !pa_hashmap_get(a->uuids, PA_BLUETOOTH_UUID_HSP_HS))
+        register_profile(b, HSP_HS_PROFILE, PA_BLUETOOTH_UUID_HSP_HS, PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY);
+
+    return PA_HOOK_OK;
+}
+
 static void profile_init(pa_bluetooth_backend *b, pa_bluetooth_profile_t profile) {
     static const DBusObjectPathVTable vtable_profile = {
         .message_function = profile_handler,
@@ -700,6 +719,9 @@ pa_bluetooth_backend *pa_bluetooth_native_backend_new(pa_core *c, pa_bluetooth_d
 
     backend->discovery = y;
     backend->enable_hs_role = enable_hs_role;
+
+    pa_hook_connect(pa_bluetooth_discovery_hook(y, PA_BLUETOOTH_HOOK_ADAPTER_UUIDS_CHANGED), PA_HOOK_NORMAL,
+                    (pa_hook_cb_t) adapter_uuids_changed_cb, backend);
 
     if (enable_hs_role)
        profile_init(backend, PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY);
