@@ -484,16 +484,16 @@ static void register_profile_reply(DBusPendingCall *pending, void *userdata) {
     DBusMessage *r;
     pa_dbus_pending *p;
     pa_bluetooth_backend *b;
-    char *object;
+    pa_bluetooth_profile_t profile;
 
     pa_assert(pending);
     pa_assert_se(p = userdata);
     pa_assert_se(b = p->context_data);
-    pa_assert_se(object = p->call_data);
+    pa_assert_se(profile = (pa_bluetooth_profile_t)p->call_data);
     pa_assert_se(r = dbus_pending_call_steal_reply(pending));
 
     if (dbus_message_is_error(r, BLUEZ_ERROR_NOT_SUPPORTED)) {
-        pa_log_info("Couldn't register object %s because this UUID is disabled in BlueZ", object);
+        pa_log_info("Couldn't register profile %s because it is disabled in BlueZ", pa_bluetooth_profile_to_string(profile));
         goto finish;
     }
 
@@ -508,17 +508,15 @@ finish:
 
     PA_LLIST_REMOVE(pa_dbus_pending, b->pending, p);
     pa_dbus_pending_free(p);
-
-    pa_xfree(object);
 }
 
-static void register_profile(pa_bluetooth_backend *b, const char *object, const char *uuid) {
+static void register_profile(pa_bluetooth_backend *b, const char *object, const char *uuid, pa_bluetooth_profile_t profile) {
     DBusMessage *m;
     DBusMessageIter i, d;
     dbus_bool_t autoconnect;
     dbus_uint16_t version, chan;
 
-    pa_log_debug("Registering Profile %s %s", object, uuid);
+    pa_log_debug("Registering Profile %s %s", pa_bluetooth_profile_to_string(profile), uuid);
 
     pa_assert_se(m = dbus_message_new_method_call(BLUEZ_SERVICE, "/org/bluez", BLUEZ_PROFILE_MANAGER_INTERFACE, "RegisterProfile"));
 
@@ -543,7 +541,7 @@ static void register_profile(pa_bluetooth_backend *b, const char *object, const 
     }
     dbus_message_iter_close_container(&i, &d);
 
-    send_and_add_to_pending(b, m, register_profile_reply, pa_xstrdup(object));
+    send_and_add_to_pending(b, m, register_profile_reply, (void *)profile);
 }
 
 static void transport_put(pa_bluetooth_transport *t)
@@ -1004,7 +1002,7 @@ static void profile_init(pa_bluetooth_backend *b, pa_bluetooth_profile_t profile
     }
 
     pa_assert_se(dbus_connection_register_object_path(pa_dbus_connection_get(b->connection), object_name, &vtable_profile, b));
-    register_profile(b, object_name, uuid);
+    register_profile(b, object_name, uuid, profile);
 }
 
 static void profile_done(pa_bluetooth_backend *b, pa_bluetooth_profile_t profile) {
