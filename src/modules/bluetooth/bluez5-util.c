@@ -139,6 +139,7 @@ struct pa_bluetooth_discovery {
     pa_hashmap *adapters;
     pa_hashmap *devices;
     pa_hashmap *transports;
+    pa_bluetooth_profile_status_t profiles_status[PA_BLUETOOTH_PROFILE_COUNT];
 
     int headset_backend;
     pa_bluetooth_backend *ofono_backend, *native_backend;
@@ -188,6 +189,14 @@ static const char *check_variant_property(DBusMessageIter *i) {
     }
 
     return key;
+}
+
+pa_bluetooth_profile_status_t profile_status_get(pa_bluetooth_discovery *y, pa_bluetooth_profile_t profile) {
+    return y->profiles_status[profile];
+}
+
+void profile_status_set(pa_bluetooth_discovery *y, pa_bluetooth_profile_t profile, pa_bluetooth_profile_status_t status) {
+    y->profiles_status[profile] = status;
 }
 
 pa_bluetooth_transport *pa_bluetooth_transport_new(pa_bluetooth_device *d, const char *owner, const char *path,
