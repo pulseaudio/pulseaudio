@@ -41,6 +41,7 @@ struct pa_bluetooth_backend {
   pa_core *core;
   pa_dbus_connection *connection;
   pa_bluetooth_discovery *discovery;
+  pa_hook_slot *adapter_uuids_changed_slot;
   bool enable_shared_profiles;
   bool enable_hsp_hs;
   bool enable_hfp_hf;
@@ -1067,6 +1068,26 @@ static DBusHandlerResult profile_handler(DBusConnection *c, DBusMessage *m, void
     return DBUS_HANDLER_RESULT_HANDLED;
 }
 
+static pa_hook_result_t adapter_uuids_changed_cb(pa_bluetooth_discovery *y, const pa_bluetooth_adapter *a, pa_bluetooth_backend *b) {
+    pa_assert(y);
+    pa_assert(a);
+    pa_assert(b);
+
+    if (profile_status_get(y, PA_BLUETOOTH_PROFILE_HSP_HS) == PA_BLUETOOTH_PROFILE_STATUS_ACTIVE &&
+        !pa_hashmap_get(a->uuids, PA_BLUETOOTH_UUID_HSP_AG))
+        register_profile(b, HSP_AG_PROFILE, PA_BLUETOOTH_UUID_HSP_AG, PA_BLUETOOTH_PROFILE_HSP_HS);
+
+    if (profile_status_get(y, PA_BLUETOOTH_PROFILE_HSP_AG) == PA_BLUETOOTH_PROFILE_STATUS_ACTIVE &&
+        !pa_hashmap_get(a->uuids, PA_BLUETOOTH_UUID_HSP_HS))
+        register_profile(b, HSP_HS_PROFILE, PA_BLUETOOTH_UUID_HSP_HS, PA_BLUETOOTH_PROFILE_HSP_AG);
+
+    if (profile_status_get(y, PA_BLUETOOTH_PROFILE_HFP_HF) == PA_BLUETOOTH_PROFILE_STATUS_ACTIVE &&
+        !pa_hashmap_get(a->uuids, PA_BLUETOOTH_UUID_HFP_AG))
+        register_profile(b, HFP_AG_PROFILE, PA_BLUETOOTH_UUID_HFP_AG, PA_BLUETOOTH_PROFILE_HFP_HF);
+
+    return PA_HOOK_OK;
+}
+
 static void profile_init(pa_bluetooth_backend *b, pa_bluetooth_profile_t profile) {
     static const DBusObjectPathVTable vtable_profile = {
         .message_function = profile_handler,
@@ -1165,6 +1186,10 @@ pa_bluetooth_backend *pa_bluetooth_native_backend_new(pa_core *c, pa_bluetooth_d
     backend->enable_hfp_hf = pa_bluetooth_discovery_get_enable_native_hfp_hf(y);
     backend->enable_hsp_hs = pa_bluetooth_discovery_get_enable_native_hsp_hs(y);
 
+    backend->adapter_uuids_changed_slot =
+        pa_hook_connect(pa_bluetooth_discovery_hook(y, PA_BLUETOOTH_HOOK_ADAPTER_UUIDS_CHANGED), PA_HOOK_NORMAL,
+                        (pa_hook_cb_t) adapter_uuids_changed_cb, backend);
+
     if (!backend->enable_hsp_hs && !backend->enable_hfp_hf)
         pa_log_warn("Both HSP HS and HFP HF bluetooth profiles disabled in native backend. Native backend will not register for headset connections.");
 
@@ -1181,6 +1206,9 @@ void pa_bluetooth_native_backend_free(pa_bluetooth_backend *backend) {
     pa_assert(backend);
 
     pa_dbus_free_pending_list(&backend->pending);
+
+    if (backend->adapter_uuids_changed_slot)
+        pa_hook_slot_free(backend->adapter_uuids_changed_slot);
 
     if (backend->enable_shared_profiles)
         native_backend_apply_profile_registration_change(backend, false);
