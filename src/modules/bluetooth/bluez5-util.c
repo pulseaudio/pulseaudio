@@ -884,6 +884,7 @@ static void parse_adapter_properties(pa_bluetooth_adapter *a, DBusMessageIter *i
                     pa_log_debug("%s: %s", key, value);
                     dbus_message_iter_next(&ai);
                 }
+                pa_hook_fire(pa_bluetooth_discovery_hook(a->discovery, PA_BLUETOOTH_HOOK_ADAPTER_UUIDS_CHANGED), a);
             }
         }
 
