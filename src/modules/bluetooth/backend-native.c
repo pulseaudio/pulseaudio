@@ -303,14 +303,18 @@ static void register_profile_reply(DBusPendingCall *pending, void *userdata) {
 
     if (dbus_message_is_error(r, BLUEZ_ERROR_NOT_SUPPORTED)) {
         pa_log_info("Couldn't register profile %s because it is disabled in BlueZ", pa_bluetooth_profile_to_string(profile));
+        profile_status_set(b->discovery, profile, PA_BLUETOOTH_PROFILE_STATUS_ACTIVE);
         goto finish;
     }
 
     if (dbus_message_get_type(r) == DBUS_MESSAGE_TYPE_ERROR) {
         pa_log_error(BLUEZ_PROFILE_MANAGER_INTERFACE ".RegisterProfile() failed: %s: %s", dbus_message_get_error_name(r),
                      pa_dbus_get_error_message(r));
+        profile_status_set(b->discovery, profile, PA_BLUETOOTH_PROFILE_STATUS_ACTIVE);
         goto finish;
     }
+
+    profile_status_set(b->discovery, profile, PA_BLUETOOTH_PROFILE_STATUS_REGISTERED);
 
 finish:
     dbus_message_unref(r);
@@ -324,6 +328,8 @@ static void register_profile(pa_bluetooth_backend *b, const char *object, const 
     DBusMessageIter i, d;
     dbus_bool_t autoconnect;
     dbus_uint16_t version, chan;
+
+    pa_assert(profile_status_get(b->discovery, profile) == PA_BLUETOOTH_PROFILE_STATUS_ACTIVE);
 
     pa_log_debug("Registering Profile %s %s", pa_bluetooth_profile_to_string(profile), uuid);
 
@@ -346,6 +352,7 @@ static void register_profile(pa_bluetooth_backend *b, const char *object, const 
     }
     dbus_message_iter_close_container(&i, &d);
 
+    profile_status_set(b->discovery, profile, PA_BLUETOOTH_PROFILE_STATUS_REGISTERING);
     send_and_add_to_pending(b, m, register_profile_reply, (void *)profile);
 }
 
@@ -638,11 +645,15 @@ static void profile_init(pa_bluetooth_backend *b, pa_bluetooth_profile_t profile
     }
 
     pa_assert_se(dbus_connection_register_object_path(pa_dbus_connection_get(b->connection), object_name, &vtable_profile, b));
+
+    profile_status_set(b->discovery, profile, PA_BLUETOOTH_PROFILE_STATUS_ACTIVE);
     register_profile(b, object_name, uuid, profile);
 }
 
 static void profile_done(pa_bluetooth_backend *b, pa_bluetooth_profile_t profile) {
     pa_assert(b);
+
+    profile_status_set(b->discovery, profile, PA_BLUETOOTH_PROFILE_STATUS_INACTIVE);
 
     switch (profile) {
         case PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT:
