@@ -56,6 +56,7 @@ static const char* const valid_modargs[] = {
     "sink",
     "source",
     "cookie",
+    "xauthority",
     NULL
 };
 
@@ -155,6 +156,13 @@ int pa__init(pa_module*m) {
 
     if (!(u->auth_cookie = pa_auth_cookie_get(m->core, pa_modargs_get_value(ma, "cookie", PA_NATIVE_COOKIE_FILE), true, PA_NATIVE_COOKIE_LENGTH)))
         goto fail;
+
+    if (pa_modargs_get_value(ma, "xauthority", NULL)) {
+        if (setenv("XAUTHORITY", pa_modargs_get_value(ma, "xauthority", NULL), 1)) {
+            pa_log("setenv() for $XAUTHORITY failed");
+            goto fail;
+        }
+    }
 
     if (!(u->x11_wrapper = pa_x11_wrapper_get(m->core, pa_modargs_get_value(ma, "display", NULL))))
         goto fail;

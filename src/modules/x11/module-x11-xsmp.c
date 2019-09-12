@@ -46,6 +46,7 @@ static bool ice_in_use = false;
 static const char* const valid_modargs[] = {
     "session_manager",
     "display",
+    "xauthority",
     NULL
 };
 
@@ -137,6 +138,13 @@ int pa__init(pa_module*m) {
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments");
         goto fail;
+    }
+
+    if (pa_modargs_get_value(ma, "xauthority", NULL)) {
+        if (setenv("XAUTHORITY", pa_modargs_get_value(ma, "xauthority", NULL), 1)) {
+            pa_log("setenv() for $XAUTHORITY failed");
+            goto fail;
+        }
     }
 
     if (!(u->x11 = pa_x11_wrapper_get(m->core, pa_modargs_get_value(ma, "display", NULL))))

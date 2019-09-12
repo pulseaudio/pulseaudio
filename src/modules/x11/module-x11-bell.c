@@ -44,6 +44,7 @@ static const char* const valid_modargs[] = {
     "sink",
     "sample",
     "display",
+    "xauthority",
     NULL
 };
 
@@ -124,6 +125,13 @@ int pa__init(pa_module*m) {
     u->scache_item = pa_xstrdup(pa_modargs_get_value(ma, "sample", "bell-window-system"));
     u->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink", NULL));
     u->x11_client = NULL;
+
+    if (pa_modargs_get_value(ma, "xauthority", NULL)) {
+        if (setenv("XAUTHORITY", pa_modargs_get_value(ma, "xauthority", NULL), 1)) {
+            pa_log("setenv() for $XAUTHORITY failed");
+            goto fail;
+        }
+    }
 
     if (!(u->x11_wrapper = pa_x11_wrapper_get(m->core, pa_modargs_get_value(ma, "display", NULL))))
         goto fail;

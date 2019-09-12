@@ -19,8 +19,8 @@ set -e
 
 if [ x"$DISPLAY" != x ] ; then
 
-    @PACTL_BINARY@ load-module module-x11-publish "display=$DISPLAY" > /dev/null
-    @PACTL_BINARY@ load-module module-x11-cork-request "display=$DISPLAY" > /dev/null
+    @PACTL_BINARY@ load-module module-x11-publish "display=$DISPLAY xauthority=$XAUTHORITY" > /dev/null
+    @PACTL_BINARY@ load-module module-x11-cork-request "display=$DISPLAY xauthority=$XAUTHORITY" > /dev/null
 
     # KDE plasma versions older than 5.17.0 use module-device-manager's routing API.
     # Check for current plasma version and load module if it's necessary.
@@ -32,6 +32,6 @@ if [ x"$DISPLAY" != x ] ; then
     fi
 
     if [ x"$SESSION_MANAGER" != x ] ; then
-	@PACTL_BINARY@ load-module module-x11-xsmp "display=$DISPLAY session_manager=$SESSION_MANAGER" > /dev/null
+	@PACTL_BINARY@ load-module module-x11-xsmp "display=$DISPLAY xauthority=$XAUTHORITY session_manager=$SESSION_MANAGER" > /dev/null
     fi
 fi
