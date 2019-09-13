@@ -1,3 +1,100 @@
+PulseAudio 13.0
+
+Changes at a glance:
+
+ * Added support for Dolby TrueHD and DTS-HD Master Audio
+ * Improved initial card profile selection for ALSA cards
+ * Bluetooth card profile choices aren't persistent any more by default
+ * Added support for SteelSeries Arctis 5 USB headset
+ * New "max_latency_msec" module argument for module-loopback
+ * New "stream_name" module argument for module-rtp-send
+ * Fixed S/PDIF for CMEDIA USB2.0 High-Speed True HD Audio
+ * Use source sample spec and channel map by default in module-loopback
+ * New "avoid_resampling" module argument for module-udev-detect and module-alsa-card
+ * "avoid_resampling" also tries to avoid format conversion if the ALSA device supports it
+ * New function to enable realtime scheduling for client threads
+ * Removed BlueZ 4 support
+ * Dropped intltool
+ * Introduction of the Meson build system
+ * Const-ification of parameters across headers
+ * Minor bug-fixes, bindings updates and several translation updates
+
+Detailed change log:
+
+  https://www.freedesktop.org/wiki/Software/PulseAudio/Notes/13.0/
+
+Contributors
+
+  Alan Coopersmith
+  Alexander E. Patrakov
+  Alexander Potashev
+  Andika Triwidada
+  Arnaud Rebillout
+  Arun Raghavan
+  Bert Hekman
+  Carlos Garnacho
+  Danny O'Brien
+  David Emett
+  David Heidelberg
+  David Hewitt
+  Diego Viola
+  Felipe Sateler
+  Fran Diéguez
+  Friedel Wolff
+  Frédéric Danis
+  Georg Chini
+  Hans de Goede
+  Hongxu Jia
+  Hui Wang
+  Ing. Jaroslav Safka
+  Jan Alexander Steffens (heftig)
+  Javier Jardón
+  Jean-Philippe Guillemin
+  Jordi Mas
+  Josef Andersson
+  Joseph Herlant
+  João Paulo Rechi Vita
+  Kaleb Ercanbrack
+  Lucas Stach
+  Luiz Augusto von Dentz
+  Lyndon Brown
+  Marek Cernocky
+  Mark Filion
+  Milo Casagrande
+  Moo
+  Mr. M
+  Nate Brown
+  Nazar Mokrynskyi
+  Nicolas Fella
+  Olaf Hering
+  Pali Rohár
+  Pierre-Louis Bossart
+  Piotr Drąg
+  RODRIGUEZ Christophe
+  Rafael Fontenelle
+  Raman Shyshniou
+  Russell Treleaven
+  S Page
+  Sangchul Lee
+  Sascha Silbe
+  Stefan Huber
+  Takashi Iwai
+  Takashi Sakamoto
+  Tanu Kaskinen
+  Thomas Hutschenreuther
+  Tomaz Solc
+  Topi Miettinen
+  Wellington Wallace
+  Will Stott
+  Yclept Nemo
+  Yuri Chornoivan
+  Zakhary Husak
+  jorisc90
+  muzena
+  scootergrisen
+  shdown
+
+
 PulseAudio 12.2
 
 The previous release tarball contained a broken configure script, this release
