@@ -18,6 +18,8 @@ ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = \
 	bootstrap.sh \
 	coverity/model.c \
+	.gitlab-ci.yml \
+	.gitlab/issue_templates/Bug.md \
 	git-version-gen \
 	LICENSE \
 	pulseaudio.supp \
@@ -30,6 +32,7 @@ EXTRA_DIST = \
 	README \
 	CODE_OF_CONDUCT.md \
 	scripts/benchmark_memory_usage.sh \
+	scripts/Dockerfile \
 	scripts/plot_memory_usage.gp \
 	scripts/benchmarks/README \
 	todo \
