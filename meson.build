@@ -296,6 +296,12 @@ if cc.has_function('SYS_memfd_create', prefix : '#include <sys/syscall.h>')
   cdata.set('HAVE_MEMFD', 1)
 endif
 
+if cc.has_function('dgettext')
+  libintl_dep = []
+else
+  libintl_dep = cc.find_library('intl')
+endif
+
 # Symbols
 
 if cc.has_header_symbol('signal.h', 'SIGXCPU')

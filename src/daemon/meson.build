@@ -31,7 +31,7 @@ executable('pulseaudio',
   include_directories : [configinc, topinc],
   link_args : ['-ffast-math'],
   link_with : [libpulsecore, libpulsecommon, libpulse],
-  dependencies : [ltdl_dep, cap_dep, dbus_dep, libsystemd_dep, dl_dep],
+  dependencies : [ltdl_dep, cap_dep, dbus_dep, libsystemd_dep, dl_dep, libintl_dep],
   c_args : pa_c_args,
 )
 

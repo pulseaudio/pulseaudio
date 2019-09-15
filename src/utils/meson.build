@@ -15,7 +15,7 @@ executable('pacat',
   install_rpath : privlibdir,
   include_directories : [configinc, topinc],
   link_with : [libpulsecommon, libpulse],
-  dependencies : [sndfile_dep],
+  dependencies : [sndfile_dep, libintl_dep],
   c_args : pa_c_args,
 )
 
@@ -36,7 +36,7 @@ executable('pactl',
   install_rpath : privlibdir,
   include_directories : [configinc, topinc],
   link_with : [libpulsecommon, libpulse],
-  dependencies : [sndfile_dep],
+  dependencies : [sndfile_dep, libintl_dep],
   c_args : pa_c_args,
 )
 
@@ -50,6 +50,7 @@ executable('pasuspender',
   install_rpath : privlibdir,
   include_directories : [configinc, topinc],
   link_with : [libpulsecommon, libpulse],
+  dependencies: [libintl_dep],
   c_args : pa_c_args,
 )
 
@@ -63,6 +64,7 @@ executable('pacmd',
   install_rpath : privlibdir,
   include_directories : [configinc, topinc],
   link_with : [libpulsecommon, libpulse],
+  dependencies: [libintl_dep],
   c_args : pa_c_args,
 )
 
@@ -77,7 +79,7 @@ if x11_dep.found()
     install_rpath : privlibdir,
     include_directories : [configinc, topinc],
     link_with : [libpulsecommon, libpulse],
-    dependencies : [x11_dep],
+    dependencies : [x11_dep, libintl_dep],
     c_args : pa_c_args,
   )
 endif
