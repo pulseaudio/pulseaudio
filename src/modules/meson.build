@@ -55,7 +55,7 @@ all_modules = [
   [ 'module-suspend-on-idle', 'module-suspend-on-idle.c' ],
   [ 'module-switch-on-connect', 'module-switch-on-connect.c' ],
   [ 'module-switch-on-port-available', 'module-switch-on-port-available.c' ],
-  [ 'module-tunnel-sink', 'module-tunnel.c', [], [], [x11_dep] ],
+  [ 'module-tunnel-sink', 'module-tunnel.c', [], ['-DTUNNEL_SINK=1'], [x11_dep] ],
   [ 'module-tunnel-sink-new', 'module-tunnel-sink-new.c' ],
   [ 'module-tunnel-source', 'module-tunnel.c', [], [], [x11_dep] ],
   [ 'module-tunnel-source-new', 'module-tunnel-source-new.c' ],
