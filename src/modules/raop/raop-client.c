@@ -362,13 +362,12 @@ static ssize_t send_tcp_audio_packet(pa_raop_client *c, pa_memchunk *block, size
     ssize_t written = -1;
     size_t done = 0;
 
-    if (!(packet = pa_raop_packet_buffer_retrieve(c->pbuf, c->seq)))
-        return -1;
+    packet = pa_raop_packet_buffer_retrieve(c->pbuf, c->seq);
 
-    if (packet->length <= 0) {
+    if (!packet || (packet && packet->length <= 0)) {
         pa_assert(block->index == offset);
 
-        if (!(packet = pa_raop_packet_buffer_prepare(c->pbuf, c->seq + 1, max)))
+        if (!(packet = pa_raop_packet_buffer_prepare(c->pbuf, c->seq, max)))
             return -1;
 
         packet->index = 0;
