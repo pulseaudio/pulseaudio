@@ -360,7 +360,7 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    u->sink = pa_sink_new(m->core, &data, PA_SINK_LATENCY|PA_SINK_DYNAMIC_LATENCY);
+    u->sink = pa_sink_new(m->core, &data, PA_SINK_LATENCY | PA_SINK_DYNAMIC_LATENCY | PA_SINK_SET_FORMATS);
     pa_sink_new_data_done(&data);
 
     if (!u->sink) {
