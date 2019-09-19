@@ -11,8 +11,8 @@ msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues\n"
-"POT-Creation-Date: 2019-02-16 11:57+0000\n"
-"PO-Revision-Date: 2019-08-07 09:53+0200\n"
+"POT-Creation-Date: 2019-09-17 03:33+0000\n"
+"PO-Revision-Date: 2019-09-19 09:56+0200\n"
 "Last-Translator: Milo Casagrande <milo@milo.name>\n"
 "Language-Team: Italian <tp@lists.linux.it>\n"
 "Language: it\n"
@@ -582,11 +582,20 @@ msgstr "pa_pid_file_create() non riuscita."
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() non riuscita."
 
-#: src/daemon/main.c:1109
-msgid "Failed to initialize daemon."
-msgstr "Inizializzazione del demone non riuscita."
+#: src/daemon/main.c:1108
+msgid "command line arguments"
+msgstr "argomenti della riga di comando"
 
-#: src/daemon/main.c:1114
+#: src/daemon/main.c:1115
+#, c-format
+msgid ""
+"Failed to initialize daemon due to errors while executing startup commands. "
+"Source of commands: %s"
+msgstr ""
+"Inizializzazione del demone non riuscita a causa di errori nell'eseguire i "
+"comandi di avvio. Origine dei comandi: %s"
+
+#: src/daemon/main.c:1120
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "Avvio del demone senza alcun modulo caricato, rifiuta di lavorare."
 
@@ -619,7 +628,7 @@ msgid "Line In"
 msgstr "Line-In"
 
 #: src/modules/alsa/alsa-mixer.c:2448 src/modules/alsa/alsa-mixer.c:2526
-#: src/modules/bluetooth/module-bluez5-device.c:1909
+#: src/modules/bluetooth/module-bluez5-device.c:1757
 msgid "Microphone"
 msgstr "Microfono"
 
@@ -680,7 +689,7 @@ msgid "No Bass Boost"
 msgstr "Nessun incremento bassi"
 
 #: src/modules/alsa/alsa-mixer.c:2463
-#: src/modules/bluetooth/module-bluez5-device.c:1916
+#: src/modules/bluetooth/module-bluez5-device.c:1764
 msgid "Speaker"
 msgstr "Altoparlante"
 
@@ -875,8 +884,8 @@ msgstr "Duplex multi canale"
 msgid "Stereo Duplex"
 msgstr "Duplex stereo"
 
-#: src/modules/alsa/alsa-mixer.c:4231 src/modules/alsa/module-alsa-card.c:187
-#: src/modules/bluetooth/module-bluez5-device.c:2164
+#: src/modules/alsa/alsa-mixer.c:4231 src/modules/alsa/module-alsa-card.c:189
+#: src/modules/bluetooth/module-bluez5-device.c:2012
 msgid "Off"
 msgstr "Spento"
 
@@ -890,7 +899,7 @@ msgstr "Uscita «%s»"
 msgid "%s Input"
 msgstr "Ingresso «%s»"
 
-#: src/modules/alsa/alsa-sink.c:587 src/modules/alsa/alsa-sink.c:771
+#: src/modules/alsa/alsa-sink.c:651 src/modules/alsa/alsa-sink.c:841
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -907,7 +916,7 @@ msgstr ""
 "Attivazione avvenuta con POLLOUT impostato; tuttavia, una successiva "
 "snd_pcm_avail() ha ritornato 0 o un altro valore < min_avail."
 
-#: src/modules/alsa/alsa-source.c:543 src/modules/alsa/alsa-source.c:694
+#: src/modules/alsa/alsa-source.c:610 src/modules/alsa/alsa-source.c:776
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -924,7 +933,7 @@ msgstr ""
 "Attivazione avvenuta con POLLIN impostato; tuttavia, una successiva "
 "snd_pcm_avail() ha ritornato 0 o un altro valore < min_avail."
 
-#: src/modules/alsa/alsa-util.c:1168 src/modules/alsa/alsa-util.c:1262
+#: src/modules/alsa/alsa-util.c:1173 src/modules/alsa/alsa-util.c:1267
 #, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu byte (%lu "
@@ -945,7 +954,7 @@ msgstr[1] ""
 "Molto probabilmente si tratta di un bug nel driver ALSA «%s». Segnalare "
 "questo problema agli sviluppatori ALSA."
 
-#: src/modules/alsa/alsa-util.c:1234
+#: src/modules/alsa/alsa-util.c:1239
 #, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li byte (%s"
@@ -966,7 +975,7 @@ msgstr[1] ""
 "Molto probabilmente si tratta di un bug nel driver ALSA «%s». Segnalare "
 "questo problema agli sviluppatori ALSA."
 
-#: src/modules/alsa/alsa-util.c:1281
+#: src/modules/alsa/alsa-util.c:1286
 #, c-format
 msgid ""
 "snd_pcm_avail_delay() returned strange values: delay %lu is less than avail "
@@ -979,7 +988,7 @@ msgstr ""
 "Molto probabilmente si tratta di un bug nel driver ALSA «%s». Segnalare "
 "questo problema agli sviluppatori ALSA."
 
-#: src/modules/alsa/alsa-util.c:1324
+#: src/modules/alsa/alsa-util.c:1329
 #, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu byte "
@@ -1002,60 +1011,60 @@ msgstr[1] ""
 "Molto probabilmente si tratta di un bug nel driver ALSA «%s». Segnalare "
 "questo problema agli sviluppatori ALSA."
 
-#: src/modules/bluetooth/module-bluez5-device.c:1893
-#: src/modules/bluetooth/module-bluez5-device.c:1915
-#: src/modules/bluetooth/module-bluez5-device.c:1921
-#: src/modules/bluetooth/module-bluez5-device.c:1947
+#: src/modules/bluetooth/module-bluez5-device.c:1741
+#: src/modules/bluetooth/module-bluez5-device.c:1763
+#: src/modules/bluetooth/module-bluez5-device.c:1769
+#: src/modules/bluetooth/module-bluez5-device.c:1795
 msgid "Bluetooth Input"
 msgstr "Ingresso Bluetooth"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1894
-#: src/modules/bluetooth/module-bluez5-device.c:1910
-#: src/modules/bluetooth/module-bluez5-device.c:1948
+#: src/modules/bluetooth/module-bluez5-device.c:1742
+#: src/modules/bluetooth/module-bluez5-device.c:1758
+#: src/modules/bluetooth/module-bluez5-device.c:1796
 msgid "Bluetooth Output"
 msgstr "Uscita Bluetooth"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1899
+#: src/modules/bluetooth/module-bluez5-device.c:1747
 msgid "Headset"
 msgstr "Cuffie con microfono"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1904
+#: src/modules/bluetooth/module-bluez5-device.c:1752
 msgid "Handsfree"
 msgstr "Sistema mani-libere"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1922
+#: src/modules/bluetooth/module-bluez5-device.c:1770
 msgid "Headphone"
 msgstr "Cuffie"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1927
+#: src/modules/bluetooth/module-bluez5-device.c:1775
 msgid "Portable"
 msgstr "Portabile"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1932
+#: src/modules/bluetooth/module-bluez5-device.c:1780
 msgid "Car"
 msgstr "Automobile"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1937
+#: src/modules/bluetooth/module-bluez5-device.c:1785
 msgid "HiFi"
 msgstr "HiFi"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1942
+#: src/modules/bluetooth/module-bluez5-device.c:1790
 msgid "Phone"
 msgstr "Telefono"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1989
+#: src/modules/bluetooth/module-bluez5-device.c:1837
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "Riproduzione ad alta fedeltà (sink A2DP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:2001
+#: src/modules/bluetooth/module-bluez5-device.c:1849
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "Registrazione ad alta fedeltà (sorgente A2DP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:2013
+#: src/modules/bluetooth/module-bluez5-device.c:1861
 msgid "Headset Head Unit (HSP/HFP)"
 msgstr "Unità headset head (HSP/HFP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:2026
+#: src/modules/bluetooth/module-bluez5-device.c:1874
 msgid "Headset Audio Gateway (HSP/HFP)"
 msgstr "Gateway headset audio (HSP/HFP)"
 
@@ -1158,11 +1167,11 @@ msgstr ""
 msgid "Clocked NULL sink"
 msgstr "Sink NULL temporizzato"
 
-#: src/modules/module-null-sink.c:322
+#: src/modules/module-null-sink.c:333
 msgid "Null Output"
 msgstr "Uscita nulla"
 
-#: src/modules/module-null-sink.c:334 src/utils/pactl.c:1058
+#: src/modules/module-null-sink.c:345 src/utils/pactl.c:1058
 #, c-format
 msgid "Failed to set format: invalid format string %s"
 msgstr "Impostazione del formato non riuscita: stringa %s non valida"
@@ -1222,7 +1231,7 @@ msgstr ""
 msgid "Unknown device model"
 msgstr "Modello dispositivo sconosciuto"
 
-#: src/modules/raop/raop-sink.c:507
+#: src/modules/raop/raop-sink.c:511
 msgid "RAOP standard profile"
 msgstr "Profilo standard RAOP"
 
@@ -1458,15 +1467,15 @@ msgstr "Surround 5.1"
 msgid "Surround 7.1"
 msgstr "Surround 7.1"
 
-#: src/pulse/client-conf-x11.c:53 src/utils/pax11publish.c:97
+#: src/pulse/client-conf-x11.c:61 src/utils/pax11publish.c:97
 msgid "xcb_connect() failed"
 msgstr "xcb_connect() non riuscita"
 
-#: src/pulse/client-conf-x11.c:58 src/utils/pax11publish.c:102
+#: src/pulse/client-conf-x11.c:66 src/utils/pax11publish.c:102
 msgid "xcb_connection_has_error() returned true"
 msgstr "xcb_connection_has_error() ha restituito VERO"
 
-#: src/pulse/client-conf-x11.c:94
+#: src/pulse/client-conf-x11.c:102
 msgid "Failed to parse cookie data"
 msgstr "Analisi dei dati cookie non riuscita"
 
@@ -1542,11 +1551,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "Destinazione di registrazione non valida."
 
-#: src/pulsecore/sink.c:3507
+#: src/pulsecore/sink.c:3516
 msgid "Built-in Audio"
 msgstr "Audio interno"
 
-#: src/pulsecore/sink.c:3512
+#: src/pulsecore/sink.c:3521
 msgid "Modem"
 msgstr "Modem"
 
@@ -3155,7 +3164,9 @@ msgstr "ATTENZIONE: processo figlio terminato dal segnale %u\n"
 #: src/utils/pasuspender.c:228
 #, c-format
 msgid ""
-"%s [options] ... \n"
+"%s [options] -- PROGRAM [ARGUMENTS ...]\n"
+"\n"
+"Temporarily suspend PulseAudio while PROGRAM runs.\n"
 "\n"
 "  -h, --help                            Show this help\n"
 "      --version                         Show version\n"
@@ -3163,7 +3174,9 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
-"%s [OPZIONI] ... \n"
+"%s [OPZIONI] -- PROGRAMMA [ARGOMENTI ...] \n"
+"\n"
+"Sospende temporaneamente PulseAudio mentre PROGRAMMA è in esecuzione.\n"
 "\n"
 "  -h, --help                            Mostra questo aiuto\n"
 "      --version                         Mostra la versione\n"
@@ -3171,7 +3184,7 @@ msgstr ""
 "connettersi\n"
 "\n"
 
-#: src/utils/pasuspender.c:266
+#: src/utils/pasuspender.c:267
 #, c-format
 msgid ""
 "pasuspender %s\n"
@@ -3182,17 +3195,17 @@ msgstr ""
 "Compilato con libpulse %s\n"
 "Link eseguito con libpulse %s\n"
 
-#: src/utils/pasuspender.c:295
+#: src/utils/pasuspender.c:296
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
 msgstr "pa_mainloop_new() non riuscita.\n"
 
-#: src/utils/pasuspender.c:308
+#: src/utils/pasuspender.c:309
 #, c-format
 msgid "pa_context_new() failed.\n"
 msgstr "pa_context_new() non riuscita.\n"
 
-#: src/utils/pasuspender.c:320
+#: src/utils/pasuspender.c:321
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
 msgstr "pa_mainloop_run() non riuscita.\n"
