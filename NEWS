@@ -3,20 +3,32 @@ PulseAudio 13.0
 Changes at a glance:
 
  * Added support for Dolby TrueHD and DTS-HD Master Audio
+ * Improved 5.1 surround channel routing
  * Improved initial card profile selection for ALSA cards
+ * Automatically switch away from unavailable card profiles
  * Bluetooth card profile choices aren't persistent any more by default
- * Added support for SteelSeries Arctis 5 USB headset
+ * Added support for some SteelSeries Arctis 5 USB headsets
+ * Removed KDE specific routing configuration
+ * New information collection script for bug reports: pa-info
  * New "max_latency_msec" module argument for module-loopback
+ * New "fast_adjust_threshold_msec" module argument for module-loopback
  * New "stream_name" module argument for module-rtp-send
  * Fixed S/PDIF for CMEDIA USB2.0 High-Speed True HD Audio
  * Use source sample spec and channel map by default in module-loopback
+ * module-role-cork and module-role-ducking can now use recording streams as triggers
  * New "avoid_resampling" module argument for module-udev-detect and module-alsa-card
  * "avoid_resampling" also tries to avoid format conversion if the ALSA device supports it
+ * Added support for non-PCM formats in module-null-sink
+ * More efficient channel remapping in some cases for 32-bit streams
+ * Removed the "latency_time" option from module-null-source
  * New function to enable realtime scheduling for client threads
+ * New convenience functions for getting parameters from pa_format_info
+ * New function for pa_threaded_mainloop to run a callback in the mainloop thread without the mainloop lock being held
+ * Const-ification of parameters across headers
  * Removed BlueZ 4 support
  * Dropped intltool
  * Introduction of the Meson build system
- * Const-ification of parameters across headers
+ * New build option for improving build reproducibility
  * Minor bug-fixes, bindings updates and several translation updates
 
 Detailed change log:
