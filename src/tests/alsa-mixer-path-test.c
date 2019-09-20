@@ -13,6 +13,10 @@
 #include <pulsecore/strlist.h>
 #include <modules/alsa/alsa-mixer.h>
 
+/* This test inspects the Makefile, so this is not applicable when using
+ * Meson. */
+#ifndef MESON_BUILD
+
 /* This function was copied from alsa-mixer.c */
 static const char *get_default_paths_dir(void) {
     if (pa_run_from_build_tree())
@@ -52,6 +56,7 @@ static pa_strlist *load_makefile() {
     fclose(f);
     return result;
 }
+#endif /* end of #ifndef MESON_BUILD */
 
 START_TEST (mixer_path_test) {
 #ifdef MESON_BUILD
