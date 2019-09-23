@@ -237,7 +237,7 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
       <p><opt>flat-volumes=</opt> Enable 'flat' volumes, i.e. where
       possible let the sink volume equal the maximum of the volumes of
       the inputs connected to it. Takes a boolean argument, defaults
-      to <opt>yes</opt>.</p>
+      to <opt>no</opt>.</p>
     </option>
 
   </section>

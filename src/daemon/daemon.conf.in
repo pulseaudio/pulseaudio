@@ -60,7 +60,7 @@ ifelse(@HAVE_DBUS@, 1, [dnl
 ; enable-lfe-remixing = no
 ; lfe-crossover-freq = 0
 
-; flat-volumes = yes
+; flat-volumes = no
 
 ifelse(@HAVE_SYS_RESOURCE_H@, 1, [dnl
 ; rlimit-fsize = -1
