@@ -515,6 +515,7 @@ pa_idxset* pa_sink_check_formats(pa_sink *s, pa_idxset *in_formats);
 
 void pa_sink_set_sample_format(pa_sink *s, pa_sample_format_t format);
 void pa_sink_set_sample_rate(pa_sink *s, uint32_t rate);
+void pa_sink_set_channels(pa_sink *s, uint8_t channels);
 void pa_sink_set_channel_map(pa_sink *s, pa_channel_map *map);
 
 /*** To be called exclusively by the sink driver, from IO context */

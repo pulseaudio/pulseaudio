@@ -3971,6 +3971,24 @@ void pa_sink_set_sample_rate(pa_sink *s, uint32_t rate) {
 }
 
 /* Called from the main thread */
+void pa_sink_set_channels(pa_sink *s, uint8_t channels) {
+    uint8_t old_channels;
+
+    pa_assert(s);
+    pa_assert(pa_channels_valid(channels));
+
+    old_channels = s->sample_spec.channels;
+    if (old_channels == channels)
+        return;
+
+    pa_log_info("%s: channels: %u -> %u", s->name, old_channels, channels);
+
+    s->sample_spec.channels = channels;
+
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+}
+
+/* Called from the main thread */
 void pa_sink_set_channel_map(pa_sink *s, pa_channel_map *map) {
     pa_channel_map old_map;
     char old_map_str[PA_CHANNEL_MAP_SNPRINT_MAX];
