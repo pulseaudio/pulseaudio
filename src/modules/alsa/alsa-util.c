@@ -1535,6 +1535,51 @@ pa_sample_format_t *pa_alsa_get_supported_formats(snd_pcm_t *pcm, pa_sample_form
     return formats;
 }
 
+unsigned int *pa_alsa_get_supported_channels(snd_pcm_t *pcm, unsigned int fallback_channels) {
+    bool supported[PA_CHANNELS_MAX] = { false, };
+    snd_pcm_hw_params_t *hwparams;
+    unsigned int i, j, n, *channels = NULL;
+    int ret;
+
+    snd_pcm_hw_params_alloca(&hwparams);
+
+    if ((ret = snd_pcm_hw_params_any(pcm, hwparams)) < 0) {
+        pa_log_debug("snd_pcm_hw_params_any() failed: %s", pa_alsa_strerror(ret));
+        return NULL;
+    }
+
+    for (i = 0, n = 0; i < PA_CHANNELS_MAX; i++) {
+        if (snd_pcm_hw_params_test_channels(pcm, hwparams, i) == 0) {
+            supported[i] = true;
+            n++;
+        }
+    }
+
+    if (n > 0) {
+        channels = pa_xnew(unsigned int, n + 1);
+
+        for (i = 0, j = 0; i < PA_CHANNELS_MAX; i++) {
+            if (supported[i])
+                channels[j++] = i;
+        }
+
+        channels[j] = 0;
+    } else {
+        channels = pa_xnew(unsigned int, 2);
+
+        channels[0] = fallback_channels;
+        if ((ret = snd_pcm_hw_params_set_channels_near(pcm, hwparams, &channels[0])) < 0) {
+            pa_log_debug("snd_pcm_hw_params_set_channels_near() failed: %s", pa_alsa_strerror(ret));
+            pa_xfree(channels);
+            return NULL;
+        }
+
+        channels[1] = 0;
+    }
+
+    return channels;
+}
+
 bool pa_alsa_pcm_is_hw(snd_pcm_t *pcm) {
     snd_pcm_info_t* info;
     snd_pcm_info_alloca(&info);

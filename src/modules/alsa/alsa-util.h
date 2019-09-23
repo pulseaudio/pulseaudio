@@ -133,6 +133,7 @@ char *pa_alsa_get_reserve_name(const char *device);
 
 unsigned int *pa_alsa_get_supported_rates(snd_pcm_t *pcm, unsigned int fallback_rate);
 pa_sample_format_t *pa_alsa_get_supported_formats(snd_pcm_t *pcm, pa_sample_format_t fallback_format);
+unsigned int *pa_alsa_get_supported_channels(snd_pcm_t *pcm, unsigned int fallback_channels);
 
 bool pa_alsa_pcm_is_hw(snd_pcm_t *pcm);
 bool pa_alsa_pcm_is_modem(snd_pcm_t *pcm);
