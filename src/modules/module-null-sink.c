@@ -166,7 +166,7 @@ static int sink_reconfigure_cb(pa_sink *s, pa_sample_spec *spec, pa_channel_map 
     pa_sink_assert_ref(s);
     pa_assert_se(u = s->userdata);
 
-    s->sample_spec = *spec;
+    pa_sink_set_sample_spec(s, spec);
 
     if (map)
         pa_sink_set_channel_map(s, map);

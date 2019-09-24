@@ -513,6 +513,7 @@ bool pa_sink_set_formats(pa_sink *s, pa_idxset *formats);
 bool pa_sink_check_format(pa_sink *s, pa_format_info *f);
 pa_idxset* pa_sink_check_formats(pa_sink *s, pa_idxset *in_formats);
 
+void pa_sink_set_sample_spec(pa_sink *s, pa_sample_spec *spec);
 void pa_sink_set_sample_format(pa_sink *s, pa_sample_format_t format);
 void pa_sink_set_sample_rate(pa_sink *s, uint32_t rate);
 void pa_sink_set_channels(pa_sink *s, uint8_t channels);

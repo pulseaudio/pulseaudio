@@ -443,6 +443,7 @@ pa_idxset* pa_source_get_formats(pa_source *s);
 bool pa_source_check_format(pa_source *s, pa_format_info *f);
 pa_idxset* pa_source_check_formats(pa_source *s, pa_idxset *in_formats);
 
+void pa_source_set_sample_spec(pa_source *s, pa_sample_spec *spec);
 void pa_source_set_sample_format(pa_source *s, pa_sample_format_t format);
 void pa_source_set_sample_rate(pa_source *s, uint32_t rate);
 void pa_source_set_channels(pa_source *s, uint8_t channels);

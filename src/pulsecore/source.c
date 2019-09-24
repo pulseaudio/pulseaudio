@@ -3016,6 +3016,28 @@ done:
 }
 
 /* Called from the main thread */
+void pa_source_set_sample_spec(pa_source *s, pa_sample_spec *spec) {
+    pa_sample_spec old_spec;
+    char spec_str[PA_SAMPLE_SPEC_SNPRINT_MAX], old_spec_str[PA_SAMPLE_SPEC_SNPRINT_MAX];
+
+    pa_assert(s);
+    pa_assert(pa_sample_spec_valid(spec));
+
+    old_spec = s->sample_spec;
+    if (pa_sample_spec_equal(&old_spec, spec))
+        return;
+
+    pa_sample_spec_snprint(spec_str, sizeof(spec_str), spec);
+    pa_sample_spec_snprint(old_spec_str, sizeof(old_spec_str), &old_spec);
+
+    pa_log_info("%s: spec: %s -> %s", s->name, old_spec_str, spec_str);
+
+    s->sample_spec = *spec;
+
+    pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
+}
+
+/* Called from the main thread */
 void pa_source_set_sample_format(pa_source *s, pa_sample_format_t format) {
     pa_sample_format_t old_format;
 
