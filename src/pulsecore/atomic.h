@@ -117,7 +117,7 @@ static inline void* pa_atomic_ptr_load(const pa_atomic_ptr_t *a) {
 }
 
 static inline void pa_atomic_ptr_store(pa_atomic_ptr_t *a, void* p) {
-    __atomic_store_n(&a->value, p, __ATOMIC_SEQ_CST);
+    __atomic_store_n(&a->value, (unsigned long) p, __ATOMIC_SEQ_CST);
 }
 
 #else
