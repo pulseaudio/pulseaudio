@@ -180,6 +180,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                     } else {
                         /* Set the initial volume */
                         sink_set_volume_cb(u->sink);
+                        pa_sink_process_msg(o, PA_SINK_MESSAGE_SET_VOLUME, data, offset, chunk);
                     }
 
                     return 0;
