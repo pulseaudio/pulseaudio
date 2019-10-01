@@ -1137,7 +1137,7 @@ static void sync_mixer(struct userdata *u, pa_device_port *port) {
 
     /* port may be NULL, because if we use a synthesized mixer path, then the
      * source has no ports. */
-    if (port) {
+    if (port && !u->ucm_context) {
         pa_alsa_port_data *data;
 
         data = PA_DEVICE_PORT_DATA(port);
@@ -1523,24 +1523,17 @@ static int source_set_port_ucm_cb(pa_source *s, pa_device_port *p) {
 
     pa_assert(u);
     pa_assert(p);
+    pa_assert(u->mixer_handle);
     pa_assert(u->ucm_context);
 
-    u->mixer_path = data->path;
+    data = PA_DEVICE_PORT_DATA(p);
+    pa_assert_se(u->mixer_path = data->path);
     mixer_volume_init(u);
 
-    if (u->mixer_path) {
-        pa_alsa_path_select(u->mixer_path, NULL, u->mixer_handle, s->muted);
-
-        if (s->set_mute)
-            s->set_mute(s);
-        if (s->flags & PA_SOURCE_DEFERRED_VOLUME) {
-            if (s->write_volume)
-                s->write_volume(s);
-        } else {
-            if (s->set_volume)
-                s->set_volume(s);
-        }
-    }
+    if (s->flags & PA_SOURCE_DEFERRED_VOLUME)
+        pa_asyncmsgq_send(u->source->asyncmsgq, PA_MSGOBJECT(u->source), SOURCE_MESSAGE_SYNC_MIXER, p, 0, NULL);
+    else
+        sync_mixer(u, p);
 
     return pa_alsa_ucm_set_port(u->ucm_context, p, false);
 }
@@ -1802,11 +1795,6 @@ static void find_mixer(struct userdata *u, pa_alsa_mapping *mapping, const char 
 
     if (!(u->mixer_handle = pa_alsa_open_mixer_for_pcm(u->pcm_handle, &u->control_device))) {
         pa_log_info("Failed to find a working mixer device.");
-        return;
-    }
-
-    if (u->ucm_context) {
-        /* We just want to open the device */
         return;
     }
 
@@ -2404,6 +2392,7 @@ static void userdata_free(struct userdata *u) {
     if (u->mixer_fdl)
         pa_alsa_fdlist_free(u->mixer_fdl);
 
+    /* Only free the mixer_path if the sink owns it */
     if (u->mixer_path && !u->mixer_path_set && !u->ucm_context)
         pa_alsa_path_free(u->mixer_path);
 

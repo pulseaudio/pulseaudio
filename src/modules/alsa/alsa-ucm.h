@@ -240,7 +240,7 @@ struct pa_alsa_ucm_port_data {
      * a combination of devices. */
     pa_dynarray *devices; /* pa_alsa_ucm_device */
 
-    /* profile -> pa_alsa_path for volume control */
+    /* profile name -> pa_alsa_path for volume control */
     pa_hashmap *paths;
     /* Current path, set when activating profile */
     pa_alsa_path *path;

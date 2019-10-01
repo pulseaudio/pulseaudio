@@ -852,21 +852,29 @@ static void ucm_add_port_combination(
 
         pa_hashmap_put(ports, port->name, port);
         pa_log_debug("Add port %s: %s", port->name, port->description);
-    }
 
-    if (num == 1) {
-        /* To keep things simple and not worry about stacking controls, we only support hardware volumes on non-combination
-         * ports. */
-        data = PA_DEVICE_PORT_DATA(port);
+        if (num == 1) {
+            /* To keep things simple and not worry about stacking controls, we only support hardware volumes on non-combination
+             * ports. */
+            data = PA_DEVICE_PORT_DATA(port);
 
-        PA_HASHMAP_FOREACH_KV(profile, volume_element, is_sink ? dev->playback_volumes : dev->capture_volumes, state) {
-            pa_alsa_path *path = pa_alsa_path_synthesize(volume_element,
-                    is_sink ? PA_ALSA_DIRECTION_OUTPUT : PA_ALSA_DIRECTION_INPUT);
+            PA_HASHMAP_FOREACH_KV(profile, volume_element, is_sink ? dev->playback_volumes : dev->capture_volumes, state) {
+                pa_alsa_path *path = pa_alsa_path_synthesize(volume_element,
+                                                             is_sink ? PA_ALSA_DIRECTION_OUTPUT : PA_ALSA_DIRECTION_INPUT);
 
-            if (!path)
-                pa_log_warn("Failed to set up volume control: %s", volume_element);
-            else
-                pa_hashmap_put(data->paths, pa_xstrdup(profile), path);
+                if (!path)
+                    pa_log_warn("Failed to set up volume control: %s", volume_element);
+                else {
+                    pa_hashmap_put(data->paths, pa_xstrdup(profile), path);
+
+                    /* Add path also to already created empty path set */
+                    dev = sorted[0];
+                    if (is_sink)
+                        pa_hashmap_put(dev->playback_mapping->output_path_set->paths, pa_xstrdup(volume_element), path);
+                    else
+                        pa_hashmap_put(dev->capture_mapping->input_path_set->paths, pa_xstrdup(volume_element), path);
+                }
+            }
         }
     }
 
@@ -1185,16 +1193,27 @@ int pa_alsa_ucm_set_port(pa_alsa_ucm_mapping_context *context, pa_device_port *p
 
 static void ucm_add_mapping(pa_alsa_profile *p, pa_alsa_mapping *m) {
 
+    pa_alsa_path_set *ps;
+
+    /* create empty path set for the future path additions */
+    ps = pa_xnew0(pa_alsa_path_set, 1);
+    ps->direction = m->direction;
+    ps->paths = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+
     switch (m->direction) {
         case PA_ALSA_DIRECTION_ANY:
             pa_idxset_put(p->output_mappings, m, NULL);
             pa_idxset_put(p->input_mappings, m, NULL);
+            m->output_path_set = ps;
+            m->input_path_set = ps;
             break;
         case PA_ALSA_DIRECTION_OUTPUT:
             pa_idxset_put(p->output_mappings, m, NULL);
+            m->output_path_set = ps;
             break;
         case PA_ALSA_DIRECTION_INPUT:
             pa_idxset_put(p->input_mappings, m, NULL);
+            m->input_path_set = ps;
             break;
     }
 }
