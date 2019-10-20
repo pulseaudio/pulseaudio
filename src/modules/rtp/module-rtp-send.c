@@ -159,7 +159,7 @@ static pa_source_output_flags_t get_dont_inhibit_auto_suspend_flag(pa_source *so
             return PA_SOURCE_OUTPUT_DONT_INHIBIT_AUTO_SUSPEND;
 
         case INHIBIT_AUTO_SUSPEND_ONLY_WITH_NON_MONITOR_SOURCES:
-            return source->monitor_of ? 0 : PA_SOURCE_OUTPUT_DONT_INHIBIT_AUTO_SUSPEND;
+            return source->monitor_of ? PA_SOURCE_OUTPUT_DONT_INHIBIT_AUTO_SUSPEND : 0;
     }
 
     pa_assert_not_reached();
