@@ -1325,10 +1325,11 @@ static void rtsp_auth_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_st
                 c->password = NULL;
             }
 
-            if (c->state_callback)
-                c->state_callback((int) PA_RAOP_AUTHENTICATED, c->state_userdata);
             pa_rtsp_client_free(c->rtsp);
             c->rtsp = NULL;
+            /* Ensure everything is cleaned before calling the callback, otherwise it may raise a crash */
+            if (c->state_callback)
+                c->state_callback((int) PA_RAOP_AUTHENTICATED, c->state_userdata);
 
             waiting = false;
             break;
