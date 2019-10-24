@@ -358,16 +358,16 @@ static void thread_func(void *userdata) {
         size_t index;
         int ret;
 
-        if (PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
-            if (u->sink->thread_info.rewind_requested)
-                pa_sink_process_rewind(u->sink, 0);
-        }
-
         /* Polling (audio data + control socket + timing socket). */
         if ((ret = pa_rtpoll_run(u->rtpoll)) < 0)
             goto fail;
         else if (ret == 0)
             goto finish;
+
+        if (PA_SINK_IS_OPENED(u->sink->thread_info.state)) {
+            if (u->sink->thread_info.rewind_requested)
+                pa_sink_process_rewind(u->sink, 0);
+        }
 
         if (u->rtpoll_item) {
             pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, &nbfds);
