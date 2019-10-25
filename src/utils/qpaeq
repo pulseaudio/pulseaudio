@@ -18,7 +18,6 @@
 
 import os,math,sys
 try:
-    import PyQt5,sip
     from PyQt5 import QtWidgets,QtCore
     import dbus.mainloop.pyqt5
     import dbus
