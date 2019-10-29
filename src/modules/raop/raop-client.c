@@ -1565,6 +1565,10 @@ bool pa_raop_client_can_stream(pa_raop_client *c) {
     return false;
 }
 
+bool pa_raop_client_is_recording(pa_raop_client *c) {
+    return c->is_recording;
+}
+
 int pa_raop_client_stream(pa_raop_client *c) {
     int rv = 0;
 

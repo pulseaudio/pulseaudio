@@ -268,7 +268,7 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
             if (!pa_raop_client_is_alive(u->raop)) {
                 /* Connecting will trigger a RECORD and start steaming */
                 pa_raop_client_announce(u->raop);
-            } else if (!pa_raop_client_can_stream(u->raop)) {
+            } else if (!pa_raop_client_is_recording(u->raop)) {
                 /* RECORD alredy sent, simply start streaming */
                 pa_raop_client_stream(u->raop);
                 pa_rtpoll_set_timer_absolute(u->rtpoll, now);

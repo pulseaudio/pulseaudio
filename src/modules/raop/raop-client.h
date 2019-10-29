@@ -65,6 +65,7 @@ bool pa_raop_client_is_authenticated(pa_raop_client *c);
 
 int pa_raop_client_announce(pa_raop_client *c);
 bool pa_raop_client_is_alive(pa_raop_client *c);
+bool pa_raop_client_is_recording(pa_raop_client *c);
 bool pa_raop_client_can_stream(pa_raop_client *c);
 int pa_raop_client_stream(pa_raop_client *c);
 int pa_raop_client_set_volume(pa_raop_client *c, pa_volume_t volume);
