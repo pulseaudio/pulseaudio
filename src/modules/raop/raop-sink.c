@@ -169,9 +169,9 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                     pa_usec_t now;
 
                     now = pa_rtclock_now();
-                    pa_rtpoll_set_timer_absolute(u->rtpoll, now);
                     u->write_count = 0;
                     u->start = now;
+                    pa_rtpoll_set_timer_absolute(u->rtpoll, now);
 
                     if (u->sink->thread_info.state == PA_SINK_SUSPENDED) {
                         /* Our stream has been suspended so we just flush it... */
