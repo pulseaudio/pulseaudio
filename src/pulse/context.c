@@ -274,6 +274,7 @@ static void context_free(pa_context *c) {
         pa_proplist_free(c->proplist);
 
     pa_xfree(c->server);
+    pa_xfree(c->error);
     pa_xfree(c);
 }
 
