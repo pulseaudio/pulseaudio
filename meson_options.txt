@@ -56,10 +56,10 @@ option('udevrulesdir',
        description : 'Directory for udev rules (defaults to /lib/udev/rules.d)')
 option('bashcompletiondir',
        type : 'string',
-       description : 'Directory for bash completion files')
+       description : 'Directory for bash completion scripts ["no" disables]')
 option('zshcompletiondir',
        type : 'string',
-       description : 'Zsh completions directory')
+       description : 'Directory for zsh completion scripts ["no" disables]')
 
 # Optional features
 
