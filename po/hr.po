@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-06-23 13:50+0200\n"
-"PO-Revision-Date: 2019-06-23 14:20+0200\n"
+"POT-Creation-Date: 2019-11-10 14:12+0100\n"
+"PO-Revision-Date: 2019-11-10 14:21+0100\n"
 "Last-Translator: gogo <trebelnik2@gmail.com>\n"
 "Language-Team: Croatian <hr@li.org>\n"
 "Language: hr\n"
@@ -578,165 +578,165 @@ msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 "Pozadinski program je pokrenut bez ijednog učitanog modula, odbija raditi."
 
-#: ../src/modules/alsa/alsa-mixer.c:2443
+#: ../src/modules/alsa/alsa-mixer.c:2442
 msgid "Input"
 msgstr "Ulaz"
 
-#: ../src/modules/alsa/alsa-mixer.c:2444
+#: ../src/modules/alsa/alsa-mixer.c:2443
 msgid "Docking Station Input"
 msgstr "Ulaz priključne stanice"
 
-#: ../src/modules/alsa/alsa-mixer.c:2445
+#: ../src/modules/alsa/alsa-mixer.c:2444
 msgid "Docking Station Microphone"
 msgstr "Mikrofon priključne stanice"
 
-#: ../src/modules/alsa/alsa-mixer.c:2446
+#: ../src/modules/alsa/alsa-mixer.c:2445
 msgid "Docking Station Line In"
 msgstr "Ulaz priključne stanice"
 
-#: ../src/modules/alsa/alsa-mixer.c:2447 ../src/modules/alsa/alsa-mixer.c:2532
+#: ../src/modules/alsa/alsa-mixer.c:2446 ../src/modules/alsa/alsa-mixer.c:2531
 msgid "Line In"
 msgstr "Ulaz"
 
-#: ../src/modules/alsa/alsa-mixer.c:2448 ../src/modules/alsa/alsa-mixer.c:2526
-#: ../src/modules/bluetooth/module-bluez5-device.c:1709
+#: ../src/modules/alsa/alsa-mixer.c:2447 ../src/modules/alsa/alsa-mixer.c:2525
+#: ../src/modules/bluetooth/module-bluez5-device.c:1757
 msgid "Microphone"
 msgstr "Mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2449 ../src/modules/alsa/alsa-mixer.c:2527
+#: ../src/modules/alsa/alsa-mixer.c:2448 ../src/modules/alsa/alsa-mixer.c:2526
 msgid "Front Microphone"
 msgstr "Prednji mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2450 ../src/modules/alsa/alsa-mixer.c:2528
+#: ../src/modules/alsa/alsa-mixer.c:2449 ../src/modules/alsa/alsa-mixer.c:2527
 msgid "Rear Microphone"
 msgstr "Stražnji mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2451
+#: ../src/modules/alsa/alsa-mixer.c:2450
 msgid "External Microphone"
 msgstr "Vanjski mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2452 ../src/modules/alsa/alsa-mixer.c:2530
+#: ../src/modules/alsa/alsa-mixer.c:2451 ../src/modules/alsa/alsa-mixer.c:2529
 msgid "Internal Microphone"
 msgstr "Unutarnji mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2453 ../src/modules/alsa/alsa-mixer.c:2533
+#: ../src/modules/alsa/alsa-mixer.c:2452 ../src/modules/alsa/alsa-mixer.c:2532
 msgid "Radio"
 msgstr "Radio"
 
-#: ../src/modules/alsa/alsa-mixer.c:2454 ../src/modules/alsa/alsa-mixer.c:2534
+#: ../src/modules/alsa/alsa-mixer.c:2453 ../src/modules/alsa/alsa-mixer.c:2533
 msgid "Video"
 msgstr "Video"
 
-#: ../src/modules/alsa/alsa-mixer.c:2455
+#: ../src/modules/alsa/alsa-mixer.c:2454
 msgid "Automatic Gain Control"
 msgstr "Automatska kontrola pojačanja"
 
-#: ../src/modules/alsa/alsa-mixer.c:2456
+#: ../src/modules/alsa/alsa-mixer.c:2455
 msgid "No Automatic Gain Control"
 msgstr "Bez automatske kontrole pojačanja"
 
-#: ../src/modules/alsa/alsa-mixer.c:2457
+#: ../src/modules/alsa/alsa-mixer.c:2456
 msgid "Boost"
 msgstr "Pojačanje"
 
-#: ../src/modules/alsa/alsa-mixer.c:2458
+#: ../src/modules/alsa/alsa-mixer.c:2457
 msgid "No Boost"
 msgstr "Bez pojačanja"
 
-#: ../src/modules/alsa/alsa-mixer.c:2459
+#: ../src/modules/alsa/alsa-mixer.c:2458
 msgid "Amplifier"
 msgstr "Pojačalo"
 
-#: ../src/modules/alsa/alsa-mixer.c:2460
+#: ../src/modules/alsa/alsa-mixer.c:2459
 msgid "No Amplifier"
 msgstr "Bez pojačala"
 
-#: ../src/modules/alsa/alsa-mixer.c:2461
+#: ../src/modules/alsa/alsa-mixer.c:2460
 msgid "Bass Boost"
 msgstr "Pojačanje basa"
 
-#: ../src/modules/alsa/alsa-mixer.c:2462
+#: ../src/modules/alsa/alsa-mixer.c:2461
 msgid "No Bass Boost"
 msgstr "Bez pojačanja basa"
 
-#: ../src/modules/alsa/alsa-mixer.c:2463
-#: ../src/modules/bluetooth/module-bluez5-device.c:1716
+#: ../src/modules/alsa/alsa-mixer.c:2462
+#: ../src/modules/bluetooth/module-bluez5-device.c:1764
 msgid "Speaker"
 msgstr "Zvučnik"
 
-#: ../src/modules/alsa/alsa-mixer.c:2464 ../src/modules/alsa/alsa-mixer.c:2536
+#: ../src/modules/alsa/alsa-mixer.c:2463 ../src/modules/alsa/alsa-mixer.c:2535
 msgid "Headphones"
 msgstr "Slušalice"
 
-#: ../src/modules/alsa/alsa-mixer.c:2525
+#: ../src/modules/alsa/alsa-mixer.c:2524
 msgid "Analog Input"
 msgstr "Analogni ulaz"
 
-#: ../src/modules/alsa/alsa-mixer.c:2529
+#: ../src/modules/alsa/alsa-mixer.c:2528
 msgid "Dock Microphone"
 msgstr "Ugrađeni mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2531
+#: ../src/modules/alsa/alsa-mixer.c:2530
 msgid "Headset Microphone"
 msgstr "Mikrofon sa slušalicama"
 
-#: ../src/modules/alsa/alsa-mixer.c:2535
+#: ../src/modules/alsa/alsa-mixer.c:2534
 msgid "Analog Output"
 msgstr "Analogni izlaz"
 
-#: ../src/modules/alsa/alsa-mixer.c:2537
+#: ../src/modules/alsa/alsa-mixer.c:2536
 msgid "Headphones Mono Output"
 msgstr "Mono izlaz za slušalice"
 
-#: ../src/modules/alsa/alsa-mixer.c:2538
+#: ../src/modules/alsa/alsa-mixer.c:2537
 msgid "LFE on Separate Mono Output"
 msgstr "(LFE) Efekti niske frekvencije na odvojenom mono izlazu"
 
-#: ../src/modules/alsa/alsa-mixer.c:2539
+#: ../src/modules/alsa/alsa-mixer.c:2538
 msgid "Line Out"
 msgstr "Izlaz"
 
-#: ../src/modules/alsa/alsa-mixer.c:2540
+#: ../src/modules/alsa/alsa-mixer.c:2539
 msgid "Analog Mono Output"
 msgstr "Analogni mono izlaz"
 
-#: ../src/modules/alsa/alsa-mixer.c:2541
+#: ../src/modules/alsa/alsa-mixer.c:2540
 msgid "Speakers"
 msgstr "Zvučnici"
 
-#: ../src/modules/alsa/alsa-mixer.c:2542
+#: ../src/modules/alsa/alsa-mixer.c:2541
 msgid "HDMI / DisplayPort"
 msgstr "HDMI / DisplayPort"
 
-#: ../src/modules/alsa/alsa-mixer.c:2543
+#: ../src/modules/alsa/alsa-mixer.c:2542
 msgid "Digital Output (S/PDIF)"
 msgstr "Digitalni izlaz (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2544
+#: ../src/modules/alsa/alsa-mixer.c:2543
 msgid "Digital Input (S/PDIF)"
 msgstr "Digitalni ulaz (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2545
+#: ../src/modules/alsa/alsa-mixer.c:2544
 msgid "Digital Passthrough (S/PDIF)"
 msgstr "Digitalni prolaz (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2546
+#: ../src/modules/alsa/alsa-mixer.c:2545
 msgid "Multichannel Input"
 msgstr "Višekanalni ulaz"
 
-#: ../src/modules/alsa/alsa-mixer.c:2547
+#: ../src/modules/alsa/alsa-mixer.c:2546
 msgid "Multichannel Output"
 msgstr "Višekanalni izlaz"
 
-#: ../src/modules/alsa/alsa-mixer.c:2548
+#: ../src/modules/alsa/alsa-mixer.c:2547
 msgid "Game Output"
 msgstr "Izlaz za igre"
 
-#: ../src/modules/alsa/alsa-mixer.c:2549
+#: ../src/modules/alsa/alsa-mixer.c:2548
 msgid "Chat Output"
 msgstr "Izlaz razgovora"
 
-#: ../src/modules/alsa/alsa-mixer.c:4063
+#: ../src/modules/alsa/alsa-mixer.c:4062
 msgid "Analog Mono"
 msgstr "Analogni mono"
 
@@ -745,128 +745,128 @@ msgstr "Analogni mono"
 #. * here would lead to the source name to become "Analog Stereo Input
 #. * Input". The same logic applies to analog-stereo-output,
 #. * multichannel-input and multichannel-output.
-#: ../src/modules/alsa/alsa-mixer.c:4064 ../src/modules/alsa/alsa-mixer.c:4072
-#: ../src/modules/alsa/alsa-mixer.c:4073
+#: ../src/modules/alsa/alsa-mixer.c:4063 ../src/modules/alsa/alsa-mixer.c:4071
+#: ../src/modules/alsa/alsa-mixer.c:4072
 msgid "Analog Stereo"
 msgstr "Analogni stereo"
 
-#: ../src/modules/alsa/alsa-mixer.c:4065 ../src/pulse/channelmap.c:103
+#: ../src/modules/alsa/alsa-mixer.c:4064 ../src/pulse/channelmap.c:103
 #: ../src/pulse/channelmap.c:771
 msgid "Mono"
 msgstr "Mono"
 
-#: ../src/modules/alsa/alsa-mixer.c:4066 ../src/pulse/channelmap.c:775
+#: ../src/modules/alsa/alsa-mixer.c:4065 ../src/pulse/channelmap.c:775
 msgid "Stereo"
 msgstr "Stereo"
 
-#: ../src/modules/alsa/alsa-mixer.c:4074 ../src/modules/alsa/alsa-mixer.c:4075
+#: ../src/modules/alsa/alsa-mixer.c:4073 ../src/modules/alsa/alsa-mixer.c:4074
 msgid "Multichannel"
 msgstr "Višekanalni"
 
-#: ../src/modules/alsa/alsa-mixer.c:4076
+#: ../src/modules/alsa/alsa-mixer.c:4075
 msgid "Analog Surround 2.1"
 msgstr "Analogni surround 2.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4077
+#: ../src/modules/alsa/alsa-mixer.c:4076
 msgid "Analog Surround 3.0"
 msgstr "Analogni surround 3.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4078
+#: ../src/modules/alsa/alsa-mixer.c:4077
 msgid "Analog Surround 3.1"
 msgstr "Analogni surround 3.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4079
+#: ../src/modules/alsa/alsa-mixer.c:4078
 msgid "Analog Surround 4.0"
 msgstr "Analogni surround 4.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4080
+#: ../src/modules/alsa/alsa-mixer.c:4079
 msgid "Analog Surround 4.1"
 msgstr "Analogni surround 4.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4081
+#: ../src/modules/alsa/alsa-mixer.c:4080
 msgid "Analog Surround 5.0"
 msgstr "Analogni surround 5.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4082
+#: ../src/modules/alsa/alsa-mixer.c:4081
 msgid "Analog Surround 5.1"
 msgstr "Analogni surround 5.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4083
+#: ../src/modules/alsa/alsa-mixer.c:4082
 msgid "Analog Surround 6.0"
 msgstr "Analogni surround 6.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4084
+#: ../src/modules/alsa/alsa-mixer.c:4083
 msgid "Analog Surround 6.1"
 msgstr "Analogni surround 6.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4085
+#: ../src/modules/alsa/alsa-mixer.c:4084
 msgid "Analog Surround 7.0"
 msgstr "Analogni surround 7.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4086
+#: ../src/modules/alsa/alsa-mixer.c:4085
 msgid "Analog Surround 7.1"
 msgstr "Analogni surround 7.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4087
+#: ../src/modules/alsa/alsa-mixer.c:4086
 msgid "Digital Stereo (IEC958)"
 msgstr "Digitalni stereo (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4088
+#: ../src/modules/alsa/alsa-mixer.c:4087
 msgid "Digital Passthrough (IEC958)"
 msgstr "Digitalni prolaz (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4089
+#: ../src/modules/alsa/alsa-mixer.c:4088
 msgid "Digital Surround 4.0 (IEC958/AC3)"
 msgstr "Digitalni surround 4.0 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4090
+#: ../src/modules/alsa/alsa-mixer.c:4089
 msgid "Digital Surround 5.1 (IEC958/AC3)"
 msgstr "Digitalni surround 5.1 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4091
+#: ../src/modules/alsa/alsa-mixer.c:4090
 msgid "Digital Surround 5.1 (IEC958/DTS)"
 msgstr "Digitalni surround 5.1 (IEC958/DTS)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4092
+#: ../src/modules/alsa/alsa-mixer.c:4091
 msgid "Digital Stereo (HDMI)"
 msgstr "Digitalni stereo (HDMI)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4093
+#: ../src/modules/alsa/alsa-mixer.c:4092
 msgid "Digital Surround 5.1 (HDMI)"
 msgstr "Digitalni surround 5.1 (HDMI)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4226
+#: ../src/modules/alsa/alsa-mixer.c:4225
 msgid "Analog Mono Duplex"
 msgstr "Analogni mono obostrani"
 
-#: ../src/modules/alsa/alsa-mixer.c:4227
+#: ../src/modules/alsa/alsa-mixer.c:4226
 msgid "Analog Stereo Duplex"
 msgstr "Analogni stereo obostrani"
 
-#: ../src/modules/alsa/alsa-mixer.c:4228
+#: ../src/modules/alsa/alsa-mixer.c:4227
 msgid "Digital Stereo Duplex (IEC958)"
 msgstr "Digitalni stereo obostrani (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4229
+#: ../src/modules/alsa/alsa-mixer.c:4228
 msgid "Multichannel Duplex"
 msgstr "Višekanalni obostrani"
 
-#: ../src/modules/alsa/alsa-mixer.c:4230
+#: ../src/modules/alsa/alsa-mixer.c:4229
 msgid "Stereo Duplex"
 msgstr "Stereo obostrani"
 
-#: ../src/modules/alsa/alsa-mixer.c:4231
+#: ../src/modules/alsa/alsa-mixer.c:4230
 #: ../src/modules/alsa/module-alsa-card.c:189
-#: ../src/modules/bluetooth/module-bluez5-device.c:1964
+#: ../src/modules/bluetooth/module-bluez5-device.c:2012
 msgid "Off"
 msgstr "Isključeno"
 
-#: ../src/modules/alsa/alsa-mixer.c:4330
+#: ../src/modules/alsa/alsa-mixer.c:4329
 #, c-format
 msgid "%s Output"
 msgstr "%s izlaz"
 
-#: ../src/modules/alsa/alsa-mixer.c:4338
+#: ../src/modules/alsa/alsa-mixer.c:4337
 #, c-format
 msgid "%s Input"
 msgstr "%s ulaz"
@@ -1002,60 +1002,60 @@ msgstr[2] ""
 "Najvjerojatnije je ovo greška ALSA upravljačkog programa '%s'. Prijavite "
 "problem ALSA razvijateljima."
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1693
-#: ../src/modules/bluetooth/module-bluez5-device.c:1715
-#: ../src/modules/bluetooth/module-bluez5-device.c:1721
-#: ../src/modules/bluetooth/module-bluez5-device.c:1747
+#: ../src/modules/bluetooth/module-bluez5-device.c:1741
+#: ../src/modules/bluetooth/module-bluez5-device.c:1763
+#: ../src/modules/bluetooth/module-bluez5-device.c:1769
+#: ../src/modules/bluetooth/module-bluez5-device.c:1795
 msgid "Bluetooth Input"
 msgstr "Bluetooth ulaz"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1694
-#: ../src/modules/bluetooth/module-bluez5-device.c:1710
-#: ../src/modules/bluetooth/module-bluez5-device.c:1748
+#: ../src/modules/bluetooth/module-bluez5-device.c:1742
+#: ../src/modules/bluetooth/module-bluez5-device.c:1758
+#: ../src/modules/bluetooth/module-bluez5-device.c:1796
 msgid "Bluetooth Output"
 msgstr "Bluetooth izlaz"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1699
+#: ../src/modules/bluetooth/module-bluez5-device.c:1747
 msgid "Headset"
 msgstr "Slušalice s mikrofonom"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1704
+#: ../src/modules/bluetooth/module-bluez5-device.c:1752
 msgid "Handsfree"
 msgstr "Bez-ruku"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1722
+#: ../src/modules/bluetooth/module-bluez5-device.c:1770
 msgid "Headphone"
 msgstr "Slušalice"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1727
+#: ../src/modules/bluetooth/module-bluez5-device.c:1775
 msgid "Portable"
 msgstr "Prijenosnik"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1732
+#: ../src/modules/bluetooth/module-bluez5-device.c:1780
 msgid "Car"
 msgstr "Automobil"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1737
+#: ../src/modules/bluetooth/module-bluez5-device.c:1785
 msgid "HiFi"
 msgstr "HiFi"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1742
+#: ../src/modules/bluetooth/module-bluez5-device.c:1790
 msgid "Phone"
 msgstr "Telefon"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1789
+#: ../src/modules/bluetooth/module-bluez5-device.c:1837
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "Reprodukcija visoke autentičnosti (A2DP slivnik)"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1801
+#: ../src/modules/bluetooth/module-bluez5-device.c:1849
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "Snimanje visoke autentičnosti (A2DP izvor)"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1813
+#: ../src/modules/bluetooth/module-bluez5-device.c:1861
 msgid "Headset Head Unit (HSP/HFP)"
 msgstr "Jedinica slušalice s mikrofonom (HSP/HFP)"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1826
+#: ../src/modules/bluetooth/module-bluez5-device.c:1874
 msgid "Headset Audio Gateway (HSP/HFP)"
 msgstr "Zvučni pristupnik slušalice s mikrofonom (HSP/HFP)"
 
@@ -1221,7 +1221,7 @@ msgstr ""
 msgid "Unknown device model"
 msgstr "Nepoznat model uređaja"
 
-#: ../src/modules/raop/raop-sink.c:507
+#: ../src/modules/raop/raop-sink.c:511
 msgid "RAOP standard profile"
 msgstr "RAOP standardan profil"
 
@@ -1457,29 +1457,29 @@ msgstr "Surround 5.1"
 msgid "Surround 7.1"
 msgstr "Surround 7.1"
 
-#: ../src/pulse/client-conf-x11.c:53 ../src/utils/pax11publish.c:97
+#: ../src/pulse/client-conf-x11.c:61 ../src/utils/pax11publish.c:97
 msgid "xcb_connect() failed"
 msgstr "xcb_connect() neuspjelo"
 
-#: ../src/pulse/client-conf-x11.c:58 ../src/utils/pax11publish.c:102
+#: ../src/pulse/client-conf-x11.c:66 ../src/utils/pax11publish.c:102
 msgid "xcb_connection_has_error() returned true"
 msgstr "xcb_connection_has_error() vratilo je 'true'"
 
-#: ../src/pulse/client-conf-x11.c:94
+#: ../src/pulse/client-conf-x11.c:102
 msgid "Failed to parse cookie data"
 msgstr "Neuspjela obrada podataka kolačića"
 
-#: ../src/pulse/context.c:705
+#: ../src/pulse/context.c:706
 #, c-format
 msgid "fork(): %s"
 msgstr "fork(): %s"
 
-#: ../src/pulse/context.c:760
+#: ../src/pulse/context.c:761
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1466
+#: ../src/pulse/context.c:1467
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "Primljena poruka za nepoznato proširenje '%s'"
@@ -3125,7 +3125,9 @@ msgstr "WARNING: podređeni proces je završen sa signalom %u\n"
 #: ../src/utils/pasuspender.c:228
 #, c-format
 msgid ""
-"%s [options] ... \n"
+"%s [options] -- PROGRAM [ARGUMENTS ...]\n"
+"\n"
+"Temporarily suspend PulseAudio while PROGRAM runs.\n"
 "\n"
 "  -h, --help                            Show this help\n"
 "      --version                         Show version\n"
@@ -3133,14 +3135,16 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
-"%s [mogućnosti] ... \n"
+"%s [mogućnosti] -- PROGRAM [ARGUMENTI ...]\n"
+"\n"
+"Privremeno suspendira PulseAudio dok je PROGRAM pokrenut.\n"
 "\n"
 "  -h, --help                            Prikazuje ovu pomoć\n"
 "      --version                         Prikazuje inačicu\n"
 "  -s, --server=SERVER                   Naziv poslužitelja za povezivanje\n"
 "\n"
 
-#: ../src/utils/pasuspender.c:266
+#: ../src/utils/pasuspender.c:267
 #, c-format
 msgid ""
 "pasuspender %s\n"
@@ -3151,17 +3155,17 @@ msgstr ""
 "Kompilirano s libpulse %s\n"
 "Povezano s libpulse %s\n"
 
-#: ../src/utils/pasuspender.c:295
+#: ../src/utils/pasuspender.c:296
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
 msgstr "pa_mainloop_new() neuspjelo.\n"
 
-#: ../src/utils/pasuspender.c:308
+#: ../src/utils/pasuspender.c:309
 #, c-format
 msgid "pa_context_new() failed.\n"
 msgstr "pa_context_new() neuspjelo.\n"
 
-#: ../src/utils/pasuspender.c:320
+#: ../src/utils/pasuspender.c:321
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
 msgstr "pa_mainloop_run() neuspjelo.\n"
