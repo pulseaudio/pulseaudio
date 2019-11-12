@@ -86,9 +86,9 @@ libpulse = shared_library('pulse',
 
 libpulse_dep = declare_dependency(link_with: libpulse)
 
-install_data(
+install_headers(
   libpulse_headers, 'simple.h',
-  install_dir : join_paths(includedir, 'pulse')
+  subdir : 'pulse'
 )
 
 libpulse_simple = shared_library('pulse-simple',
