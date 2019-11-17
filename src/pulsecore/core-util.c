@@ -784,11 +784,15 @@ void pa_reset_priority(void) {
 #endif
 }
 
+/* Check whenever any substring in v matches the provided regex. */
 int pa_match(const char *expr, const char *v) {
 #if defined(HAVE_REGEX_H) || defined(HAVE_PCREPOSIX_H)
     int k;
     regex_t re;
     int r;
+
+    pa_assert(expr);
+    pa_assert(v);
 
     if (regcomp(&re, expr, REG_NOSUB|REG_EXTENDED) != 0) {
         errno = EINVAL;
@@ -811,6 +815,22 @@ int pa_match(const char *expr, const char *v) {
 #else
     errno = ENOSYS;
     return -1;
+#endif
+}
+
+/* Check whenever the provided regex pattern is valid. */
+bool pa_is_regex_valid(const char *expr) {
+#if defined(HAVE_REGEX_H) || defined(HAVE_PCREPOSIX_H)
+    regex_t re;
+
+    if (expr == NULL || regcomp(&re, expr, REG_NOSUB|REG_EXTENDED) != 0) {
+        return false;
+    }
+
+    regfree(&re);
+    return true;
+#else
+    return false;
 #endif
 }
 

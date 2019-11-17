@@ -40,17 +40,20 @@ PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE(
         "only_from_unavailable=<boolean, only switch from unavailable ports> "
         "ignore_virtual=<boolean, ignore new virtual sinks and sources, defaults to true> "
+        "blacklist=<regex, ignore matching devices> "
 );
 
 static const char* const valid_modargs[] = {
     "only_from_unavailable",
     "ignore_virtual",
+    "blacklist",
     NULL,
 };
 
 struct userdata {
     bool only_from_unavailable;
     bool ignore_virtual;
+    char *blacklist;
 };
 
 static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, void* userdata) {
@@ -78,6 +81,12 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, void* 
             pa_log_debug("Refusing to switch to sink on %s bus", s);
             return PA_HOOK_OK;
         }
+    }
+
+    /* Ignore sinks matching the blacklist regex */
+    if (u->blacklist && (pa_match(u->blacklist, sink->name) > 0)) {
+        pa_log_info("Refusing to switch to blacklisted sink %s", sink->name);
+        return PA_HOOK_OK;
     }
 
     /* Ignore virtual sinks if not configured otherwise on the command line */
@@ -154,6 +163,12 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
     s = pa_proplist_gets(source->proplist, PA_PROP_DEVICE_BUS);
     if (pa_safe_streq(s, "pci") || pa_safe_streq(s, "isa")) {
         pa_log_debug("Refusing to switch to source on %s bus", s);
+        return PA_HOOK_OK;
+    }
+
+    /* Ignore sources matching the blacklist regex */
+    if (u->blacklist && (pa_match(u->blacklist, source->name) > 0)) {
+        pa_log_info("Refusing to switch to blacklisted source %s", source->name);
         return PA_HOOK_OK;
     }
 
@@ -234,6 +249,15 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
+    u->blacklist = pa_modargs_get_value(ma, "blacklist", NULL);
+    if (u->blacklist != NULL && pa_is_regex_valid(u->blacklist)) {
+        /* String returned above will be freed with modargs, duplicate it */
+        u->blacklist = pa_xstrdup(u->blacklist);
+    } else if (u->blacklist != NULL) {
+        pa_log_error("A blacklist pattern was provided but is not a valid regex.");
+        goto fail;
+    }
+
     pa_modargs_free(ma);
     return 0;
 
@@ -253,6 +277,9 @@ void pa__done(pa_module*m) {
 
     if (!(u = m->userdata))
         return;
+
+    if (u->blacklist)
+        pa_xfree(u->blacklist);
 
     pa_xfree(u);
 }
