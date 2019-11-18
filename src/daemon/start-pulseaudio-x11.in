@@ -26,7 +26,7 @@ if [ x"$DISPLAY" != x ] ; then
     # Check for current plasma version and load module if it's necessary.
     if [ x"$KDE_FULL_SESSION" = x"true" ]; then
         plasmaversion="$(plasmashell -v 2>/dev/null | sed -n 's/^plasmashell \([0-9][0-9]*\)\.\([0-9][0-9]*\)\.\([0-9][0-9]*\)/\1*1000000+\2*1000+\3/p' | head -1)"
-        if [ -n "$plasmaversion" ] && [ "$((plasmaversion))" -lt "5017000" ]; then
+        if [ -n "$plasmaversion" ] && [ "$(($plasmaversion))" -lt "5017000" ]; then
             @PACTL_BINARY@ load-module module-device-manager "do_routing=1" > /dev/null
         fi
     fi
