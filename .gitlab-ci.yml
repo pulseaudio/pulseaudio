@@ -1,7 +1,87 @@
-image: registry.freedesktop.org/pulseaudio/pulseaudio/ubuntu:18.04
+# The build has two stages. The 'container' stage is used to build a Docker
+# container and push it to the project's container registry on fd.o GitLab.
+# This step is only run when the tag for the container changes, else it is
+# effectively a no-op. All of this infrastructure is inherited from the
+# wayland/ci-templates repository which is the recommended way to set up CI
+# infrastructure on fd.o GitLab.
+#
+# Once the container stage is done, we move on to the 'build' stage where we
+# run an autotools and meson build in parallel. Currently, tests are also run
+# as part of the build stage as there doesn't seem to be significant value to
+# splitting the stages at the moment.
+
+stages:
+  - container
+  - build
+
+variables:
+  # Update this tag when you want to trigger a rebuild the container in which
+  # CI runs
+  UBUNTU_TAG: '2019-11-21-01'
+  UBUNTU_VERSION: '18.04'
+  UBUNTU_IMAGE: "$CI_REGISTRY_IMAGE/ubuntu/$UBUNTU_VERSION:$UBUNTU_TAG"
+
+include:
+  - project: 'wayland/ci-templates'
+    ref: master
+    file: '/templates/ubuntu.yml'
+
+build-container:
+  extends: .ubuntu@container-ifnot-exists
+  stage: container
+  variables:
+    GIT_STRATEGY: none # no need to pull the whole tree for rebuilding the image
+    UBUNTU_DEBS: >-
+      autoconf
+      automake
+      autopoint
+      bash-completion
+      check
+      curl
+      dbus-x11
+      g++
+      gcc
+      gettext
+      git-core
+      libasound2-dev
+      libasyncns-dev
+      libavahi-client-dev
+      libbluetooth-dev
+      libcap-dev
+      libfftw3-dev
+      libglib2.0-dev
+      libgtk-3-dev
+      libice-dev
+      libjack-dev
+      liblircclient-dev
+      libltdl-dev
+      liborc-0.4-dev
+      libsbc-dev
+      libsndfile1-dev
+      libsoxr-dev
+      libspeexdsp-dev
+      libssl-dev
+      libsystemd-dev
+      libtdb-dev
+      libtool
+      libudev-dev
+      libwebrtc-audio-processing-dev
+      libwrap0-dev
+      libx11-xcb-dev
+      libxcb1-dev
+      libxml-parser-perl
+      libxml2-utils
+      libxtst-dev
+      make
+      ninja-build
+      pkg-config
+      python3-setuptools
+      systemd
+      wget
 
 build-autotools:
   stage: build
+  image: $UBUNTU_IMAGE
   script:
     - export MAKEFLAGS="-j$(nproc)"
     - NOCONFIGURE=1 ./bootstrap.sh
@@ -19,7 +99,15 @@ build-autotools:
 
 build-meson:
   stage: build
+  image: $UBUNTU_IMAGE
   script:
+    # Install meson
+    - wget -q https://github.com/mesonbuild/meson/releases/download/0.50.0/meson-0.50.0.tar.gz
+    - tar -xf meson-0.50.0.tar.gz
+    - cd meson-0.50.0
+    - python3 setup.py install
+    - cd ..
+    # Do the actual build
     - meson build
     - cd build
     - ninja

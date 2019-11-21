@@ -32,7 +32,6 @@ EXTRA_DIST = \
 	README \
 	CODE_OF_CONDUCT.md \
 	scripts/benchmark_memory_usage.sh \
-	scripts/Dockerfile \
 	scripts/plot_memory_usage.gp \
 	scripts/benchmarks/README \
 	todo \
