@@ -249,12 +249,10 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    u->blacklist = pa_modargs_get_value(ma, "blacklist", NULL);
-    if (u->blacklist != NULL && pa_is_regex_valid(u->blacklist)) {
-        /* String returned above will be freed with modargs, duplicate it */
-        u->blacklist = pa_xstrdup(u->blacklist);
-    } else if (u->blacklist != NULL) {
-        pa_log_error("A blacklist pattern was provided but is not a valid regex.");
+    u->blacklist = pa_xstrdup(pa_modargs_get_value(ma, "blacklist", NULL));
+    if (u->blacklist != NULL && !pa_is_regex_valid(u->blacklist)) {
+        pa_log_error("A blacklist pattern was provided but is not a valid regex");
+        pa_xfree(u->blacklist);
         goto fail;
     }
 
