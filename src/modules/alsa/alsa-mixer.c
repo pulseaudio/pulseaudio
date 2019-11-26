@@ -117,11 +117,24 @@ static char *alsa_id_str(char *dst, size_t dst_len, pa_alsa_mixer_id *id) {
 }
 
 static int alsa_id_decode(const char *src, char *name, int *index) {
-    char *idx;
+    char *idx, c;
+    int i;
 
     *index = 0;
-    strcpy(name, src);
-    idx = strchr(name, ',');
+    c = src[0];
+    /* Strip quotes in entries such as 'Speaker',1 or "Speaker",1 */
+    if (c == '\'' || c == '"') {
+        strcpy(name, src + 1);
+        for (i = 0; name[i] != '\0' && name[i] != c; i++);
+        idx = NULL;
+        if (name[i]) {
+                name[i] = '\0';
+                idx = strchr(name + i + 1, ',');
+        }
+    } else {
+        strcpy(name, src);
+        idx = strchr(name, ',');
+    }
     if (idx == NULL)
         return 0;
     *idx = '\0';
