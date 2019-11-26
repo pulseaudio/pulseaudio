@@ -200,6 +200,50 @@ static void ucm_add_devices_to_idxset(
     }
 }
 
+/* Get the volume identifier */
+static char *ucm_get_mixer_id(
+        pa_alsa_ucm_device *device,
+        const char *mprop,
+        const char *cprop,
+        const char *cid)
+{
+#if SND_LIB_VERSION >= 0x10201
+    snd_ctl_elem_id_t *ctl;
+    int err;
+#endif
+    const char *value;
+    char *value2;
+    int index;
+
+    value = pa_proplist_gets(device->proplist, mprop);
+    if (value)
+        return pa_xstrdup(value);
+    value = pa_proplist_gets(device->proplist, cprop);
+    if (value == NULL)
+        return NULL;
+#if SND_LIB_VERSION >= 0x10201
+    snd_ctl_elem_id_alloca(&ctl);
+    err = snd_use_case_parse_ctl_elem_id(ctl, cid, value);
+    if (err < 0)
+        return NULL;
+    value = snd_ctl_elem_id_get_name(ctl);
+    index = snd_ctl_elem_id_get_index(ctl);
+#else
+#warning "Upgrade to alsa-lib 1.2.1!"
+    index = 0;
+#endif
+    if (!(value2 = pa_str_strip_suffix(value, " Playback Volume")))
+        if (!(value2 = pa_str_strip_suffix(value, " Capture Volume")))
+            if (!(value2 = pa_str_strip_suffix(value, " Volume")))
+                value2 = pa_xstrdup(value);
+    if (index > 0) {
+        char *mix = pa_sprintf_malloc("'%s',%d", value2, index);
+        pa_xfree(value2);
+        return mix;
+    }
+    return value2;
+}
+
 /* Create a property list for this ucm device */
 static int ucm_get_device_property(
         pa_alsa_ucm_device *device,
@@ -296,17 +340,12 @@ static int ucm_get_device_property(
                 pa_log_debug("UCM playback priority %s for device %s error", value, device_name);
         }
 
-        value = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_PLAYBACK_VOLUME);
-        if (value) {
-            /* Try to get the simple control name, and failing that, just use the name as is */
-            char *selem;
-
-            if (!(selem = pa_str_strip_suffix(value, " Playback Volume")))
-                if (!(selem = pa_str_strip_suffix(value, " Volume")))
-                    selem = pa_xstrdup(value);
-
-            pa_hashmap_put(device->playback_volumes, pa_xstrdup(pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_NAME)), selem);
-        }
+        value = ucm_get_mixer_id(device,
+                                 PA_ALSA_PROP_UCM_PLAYBACK_MIXER_ELEM,
+                                 PA_ALSA_PROP_UCM_PLAYBACK_VOLUME,
+                                 "PlaybackVolume");
+        if (value)
+            pa_hashmap_put(device->playback_volumes, pa_xstrdup(pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_NAME)), (void *)value);
     }
 
     if (device->capture_channels) { /* source device */
@@ -329,17 +368,12 @@ static int ucm_get_device_property(
                 pa_log_debug("UCM capture priority %s for device %s error", value, device_name);
         }
 
-        value = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_CAPTURE_VOLUME);
-        if (value) {
-            /* Try to get the simple control name, and failing that, just use the name as is */
-            char *selem;
-
-            if (!(selem = pa_str_strip_suffix(value, " Capture Volume")))
-                if (!(selem = pa_str_strip_suffix(value, " Volume")))
-                    selem = pa_xstrdup(value);
-
-            pa_hashmap_put(device->capture_volumes, pa_xstrdup(pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_NAME)), selem);
-        }
+        value = ucm_get_mixer_id(device,
+                                 PA_ALSA_PROP_UCM_CAPTURE_MIXER_ELEM,
+                                 PA_ALSA_PROP_UCM_CAPTURE_VOLUME,
+                                 "CaptureVolume");
+        if (value)
+          pa_hashmap_put(device->capture_volumes, pa_xstrdup(pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_NAME)), (void *)value);
     }
 
     if (PA_UCM_PLAYBACK_PRIORITY_UNSET(device) || PA_UCM_CAPTURE_PRIORITY_UNSET(device)) {
