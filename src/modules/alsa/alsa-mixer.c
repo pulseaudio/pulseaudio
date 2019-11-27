@@ -1923,7 +1923,7 @@ static int jack_probe(pa_alsa_jack *j, pa_alsa_mapping *mapping, snd_mixer_t *m)
     return 0;
 }
 
-static pa_alsa_element* element_get(pa_alsa_path *p, const char *section, bool prefixed) {
+pa_alsa_element * pa_alsa_element_get(pa_alsa_path *p, const char *section, bool prefixed) {
     pa_alsa_element *e;
     char *name;
     int index;
@@ -2025,7 +2025,7 @@ static pa_alsa_option* option_get(pa_alsa_path *p, const char *section) {
         return p->last_option;
     }
 
-    pa_assert_se(e = element_get(p, en, false));
+    pa_assert_se(e = pa_alsa_element_get(p, en, false));
 
     PA_LLIST_FOREACH(o, e->options)
         if (pa_streq(o->alsa_name, on))
@@ -2054,7 +2054,7 @@ static int element_parse_switch(pa_config_parser_state *state) {
 
     p = state->userdata;
 
-    if (!(e = element_get(p, state->section, true))) {
+    if (!(e = pa_alsa_element_get(p, state->section, true))) {
         pa_log("[%s:%u] Switch makes no sense in '%s'", state->filename, state->lineno, state->section);
         return -1;
     }
@@ -2085,7 +2085,7 @@ static int element_parse_volume(pa_config_parser_state *state) {
 
     p = state->userdata;
 
-    if (!(e = element_get(p, state->section, true))) {
+    if (!(e = pa_alsa_element_get(p, state->section, true))) {
         pa_log("[%s:%u] Volume makes no sense in '%s'", state->filename, state->lineno, state->section);
         return -1;
     }
@@ -2121,7 +2121,7 @@ static int element_parse_enumeration(pa_config_parser_state *state) {
 
     p = state->userdata;
 
-    if (!(e = element_get(p, state->section, true))) {
+    if (!(e = pa_alsa_element_get(p, state->section, true))) {
         pa_log("[%s:%u] Enumeration makes no sense in '%s'", state->filename, state->lineno, state->section);
         return -1;
     }
@@ -2213,7 +2213,7 @@ static int element_parse_required(pa_config_parser_state *state) {
 
     p = state->userdata;
 
-    e = element_get(p, state->section, true);
+    e = pa_alsa_element_get(p, state->section, true);
     o = option_get(p, state->section);
     j = jack_get(p, state->section);
     if (!e && !o && !j) {
@@ -2279,7 +2279,7 @@ static int element_parse_direction(pa_config_parser_state *state) {
 
     p = state->userdata;
 
-    if (!(e = element_get(p, state->section, true))) {
+    if (!(e = pa_alsa_element_get(p, state->section, true))) {
         pa_log("[%s:%u] Direction makes no sense in '%s'", state->filename, state->lineno, state->section);
         return -1;
     }
@@ -2305,7 +2305,7 @@ static int element_parse_direction_try_other(pa_config_parser_state *state) {
 
     p = state->userdata;
 
-    if (!(e = element_get(p, state->section, true))) {
+    if (!(e = pa_alsa_element_get(p, state->section, true))) {
         pa_log("[%s:%u] Direction makes no sense in '%s'", state->filename, state->lineno, state->section);
         return -1;
     }
@@ -2328,7 +2328,7 @@ static int element_parse_volume_limit(pa_config_parser_state *state) {
 
     p = state->userdata;
 
-    if (!(e = element_get(p, state->section, true))) {
+    if (!(e = pa_alsa_element_get(p, state->section, true))) {
         pa_log("[%s:%u] volume-limit makes no sense in '%s'", state->filename, state->lineno, state->section);
         return -1;
     }
@@ -2386,7 +2386,7 @@ static int element_parse_override_map(pa_config_parser_state *state) {
 
     p = state->userdata;
 
-    if (!(e = element_get(p, state->section, true))) {
+    if (!(e = pa_alsa_element_get(p, state->section, true))) {
         pa_log("[%s:%u] Override map makes no sense in '%s'", state->filename, state->lineno, state->section);
         return -1;
     }

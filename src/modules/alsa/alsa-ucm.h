@@ -60,6 +60,12 @@ typedef void snd_use_case_mgr_t;
 /** For devices: Playback mixer master type */
 #define PA_ALSA_PROP_UCM_PLAYBACK_MASTER_TYPE       "alsa.ucm.playback.master.type"
 
+/** For devices: Playback mixer master identifier */
+#define PA_ALSA_PROP_UCM_PLAYBACK_MASTER_ID         "alsa.ucm.playback.master.id"
+
+/** For devices: Playback mixer master type */
+#define PA_ALSA_PROP_UCM_PLAYBACK_MASTER_TYPE       "alsa.ucm.playback.master.type"
+
 /** For devices: Playback priority */
 #define PA_ALSA_PROP_UCM_PLAYBACK_PRIORITY          "alsa.ucm.playback.priority"
 
@@ -83,6 +89,12 @@ typedef void snd_use_case_mgr_t;
 
 /** For devices: Capture mixer identifier */
 #define PA_ALSA_PROP_UCM_CAPTURE_MASTER_ELEM        "alsa.ucm.capture.master.element"
+
+/** For devices: Capture mixer identifier */
+#define PA_ALSA_PROP_UCM_CAPTURE_MASTER_TYPE        "alsa.ucm.capture.master.type"
+
+/** For devices: Capture mixer identifier */
+#define PA_ALSA_PROP_UCM_CAPTURE_MASTER_ID          "alsa.ucm.capture.master.id"
 
 /** For devices: Capture mixer identifier */
 #define PA_ALSA_PROP_UCM_CAPTURE_MASTER_TYPE        "alsa.ucm.capture.master.type"
@@ -114,6 +126,7 @@ typedef struct pa_alsa_ucm_device pa_alsa_ucm_device;
 typedef struct pa_alsa_ucm_config pa_alsa_ucm_config;
 typedef struct pa_alsa_ucm_mapping_context pa_alsa_ucm_mapping_context;
 typedef struct pa_alsa_ucm_port_data pa_alsa_ucm_port_data;
+typedef struct pa_alsa_ucm_volume pa_alsa_ucm_volume;
 
 int pa_alsa_ucm_query_profiles(pa_alsa_ucm_config *ucm, int card_index);
 pa_alsa_profile_set* pa_alsa_ucm_add_profile_set(pa_alsa_ucm_config *ucm, pa_channel_map *default_channel_map);
@@ -244,6 +257,12 @@ struct pa_alsa_ucm_port_data {
     pa_hashmap *paths;
     /* Current path, set when activating profile */
     pa_alsa_path *path;
+};
+
+struct pa_alsa_ucm_volume {
+    char *mixer_elem;	/* mixer element identifier */
+    char *master_elem;	/* master mixer element identifier */
+    char *master_type;
 };
 
 #endif

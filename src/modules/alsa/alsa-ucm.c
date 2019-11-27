@@ -200,6 +200,14 @@ static void ucm_add_devices_to_idxset(
     }
 }
 
+static void ucm_volume_free(pa_alsa_ucm_volume *vol) {
+    pa_assert(vol);
+    pa_xfree(vol->mixer_elem);
+    pa_xfree(vol->master_elem);
+    pa_xfree(vol->master_type);
+    pa_xfree(vol);
+}
+
 /* Get the volume identifier */
 static char *ucm_get_mixer_id(
         pa_alsa_ucm_device *device,
@@ -244,6 +252,32 @@ static char *ucm_get_mixer_id(
     return value2;
 }
 
+/* Get the volume identifier */
+static pa_alsa_ucm_volume *ucm_get_mixer_volume(
+        pa_alsa_ucm_device *device,
+        const char *mprop,
+        const char *cprop,
+        const char *cid,
+        const char *masterid,
+        const char *mastertype)
+{
+    pa_alsa_ucm_volume *vol;
+    char *mixer_elem;
+
+    mixer_elem = ucm_get_mixer_id(device, mprop, cprop, cid);
+    if (mixer_elem == NULL)
+        return NULL;
+    vol = pa_xnew0(pa_alsa_ucm_volume, 1);
+    if (vol == NULL) {
+        pa_xfree(mixer_elem);
+        return NULL;
+    }
+    vol->mixer_elem = mixer_elem;
+    vol->master_elem = pa_xstrdup(pa_proplist_gets(device->proplist, masterid));
+    vol->master_type = pa_xstrdup(pa_proplist_gets(device->proplist, mastertype));
+    return vol;
+}
+
 /* Create a property list for this ucm device */
 static int ucm_get_device_property(
         pa_alsa_ucm_device *device,
@@ -258,6 +292,7 @@ static int ucm_get_device_property(
     int err;
     uint32_t ui;
     int n_confdev, n_suppdev;
+    pa_alsa_ucm_volume *vol;
 
     for (i = 0; item[i].id; i++) {
         id = pa_sprintf_malloc("=%s/%s", item[i].id, device_name);
@@ -340,12 +375,14 @@ static int ucm_get_device_property(
                 pa_log_debug("UCM playback priority %s for device %s error", value, device_name);
         }
 
-        value = ucm_get_mixer_id(device,
-                                 PA_ALSA_PROP_UCM_PLAYBACK_MIXER_ELEM,
-                                 PA_ALSA_PROP_UCM_PLAYBACK_VOLUME,
-                                 "PlaybackVolume");
-        if (value)
-            pa_hashmap_put(device->playback_volumes, pa_xstrdup(pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_NAME)), (void *)value);
+        vol = ucm_get_mixer_volume(device,
+                                   PA_ALSA_PROP_UCM_PLAYBACK_MIXER_ELEM,
+                                   PA_ALSA_PROP_UCM_PLAYBACK_VOLUME,
+                                   "PlaybackVolume",
+                                   PA_ALSA_PROP_UCM_PLAYBACK_MASTER_ELEM,
+                                   PA_ALSA_PROP_UCM_PLAYBACK_MASTER_TYPE);
+        if (vol)
+            pa_hashmap_put(device->playback_volumes, pa_xstrdup(pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_NAME)), vol);
     }
 
     if (device->capture_channels) { /* source device */
@@ -368,12 +405,14 @@ static int ucm_get_device_property(
                 pa_log_debug("UCM capture priority %s for device %s error", value, device_name);
         }
 
-        value = ucm_get_mixer_id(device,
-                                 PA_ALSA_PROP_UCM_CAPTURE_MIXER_ELEM,
-                                 PA_ALSA_PROP_UCM_CAPTURE_VOLUME,
-                                 "CaptureVolume");
-        if (value)
-          pa_hashmap_put(device->capture_volumes, pa_xstrdup(pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_NAME)), (void *)value);
+        vol = ucm_get_mixer_volume(device,
+                                   PA_ALSA_PROP_UCM_CAPTURE_MIXER_ELEM,
+                                   PA_ALSA_PROP_UCM_CAPTURE_VOLUME,
+                                   "CaptureVolume",
+                                   PA_ALSA_PROP_UCM_CAPTURE_MASTER_ELEM,
+                                   PA_ALSA_PROP_UCM_CAPTURE_MASTER_TYPE);
+        if (vol)
+          pa_hashmap_put(device->capture_volumes, pa_xstrdup(pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_NAME)), vol);
     }
 
     if (PA_UCM_PLAYBACK_PRIORITY_UNSET(device) || PA_UCM_CAPTURE_PRIORITY_UNSET(device)) {
@@ -478,9 +517,9 @@ static int ucm_get_devices(pa_alsa_ucm_verb *verb, snd_use_case_mgr_t *uc_mgr) {
         d->available = PA_AVAILABLE_UNKNOWN;
 
         d->playback_volumes = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, pa_xfree,
-                                                 pa_xfree);
+                                                  (pa_free_cb_t) ucm_volume_free);
         d->capture_volumes = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, pa_xfree,
-                                                pa_xfree);
+                                                 (pa_free_cb_t) ucm_volume_free);
 
         PA_LLIST_PREPEND(pa_alsa_ucm_device, verb->devices, d);
     }
@@ -819,9 +858,10 @@ static void ucm_add_port_combination(
     char *name, *desc;
     const char *dev_name;
     const char *direction;
-    const char *profile, *volume_element;
+    const char *profile;
     pa_alsa_ucm_device *sorted[num], *dev;
     pa_alsa_ucm_port_data *data;
+    pa_alsa_ucm_volume *vol;
     void *state;
 
     for (i = 0; i < num; i++)
@@ -892,21 +932,27 @@ static void ucm_add_port_combination(
              * ports. */
             data = PA_DEVICE_PORT_DATA(port);
 
-            PA_HASHMAP_FOREACH_KV(profile, volume_element, is_sink ? dev->playback_volumes : dev->capture_volumes, state) {
-                pa_alsa_path *path = pa_alsa_path_synthesize(volume_element,
+            PA_HASHMAP_FOREACH_KV(profile, vol, is_sink ? dev->playback_volumes : dev->capture_volumes, state) {
+                pa_alsa_path *path = pa_alsa_path_synthesize(vol->mixer_elem,
                                                              is_sink ? PA_ALSA_DIRECTION_OUTPUT : PA_ALSA_DIRECTION_INPUT);
 
                 if (!path)
-                    pa_log_warn("Failed to set up volume control: %s", volume_element);
+                    pa_log_warn("Failed to set up volume control: %s", vol->mixer_elem);
                 else {
+                    if (vol->master_elem) {
+                        pa_alsa_element *e = pa_alsa_element_get(path, vol->master_elem, false);
+                        e->switch_use = PA_ALSA_SWITCH_MUTE;
+                        e->volume_use = PA_ALSA_VOLUME_MERGE;
+                    }
+
                     pa_hashmap_put(data->paths, pa_xstrdup(profile), path);
 
                     /* Add path also to already created empty path set */
                     dev = sorted[0];
                     if (is_sink)
-                        pa_hashmap_put(dev->playback_mapping->output_path_set->paths, pa_xstrdup(volume_element), path);
+                        pa_hashmap_put(dev->playback_mapping->output_path_set->paths, pa_xstrdup(vol->mixer_elem), path);
                     else
-                        pa_hashmap_put(dev->capture_mapping->input_path_set->paths, pa_xstrdup(volume_element), path);
+                        pa_hashmap_put(dev->capture_mapping->input_path_set->paths, pa_xstrdup(vol->mixer_elem), path);
                 }
             }
         }
