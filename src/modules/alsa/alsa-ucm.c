@@ -200,6 +200,32 @@ static void ucm_add_devices_to_idxset(
     }
 }
 
+/* Split a string into words. Like pa_split_spaces() but handle '' and "". */
+static char *ucm_split_devnames(const char *c, const char **state) {
+    const char *current = *state ? *state : c;
+    char h;
+    size_t l;
+
+    if (!*current || *c == 0)
+        return NULL;
+
+    current += strspn(current, "\n\r \t");
+    h = *current;
+    if (h == '\'' || h =='"') {
+        c = ++current;
+        for (l = 0; *c && *c != h; l++) c++;
+        if (*c != h)
+            return NULL;
+        *state = c + 1;
+    } else {
+        l = strcspn(current, "\n\r \t");
+        *state = current+l;
+    }
+
+    return pa_xstrndup(current, l);
+}
+
+
 static void ucm_volume_free(pa_alsa_ucm_volume *vol) {
     pa_assert(vol);
     pa_xfree(vol->mixer_elem);
@@ -1607,7 +1633,7 @@ static int ucm_create_profile(
             char *hw_mute_device_name;
             const char *state = NULL;
 
-            while ((hw_mute_device_name = pa_split_spaces(jack_hw_mute, &state))) {
+            while ((hw_mute_device_name = ucm_split_devnames(jack_hw_mute, &state))) {
                 pa_alsa_ucm_verb *verb2;
                 bool device_found = false;
 
