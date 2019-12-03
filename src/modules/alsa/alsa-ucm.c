@@ -1534,6 +1534,22 @@ static pa_alsa_jack* ucm_get_jack(pa_alsa_ucm_config *ucm, pa_alsa_ucm_device *d
 
     jack_control = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_JACK_CONTROL);
     if (jack_control) {
+#if SND_LIB_VERSION >= 0x10201
+        snd_ctl_elem_id_t *ctl;
+        int err, index;
+        snd_ctl_elem_id_alloca(&ctl);
+        err = snd_use_case_parse_ctl_elem_id(ctl, "JackControl", jack_control);
+        if (err < 0)
+            return NULL;
+        jack_control = snd_ctl_elem_id_get_name(ctl);
+        index = snd_ctl_elem_id_get_index(ctl);
+        if (index > 0) {
+            pa_log("[%s] Invalid JackControl index value: \"%s\",%d", device_name, jack_control, index);
+            return NULL;
+        }
+#else
+#warning "Upgrade to alsa-lib 1.2.1!"
+#endif
         if (!pa_endswith(jack_control, " Jack")) {
             pa_log("[%s] Invalid JackControl value: \"%s\"", device_name, jack_control);
             return NULL;
