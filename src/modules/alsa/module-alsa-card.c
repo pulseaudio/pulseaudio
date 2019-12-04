@@ -538,6 +538,9 @@ static int hdmi_eld_changed(snd_mixer_elem_t *melem, unsigned int mask) {
     if (mask == SND_CTL_EVENT_MASK_REMOVE)
         return 0;
 
+    if (u->use_ucm)
+        return 0;
+
     p = find_port_with_eld_device(u->card->ports, device);
     if (p == NULL) {
         pa_log_error("Invalid device changed in ALSA: %d", device);
@@ -900,7 +903,8 @@ int pa__init(pa_module *m) {
      * results in an infinite loop of "fill buffer, handle underrun". To work
      * around this issue, the suspend_when_unavailable flag is used to stop
      * playback when the HDMI cable is unplugged. */
-    if (pa_safe_streq(pa_proplist_gets(data.proplist, "alsa.driver_name"), "snd_hdmi_lpe_audio")) {
+    if (!u->use_ucm &&
+        pa_safe_streq(pa_proplist_gets(data.proplist, "alsa.driver_name"), "snd_hdmi_lpe_audio")) {
         pa_device_port *port;
         void *state;
 

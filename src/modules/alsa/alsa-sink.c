@@ -1672,6 +1672,7 @@ static int sink_set_port_cb(pa_sink *s, pa_device_port *p) {
     pa_assert(u);
     pa_assert(p);
     pa_assert(u->mixer_handle);
+    pa_assert(!u->ucm_context);
 
     data = PA_DEVICE_PORT_DATA(p);
     pa_assert_se(u->mixer_path = data->path);
@@ -2688,7 +2689,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
      * pa_sink_suspend() between pa_sink_new() and pa_sink_put() would
      * otherwise work, but currently pa_sink_suspend() will crash if
      * pa_sink_put() hasn't been called. */
-    if (u->sink->active_port) {
+    if (u->sink->active_port && !u->ucm_context) {
         pa_alsa_port_data *port_data;
 
         port_data = PA_DEVICE_PORT_DATA(u->sink->active_port);

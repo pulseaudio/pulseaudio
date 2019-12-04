@@ -1519,8 +1519,6 @@ static int source_set_port_ucm_cb(pa_source *s, pa_device_port *p) {
     struct userdata *u = s->userdata;
     pa_alsa_ucm_port_data *data;
 
-    data = PA_DEVICE_PORT_DATA(p);
-
     pa_assert(u);
     pa_assert(p);
     pa_assert(u->mixer_handle);
@@ -1545,6 +1543,7 @@ static int source_set_port_cb(pa_source *s, pa_device_port *p) {
     pa_assert(u);
     pa_assert(p);
     pa_assert(u->mixer_handle);
+    pa_assert(!u->ucm_context);
 
     data = PA_DEVICE_PORT_DATA(p);
     pa_assert_se(u->mixer_path = data->path);
