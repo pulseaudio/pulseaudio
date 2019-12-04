@@ -241,7 +241,7 @@ static char *ucm_get_mixer_id(
         const char *cprop,
         const char *cid)
 {
-#if SND_LIB_VERSION >= 0x10201
+#if SND_LIB_VERSION >= 0x10201 /* alsa-lib-1.2.1+ check */
     snd_ctl_elem_id_t *ctl;
     int err;
 #endif
@@ -249,13 +249,17 @@ static char *ucm_get_mixer_id(
     char *value2;
     int index;
 
+    /* mixer element as first, if it's found, return it without modifications */
     value = pa_proplist_gets(device->proplist, mprop);
     if (value)
         return pa_xstrdup(value);
+    /* fallback, get the control element identifier */
+    /* and try to do some heuristic to determine the mixer element name */
     value = pa_proplist_gets(device->proplist, cprop);
     if (value == NULL)
         return NULL;
-#if SND_LIB_VERSION >= 0x10201
+#if SND_LIB_VERSION >= 0x10201 /* alsa-lib-1.2.1+ check */
+    /* The new parser may return also element index. */
     snd_ctl_elem_id_alloca(&ctl);
     err = snd_use_case_parse_ctl_elem_id(ctl, cid, value);
     if (err < 0)
