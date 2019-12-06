@@ -1522,9 +1522,8 @@ static pa_alsa_jack* ucm_get_jack(pa_alsa_ucm_config *ucm, pa_alsa_ucm_device *d
          * end, so drop the trailing " Jack". */
         name = pa_xstrndup(jack_control, strlen(jack_control) - 5);
     } else {
-        /* The jack control hasn't been explicitly configured - try a jack name
-         * that is the same as the device name. */
-        name = pa_xstrdup(device_name);
+        /* The jack control hasn't been explicitly configured, fail. */
+        return NULL;
     }
 
     PA_LLIST_FOREACH(j, ucm->jacks)
@@ -1603,7 +1602,8 @@ static int ucm_create_profile(
         ucm_create_mapping(ucm, ps, p, dev, verb_name, name, sink, source);
 
         jack = ucm_get_jack(ucm, dev);
-        device_set_jack(dev, jack);
+        if (jack)
+            device_set_jack(dev, jack);
 
         /* JackHWMute contains a list of device names. Each listed device must
          * be associated with the jack object that we just created. */
