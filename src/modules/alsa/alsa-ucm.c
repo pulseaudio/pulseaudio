@@ -141,30 +141,6 @@ static struct ucm_info dev_info[] = {
     {NULL, 0}
 };
 
-/* UCM profile properties - The verb data is store so it can be used to fill
- * the new profiles properties */
-static int ucm_get_property(pa_alsa_ucm_verb *verb, snd_use_case_mgr_t *uc_mgr, const char *verb_name) {
-    const char *value;
-    char *id;
-    int i;
-
-    for (i = 0; item[i].id; i++) {
-        int err;
-
-        id = pa_sprintf_malloc("=%s//%s", item[i].id, verb_name);
-        err = snd_use_case_get(uc_mgr, id, &value);
-        pa_xfree(id);
-        if (err < 0)
-            continue;
-
-        pa_log_debug("Got %s for verb %s: %s", item[i].id, verb_name, value);
-        pa_proplist_sets(verb->proplist, item[i].property, value);
-        free((void*)value);
-    }
-
-    return 0;
-};
-
 static int ucm_device_exists(pa_idxset *idxset, pa_alsa_ucm_device *dev) {
     pa_alsa_ucm_device *d;
     uint32_t idx;
@@ -325,7 +301,7 @@ static int ucm_get_device_property(
     pa_alsa_ucm_volume *vol;
 
     for (i = 0; item[i].id; i++) {
-        id = pa_sprintf_malloc("=%s/%s", item[i].id, device_name);
+        id = pa_sprintf_malloc("%s/%s", item[i].id, device_name);
         err = snd_use_case_get(uc_mgr, id, &value);
         pa_xfree(id);
         if (err < 0)
@@ -347,14 +323,8 @@ static int ucm_get_device_property(
 
         /* get pcm */
         value = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_SINK);
-        if (!value) { /* take pcm from verb playback default */
-            value = pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_SINK);
-            if (value) {
-                pa_log_debug("UCM playback device %s fetch pcm from verb default %s", device_name, value);
-                pa_proplist_sets(device->proplist, PA_ALSA_PROP_UCM_SINK, value);
-            } else
-                pa_log("UCM playback device %s fetch pcm failed", device_name);
-        }
+        if (!value) /* take pcm from verb playback default */
+            pa_log("UCM playback device %s fetch pcm failed", device_name);
     }
 
     value = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_CAPTURE_CHANNELS);
@@ -367,14 +337,8 @@ static int ucm_get_device_property(
 
         /* get pcm */
         value = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_SOURCE);
-        if (!value) { /* take pcm from verb capture default */
-            value = pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_SOURCE);
-            if (value) {
-                pa_log_debug("UCM capture device %s fetch pcm from verb default %s", device_name, value);
-                pa_proplist_sets(device->proplist, PA_ALSA_PROP_UCM_SOURCE, value);
-            } else
-                pa_log("UCM capture device %s fetch pcm failed", device_name);
-        }
+        if (!value) /* take pcm from verb capture default */
+            pa_log("UCM capture device %s fetch pcm failed", device_name);
     }
 
     if (device->playback_channels == 0 && device->capture_channels == 0) {
@@ -387,8 +351,7 @@ static int ucm_get_device_property(
     /* get rate and priority of device */
     if (device->playback_channels) { /* sink device */
         /* get rate */
-        if ((value = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_PLAYBACK_RATE)) ||
-            (value = pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_PLAYBACK_RATE))) {
+        if ((value = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_PLAYBACK_RATE))) {
             if (pa_atou(value, &ui) == 0 && pa_sample_rate_valid(ui)) {
                 pa_log_debug("UCM playback device %s rate %d", device_name, ui);
                 device->playback_rate = ui;
@@ -417,8 +380,7 @@ static int ucm_get_device_property(
 
     if (device->capture_channels) { /* source device */
         /* get rate */
-        if ((value = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_CAPTURE_RATE)) ||
-            (value = pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_CAPTURE_RATE))) {
+        if ((value = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_CAPTURE_RATE))) {
             if (pa_atou(value, &ui) == 0 && pa_sample_rate_valid(ui)) {
                 pa_log_debug("UCM capture device %s rate %d", device_name, ui);
                 device->capture_rate = ui;
@@ -795,9 +757,6 @@ int pa_alsa_ucm_get_verb(snd_use_case_mgr_t *uc_mgr, const char *verb_name, cons
     err = ucm_get_modifiers(verb, uc_mgr);
     if (err < 0)
         pa_log("No UCM modifiers for verb %s", verb_name);
-
-    /* Verb properties */
-    ucm_get_property(verb, uc_mgr, verb_name);
 
     PA_LLIST_FOREACH(d, verb->devices) {
         const char *dev_name = pa_proplist_gets(d->proplist, PA_ALSA_PROP_UCM_NAME);
