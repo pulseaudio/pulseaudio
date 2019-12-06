@@ -222,15 +222,15 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
         if (so->source == source)
             continue;
 
-        if (so->save_source)
-            continue;
-
         if (so->direct_on_input)
             continue;
 
         /* Skip this if it is already in the process of being moved
          * anyway */
         if (!so->source)
+            continue;
+
+        if (pa_safe_streq(so->source->name, so->preferred_source))
             continue;
 
         /* It might happen that a stream and a source are set up at the

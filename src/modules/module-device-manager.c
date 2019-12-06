@@ -728,15 +728,15 @@ static void route_source_output(struct userdata *u, pa_source_output *so) {
     pa_assert(u);
     pa_assert(u->do_routing);
 
-    /* Don't override user or application routing requests. */
-    if (so->save_source || so->source_requested_by_application)
-        return;
-
     if (so->direct_on_input)
         return;
 
     /* Skip this if it is already in the process of being moved anyway */
     if (!so->source)
+        return;
+
+    /* Don't override user or application routing requests. */
+    if (pa_safe_streq(so->source->name, so->preferred_source) || so->source_requested_by_application)
         return;
 
     auto_filtered_prop = pa_proplist_gets(so->proplist, "module-device-manager.auto_filtered");

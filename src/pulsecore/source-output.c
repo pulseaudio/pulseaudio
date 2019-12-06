@@ -134,7 +134,10 @@ bool pa_source_output_new_data_set_source(pa_source_output_new_data *data, pa_so
     if (!data->req_formats) {
         /* We're not working with the extended API */
         data->source = s;
-        data->save_source = save;
+        if (save) {
+            pa_xfree(data->preferred_source);
+            data->preferred_source = pa_xstrdup(s->name);
+        }
         data->source_requested_by_application = requested_by_application;
     } else {
         /* Extended API: let's see if this source supports the formats the client would like */
@@ -143,7 +146,10 @@ bool pa_source_output_new_data_set_source(pa_source_output_new_data *data, pa_so
         if (formats && !pa_idxset_isempty(formats)) {
             /* Source supports at least one of the requested formats */
             data->source = s;
-            data->save_source = save;
+            if (save) {
+                pa_xfree(data->preferred_source);
+                data->preferred_source = pa_xstrdup(s->name);
+            }
             data->source_requested_by_application = requested_by_application;
             if (data->nego_formats)
                 pa_idxset_free(data->nego_formats, (pa_free_cb_t) pa_format_info_free);
@@ -170,7 +176,7 @@ bool pa_source_output_new_data_set_formats(pa_source_output_new_data *data, pa_i
 
     if (data->source) {
         /* Trigger format negotiation */
-        return pa_source_output_new_data_set_source(data, data->source, data->save_source,
+        return pa_source_output_new_data_set_source(data, data->source, (data->preferred_source != NULL),
                                                     data->source_requested_by_application);
     }
 
@@ -188,6 +194,9 @@ void pa_source_output_new_data_done(pa_source_output_new_data *data) {
 
     if (data->format)
         pa_format_info_free(data->format);
+
+    if (data->preferred_source)
+        pa_xfree(data->preferred_source);
 
     pa_proplist_free(data->proplist);
 }
@@ -460,7 +469,7 @@ int pa_source_output_new(
     pa_cvolume_reset(&o->real_ratio, o->sample_spec.channels);
     o->volume_writable = data->volume_writable;
     o->save_volume = data->save_volume;
-    o->save_source = data->save_source;
+    o->preferred_source = pa_xstrdup(data->preferred_source);
     o->save_muted = data->save_muted;
 
     o->muted = data->muted;
@@ -651,6 +660,9 @@ static void source_output_free(pa_object* mo) {
 
     if (o->proplist)
         pa_proplist_free(o->proplist);
+
+    if (o->preferred_source)
+        pa_xfree(o->preferred_source);
 
     pa_xfree(o->driver);
     pa_xfree(o);
@@ -1545,7 +1557,12 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, bool save
         o->moving(o, dest);
 
     o->source = dest;
-    o->save_source = save;
+    /* save == true, means user is calling the move_to() and want to
+       save the preferred_source */
+    if (save) {
+        pa_xfree(o->preferred_source);
+        o->preferred_source = pa_xstrdup(dest->name);
+    }
     pa_idxset_put(o->source->outputs, pa_source_output_ref(o), NULL);
 
     pa_cvolume_remap(&o->volume_factor_source, &o->channel_map, &o->source->channel_map);

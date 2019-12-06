@@ -1369,16 +1369,18 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
             mute_updated = !created_new_entry && (!old->muted_valid || entry->muted != old->muted);
         }
 
-        if (source_output->save_source) {
+        if (source_output->preferred_source != NULL) {
+            pa_source *s;
             pa_xfree(entry->device);
-            entry->device = pa_xstrdup(source_output->source->name);
+            entry->device = pa_xstrdup(source_output->preferred_source);
             entry->device_valid = true;
 
             device_updated = !created_new_entry && (!old->device_valid || !pa_streq(entry->device, old->device));
 
-            if (source_output->source->card) {
+            s = pa_namereg_get(c, entry->device, PA_NAMEREG_SOURCE);
+            if (s && s->card) {
                 pa_xfree(entry->card);
-                entry->card = pa_xstrdup(source_output->source->card->name);
+                entry->card = pa_xstrdup(s->card->name);
                 entry->card_valid = true;
             }
         }
@@ -1653,14 +1655,14 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
         if (so->source == source)
             continue;
 
-        if (so->save_source)
-            continue;
-
         if (so->direct_on_input)
             continue;
 
         /* Skip this if it is already in the process of being moved anyway */
         if (!so->source)
+            continue;
+
+        if (pa_safe_streq(so->source->name, so->preferred_source))
             continue;
 
         /* Skip this source output if it is connecting a filter source to
@@ -1898,12 +1900,13 @@ static void entry_apply(struct userdata *u, const char *name, struct entry *e) {
 
         if (u->restore_device) {
             if (!e->device_valid) {
-                if (so->save_source) {
+                if (so->preferred_source != NULL) {
                     pa_log_info("Ensuring device is not saved for stream %s.", name);
                     /* If the device is not valid we should make sure the
-                       save flag is cleared as the user may have specifically
+                       preferred_source is cleared as the user may have specifically
                        removed the source element from the rule. */
-                    so->save_source = false;
+                    pa_xfree(so->preferred_source);
+                    so->preferred_source = NULL;
                     /* This is cheating a bit. The source output itself has not changed
                        but the rules governing its routing have, so we fire this event
                        such that other routing modules (e.g. module-device-manager)
