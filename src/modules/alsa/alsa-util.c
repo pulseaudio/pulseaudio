@@ -1743,7 +1743,6 @@ snd_mixer_t *pa_alsa_open_mixer(int alsa_card_index, char **ctl_device) {
 snd_mixer_t *pa_alsa_open_mixer_for_pcm(snd_pcm_t *pcm, char **ctl_device) {
     int err;
     snd_mixer_t *m;
-    const char *dev;
     snd_pcm_info_t* info;
     snd_pcm_info_alloca(&info);
 
@@ -1754,15 +1753,6 @@ snd_mixer_t *pa_alsa_open_mixer_for_pcm(snd_pcm_t *pcm, char **ctl_device) {
         return NULL;
     }
 
-    /* First, try by name */
-    if ((dev = snd_pcm_name(pcm)))
-        if (prepare_mixer(m, dev) >= 0) {
-            if (ctl_device)
-                *ctl_device = pa_xstrdup(dev);
-
-            return m;
-        }
-
     /* Then, try by card index */
     if (snd_pcm_info(pcm, info) >= 0) {
         char *md;
@@ -1771,17 +1761,15 @@ snd_mixer_t *pa_alsa_open_mixer_for_pcm(snd_pcm_t *pcm, char **ctl_device) {
         if ((card_idx = snd_pcm_info_get_card(info)) >= 0) {
 
             md = pa_sprintf_malloc("hw:%i", card_idx);
+            if (prepare_mixer(m, md) >= 0) {
 
-            if (!dev || !pa_streq(dev, md))
-                if (prepare_mixer(m, md) >= 0) {
+                if (ctl_device)
+                    *ctl_device = md;
+                else
+                    pa_xfree(md);
 
-                    if (ctl_device)
-                        *ctl_device = md;
-                    else
-                        pa_xfree(md);
-
-                    return m;
-                }
+                return m;
+            }
 
             pa_xfree(md);
         }
