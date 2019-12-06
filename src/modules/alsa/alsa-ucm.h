@@ -45,11 +45,17 @@ typedef void snd_use_case_mgr_t;
 /** For devices: Playback roles */
 #define PA_ALSA_PROP_UCM_PLAYBACK_ROLES             "alsa.ucm.playback.roles"
 
+/** For devices: Playback control device name  */
+#define PA_ALSA_PROP_UCM_PLAYBACK_CTL_DEVICE        "alsa.ucm.playback.ctldev"
+
 /** For devices: Playback control volume ID string. e.g PlaybackVolume */
 #define PA_ALSA_PROP_UCM_PLAYBACK_VOLUME            "alsa.ucm.playback.volume"
 
 /** For devices: Playback switch e.g PlaybackSwitch */
 #define PA_ALSA_PROP_UCM_PLAYBACK_SWITCH            "alsa.ucm.playback.switch"
+
+/** For devices: Playback mixer device name  */
+#define PA_ALSA_PROP_UCM_PLAYBACK_MIXER_DEVICE      "alsa.ucm.playback.mixer.device"
 
 /** For devices: Playback mixer identifier */
 #define PA_ALSA_PROP_UCM_PLAYBACK_MIXER_ELEM        "alsa.ucm.playback.mixer.element"
@@ -78,11 +84,17 @@ typedef void snd_use_case_mgr_t;
 /** For devices: Capture roles */
 #define PA_ALSA_PROP_UCM_CAPTURE_ROLES              "alsa.ucm.capture.roles"
 
+/** For devices: Capture control device name  */
+#define PA_ALSA_PROP_UCM_CAPTURE_CTL_DEVICE         "alsa.ucm.capture.ctldev"
+
 /** For devices: Capture controls volume ID string. e.g CaptureVolume */
 #define PA_ALSA_PROP_UCM_CAPTURE_VOLUME             "alsa.ucm.capture.volume"
 
 /** For devices: Capture switch e.g CaptureSwitch */
 #define PA_ALSA_PROP_UCM_CAPTURE_SWITCH             "alsa.ucm.capture.switch"
+
+/** For devices: Capture mixer device name  */
+#define PA_ALSA_PROP_UCM_CAPTURE_MIXER_DEVICE       "alsa.ucm.capture.mixer.device"
 
 /** For devices: Capture mixer identifier */
 #define PA_ALSA_PROP_UCM_CAPTURE_MIXER_ELEM         "alsa.ucm.capture.mixer.element"
@@ -113,6 +125,9 @@ typedef void snd_use_case_mgr_t;
 
 /** For devices: The modifier (if any) that this device corresponds to */
 #define PA_ALSA_PROP_UCM_MODIFIER "alsa.ucm.modifier"
+
+/* Corresponds to the "JackCTL" UCM value. */
+#define PA_ALSA_PROP_UCM_JACK_DEVICE		    "alsa.ucm.jack_device"
 
 /* Corresponds to the "JackControl" UCM value. */
 #define PA_ALSA_PROP_UCM_JACK_CONTROL               "alsa.ucm.jack_control"
