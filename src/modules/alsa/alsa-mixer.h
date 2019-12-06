@@ -364,6 +364,7 @@ void pa_alsa_profile_set_free(pa_alsa_profile_set *s);
 void pa_alsa_profile_set_dump(pa_alsa_profile_set *s);
 void pa_alsa_profile_set_drop_unsupported(pa_alsa_profile_set *s);
 
+snd_mixer_t *pa_alsa_open_mixer_by_name(const char *dev);
 snd_mixer_t *pa_alsa_open_mixer_for_pcm(snd_pcm_t *pcm, char **ctl_device);
 
 pa_alsa_fdlist *pa_alsa_fdlist_new(void);
