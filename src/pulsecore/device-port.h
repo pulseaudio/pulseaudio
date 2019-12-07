@@ -89,4 +89,6 @@ pa_device_port *pa_device_port_find_best(pa_hashmap *ports);
 
 pa_sink *pa_device_port_get_sink(pa_device_port *p);
 
+pa_source *pa_device_port_get_source(pa_device_port *p);
+
 #endif
