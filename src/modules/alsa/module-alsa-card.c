@@ -588,7 +588,7 @@ static void init_eld_ctls(struct userdata *u) {
         if (device < 0)
             continue;
 
-        melem = pa_alsa_mixer_find(u->mixer_handle, "ELD", device);
+        melem = pa_alsa_mixer_find_pcm(u->mixer_handle, "ELD", device);
         if (melem) {
             snd_mixer_elem_set_callback(melem, hdmi_eld_changed);
             snd_mixer_elem_set_callback_private(melem, u);
@@ -635,7 +635,7 @@ static void init_jacks(struct userdata *u) {
     u->mixer_handle = pa_alsa_open_mixer(u->alsa_card_index, NULL);
     if (u->mixer_handle && pa_alsa_fdlist_set_handle(u->mixer_fdl, u->mixer_handle, NULL, u->core->mainloop) >= 0) {
         PA_HASHMAP_FOREACH(jack, u->jacks, state) {
-            jack->melem = pa_alsa_mixer_find(u->mixer_handle, jack->alsa_name, 0);
+            jack->melem = pa_alsa_mixer_find_card(u->mixer_handle, jack->alsa_name, 0);
             if (!jack->melem) {
                 pa_log_warn("Jack '%s' seems to have disappeared.", jack->alsa_name);
                 pa_alsa_jack_set_has_control(jack, false);

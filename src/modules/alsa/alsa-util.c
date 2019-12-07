@@ -1610,7 +1610,11 @@ bool pa_alsa_may_tsched(bool want) {
 
 #define SND_MIXER_ELEM_PULSEAUDIO (SND_MIXER_ELEM_LAST + 10)
 
-snd_mixer_elem_t *pa_alsa_mixer_find(snd_mixer_t *mixer, const char *name, unsigned int device) {
+static snd_mixer_elem_t *pa_alsa_mixer_find(snd_mixer_t *mixer,
+                                            snd_ctl_elem_iface_t iface,
+                                            const char *name,
+                                            unsigned int index,
+                                            unsigned int device) {
     snd_mixer_elem_t *elem;
 
     for (elem = snd_mixer_first_elem(mixer); elem; elem = snd_mixer_elem_next(elem)) {
@@ -1618,13 +1622,25 @@ snd_mixer_elem_t *pa_alsa_mixer_find(snd_mixer_t *mixer, const char *name, unsig
         if (snd_mixer_elem_get_type(elem) != SND_MIXER_ELEM_PULSEAUDIO)
             continue;
         helem = snd_mixer_elem_get_private(elem);
+        if (snd_hctl_elem_get_interface(helem) != iface)
+            continue;
         if (!pa_streq(snd_hctl_elem_get_name(helem), name))
+            continue;
+        if (snd_hctl_elem_get_index(helem) != index)
             continue;
         if (snd_hctl_elem_get_device(helem) != device)
             continue;
         return elem;
     }
     return NULL;
+}
+
+snd_mixer_elem_t *pa_alsa_mixer_find_card(snd_mixer_t *mixer, const char *name, unsigned int device) {
+    return pa_alsa_mixer_find(mixer, SND_CTL_ELEM_IFACE_CARD, name, 0, device);
+}
+
+snd_mixer_elem_t *pa_alsa_mixer_find_pcm(snd_mixer_t *mixer, const char *name, unsigned int device) {
+    return pa_alsa_mixer_find(mixer, SND_CTL_ELEM_IFACE_PCM, name, 0, device);
 }
 
 static int mixer_class_compare(const snd_mixer_elem_t *c1, const snd_mixer_elem_t *c2)

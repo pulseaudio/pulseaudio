@@ -1907,7 +1907,7 @@ static int jack_probe(pa_alsa_jack *j, pa_alsa_mapping *mapping, snd_mixer_t *m)
         j->append_pcm_to_name = false;
     }
 
-    has_control = pa_alsa_mixer_find(m, j->alsa_name, 0) != NULL;
+    has_control = pa_alsa_mixer_find_card(m, j->alsa_name, 0) != NULL;
     pa_alsa_jack_set_has_control(j, has_control);
 
     if (j->has_control) {
