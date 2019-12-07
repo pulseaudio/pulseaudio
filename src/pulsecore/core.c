@@ -435,6 +435,10 @@ void pa_core_update_default_source(pa_core *core) {
                 old_default_source ? old_default_source->name : "(unset)", best ? best->name : "(unset)");
     pa_subscription_post(core, PA_SUBSCRIPTION_EVENT_SERVER | PA_SUBSCRIPTION_EVENT_CHANGE, PA_INVALID_INDEX);
     pa_hook_fire(&core->hooks[PA_CORE_HOOK_DEFAULT_SOURCE_CHANGED], core->default_source);
+
+    /* try to move the streams from old_default_source to the new default_source conditionally */
+    if (old_default_source)
+	pa_source_move_streams_to_default_source(core, old_default_source);
 }
 
 void pa_core_set_exit_idle_time(pa_core *core, int time) {

@@ -666,8 +666,10 @@ void pa_source_put(pa_source *s) {
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE | PA_SUBSCRIPTION_EVENT_NEW, s->index);
     pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_PUT], s);
 
-    /* This function must be called after the PA_CORE_HOOK_SOURCE_PUT hook,
-     * because module-switch-on-connect needs to know the old default source */
+    /* It's good to fire the SOURCE_PUT hook before updating the default source,
+     * because module-switch-on-connect will set the new source as the default
+     * source, and if we were to call pa_core_update_default_source() before that,
+     * the default source might change twice, causing unnecessary stream moving. */
     pa_core_update_default_source(s->core);
 }
 
@@ -2987,4 +2989,37 @@ void pa_source_set_reference_volume_direct(pa_source *s, const pa_cvolume *volum
 
     pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SOURCE|PA_SUBSCRIPTION_EVENT_CHANGE, s->index);
     pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_VOLUME_CHANGED], s);
+}
+
+void pa_source_move_streams_to_default_source(pa_core *core, pa_source *old_source) {
+    pa_source_output *o;
+    uint32_t idx;
+    bool old_source_is_unavailable = false;
+
+    pa_assert(core);
+    pa_assert(old_source);
+
+    if (core->default_source == NULL || core->default_source->unlink_requested)
+        return;
+
+    if (old_source == core->default_source)
+        return;
+
+    if (old_source->active_port && old_source->active_port->available == PA_AVAILABLE_NO)
+        old_source_is_unavailable = true;
+
+    PA_IDXSET_FOREACH(o, old_source->outputs, idx) {
+        if (!PA_SOURCE_OUTPUT_IS_LINKED(o->state))
+            continue;
+
+        if (!o->source)
+            continue;
+
+        if (pa_safe_streq(old_source->name, o->preferred_source) && !old_source_is_unavailable)
+            continue;
+
+        pa_log_info("The source output %u \"%s\" is moving to %s due to change of the default source.",
+                    o->index, pa_strnull(pa_proplist_gets(o->proplist, PA_PROP_APPLICATION_NAME)), core->default_source->name);
+        pa_source_output_move_to(o, core->default_source, false);
+    }
 }
