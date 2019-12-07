@@ -512,15 +512,24 @@ static int report_jack_state(snd_mixer_elem_t *melem, unsigned int mask) {
     return 0;
 }
 
-static pa_device_port* find_port_with_eld_device(pa_hashmap *ports, int device) {
+static pa_device_port* find_port_with_eld_device(struct userdata *u, int device) {
     void *state;
     pa_device_port *p;
 
-    PA_HASHMAP_FOREACH(p, ports, state) {
-        pa_alsa_port_data *data = PA_DEVICE_PORT_DATA(p);
-        pa_assert(data->path);
-        if (device == data->path->eld_device)
-            return p;
+    if (u->use_ucm) {
+        PA_HASHMAP_FOREACH(p, u->card->ports, state) {
+            pa_alsa_ucm_port_data *data = PA_DEVICE_PORT_DATA(p);
+            pa_assert(data->eld_mixer_device_name);
+            if (device == data->eld_device)
+                return p;
+        }
+    } else {
+        PA_HASHMAP_FOREACH(p, u->card->ports, state) {
+            pa_alsa_port_data *data = PA_DEVICE_PORT_DATA(p);
+            pa_assert(data->path);
+            if (device == data->path->eld_device)
+                return p;
+        }
     }
     return NULL;
 }
@@ -537,10 +546,7 @@ static int hdmi_eld_changed(snd_mixer_elem_t *melem, unsigned int mask) {
     if (mask == SND_CTL_EVENT_MASK_REMOVE)
         return 0;
 
-    if (u->use_ucm)
-        return 0;
-
-    p = find_port_with_eld_device(u->card->ports, device);
+    p = find_port_with_eld_device(u, device);
     if (p == NULL) {
         pa_log_error("Invalid device changed in ALSA: %d", device);
         return 0;
@@ -571,21 +577,30 @@ static void init_eld_ctls(struct userdata *u) {
     /* The code in this function expects ports to have a pa_alsa_port_data
      * struct as their data, but in UCM mode ports don't have any data. Hence,
      * the ELD controls can't currently be used in UCM mode. */
-    if (u->use_ucm)
-        return;
-
     PA_HASHMAP_FOREACH(port, u->card->ports, state) {
-        pa_alsa_port_data *data = PA_DEVICE_PORT_DATA(port);
         snd_mixer_t *mixer_handle;
         snd_mixer_elem_t* melem;
         int device;
 
-        pa_assert(data->path);
-        device = data->path->eld_device;
-        if (device < 0)
-            continue;
+        if (u->use_ucm) {
+            pa_alsa_ucm_port_data *data = PA_DEVICE_PORT_DATA(port);
+            device = data->eld_device;
+            if (device < 0 || !data->eld_mixer_device_name)
+                continue;
 
-        mixer_handle = pa_alsa_open_mixer(u->mixers, u->alsa_card_index, true);
+            mixer_handle = pa_alsa_open_mixer_by_name(u->mixers, data->eld_mixer_device_name, true);
+        } else {
+            pa_alsa_port_data *data = PA_DEVICE_PORT_DATA(port);
+
+            pa_assert(data->path);
+
+            device = data->path->eld_device;
+            if (device < 0)
+                continue;
+
+            mixer_handle = pa_alsa_open_mixer(u->mixers, u->alsa_card_index, true);
+        }
+
         if (!mixer_handle)
             continue;
 
@@ -595,9 +610,10 @@ static void init_eld_ctls(struct userdata *u) {
             snd_mixer_elem_set_callback(melem, hdmi_eld_changed);
             snd_mixer_elem_set_callback_private(melem, u);
             hdmi_eld_changed(melem, 0);
+            pa_log_info("ELD device found for port %s (%d).", port->name, device);
         }
         else
-            pa_log_debug("No ELD device found for port %s.", port->name);
+            pa_log_debug("No ELD device found for port %s (%d).", port->name, device);
     }
 }
 

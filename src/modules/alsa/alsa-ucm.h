@@ -207,6 +207,9 @@ struct pa_alsa_ucm_device {
     pa_alsa_jack *jack;
     pa_dynarray *hw_mute_jacks; /* pa_alsa_jack */
     pa_available_t available;
+
+    char *eld_mixer_device_name;
+    int eld_device;
 };
 
 void pa_alsa_ucm_device_update_available(pa_alsa_ucm_device *device);
@@ -273,6 +276,10 @@ struct pa_alsa_ucm_port_data {
     pa_hashmap *paths;
     /* Current path, set when activating profile */
     pa_alsa_path *path;
+
+    /* ELD info */
+    char *eld_mixer_device_name;
+    int eld_device; /* PCM device number */
 };
 
 struct pa_alsa_ucm_volume {
