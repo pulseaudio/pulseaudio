@@ -1987,11 +1987,13 @@ static int extension_cb(pa_native_protocol *p, pa_module *m, pa_native_connectio
                 }
                 /* When users select an output device from gnome-control-center, the gnome-control-center will change all entries
                  * in the database to bind the sink of this output device, this is not correct since at this moment, the sink is
-                 * default_sink and we shouldn't bind a stream to default_sink via preferred_sink or database.
+                 * default_sink and we shouldn't bind a stream to default_sink via preferred_sink or database. This also applies
+                 * to source, default_source and preferred_source.
                  * After gnome-control-center fix the issue, let us remove this code */
                 client_name = pa_strnull(pa_proplist_gets(pa_native_connection_get_client(c)->proplist, PA_PROP_APPLICATION_PROCESS_BINARY));
                 if (pa_safe_streq(client_name, "gnome-control-center")) {
-                    if (entry->device_valid && m->core->default_sink && pa_safe_streq(device, m->core->default_sink->name)) {
+                    if (entry->device_valid && ((m->core->default_sink && pa_safe_streq(device, m->core->default_sink->name)) ||
+			(m->core->default_source && pa_safe_streq(device, m->core->default_source->name)))) {
                         entry_free(entry);
                         pa_pstream_send_tagstruct(pa_native_connection_get_pstream(c), reply);
                         return 0;
