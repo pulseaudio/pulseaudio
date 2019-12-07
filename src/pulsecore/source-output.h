@@ -402,6 +402,8 @@ void pa_source_output_set_volume_direct(pa_source_output *o, const pa_cvolume *v
  * o->reference_ratio and logs a message if the value changes. */
 void pa_source_output_set_reference_ratio(pa_source_output *o, const pa_cvolume *ratio);
 
+void pa_source_output_set_preferred_source(pa_source_output *o, pa_source *s);
+
 #define pa_source_output_assert_io_context(s) \
     pa_assert(pa_thread_mq_get() || !PA_SOURCE_OUTPUT_IS_LINKED((s)->state))
 

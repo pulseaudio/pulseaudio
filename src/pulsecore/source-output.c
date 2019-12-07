@@ -1886,3 +1886,17 @@ void pa_source_output_set_reference_ratio(pa_source_output *o, const pa_cvolume 
                  pa_cvolume_snprint_verbose(old_ratio_str, sizeof(old_ratio_str), &old_ratio, &o->channel_map, true),
                  pa_cvolume_snprint_verbose(new_ratio_str, sizeof(new_ratio_str), ratio, &o->channel_map, true));
 }
+
+/* Called from the main thread. */
+void pa_source_output_set_preferred_source(pa_source_output *o, pa_source *s) {
+    pa_assert(o);
+
+    pa_xfree(o->preferred_source);
+    if (s) {
+        o->preferred_source = pa_xstrdup(s->name);
+        pa_source_output_move_to(o, s, false);
+    } else {
+        o->preferred_source = NULL;
+        pa_source_output_move_to(o, o->core->default_source, false);
+    }
+}
