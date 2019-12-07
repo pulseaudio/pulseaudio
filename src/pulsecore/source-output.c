@@ -1561,8 +1561,12 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, bool save
        save the preferred_source */
     if (save) {
         pa_xfree(o->preferred_source);
-        o->preferred_source = pa_xstrdup(dest->name);
+        if (dest == dest->core->default_source)
+            o->preferred_source = NULL;
+        else
+            o->preferred_source = pa_xstrdup(dest->name);
     }
+
     pa_idxset_put(o->source->outputs, pa_source_output_ref(o), NULL);
 
     pa_cvolume_remap(&o->volume_factor_source, &o->channel_map, &o->source->channel_map);
