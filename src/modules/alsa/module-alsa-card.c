@@ -111,9 +111,8 @@ struct userdata {
     char *device_id;
     int alsa_card_index;
 
-    snd_mixer_t *mixer_handle;
+    pa_hashmap *mixers;
     pa_hashmap *jacks;
-    pa_alsa_fdlist *mixer_fdl;
 
     pa_card *card;
 
@@ -569,9 +568,6 @@ static void init_eld_ctls(struct userdata *u) {
     void *state;
     pa_device_port *port;
 
-    if (!u->mixer_handle)
-        return;
-
     /* The code in this function expects ports to have a pa_alsa_port_data
      * struct as their data, but in UCM mode ports don't have any data. Hence,
      * the ELD controls can't currently be used in UCM mode. */
@@ -580,6 +576,7 @@ static void init_eld_ctls(struct userdata *u) {
 
     PA_HASHMAP_FOREACH(port, u->card->ports, state) {
         pa_alsa_port_data *data = PA_DEVICE_PORT_DATA(port);
+        snd_mixer_t *mixer_handle;
         snd_mixer_elem_t* melem;
         int device;
 
@@ -588,8 +585,13 @@ static void init_eld_ctls(struct userdata *u) {
         if (device < 0)
             continue;
 
-        melem = pa_alsa_mixer_find_pcm(u->mixer_handle, "ELD", device);
+        mixer_handle = pa_alsa_open_mixer(u->mixers, u->alsa_card_index, true);
+        if (!mixer_handle)
+            continue;
+
+        melem = pa_alsa_mixer_find_pcm(mixer_handle, "ELD", device);
         if (melem) {
+            pa_alsa_mixer_set_fdlist(u->mixers, mixer_handle, u->core->mainloop);
             snd_mixer_elem_set_callback(melem, hdmi_eld_changed);
             snd_mixer_elem_set_callback_private(melem, u);
             hdmi_eld_changed(melem, 0);
@@ -630,25 +632,31 @@ static void init_jacks(struct userdata *u) {
     if (pa_hashmap_size(u->jacks) == 0)
         return;
 
-    u->mixer_fdl = pa_alsa_fdlist_new();
-
-    u->mixer_handle = pa_alsa_open_mixer(u->alsa_card_index, NULL);
-    if (u->mixer_handle && pa_alsa_fdlist_set_handle(u->mixer_fdl, u->mixer_handle, NULL, u->core->mainloop) >= 0) {
-        PA_HASHMAP_FOREACH(jack, u->jacks, state) {
-            jack->melem = pa_alsa_mixer_find_card(u->mixer_handle, jack->alsa_name, 0);
-            if (!jack->melem) {
-                pa_log_warn("Jack '%s' seems to have disappeared.", jack->alsa_name);
-                pa_alsa_jack_set_has_control(jack, false);
-                continue;
+    PA_HASHMAP_FOREACH(jack, u->jacks, state) {
+        if (!jack->mixer_device_name) {
+            jack->mixer_handle = pa_alsa_open_mixer(u->mixers, u->alsa_card_index, false);
+            if (!jack->mixer_handle) {
+               pa_log("Failed to open mixer for card %d for jack detection", u->alsa_card_index);
+               continue;
             }
-            snd_mixer_elem_set_callback(jack->melem, report_jack_state);
-            snd_mixer_elem_set_callback_private(jack->melem, u);
-            report_jack_state(jack->melem, 0);
+        } else {
+            jack->mixer_handle = pa_alsa_open_mixer_by_name(u->mixers, jack->mixer_device_name, false);
+            if (!jack->mixer_handle) {
+               pa_log("Failed to open mixer '%s' for jack detection", jack->mixer_device_name);
+              continue;
+            }
         }
-
-    } else
-        pa_log("Failed to open mixer for jack detection");
-
+        pa_alsa_mixer_set_fdlist(u->mixers, jack->mixer_handle, u->core->mainloop);
+        jack->melem = pa_alsa_mixer_find_card(jack->mixer_handle, jack->alsa_name, 0);
+        if (!jack->melem) {
+            pa_log_warn("Jack '%s' seems to have disappeared.", jack->alsa_name);
+            pa_alsa_jack_set_has_control(jack, false);
+            continue;
+        }
+        snd_mixer_elem_set_callback(jack->melem, report_jack_state);
+        snd_mixer_elem_set_callback_private(jack->melem, u);
+        report_jack_state(jack->melem, 0);
+    }
 }
 
 static void set_card_name(pa_card_new_data *data, pa_modargs *ma, const char *device_id) {
@@ -772,6 +780,10 @@ int pa__init(pa_module *m) {
     u->use_ucm = true;
     u->ucm.core = m->core;
 
+    u->mixers = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func,
+                                    pa_xfree, (pa_free_cb_t) pa_alsa_mixer_free);
+    u->ucm.mixers = u->mixers; /* alias */
+
     if (!(u->modargs = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments.");
         goto fail;
@@ -852,7 +864,7 @@ int pa__init(pa_module *m) {
 
     u->profile_set->ignore_dB = ignore_dB;
 
-    pa_alsa_profile_set_probe(u->profile_set, u->device_id, &m->core->default_sample_spec, m->core->default_n_fragments, m->core->default_fragment_size_msec);
+    pa_alsa_profile_set_probe(u->profile_set, u->mixers, u->device_id, &m->core->default_sample_spec, m->core->default_n_fragments, m->core->default_fragment_size_msec);
     pa_alsa_profile_set_dump(u->profile_set);
 
     pa_card_new_data_init(&data);
@@ -952,6 +964,16 @@ int pa__init(pa_module *m) {
     init_profile(u);
     init_eld_ctls(u);
 
+    /* Remove all probe only mixers */
+    if (u->mixers) {
+       const char *devname;
+       pa_alsa_mixer *pm;
+       void *state;
+       PA_HASHMAP_FOREACH_KV(devname, pm, u->mixers, state)
+           if (pm->used_for_probe_only)
+               pa_hashmap_remove_and_free(u->mixers, devname);
+    }
+
     if (reserve)
         pa_reserve_wrapper_unref(reserve);
 
@@ -1002,10 +1024,8 @@ void pa__done(pa_module*m) {
     if (!(u = m->userdata))
         goto finish;
 
-    if (u->mixer_fdl)
-        pa_alsa_fdlist_free(u->mixer_fdl);
-    if (u->mixer_handle)
-        snd_mixer_close(u->mixer_handle);
+    if (u->mixers)
+        pa_hashmap_free(u->mixers);
     if (u->jacks)
         pa_hashmap_free(u->jacks);
 

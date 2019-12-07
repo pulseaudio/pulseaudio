@@ -93,6 +93,7 @@ struct userdata {
     char *paths_dir;
     pa_alsa_fdlist *mixer_fdl;
     pa_alsa_mixer_pdata *mixer_pd;
+    pa_hashmap *mixers;
     snd_mixer_t *mixer_handle;
     pa_alsa_path_set *mixer_path_set;
     pa_alsa_path *mixer_path;
@@ -1794,13 +1795,16 @@ static void find_mixer(struct userdata *u, pa_alsa_mapping *mapping, const char 
     if (!mapping && !element)
         return;
 
+    u->mixers = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func,
+                                    NULL, (pa_free_cb_t) pa_alsa_mixer_free);
+
     mdev = pa_proplist_gets(mapping->proplist, "alsa.mixer_device");
     if (mdev) {
-        u->mixer_handle = pa_alsa_open_mixer_by_name(mdev);
+        u->mixer_handle = pa_alsa_open_mixer_by_name(u->mixers, mdev, false);
     } else {
-        u->mixer_handle = pa_alsa_open_mixer_for_pcm(u->pcm_handle, &u->control_device);
+        u->mixer_handle = pa_alsa_open_mixer_for_pcm(u->mixers, u->pcm_handle, false);
     }
-    if (!mdev) {
+    if (!u->mixer_handle) {
         pa_log_info("Failed to find a working mixer device.");
         return;
     }
@@ -1827,10 +1831,9 @@ fail:
         u->mixer_path = NULL;
     }
 
-    if (u->mixer_handle) {
-        snd_mixer_close(u->mixer_handle);
-        u->mixer_handle = NULL;
-    }
+    u->mixer_handle = NULL;
+    pa_hashmap_free(u->mixers);
+    u->mixers = NULL;
 }
 
 static int setup_mixer(struct userdata *u, bool ignore_dB) {
@@ -2403,8 +2406,8 @@ static void userdata_free(struct userdata *u) {
     if (u->mixer_path && !u->mixer_path_set && !u->ucm_context)
         pa_alsa_path_free(u->mixer_path);
 
-    if (u->mixer_handle)
-        snd_mixer_close(u->mixer_handle);
+    if (u->mixers)
+        pa_hashmap_free(u->mixers);
 
     if (u->smoother)
         pa_smoother_free(u->smoother);

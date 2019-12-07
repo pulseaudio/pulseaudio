@@ -147,13 +147,14 @@ static int alsa_id_decode(const char *src, char *name, int *index) {
     return 0;
 }
 
-pa_alsa_jack *pa_alsa_jack_new(pa_alsa_path *path, const char *name) {
+pa_alsa_jack *pa_alsa_jack_new(pa_alsa_path *path, const char *mixer_device_name, const char *name) {
     pa_alsa_jack *jack;
 
     pa_assert(name);
 
     jack = pa_xnew0(pa_alsa_jack, 1);
     jack->path = path;
+    jack->mixer_device_name = pa_xstrdup(mixer_device_name);
     jack->name = pa_xstrdup(name);
     jack->alsa_name = pa_sprintf_malloc("%s Jack", name);
     jack->state_unplugged = PA_AVAILABLE_NO;
@@ -172,6 +173,7 @@ void pa_alsa_jack_free(pa_alsa_jack *jack) {
 
     pa_xfree(jack->alsa_name);
     pa_xfree(jack->name);
+    pa_xfree(jack->mixer_device_name);
     pa_xfree(jack);
 }
 
@@ -1982,7 +1984,7 @@ static pa_alsa_jack* jack_get(pa_alsa_path *p, const char *section) {
         if (pa_streq(j->name, section))
             goto finish;
 
-    j = pa_alsa_jack_new(p, section);
+    j = pa_alsa_jack_new(p, NULL, section);
     PA_LLIST_INSERT_AFTER(pa_alsa_jack, p->jacks, p->last_jack, j);
 
 finish:
@@ -4160,7 +4162,8 @@ fail:
 }
 
 static void mapping_paths_probe(pa_alsa_mapping *m, pa_alsa_profile *profile,
-                                pa_alsa_direction_t direction, pa_hashmap *used_paths) {
+                                pa_alsa_direction_t direction, pa_hashmap *used_paths,
+                                pa_hashmap *mixers) {
 
     pa_alsa_path *p;
     void *state;
@@ -4185,7 +4188,7 @@ static void mapping_paths_probe(pa_alsa_mapping *m, pa_alsa_profile *profile,
 
     pa_assert(pcm_handle);
 
-    mixer_handle = pa_alsa_open_mixer_for_pcm(pcm_handle, NULL);
+    mixer_handle = pa_alsa_open_mixer_for_pcm(mixers, pcm_handle, true);
     if (!mixer_handle) {
         /* Cannot open mixer, remove all entries */
         pa_hashmap_remove_all(ps->paths);
@@ -4202,9 +4205,6 @@ static void mapping_paths_probe(pa_alsa_mapping *m, pa_alsa_profile *profile,
 
     path_set_condense(ps, mixer_handle);
     path_set_make_path_descriptions_unique(ps);
-
-    if (mixer_handle)
-        snd_mixer_close(mixer_handle);
 
     PA_HASHMAP_FOREACH(p, ps->paths, state)
         pa_hashmap_put(used_paths, p, p);
@@ -4785,6 +4785,7 @@ static void mapping_query_hw_device(pa_alsa_mapping *mapping, snd_pcm_t *pcm) {
 
 void pa_alsa_profile_set_probe(
         pa_alsa_profile_set *ps,
+        pa_hashmap *mixers,
         const char *dev_id,
         const pa_sample_spec *ss,
         unsigned default_n_fragments,
@@ -4914,14 +4915,14 @@ void pa_alsa_profile_set_probe(
             PA_IDXSET_FOREACH(m, p->output_mappings, idx)
                 if (m->output_pcm) {
                     found_output |= !p->fallback_output;
-                    mapping_paths_probe(m, p, PA_ALSA_DIRECTION_OUTPUT, used_paths);
+                    mapping_paths_probe(m, p, PA_ALSA_DIRECTION_OUTPUT, used_paths, mixers);
                 }
 
         if (p->input_mappings)
             PA_IDXSET_FOREACH(m, p->input_mappings, idx)
                 if (m->input_pcm) {
                     found_input |= !p->fallback_input;
-                    mapping_paths_probe(m, p, PA_ALSA_DIRECTION_INPUT, used_paths);
+                    mapping_paths_probe(m, p, PA_ALSA_DIRECTION_INPUT, used_paths, mixers);
                 }
     }
 

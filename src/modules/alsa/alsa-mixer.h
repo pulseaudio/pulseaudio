@@ -32,6 +32,7 @@
 #include <pulsecore/rtpoll.h>
 
 typedef struct pa_alsa_fdlist pa_alsa_fdlist;
+typedef struct pa_alsa_mixer pa_alsa_mixer;
 typedef struct pa_alsa_mixer_pdata pa_alsa_mixer_pdata;
 typedef struct pa_alsa_setting pa_alsa_setting;
 typedef struct pa_alsa_mixer_id pa_alsa_mixer_id;
@@ -96,6 +97,13 @@ struct pa_alsa_setting {
     char *name;
     char *description;
     unsigned priority;
+};
+
+/* An entry for one ALSA mixer */
+struct pa_alsa_mixer {
+    snd_mixer_t *mixer_handle;
+    pa_alsa_fdlist *fdl;
+    bool used_for_probe_only:1;
 };
 
 /* ALSA mixer element identifier */
@@ -165,6 +173,9 @@ struct pa_alsa_jack {
     pa_alsa_path *path;
     PA_LLIST_FIELDS(pa_alsa_jack);
 
+    snd_mixer_t *mixer_handle;
+    char *mixer_device_name;
+
     char *name; /* E g "Headphone" */
     char *alsa_name; /* E g "Headphone Jack" */
     bool has_control; /* is the jack itself present? */
@@ -182,7 +193,7 @@ struct pa_alsa_jack {
     bool append_pcm_to_name;
 };
 
-pa_alsa_jack *pa_alsa_jack_new(pa_alsa_path *path, const char *name);
+pa_alsa_jack *pa_alsa_jack_new(pa_alsa_path *path, const char *mixer_device_name, const char *name);
 void pa_alsa_jack_free(pa_alsa_jack *jack);
 void pa_alsa_jack_set_has_control(pa_alsa_jack *jack, bool has_control);
 void pa_alsa_jack_set_plugged_in(pa_alsa_jack *jack, bool plugged_in);
@@ -201,6 +212,7 @@ struct pa_alsa_path {
     char *description;
     unsigned priority;
     bool autodetect_eld_device;
+    pa_alsa_mixer *eld_mixer_handle;
     int eld_device;
     pa_proplist *proplist;
 
@@ -359,13 +371,10 @@ void pa_alsa_decibel_fix_dump(pa_alsa_decibel_fix *db_fix);
 pa_alsa_mapping *pa_alsa_mapping_get(pa_alsa_profile_set *ps, const char *name);
 
 pa_alsa_profile_set* pa_alsa_profile_set_new(const char *fname, const pa_channel_map *bonus);
-void pa_alsa_profile_set_probe(pa_alsa_profile_set *ps, const char *dev_id, const pa_sample_spec *ss, unsigned default_n_fragments, unsigned default_fragment_size_msec);
+void pa_alsa_profile_set_probe(pa_alsa_profile_set *ps, pa_hashmap *mixers, const char *dev_id, const pa_sample_spec *ss, unsigned default_n_fragments, unsigned default_fragment_size_msec);
 void pa_alsa_profile_set_free(pa_alsa_profile_set *s);
 void pa_alsa_profile_set_dump(pa_alsa_profile_set *s);
 void pa_alsa_profile_set_drop_unsupported(pa_alsa_profile_set *s);
-
-snd_mixer_t *pa_alsa_open_mixer_by_name(const char *dev);
-snd_mixer_t *pa_alsa_open_mixer_for_pcm(snd_pcm_t *pcm, char **ctl_device);
 
 pa_alsa_fdlist *pa_alsa_fdlist_new(void);
 void pa_alsa_fdlist_free(pa_alsa_fdlist *fdl);

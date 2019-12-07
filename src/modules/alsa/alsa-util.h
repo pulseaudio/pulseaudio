@@ -144,7 +144,11 @@ bool pa_alsa_may_tsched(bool want);
 snd_mixer_elem_t *pa_alsa_mixer_find_card(snd_mixer_t *mixer, const char *name, unsigned int device);
 snd_mixer_elem_t *pa_alsa_mixer_find_pcm(snd_mixer_t *mixer, const char *name, unsigned int device);
 
-snd_mixer_t *pa_alsa_open_mixer(int alsa_card_index, char **ctl_device);
+snd_mixer_t *pa_alsa_open_mixer(pa_hashmap *mixers, int alsa_card_index, bool probe);
+snd_mixer_t *pa_alsa_open_mixer_by_name(pa_hashmap *mixers, const char *dev, bool probe);
+snd_mixer_t *pa_alsa_open_mixer_for_pcm(pa_hashmap *mixers, snd_pcm_t *pcm, bool probe);
+void pa_alsa_mixer_set_fdlist(pa_hashmap *mixers, snd_mixer_t *mixer, pa_mainloop_api *ml);
+void pa_alsa_mixer_free(pa_alsa_mixer *mixer);
 
 typedef struct pa_hdmi_eld pa_hdmi_eld;
 struct pa_hdmi_eld {
