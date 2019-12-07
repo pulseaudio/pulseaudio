@@ -55,7 +55,8 @@ PA_MODULE_USAGE(
 #define SAVE_INTERVAL (10 * PA_USEC_PER_SEC)
 
 static const char* const valid_modargs[] = {
-    "restore_bluetooth_profile=<boolean>"
+    "restore_bluetooth_profile",
+    NULL
 };
 
 struct userdata {
