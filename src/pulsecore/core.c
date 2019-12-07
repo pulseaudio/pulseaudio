@@ -559,6 +559,41 @@ void pa_core_move_streams_to_newly_available_preferred_sink(pa_core *c, pa_sink 
 
 }
 
+void pa_core_move_streams_to_newly_available_preferred_source(pa_core *c, pa_source *s) {
+    pa_source_output *so;
+    uint32_t idx;
+
+    pa_assert(c);
+    pa_assert(s);
+
+    PA_IDXSET_FOREACH(so, c->source_outputs, idx) {
+        if (so->source == s)
+            continue;
+
+        if (so->direct_on_input)
+            continue;
+
+        if (!so->source)
+            continue;
+
+        /* Skip this source output if it is connecting a filter source to
+         * the master */
+        if (so->destination_source)
+            continue;
+
+        /* It might happen that a stream and a source are set up at the
+           same time, in which case we want to make sure we don't
+           interfere with that */
+        if (!PA_SOURCE_OUTPUT_IS_LINKED(so->state))
+            continue;
+
+        if (pa_safe_streq(so->preferred_source, s->name))
+            pa_source_output_move_to(so, s, false);
+    }
+
+}
+
+
 /* Helper macro to reduce repetition in pa_suspend_cause_to_string().
  * Parameters:
  *   char *p: the current position in the write buffer

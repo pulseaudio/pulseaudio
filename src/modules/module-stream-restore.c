@@ -64,7 +64,7 @@ PA_MODULE_USAGE(
         "restore_device=<Save/restore sinks/sources?> "
         "restore_volume=<Save/restore volumes?> "
         "restore_muted=<Save/restore muted states?> "
-        "on_hotplug=<When new device becomes available, recheck streams?> "
+        "on_hotplug=<This argument is obsolete, please remove it from configuration> "
         "on_rescue=<When device becomes unavailable, recheck streams?> "
         "fallback_table=<filename>");
 
@@ -95,7 +95,6 @@ struct userdata {
         *sink_input_fixate_hook_slot,
         *source_output_new_hook_slot,
         *source_output_fixate_hook_slot,
-        *source_put_hook_slot,
         *source_unlink_hook_slot,
         *connection_unlink_hook_slot;
     pa_time_event *save_time_event;
@@ -104,7 +103,6 @@ struct userdata {
     bool restore_device:1;
     bool restore_volume:1;
     bool restore_muted:1;
-    bool on_hotplug:1;
     bool on_rescue:1;
 
     pa_native_protocol *protocol;
@@ -1643,59 +1641,6 @@ static pa_hook_result_t source_output_fixate_hook_callback(pa_core *c, pa_source
     return PA_HOOK_OK;
 }
 
-static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, struct userdata *u) {
-    pa_source_output *so;
-    uint32_t idx;
-
-    pa_assert(c);
-    pa_assert(source);
-    pa_assert(u);
-    pa_assert(u->on_hotplug && u->restore_device);
-
-    PA_IDXSET_FOREACH(so, c->source_outputs, idx) {
-        char *name;
-        struct entry *e;
-
-        if (so->source == source)
-            continue;
-
-        if (so->direct_on_input)
-            continue;
-
-        /* Skip this if it is already in the process of being moved anyway */
-        if (!so->source)
-            continue;
-
-        if (pa_safe_streq(so->source->name, so->preferred_source))
-            continue;
-
-        /* Skip this source output if it is connecting a filter source to
-         * the master */
-        if (so->destination_source)
-            continue;
-
-        /* It might happen that a stream and a source are set up at the
-           same time, in which case we want to make sure we don't
-           interfere with that */
-        if (!PA_SOURCE_OUTPUT_IS_LINKED(so->state))
-            continue;
-
-        if (!(name = pa_proplist_get_stream_group(so->proplist, "source-output", IDENTIFICATION_PROPERTY)))
-            continue;
-
-        if ((e = entry_read(u, name))) {
-            if (e->device_valid && pa_streq(e->device, source->name))
-                pa_source_output_move_to(so, source, true);
-
-            entry_free(e);
-        }
-
-        pa_xfree(name);
-    }
-
-    return PA_HOOK_OK;
-}
-
 static pa_hook_result_t source_unlink_hook_callback(pa_core *c, pa_source *source, struct userdata *u) {
     pa_source_output *so;
     uint32_t idx;
@@ -2326,7 +2271,7 @@ int pa__init(pa_module*m) {
     pa_sink_input *si;
     pa_source_output *so;
     uint32_t idx;
-    bool restore_device = true, restore_volume = true, restore_muted = true, on_hotplug = true, on_rescue = true;
+    bool restore_device = true, restore_volume = true, restore_muted = true, on_rescue = true;
 #ifdef HAVE_DBUS
     pa_datum key;
     bool done;
@@ -2342,11 +2287,13 @@ int pa__init(pa_module*m) {
     if (pa_modargs_get_value_boolean(ma, "restore_device", &restore_device) < 0 ||
         pa_modargs_get_value_boolean(ma, "restore_volume", &restore_volume) < 0 ||
         pa_modargs_get_value_boolean(ma, "restore_muted", &restore_muted) < 0 ||
-        pa_modargs_get_value_boolean(ma, "on_hotplug", &on_hotplug) < 0 ||
         pa_modargs_get_value_boolean(ma, "on_rescue", &on_rescue) < 0) {
-        pa_log("restore_device=, restore_volume=, restore_muted=, on_hotplug= and on_rescue= expect boolean arguments");
+        pa_log("restore_device=, restore_volume=, restore_muted= and on_rescue= expect boolean arguments");
         goto fail;
     }
+
+    if (pa_modargs_get_value(ma, "on_hotplug", NULL) != NULL)
+        pa_log("on_hotplug is an obsolete argument, please remove it from your configuration");
 
     if (!restore_muted && !restore_volume && !restore_device)
         pa_log_warn("Neither restoring volume, nor restoring muted, nor restoring device enabled!");
@@ -2357,7 +2304,6 @@ int pa__init(pa_module*m) {
     u->restore_device = restore_device;
     u->restore_volume = restore_volume;
     u->restore_muted = restore_muted;
-    u->on_hotplug = on_hotplug;
     u->on_rescue = on_rescue;
     u->subscribed = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
@@ -2372,11 +2318,6 @@ int pa__init(pa_module*m) {
         /* A little bit earlier than module-intended-roles ... */
         pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_INPUT_NEW], PA_HOOK_EARLY, (pa_hook_cb_t) sink_input_new_hook_callback, u);
         pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_NEW], PA_HOOK_EARLY, (pa_hook_cb_t) source_output_new_hook_callback, u);
-    }
-
-    if (restore_device && on_hotplug) {
-        /* A little bit earlier than module-intended-roles ... */
-        pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], PA_HOOK_LATE, (pa_hook_cb_t) source_put_hook_callback, u);
     }
 
     if (restore_device && on_rescue) {

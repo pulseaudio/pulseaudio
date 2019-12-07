@@ -281,4 +281,6 @@ const char *pa_suspend_cause_to_string(pa_suspend_cause_t cause, char buf[PA_SUS
 
 void pa_core_move_streams_to_newly_available_preferred_sink(pa_core *c, pa_sink *s);
 
+void pa_core_move_streams_to_newly_available_preferred_source(pa_core *c, pa_source *s);
+
 #endif

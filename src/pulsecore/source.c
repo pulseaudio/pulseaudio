@@ -671,6 +671,8 @@ void pa_source_put(pa_source *s) {
      * source, and if we were to call pa_core_update_default_source() before that,
      * the default source might change twice, causing unnecessary stream moving. */
     pa_core_update_default_source(s->core);
+
+    pa_core_move_streams_to_newly_available_preferred_source(s->core, s);
 }
 
 /* Called from main context */
