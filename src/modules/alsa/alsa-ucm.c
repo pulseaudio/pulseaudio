@@ -1339,7 +1339,8 @@ static void ucm_add_mapping(pa_alsa_profile *p, pa_alsa_mapping *m) {
 
 static void alsa_mapping_add_ucm_device(pa_alsa_mapping *m, pa_alsa_ucm_device *device) {
     char *cur_desc;
-    const char *new_desc;
+    const char *new_desc, *mdev;
+    bool is_sink = m->direction == PA_ALSA_DIRECTION_OUTPUT;
 
     pa_idxset_put(m->ucm_context.ucm_devices, device, NULL);
 
@@ -1355,10 +1356,14 @@ static void alsa_mapping_add_ucm_device(pa_alsa_mapping *m, pa_alsa_ucm_device *
     m->description = m->description ? m->description : pa_xstrdup("");
 
     /* save mapping to ucm device */
-    if (m->direction == PA_ALSA_DIRECTION_OUTPUT)
+    if (is_sink)
         device->playback_mapping = m;
     else
         device->capture_mapping = m;
+
+    mdev = get_mixer_device(device, is_sink);
+    if (mdev)
+        pa_proplist_sets(m->proplist, "alsa.mixer_device", mdev);
 }
 
 static void alsa_mapping_add_ucm_modifier(pa_alsa_mapping *m, pa_alsa_ucm_modifier *modifier) {

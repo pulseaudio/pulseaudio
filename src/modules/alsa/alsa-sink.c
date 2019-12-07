@@ -2083,11 +2083,18 @@ static void set_sink_name(pa_sink_new_data *data, pa_modargs *ma, const char *de
 }
 
 static void find_mixer(struct userdata *u, pa_alsa_mapping *mapping, const char *element, bool ignore_dB) {
+    const char *mdev;
 
     if (!mapping && !element)
         return;
 
-    if (!(u->mixer_handle = pa_alsa_open_mixer_for_pcm(u->pcm_handle, &u->control_device))) {
+    mdev = pa_proplist_gets(mapping->proplist, "alsa.mixer_device");
+    if (mdev) {
+        u->mixer_handle = pa_alsa_open_mixer_by_name(mdev);
+    } else {
+        u->mixer_handle = pa_alsa_open_mixer_for_pcm(u->pcm_handle, &u->control_device);
+    }
+    if (!mdev) {
         pa_log_info("Failed to find a working mixer device.");
         return;
     }
