@@ -741,6 +741,12 @@ void pa_alsa_path_set_free(pa_alsa_path_set *ps) {
     pa_xfree(ps);
 }
 
+int pa_alsa_path_set_is_empty(pa_alsa_path_set *ps) {
+    if (ps && !pa_hashmap_isempty(ps->paths))
+        return 0;
+    return 1;
+}
+
 static long to_alsa_dB(pa_volume_t v) {
     return lround(pa_sw_volume_to_dB(v) * 100.0);
 }

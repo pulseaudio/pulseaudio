@@ -272,6 +272,7 @@ pa_alsa_path_set *pa_alsa_path_set_new(pa_alsa_mapping *m, pa_alsa_direction_t d
 void pa_alsa_path_set_dump(pa_alsa_path_set *s);
 void pa_alsa_path_set_set_callback(pa_alsa_path_set *ps, snd_mixer_t *m, snd_mixer_elem_callback_t cb, void *userdata);
 void pa_alsa_path_set_free(pa_alsa_path_set *s);
+int pa_alsa_path_set_is_empty(pa_alsa_path_set *s);
 
 struct pa_alsa_mapping {
     pa_alsa_profile_set *profile_set;

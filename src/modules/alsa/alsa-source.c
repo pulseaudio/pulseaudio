@@ -1522,7 +1522,6 @@ static int source_set_port_ucm_cb(pa_source *s, pa_device_port *p) {
 
     pa_assert(u);
     pa_assert(p);
-    pa_assert(u->mixer_handle);
     pa_assert(u->ucm_context);
 
     data = PA_DEVICE_PORT_DATA(p);
@@ -1795,6 +1794,9 @@ static void find_mixer(struct userdata *u, pa_alsa_mapping *mapping, const char 
     if (!mapping && !element)
         return;
 
+    if (!element && mapping && pa_alsa_path_set_is_empty(mapping->input_path_set))
+        return;
+
     u->mixers = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func,
                                     NULL, (pa_free_cb_t) pa_alsa_mixer_free);
 
@@ -1819,8 +1821,9 @@ static void find_mixer(struct userdata *u, pa_alsa_mapping *mapping, const char 
 
         pa_log_debug("Probed mixer path %s:", u->mixer_path->name);
         pa_alsa_path_dump(u->mixer_path);
-    } else if (!(u->mixer_path_set = mapping->input_path_set))
-        goto fail;
+    } else {
+        u->mixer_path_set = mapping->input_path_set;
+    }
 
     return;
 

@@ -1651,7 +1651,6 @@ static int sink_set_port_ucm_cb(pa_sink *s, pa_device_port *p) {
 
     pa_assert(u);
     pa_assert(p);
-    pa_assert(u->mixer_handle);
     pa_assert(u->ucm_context);
 
     data = PA_DEVICE_PORT_DATA(p);
@@ -2089,6 +2088,9 @@ static void find_mixer(struct userdata *u, pa_alsa_mapping *mapping, const char 
     if (!mapping && !element)
         return;
 
+    if (!element && mapping && pa_alsa_path_set_is_empty(mapping->output_path_set))
+        return;
+
     u->mixers = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func,
                                     NULL, (pa_free_cb_t) pa_alsa_mixer_free);
 
@@ -2113,8 +2115,9 @@ static void find_mixer(struct userdata *u, pa_alsa_mapping *mapping, const char 
 
         pa_log_debug("Probed mixer path %s:", u->mixer_path->name);
         pa_alsa_path_dump(u->mixer_path);
-    } else if (!(u->mixer_path_set = mapping->output_path_set))
-        goto fail;
+    } else {
+        u->mixer_path_set = mapping->output_path_set;
+    }
 
     return;
 
@@ -2559,10 +2562,14 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
         goto fail;
     }
 
-    if (u->ucm_context)
+    if (u->ucm_context) {
         pa_alsa_ucm_add_ports(&data.ports, data.proplist, u->ucm_context, true, card, u->pcm_handle, ignore_dB);
-    else if (u->mixer_path_set)
-        pa_alsa_add_ports(&data, u->mixer_path_set, card);
+        find_mixer(u, mapping, pa_modargs_get_value(ma, "control", NULL), ignore_dB);
+    } else {
+        find_mixer(u, mapping, pa_modargs_get_value(ma, "control", NULL), ignore_dB);
+        if (u->mixer_path_set)
+            pa_alsa_add_ports(&data, u->mixer_path_set, card);
+    }
 
     u->sink = pa_sink_new(m->core, &data, PA_SINK_HARDWARE | PA_SINK_LATENCY | (u->use_tsched ? PA_SINK_DYNAMIC_LATENCY : 0) |
                           (set_formats ? PA_SINK_SET_FORMATS : 0));
