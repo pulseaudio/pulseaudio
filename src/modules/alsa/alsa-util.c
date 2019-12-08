@@ -1737,11 +1737,33 @@ snd_mixer_t *pa_alsa_open_mixer_by_name(pa_hashmap *mixers, const char *dev, boo
     int err;
     snd_mixer_t *m;
     pa_alsa_mixer *pm;
+    char *dev2;
+    void *state;
 
     pa_assert(mixers);
     pa_assert(dev);
 
     pm = pa_hashmap_get(mixers, dev);
+
+    /* The quick card number/index lookup (hw:#)
+     * We already know the card number/index, thus use the mixer
+     * from the cache at first.
+     */
+    if (!pm && pa_strneq(dev, "hw:", 3)) {
+        const char *s = dev + 3;
+        int card_index;
+        while (*s && *s >= 0 && *s <= '9') s++;
+        if (*s == '\0' && pa_atoi(dev + 3, &card_index) >= 0) {
+            PA_HASHMAP_FOREACH_KV(dev2, pm, mixers, state) {
+                if (pm->card_index == card_index) {
+                    dev = dev2;
+                    pm = pa_hashmap_get(mixers, dev);
+                    break;
+                }
+            }
+        }
+    }
+
     if (pm) {
         if (!probe)
             pm->used_for_probe_only = false;
@@ -1756,6 +1778,17 @@ snd_mixer_t *pa_alsa_open_mixer_by_name(pa_hashmap *mixers, const char *dev, boo
     if (prepare_mixer(m, dev) >= 0) {
         pm = pa_xnew0(pa_alsa_mixer, 1);
         if (pm) {
+            snd_hctl_t *hctl;
+            pm->card_index = -1;
+            /* determine the ALSA card number (index) and store it to card_index */
+            err = snd_mixer_get_hctl(m, dev, &hctl);
+            if (err >= 0) {
+                snd_ctl_card_info_t *info;
+                snd_ctl_card_info_alloca(&info);
+                err = snd_ctl_card_info(snd_hctl_ctl(hctl), info);
+                if (err >= 0)
+                    pm->card_index = snd_ctl_card_info_get_card(info);
+            }
             pm->used_for_probe_only = probe;
             pm->mixer_handle = m;
             pa_hashmap_put(mixers, pa_xstrdup(dev), pm);

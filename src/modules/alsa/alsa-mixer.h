@@ -102,6 +102,7 @@ struct pa_alsa_setting {
 /* An entry for one ALSA mixer */
 struct pa_alsa_mixer {
     snd_mixer_t *mixer_handle;
+    int card_index;
     pa_alsa_fdlist *fdl;
     bool used_for_probe_only:1;
 };
