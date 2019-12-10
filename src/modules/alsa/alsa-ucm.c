@@ -146,6 +146,26 @@ static struct ucm_info dev_info[] = {
     {NULL, 0}
 };
 
+
+static char *ucm_verb_value(
+    snd_use_case_mgr_t *uc_mgr,
+    const char *verb_name,
+    const char *id) {
+
+    const char *value;
+    char *_id = pa_sprintf_malloc("=%s//%s", id, verb_name);
+    int err = snd_use_case_get(uc_mgr, _id, &value);
+    pa_xfree(_id);
+    if (err < 0)
+         return NULL;
+    pa_log_debug("Got %s for verb %s: %s", id, verb_name, value);
+    /* Use the cast here to allow free() call without casting for callers.
+     * The snd_use_case_get() returns mallocated string.
+     * See the Note: in use-case.h for snd_use_case_get().
+     */
+    return (char *)value;
+}
+
 static int ucm_device_exists(pa_idxset *idxset, pa_alsa_ucm_device *dev) {
     pa_alsa_ucm_device *d;
     uint32_t idx;
@@ -766,6 +786,8 @@ int pa_alsa_ucm_get_verb(snd_use_case_mgr_t *uc_mgr, const char *verb_name, cons
     pa_alsa_ucm_device *d;
     pa_alsa_ucm_modifier *mod;
     pa_alsa_ucm_verb *verb;
+    char *value;
+    unsigned ui;
     int err = 0;
 
     *p_verb = NULL;
@@ -779,6 +801,11 @@ int pa_alsa_ucm_get_verb(snd_use_case_mgr_t *uc_mgr, const char *verb_name, cons
 
     pa_proplist_sets(verb->proplist, PA_ALSA_PROP_UCM_NAME, pa_strnull(verb_name));
     pa_proplist_sets(verb->proplist, PA_ALSA_PROP_UCM_DESCRIPTION, pa_strna(verb_desc));
+
+    value = ucm_verb_value(uc_mgr, verb_name, "Priority");
+    if (value && !pa_atou(value, &ui))
+        verb->priority = ui > 10000 ? 10000 : ui;
+    free(value);
 
     err = ucm_get_devices(verb, uc_mgr);
     if (err < 0)
@@ -1637,7 +1664,7 @@ static int ucm_create_profile(
     pa_alsa_ucm_modifier *mod;
     int i = 0;
     const char *name, *sink, *source;
-    char *verb_cmp, *c;
+    unsigned int priority;
 
     pa_assert(ps);
 
@@ -1657,24 +1684,26 @@ static int ucm_create_profile(
     p->supported = true;
     pa_hashmap_put(ps->profiles, p->name, p);
 
-    /* TODO: get profile priority from ucm info or policy management */
-    c = verb_cmp = pa_xstrdup(verb_name);
-    while (*c) {
-        if (*c == '_') *c = ' ';
-        c++;
-    }
+    /* TODO: get profile priority from policy management */
+    priority = verb->priority;
 
-    for (i = 0; verb_info[i].id; i++) {
-        if (strcasecmp(verb_info[i].id, verb_cmp) == 0) {
-            p->priority = verb_info[i].priority;
-            break;
+    if (priority == 0) {
+        char *verb_cmp, *c;
+        c = verb_cmp = pa_xstrdup(verb_name);
+        while (*c) {
+            if (*c == '_') *c = ' ';
+            c++;
         }
+        for (i = 0; verb_info[i].id; i++) {
+            if (strcasecmp(verb_info[i].id, verb_cmp) == 0) {
+                priority = verb_info[i].priority;
+                break;
+            }
+        }
+        pa_xfree(verb_cmp);
     }
 
-    pa_xfree(verb_cmp);
-
-    if (verb_info[i].id == NULL)
-        p->priority = 1000;
+    p->priority = priority;
 
     PA_LLIST_FOREACH(dev, verb->devices) {
         pa_alsa_jack *jack;

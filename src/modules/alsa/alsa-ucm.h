@@ -241,6 +241,7 @@ struct pa_alsa_ucm_verb {
     PA_LLIST_FIELDS(pa_alsa_ucm_verb);
 
     pa_proplist *proplist;
+    unsigned priority;
 
     PA_LLIST_HEAD(pa_alsa_ucm_device, devices);
     PA_LLIST_HEAD(pa_alsa_ucm_modifier, modifiers);
