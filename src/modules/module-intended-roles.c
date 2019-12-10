@@ -398,7 +398,7 @@ int pa__init(pa_module*m) {
     }
 
     if (on_rescue) {
-        /* A little bit later than module-stream-restore, a little bit earlier than module-rescue-streams, ... */
+        /* A little bit later than module-stream-restore, ... */
         u->sink_unlink_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SINK_UNLINK], PA_HOOK_LATE+10, (pa_hook_cb_t) sink_unlink_hook_callback, u);
         u->source_unlink_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], PA_HOOK_LATE+10, (pa_hook_cb_t) source_unlink_hook_callback, u);
     }

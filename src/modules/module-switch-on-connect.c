@@ -188,7 +188,6 @@ int pa__init(pa_module*m) {
 
     m->userdata = u = pa_xnew0(struct userdata, 1);
 
-    /* A little bit later than module-rescue-streams... */
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_LATE+30, (pa_hook_cb_t) sink_put_hook_callback, u);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_PUT], PA_HOOK_LATE+20, (pa_hook_cb_t) source_put_hook_callback, u);
 

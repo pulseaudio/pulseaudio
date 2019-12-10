@@ -483,7 +483,7 @@ void pa_source_set_reference_volume_direct(pa_source *s, const pa_cvolume *volum
  * PA_AVAILABLE_NO, this function is called to move the streams of the old
  * default_source or the source with active_port equals PA_AVAILABLE_NO to the
  * current default_source conditionally*/
-void pa_source_move_streams_to_default_source(pa_core *core, pa_source *old_source);
+void pa_source_move_streams_to_default_source(pa_core *core, pa_source *old_source, bool default_source_changed);
 
 #define pa_source_assert_io_context(s) \
     pa_assert(pa_thread_mq_get() || !PA_SOURCE_IS_LINKED((s)->state))

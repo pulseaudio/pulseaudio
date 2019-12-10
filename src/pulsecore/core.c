@@ -438,7 +438,7 @@ void pa_core_update_default_source(pa_core *core) {
 
     /* try to move the streams from old_default_source to the new default_source conditionally */
     if (old_default_source)
-	pa_source_move_streams_to_default_source(core, old_default_source);
+	pa_source_move_streams_to_default_source(core, old_default_source, true);
 }
 
 void pa_core_set_exit_idle_time(pa_core *core, int time) {

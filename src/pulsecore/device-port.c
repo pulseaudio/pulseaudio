@@ -116,7 +116,7 @@ void pa_device_port_set_available(pa_device_port *p, pa_available_t status) {
             source = pa_device_port_get_source(p);
             if (source && p == source->active_port) {
                 if (source->active_port->available == PA_AVAILABLE_NO)
-                    pa_source_move_streams_to_default_source(p->core, source);
+                    pa_source_move_streams_to_default_source(p->core, source, false);
                 else
                     pa_core_move_streams_to_newly_available_preferred_source(p->core, source);
             }

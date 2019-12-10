@@ -687,8 +687,7 @@ static pa_hook_result_t sink_unlink_cb(pa_core *core, pa_sink *sink, struct user
             uint32_t idx;
 
             /* Attempt to rescue any streams to the parent sink as this is likely
-             * the best course of action (as opposed to a generic rescue via
-             * module-rescue-streams */
+             * the best course of action */
             if (filter->sink == sink) {
                 pa_sink_input *i;
 
@@ -769,8 +768,7 @@ static pa_hook_result_t source_unlink_cb(pa_core *core, pa_source *source, struc
             uint32_t idx;
 
             /* Attempt to rescue any streams to the parent source as this is likely
-             * the best course of action (as opposed to a generic rescue via
-             * module-rescue-streams */
+             * the best course of action */
             if (filter->source == source) {
                 pa_source_output *o;
 

@@ -702,6 +702,9 @@ void pa_source_unlink(pa_source *s) {
 
     pa_core_update_default_source(s->core);
 
+    if (linked)
+	pa_source_move_streams_to_default_source(s->core, s, false);
+
     if (s->card)
         pa_idxset_remove_by_data(s->card->sources, s, NULL);
 
@@ -2993,13 +2996,16 @@ void pa_source_set_reference_volume_direct(pa_source *s, const pa_cvolume *volum
     pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SOURCE_VOLUME_CHANGED], s);
 }
 
-void pa_source_move_streams_to_default_source(pa_core *core, pa_source *old_source) {
+void pa_source_move_streams_to_default_source(pa_core *core, pa_source *old_source, bool default_source_changed) {
     pa_source_output *o;
     uint32_t idx;
     bool old_source_is_unavailable = false;
 
     pa_assert(core);
     pa_assert(old_source);
+
+    if (core->state == PA_CORE_SHUTDOWN)
+        return;
 
     if (core->default_source == NULL || core->default_source->unlink_requested)
         return;
@@ -3020,8 +3026,16 @@ void pa_source_move_streams_to_default_source(pa_core *core, pa_source *old_sour
         if (pa_safe_streq(old_source->name, o->preferred_source) && !old_source_is_unavailable)
             continue;
 
-        pa_log_info("The source output %u \"%s\" is moving to %s due to change of the default source.",
-                    o->index, pa_strnull(pa_proplist_gets(o->proplist, PA_PROP_APPLICATION_NAME)), core->default_source->name);
+        if (!pa_source_output_may_move_to(o, core->default_source))
+            continue;
+
+        if (default_source_changed)
+            pa_log_info("The source output %u \"%s\" is moving to %s due to change of the default source.",
+                        o->index, pa_strnull(pa_proplist_gets(o->proplist, PA_PROP_APPLICATION_NAME)), core->default_source->name);
+        else
+            pa_log_info("The source output %u \"%s\" is moving to %s due to unlink of a source.",
+                        o->index, pa_strnull(pa_proplist_gets(o->proplist, PA_PROP_APPLICATION_NAME)), core->default_source->name);
+
         pa_source_output_move_to(o, core->default_source, false);
     }
 }
