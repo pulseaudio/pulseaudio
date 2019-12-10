@@ -1066,6 +1066,7 @@ void pa_alsa_init_proplist_ctl(pa_proplist *p, const char *name) {
 
 int pa_alsa_recover_from_poll(snd_pcm_t *pcm, int revents) {
     snd_pcm_state_t state;
+    snd_pcm_hw_params_t *hwparams;
     int err;
 
     pa_assert(pcm);
@@ -1103,16 +1104,25 @@ int pa_alsa_recover_from_poll(snd_pcm_t *pcm, int revents) {
             break;
 
         case SND_PCM_STATE_SUSPENDED:
-            /* Retry resume 3 times before giving up, then fallback to restarting the stream. */
-            for (int i = 0; i < 3; i++) {
-                if ((err = snd_pcm_resume(pcm)) == 0)
-                    return 0;
-                if (err != -EAGAIN)
-                    break;
-                pa_msleep(25);
+            snd_pcm_hw_params_alloca(&hwparams);
+
+            if ((err = snd_pcm_hw_params_any(pcm, hwparams)) < 0) {
+		pa_log_debug("snd_pcm_hw_params_any() failed: %s", pa_alsa_strerror(err));
+		return -1;
             }
-            pa_log_warn("Could not recover alsa device from SUSPENDED state, trying to restart PCM");
-            /* Fall through */
+
+            if (snd_pcm_hw_params_can_resume(hwparams)) {
+                /* Retry resume 3 times before giving up, then fallback to restarting the stream. */
+                for (int i = 0; i < 3; i++) {
+                    if ((err = snd_pcm_resume(pcm)) == 0)
+                        return 0;
+                    if (err != -EAGAIN)
+                        break;
+                    pa_msleep(25);
+                }
+                pa_log_warn("Could not recover alsa device from SUSPENDED state, trying to restart PCM");
+	    }
+	    /* Fall through */
 
         default:
 
