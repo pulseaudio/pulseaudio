@@ -68,8 +68,9 @@ typedef enum pa_resample_flags {
     PA_RESAMPLER_VARIABLE_RATE = 0x0001U,
     PA_RESAMPLER_NO_REMAP      = 0x0002U,  /* implies NO_REMIX */
     PA_RESAMPLER_NO_REMIX      = 0x0004U,
-    PA_RESAMPLER_NO_LFE        = 0x0008U,
     PA_RESAMPLER_NO_FILL_SINK  = 0x0010U,
+    PA_RESAMPLER_PRODUCE_LFE   = 0x0020U,
+    PA_RESAMPLER_CONSUME_LFE   = 0x0040U,
 } pa_resample_flags_t;
 
 struct pa_resampler {

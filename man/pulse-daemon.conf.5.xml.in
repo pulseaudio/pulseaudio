@@ -147,13 +147,28 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     </option>
 
     <option>
-      <p><opt>enable-lfe-remixing=</opt> If disabled when upmixing or
-      downmixing ignore LFE channels. When this option is disabled the
-      output LFE channel will only get a signal when an input LFE
-      channel is available as well. If no input LFE channel is
-      available the output LFE channel will always be 0. If no output
-      LFE channel is available the signal on the input LFE channel
-      will be ignored. Defaults to <opt>no</opt>.</p>
+      <p><opt>enable-lfe-remixing=</opt> This is a way to set
+      <opt>remixing-produce-lfe</opt> and <opt>remixing-consume-lfe</opt>
+      to the same value at once. This option only exists for backward
+      compatibility and may be removed in a future version of PulseAudio.</p>
+    </option>
+
+    <option>
+      <p><opt>remixing-produce-lfe=</opt> If enabled, and the sink input
+      does not have the LFE channel, synthesize the output LFE channel
+      as a (lowpass-filtered, if <opt>lfe-crossover-freq</opt> is not 0)
+      average of all input channels. Also, when <opt>lfe-crossover-freq</opt>
+      is not 0, filter out low frequencies from other channels while
+      producing a synthetic LFE output. If disabled, the output LFE channel
+      will only get a signal when an input LFE channel is available as well.
+      Defaults to <opt>no</opt>.</p>
+    </option>
+
+    <option>
+      <p><opt>remixing-consume-lfe=</opt> If enabled, and the sink does not
+      have an LFE channel, redirect the input LFE channel (if any) to other
+      channels. If disabled, the input LFE channel will remain unused unless
+      the sink has the LFE channel as well. Defaults to <opt>no</opt>.</p>
     </option>
 
     <option>

@@ -476,7 +476,8 @@ int pa_sink_input_new(
                           ((data->flags & PA_SINK_INPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
                           (core->disable_remixing || (data->flags & PA_SINK_INPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0) |
                           (core->remixing_use_all_sink_channels ? 0 : PA_RESAMPLER_NO_FILL_SINK) |
-                          (core->disable_lfe_remixing ? PA_RESAMPLER_NO_LFE : 0)))) {
+                          (core->remixing_produce_lfe ? PA_RESAMPLER_PRODUCE_LFE : 0) |
+                          (core->remixing_consume_lfe ? PA_RESAMPLER_CONSUME_LFE : 0)))) {
                 pa_log_warn("Unsupported resampling operation.");
                 return -PA_ERR_NOTSUPPORTED;
             }
@@ -2313,7 +2314,8 @@ int pa_sink_input_update_resampler(pa_sink_input *i) {
                                      ((i->flags & PA_SINK_INPUT_NO_REMAP) ? PA_RESAMPLER_NO_REMAP : 0) |
                                      (i->core->disable_remixing || (i->flags & PA_SINK_INPUT_NO_REMIX) ? PA_RESAMPLER_NO_REMIX : 0) |
                                      (i->core->remixing_use_all_sink_channels ? 0 : PA_RESAMPLER_NO_FILL_SINK) |
-                                     (i->core->disable_lfe_remixing ? PA_RESAMPLER_NO_LFE : 0));
+                                     (i->core->remixing_produce_lfe ? PA_RESAMPLER_PRODUCE_LFE : 0) |
+                                     (i->core->remixing_consume_lfe ? PA_RESAMPLER_CONSUME_LFE : 0));
 
         if (!new_resampler) {
             pa_log_warn("Unsupported resampling operation.");

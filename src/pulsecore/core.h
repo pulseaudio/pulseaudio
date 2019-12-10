@@ -220,7 +220,8 @@ struct pa_core {
     bool avoid_resampling:1;
     bool disable_remixing:1;
     bool remixing_use_all_sink_channels:1;
-    bool disable_lfe_remixing:1;
+    bool remixing_produce_lfe:1;
+    bool remixing_consume_lfe:1;
     bool deferred_volume:1;
 
     pa_resample_method_t resample_method;

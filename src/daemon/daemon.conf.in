@@ -57,7 +57,8 @@ ifelse(@HAVE_DBUS@, 1, [dnl
 ; avoid-resampling = false
 ; enable-remixing = yes
 ; remixing-use-all-sink-channels = yes
-; enable-lfe-remixing = no
+; remixing-produce-lfe = no
+; remixing-consume-lfe = no
 ; lfe-crossover-freq = 0
 
 ; flat-volumes = no

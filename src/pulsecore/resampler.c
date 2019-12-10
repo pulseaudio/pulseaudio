@@ -1099,7 +1099,7 @@ static void setup_remap(const pa_resampler *r, pa_remap_t *m, bool *lfe_remixed)
                      * right input channel. Something is really wrong in this
                      * case anyway. */
 
-                } else if (on_lfe(b) && !(r->flags & PA_RESAMPLER_NO_LFE)) {
+                } else if (on_lfe(b) && (r->flags & PA_RESAMPLER_PRODUCE_LFE)) {
 
                     /* We are not connected and an LFE. Let's average all
                      * channels for LFE. */
@@ -1150,7 +1150,7 @@ static void setup_remap(const pa_resampler *r, pa_remap_t *m, bool *lfe_remixed)
                     m->map_table_f[oc][ic] = (1.f/9.f) / (float) ic_unconnected_center;
                     ic_unconnected_center_mixed_in = true;
 
-                } else if (on_lfe(a) && !(r->flags & PA_RESAMPLER_NO_LFE))
+                } else if (on_lfe(a) && (r->flags & PA_RESAMPLER_CONSUME_LFE))
                     m->map_table_f[oc][ic] = .375f / (float) ic_unconnected_lfe;
             }
         }
