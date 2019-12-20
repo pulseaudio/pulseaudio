@@ -554,6 +554,7 @@ static pa_card *raop_create_card(pa_module *m, pa_device_port *port, pa_card_pro
 pa_sink* pa_raop_sink_new(pa_module *m, pa_modargs *ma, const char *driver) {
     struct userdata *u = NULL;
     pa_sample_spec ss;
+    pa_channel_map map;
     char *thread_name = NULL;
     const char *server, *protocol, *encryption, *codec;
     const char /* *username, */ *password;
@@ -567,8 +568,10 @@ pa_sink* pa_raop_sink_new(pa_module *m, pa_modargs *ma, const char *driver) {
     pa_assert(ma);
 
     ss = m->core->default_sample_spec;
-    if (pa_modargs_get_sample_spec(ma, &ss) < 0) {
-        pa_log("Failed to parse sample specification");
+    map = m->core->default_channel_map;
+
+    if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map, PA_CHANNEL_MAP_DEFAULT) < 0) {
+        pa_log("Invalid sample format specification or channel map");
         goto fail;
     }
 
@@ -668,6 +671,7 @@ pa_sink* pa_raop_sink_new(pa_module *m, pa_modargs *ma, const char *driver) {
     }
 
     pa_sink_new_data_set_sample_spec(&data, &ss);
+    pa_sink_new_data_set_channel_map(&data, &map);
 
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, server);
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "music");
