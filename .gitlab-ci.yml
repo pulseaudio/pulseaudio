@@ -16,7 +16,8 @@ stages:
 
 variables:
   # Update this tag when you want to trigger a rebuild the container in which
-  # CI runs
+  # CI runs, for example when adding new packages to UBUNTU_DEBS. The tag is
+  # an arbitrary string that identifies the exact container contents.
   UBUNTU_TAG: '2019-11-21-01'
   UBUNTU_VERSION: '18.04'
   UBUNTU_IMAGE: "$CI_REGISTRY_IMAGE/ubuntu/$UBUNTU_VERSION:$UBUNTU_TAG"
@@ -31,6 +32,9 @@ build-container:
   stage: container
   variables:
     GIT_STRATEGY: none # no need to pull the whole tree for rebuilding the image
+
+    # Remember to update UBUNTU_TAG when modifying this package list! Otherwise
+    # the changes won't have effect since an old container image will be used.
     UBUNTU_DEBS: >-
       autoconf
       automake
