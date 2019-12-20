@@ -51,13 +51,16 @@ struct pa_ioline {
     size_t wbuf_length, wbuf_index, wbuf_valid_length;
 
     char *rbuf;
-    size_t rbuf_length, rbuf_index, rbuf_valid_length;
+    size_t rbuf_length, rbuf_index, rbuf_valid_length, block_byte_count, rbuf_blockindex;
 
     pa_ioline_cb_t callback;
+    pa_stream_cb_t streamcallback;
+    size_t streamcallback_maxbyte;
     void *userdata;
 
     pa_ioline_drain_cb_t drain_callback;
     void *drain_userdata;
+    void *stream_userdata;
 
     bool dead:1;
     bool defer_close:1;
@@ -81,6 +84,8 @@ pa_ioline* pa_ioline_new(pa_iochannel *io) {
     l->rbuf_length = l->rbuf_index = l->rbuf_valid_length = 0;
 
     l->callback = NULL;
+    l->streamcallback = NULL;
+    l->streamcallback_maxbyte = 0;
     l->userdata = NULL;
 
     l->drain_callback = NULL;
@@ -207,6 +212,20 @@ void pa_ioline_set_callback(pa_ioline*l, pa_ioline_cb_t callback, void *userdata
     l->userdata = userdata;
 }
 
+void pa_ioline_set_streamcallback(pa_ioline*l, pa_stream_cb_t callback, size_t maxbyte, void *userdata) {
+    pa_assert(l);
+    pa_assert(PA_REFCNT_VALUE(l) >= 1);
+
+    if (l->dead)
+        return;
+
+    l->streamcallback = callback;
+    l->stream_userdata = userdata;
+    l->streamcallback_maxbyte=maxbyte;
+    l->block_byte_count = 0;
+    l->rbuf_blockindex = l->rbuf_index;
+}
+
 void pa_ioline_set_drain_callback(pa_ioline*l, pa_ioline_drain_cb_t callback, void *userdata) {
     pa_assert(l);
     pa_assert(PA_REFCNT_VALUE(l) >= 1);
@@ -268,6 +287,10 @@ static void scan_for_lines(pa_ioline *l, size_t skip) {
         if (l->callback)
             l->callback(l, pa_strip_nl(p), l->userdata);
 
+         // If we switched to block mode during the callback, exit
+         if (l->streamcallback_maxbyte !=0){
+             return;
+         }
         skip = 0;
     }
 
@@ -285,6 +308,7 @@ static int do_read(pa_ioline *l) {
     while (l->io && !l->dead && pa_iochannel_is_readable(l->io)) {
         ssize_t r;
         size_t len;
+        size_t byte_count;
 
         len = l->rbuf_length - l->rbuf_index - l->rbuf_valid_length;
 
@@ -332,9 +356,29 @@ static int do_read(pa_ioline *l) {
         }
 
         l->rbuf_valid_length += (size_t) r;
+        // If in block mode, append until we reach the size
+        if (l->streamcallback_maxbyte == 0){
+            /* Look if a line has been terminated in the newly read data */
+            scan_for_lines(l, l->rbuf_valid_length - (size_t) r);
+            byte_count = l->rbuf_valid_length;
+        } else {
+            byte_count = r;
+        }
 
-        /* Look if a line has been terminated in the newly read data */
-        scan_for_lines(l, l->rbuf_valid_length - (size_t) r);
+        // Not in a "else" clause, since we may have enabled block mode in callback called in scan_for_lines
+        if (l->streamcallback_maxbyte > 0) {
+            l->block_byte_count += byte_count;
+
+            if (l->block_byte_count >= l->streamcallback_maxbyte) {
+                l->rbuf_index += l->streamcallback_maxbyte;
+                l->rbuf_valid_length -= l->streamcallback_maxbyte;
+                l->streamcallback_maxbyte = 0;
+                if (l->rbuf_valid_length == 0)
+                    l->rbuf_index = 0;
+                if (l->streamcallback)
+                    l->streamcallback(l, l->stream_userdata);
+            }
+        }
     }
 
     return 0;
