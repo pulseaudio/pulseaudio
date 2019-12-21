@@ -414,7 +414,7 @@ int pa_stream_is_corked(const pa_stream *s);
  * Returns zero on success. */
 int pa_stream_connect_playback(
         pa_stream *s                  /**< The stream to connect to a sink */,
-        const char *dev               /**< Name of the sink to connect to, or NULL for default */ ,
+        const char *dev               /**< Name of the sink to connect to, or NULL to let the server decide */ ,
         const pa_buffer_attr *attr    /**< Buffering attributes, or NULL for default */,
         pa_stream_flags_t flags       /**< Additional flags, or 0 for default */,
         const pa_cvolume *volume      /**< Initial volume, or NULL for default */,
@@ -423,7 +423,7 @@ int pa_stream_connect_playback(
 /** Connect the stream to a source. Returns zero on success. */
 int pa_stream_connect_record(
         pa_stream *s                  /**< The stream to connect to a source */ ,
-        const char *dev               /**< Name of the source to connect to, or NULL for default */,
+        const char *dev               /**< Name of the source to connect to, or NULL to let the server decide */,
         const pa_buffer_attr *attr    /**< Buffer attributes, or NULL for default */,
         pa_stream_flags_t flags       /**< Additional flags, or 0 for default */);
 
