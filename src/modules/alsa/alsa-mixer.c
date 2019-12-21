@@ -4392,6 +4392,8 @@ static int mapping_verify(pa_alsa_mapping *m, const pa_channel_map *bonus) {
 
     static const struct description_map well_known_descriptions[] = {
         { "analog-mono",            N_("Analog Mono") },
+        { "analog-mono-left",       N_("Analog Mono (Left)") },
+        { "analog-mono-right",      N_("Analog Mono (Right)") },
         { "analog-stereo",          N_("Analog Stereo") },
         { "mono-fallback",          N_("Mono") },
         { "stereo-fallback",        N_("Stereo") },
