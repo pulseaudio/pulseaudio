@@ -879,7 +879,7 @@ int pa_parse_volume(const char *v, pa_volume_t *volume) {
 
     len = strlen(v);
 
-    if (len >= 64)
+    if (len <= 0 || len >= 64)
         return -1;
 
     memcpy(str, v, len + 1);
