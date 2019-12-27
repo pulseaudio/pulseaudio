@@ -33,6 +33,12 @@
 #include <pulsecore/namereg.h>
 #include <pulsecore/core-util.h>
 
+/* Ignore HDMI devices by default. HDMI monitors don't necessarily have audio
+ * output on them, and even if they do, waking up from sleep or changing
+ * monitor resolution may appear as a plugin event, which causes trouble if the
+ * user doesn't want to use the monitor for audio. */
+#define DEFAULT_BLACKLIST "hdmi"
+
 PA_MODULE_AUTHOR("Michael Terry");
 PA_MODULE_DESCRIPTION("When a sink/source is added, switch to it or conditionally switch to it");
 PA_MODULE_VERSION(PACKAGE_VERSION);
@@ -202,7 +208,14 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    u->blacklist = pa_xstrdup(pa_modargs_get_value(ma, "blacklist", NULL));
+    u->blacklist = pa_xstrdup(pa_modargs_get_value(ma, "blacklist", DEFAULT_BLACKLIST));
+
+    /* An empty string disables all blacklisting. */
+    if (!*u->blacklist) {
+        pa_xfree(u->blacklist);
+        u->blacklist = NULL;
+    }
+
     if (u->blacklist != NULL && !pa_is_regex_valid(u->blacklist)) {
         pa_log_error("A blacklist pattern was provided but is not a valid regex");
         pa_xfree(u->blacklist);
