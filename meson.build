@@ -85,7 +85,7 @@ pulsesysconfdir = join_paths(sysconfdir, 'pulse')
 
 modlibexecdir = get_option('modlibexecdir')
 if modlibexecdir == ''
-  modlibexecdir = join_paths(libdir, 'pulse-' + pa_version_major_minor, 'modules')
+  modlibexecdir = join_paths(libdir, 'pulseaudio', 'modules')
 endif
 
 padsplibdir = get_option('padsplibdir')
