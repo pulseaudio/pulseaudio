@@ -152,18 +152,6 @@ static void sink_update_requested_latency_cb(pa_sink *s) {
 }
 
 /* Called from I/O thread context */
-static void sink_request_rewind_cb(pa_sink *s) {
-    struct userdata *u;
-
-    pa_sink_assert_ref(s);
-    pa_assert_se(u = s->userdata);
-
-    /* Do nothing */
-    pa_sink_process_rewind(u->sink, 0);
-
-}
-
-/* Called from I/O thread context */
 static int source_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SOURCE(o)->userdata;
 
@@ -675,7 +663,6 @@ int pa__init(pa_module*m) {
 
         u->sink->parent.process_msg = sink_process_msg_cb;
         u->sink->update_requested_latency = sink_update_requested_latency_cb;
-        u->sink->request_rewind = sink_request_rewind_cb;
         u->sink->set_state_in_main_thread = sink_set_state_in_main_thread_cb;
         u->sink->userdata = u;
 
@@ -685,7 +672,7 @@ int pa__init(pa_module*m) {
         /* FIXME: no idea what I am doing here */
         u->block_usec = BLOCK_USEC;
         nbytes = pa_usec_to_bytes(u->block_usec, &u->sink->sample_spec);
-        pa_sink_set_max_rewind(u->sink, nbytes);
+        pa_sink_set_max_rewind(u->sink, 0);
         pa_sink_set_max_request(u->sink, nbytes);
 
         pa_sink_put(u->sink);
