@@ -786,7 +786,7 @@ int pa__init(pa_module*m) {
     u->sink->input_to_master = u->sink_input;
 
     pa_sink_input_get_silence(u->sink_input, &silence);
-    u->memblockq = pa_memblockq_new("module-virtual-surround-sink memblockq", 0, MEMBLOCKQ_MAXLENGTH, 0, &sink_input_ss, 1, 1, 0, &silence);
+    u->memblockq = pa_memblockq_new("module-virtual-surround-sink memblockq", 0, MEMBLOCKQ_MAXLENGTH, 0, &ss, 1, 1, 0, &silence);
     pa_memblock_unref(silence.memblock);
 
     /* resample hrir */
