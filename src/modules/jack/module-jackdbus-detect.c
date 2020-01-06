@@ -25,12 +25,14 @@
 #include <config.h>
 #endif
 
+#include <pulse/proplist.h>
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/log.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/dbus-shared.h>
+#include <pulsecore/strbuf.h>
 
 PA_MODULE_AUTHOR("David Henningsson");
 PA_MODULE_DESCRIPTION("Adds JACK sink/source ports when JACK is started");
@@ -38,8 +40,16 @@ PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_USAGE(
     "channels=<number of channels> "
-    "source_channels=<number of channels> "
+    "sink_name=<name for the sink> "
+    "sink_properties=<properties for the card> "
+    "sink_client_name=<jack client name> "
     "sink_channels=<number of channels> "
+    "sink_channel_map=<channel map> "
+    "source_name=<name for the source> "
+    "source_properties=<properties for the source> "
+    "source_client_name=<jack client name> "
+    "source_channels=<number of channels> "
+    "source_channel_map=<channel map> "
     "connect=<connect ports?>");
 
 #define JACK_SERVICE_NAME "org.jackaudio.service"
@@ -61,8 +71,16 @@ PA_MODULE_USAGE(
 
 static const char* const valid_modargs[] = {
     "channels",
-    "source_channels",
+    "sink_name",
+    "sink_properties",
+    "sink_client_name",
     "sink_channels",
+    "sink_channel_map",
+    "source_name",
+    "source_properties",
+    "source_client_name",
+    "source_channels",
+    "source_channel_map",
     "connect",
     NULL
 };
@@ -76,6 +94,19 @@ static const char* const modnames[JACK_SS_COUNT] = {
     "module-jack-source"
 };
 
+static const char* const modtypes[JACK_SS_COUNT] = {
+    "sink",
+    "source"
+};
+
+struct moddata {
+    char *name;
+    pa_proplist *proplist;
+    char *client_name;
+    uint32_t channels;
+    pa_channel_map channel_map;
+};
+
 struct userdata {
     pa_module *module;
     pa_core *core;
@@ -83,13 +114,13 @@ struct userdata {
     bool filter_added, match_added;
     bool is_service_started;
     bool autoconnect_ports;
-    uint32_t channels[JACK_SS_COUNT];
+    struct moddata mod_args[JACK_SS_COUNT];
     /* Using index here protects us from module unloading without us knowing */
     int jack_module_index[JACK_SS_COUNT];
 };
 
 static void ensure_ports_stopped(struct userdata* u) {
-    int i;
+    unsigned i;
     pa_assert(u);
 
     for (i = 0; i < JACK_SS_COUNT; i++)
@@ -100,19 +131,81 @@ static void ensure_ports_stopped(struct userdata* u) {
         }
 }
 
+static char* proplist_to_arg(pa_proplist *p) {
+    const char *key;
+    void *state = NULL;
+    pa_strbuf *buf;
+
+    pa_assert(p);
+
+    buf = pa_strbuf_new();
+
+    while ((key = pa_proplist_iterate(p, &state))) {
+        const char *v;
+        char *escaped;
+
+        if (!pa_strbuf_isempty(buf))
+            pa_strbuf_puts(buf, " ");
+
+        if ((v = pa_proplist_gets(p, key))) {
+            pa_strbuf_printf(buf, "%s=\"", key);
+
+            escaped = pa_escape(v, "\"'");
+            pa_strbuf_puts(buf, escaped);
+            pa_xfree(escaped);
+
+            pa_strbuf_puts(buf, "\"");
+        } else {
+            const void *value;
+            size_t nbytes;
+            char *c;
+
+            pa_assert_se(pa_proplist_get(p, key, &value, &nbytes) == 0);
+            c = pa_xmalloc(nbytes*2+1);
+            pa_hexstr((const uint8_t*) value, nbytes, c, nbytes*2+1);
+
+            pa_strbuf_printf(buf, "%s=hex:%s", key, c);
+            pa_xfree(c);
+        }
+    }
+
+    return pa_strbuf_to_string_free(buf);
+}
+
 static void ensure_ports_started(struct userdata* u) {
-    int i;
+    unsigned i;
+    char *escaped;
     pa_assert(u);
 
     for (i = 0; i < JACK_SS_COUNT; i++)
         if (!u->jack_module_index[i]) {
-            char* args;
-            pa_module* m;
-            if (u->channels[i] > 0) {
-                args = pa_sprintf_malloc("connect=%s channels=%" PRIu32, pa_yes_no(u->autoconnect_ports), u->channels[i]);
-            } else {
-                args = pa_sprintf_malloc("connect=%s", pa_yes_no(u->autoconnect_ports));
+            pa_strbuf *args_buf = pa_strbuf_new();
+            char *args;
+            pa_module *m;
+            pa_strbuf_printf(args_buf, "connect=%s", pa_yes_no(u->autoconnect_ports));
+            if (u->mod_args[i].name) {
+                escaped = pa_escape(u->mod_args[i].name, "'");
+                pa_strbuf_printf(args_buf, " %s_name='%s'", modtypes[i], escaped);
+                pa_xfree(escaped);
             }
+            if (!pa_proplist_isempty(u->mod_args[i].proplist)) {
+                escaped = proplist_to_arg(u->mod_args[i].proplist);
+                pa_strbuf_printf(args_buf, " %s_properties='%s'", modtypes[i], escaped);
+                pa_xfree(escaped);
+            }
+            if (u->mod_args[i].client_name) {
+                escaped = pa_escape(u->mod_args[i].client_name, "'");
+                pa_strbuf_printf(args_buf, " client_name='%s'", escaped);
+                pa_xfree(escaped);
+            }
+            if (u->mod_args[i].channels > 0)
+                pa_strbuf_printf(args_buf, " channels=%" PRIu32, u->mod_args[i].channels);
+            if (u->mod_args[i].channel_map.channels > 0) {
+                char cm[PA_CHANNEL_MAP_SNPRINT_MAX];
+                pa_channel_map_snprint(cm, sizeof(cm), &u->mod_args[i].channel_map);
+                pa_strbuf_printf(args_buf, " channel_map='%s'", cm);
+            }
+            args = pa_strbuf_to_string_free(args_buf);
             pa_module_load(&m, u->core, modnames[i], args);
             pa_xfree(args);
 
@@ -218,7 +311,9 @@ int pa__init(pa_module *m) {
     struct userdata *u = NULL;
     pa_modargs *ma;
     uint32_t channels = 0;
-    int i;
+    unsigned i;
+    char argname[32];
+    const char *name;
 
     pa_assert(m);
 
@@ -243,18 +338,40 @@ int pa__init(pa_module *m) {
         pa_log("Failed to parse channels= argument.");
         goto fail;
     }
+
     for (i = 0; i < JACK_SS_COUNT; i++) {
-        u->channels[i] = channels;
-    }
+        pa_snprintf(argname, sizeof(argname), "%s_name", modtypes[i]);
+        name = pa_modargs_get_value(ma, argname, NULL);
+        u->mod_args[i].name = pa_xstrdup(name);
 
-    if (pa_modargs_get_value_u32(ma, "source_channels", &u->channels[JACK_SS_SOURCE]) < 0 || (u->channels[JACK_SS_SOURCE] > 0 && !pa_channels_valid(u->channels[JACK_SS_SOURCE]))) {
-        pa_log("Failed to parse source_channels= argument.");
-        goto fail;
-    }
+        u->mod_args[i].proplist = pa_proplist_new();
+        pa_snprintf(argname, sizeof(argname), "%s_properties", modtypes[i]);
+        if (pa_modargs_get_proplist(ma, argname, u->mod_args[i].proplist, PA_UPDATE_REPLACE) < 0) {
+            pa_log("Invalid %s properties", modtypes[i]);
+            goto fail;
+        }
 
-    if (pa_modargs_get_value_u32(ma, "sink_channels", &u->channels[JACK_SS_SINK]) < 0 || (u->channels[JACK_SS_SINK] > 0 && !pa_channels_valid(u->channels[JACK_SS_SINK]))) {
-        pa_log("Failed to parse sink_channels= argument.");
-        goto fail;
+        pa_snprintf(argname, sizeof(argname), "%s_client_name", modtypes[i]);
+        name = pa_modargs_get_value(ma, argname, NULL);
+        u->mod_args[i].client_name = pa_xstrdup(name);
+
+        u->mod_args[i].channels = channels;
+        pa_snprintf(argname, sizeof(argname), "%s_channels", modtypes[i]);
+        if (pa_modargs_get_value_u32(ma, argname, &u->mod_args[i].channels) < 0
+                || (u->mod_args[i].channels > 0 && !pa_channels_valid(u->mod_args[i].channels))) {
+            pa_log("Failed to parse %s= argument.", argname);
+            goto fail;
+        }
+
+        pa_channel_map_init(&u->mod_args[i].channel_map);
+        pa_snprintf(argname, sizeof(argname), "%s_channel_map", modtypes[i]);
+        if (pa_modargs_get_value(ma, argname, NULL)) {
+            if (pa_modargs_get_channel_map(ma, argname, &u->mod_args[i].channel_map) < 0
+                    || (u->mod_args[i].channels > 0 && u->mod_args[i].channel_map.channels != u->mod_args[i].channels)) {
+                pa_log("Failed to parse %s= argument.", argname);
+                goto fail;
+            }
+        }
     }
 
     if (!(connection = pa_dbus_bus_get(m->core, DBUS_BUS_SESSION, &error)) || dbus_error_is_set(&error)) {
@@ -298,6 +415,7 @@ fail:
 
 void pa__done(pa_module *m) {
     struct userdata *u;
+    unsigned i;
 
     pa_assert(m);
 
@@ -318,6 +436,15 @@ void pa__done(pa_module *m) {
 
     if (u->connection) {
         pa_dbus_connection_unref(u->connection);
+    }
+
+    for (i = 0; i < JACK_SS_COUNT; i++) {
+        pa_xfree(u->mod_args[i].name);
+
+        if (u->mod_args[i].proplist)
+            pa_proplist_free(u->mod_args[i].proplist);
+
+        pa_xfree(u->mod_args[i].client_name);
     }
 
     pa_xfree(u);
