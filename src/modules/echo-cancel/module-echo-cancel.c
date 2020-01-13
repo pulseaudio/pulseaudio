@@ -1466,6 +1466,8 @@ static bool sink_input_may_move_to_cb(pa_sink_input *i, pa_sink *dest) {
 /* Called from main context. */
 static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
     struct userdata *u;
+    uint32_t idx;
+    pa_source_output *output;
 
     pa_source_output_assert_ref(o);
     pa_assert_ctl_context();
@@ -1476,6 +1478,12 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
         pa_source_update_flags(u->source, PA_SOURCE_LATENCY|PA_SOURCE_DYNAMIC_LATENCY, dest->flags);
     } else
         pa_source_set_asyncmsgq(u->source, NULL);
+
+    /* Propagate asyncmsq change to attached virtual sources */
+    PA_IDXSET_FOREACH(output, u->source->outputs, idx) {
+        if (output->destination_source && output->moving)
+            output->moving(output, u->source);
+    }
 
     if (u->source_auto_desc && dest) {
         const char *y, *z;
