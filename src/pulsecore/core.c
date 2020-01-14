@@ -29,6 +29,7 @@
 #include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
+#include <pulse/message-params.h>
 
 #include <pulsecore/module.h>
 #include <pulsecore/core-rtclock.h>
@@ -65,25 +66,26 @@ static void core_free(pa_object *o);
 
 /* Returns a list of handlers. */
 static char *message_handler_list(pa_core *c) {
-    pa_strbuf *buf;
+    pa_message_params *param;
     void *state = NULL;
     struct pa_message_handler *handler;
 
-    buf = pa_strbuf_new();
+    param = pa_message_params_new();
 
-    pa_strbuf_putc(buf, '{');
+    pa_message_params_begin_list(param);
     PA_HASHMAP_FOREACH(handler, c->message_handlers, state) {
-        pa_strbuf_putc(buf, '{');
+        pa_message_params_begin_list(param);
 
-        pa_strbuf_printf(buf, "{%s} {", handler->object_path);
-        if (handler->description)
-            pa_strbuf_puts(buf, handler->description);
+        /* object_path cannot contain characters that need escaping, therefore
+         * pa_message_params_write_raw() can safely be used here. */
+        pa_message_params_write_raw(param, handler->object_path, true);
+        pa_message_params_write_string(param, handler->description);
 
-        pa_strbuf_puts(buf, "}}");
+        pa_message_params_end_list(param);
     }
-    pa_strbuf_putc(buf, '}');
+    pa_message_params_end_list(param);
 
-    return pa_strbuf_to_string_free(buf);
+    return pa_message_params_to_string_free(param);
 }
 
 static int core_message_handler(const char *object_path, const char *message, char *message_parameters, char **response, void *userdata) {

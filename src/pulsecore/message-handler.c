@@ -31,16 +31,35 @@
 
 #include "message-handler.h"
 
-/* Check if a string does not contain control characters. Currently these are
- * only "{" and "}". */
-static bool string_is_valid(const char *test_string) {
+/* Check if a path string starts with a / and only contains valid characters.
+ * Also reject double slashes. */
+static bool object_path_is_valid(const char *test_string) {
     uint32_t i;
 
+    if (!test_string)
+        return false;
+
+    /* Make sure the string starts with a / */
+    if (test_string[0] != '/')
+        return false;
+
     for (i = 0; test_string[i]; i++) {
-        if (test_string[i] == '{' ||
-            test_string[i] == '}')
-            return false;
+
+        if ((test_string[i] >= 'a' && test_string[i] <= 'z') ||
+            (test_string[i] >= 'A' && test_string[i] <= 'Z') ||
+            (test_string[i] >= '0' && test_string[i] <= '9') ||
+            test_string[i] == '.' ||
+            test_string[i] == '_' ||
+            test_string[i] == '-' ||
+            (test_string[i] == '/' && test_string[i + 1] != '/'))
+            continue;
+
+        return false;
     }
+
+    /* Make sure the string does not end with a / */
+    if (test_string[i - 1] == '/')
+        return false;
 
     return true;
 }
@@ -56,13 +75,8 @@ void pa_message_handler_register(pa_core *c, const char *object_path, const char
     pa_assert(cb);
     pa_assert(userdata);
 
-    /* Ensure that the object path is not empty and starts with "/". */
-    pa_assert(object_path[0] == '/');
-
-    /* Ensure that object path and description are valid strings */
-    pa_assert(string_is_valid(object_path));
-    if (description)
-        pa_assert(string_is_valid(description));
+    /* Ensure that object path is valid */
+    pa_assert(object_path_is_valid(object_path));
 
     handler = pa_xnew0(struct pa_message_handler, 1);
     handler->userdata = userdata;
@@ -91,7 +105,7 @@ void pa_message_handler_unregister(pa_core *c, const char *object_path) {
 int pa_message_handler_send_message(pa_core *c, const char *object_path, const char *message, const char *message_parameters, char **response) {
     struct pa_message_handler *handler;
     int ret;
-    char *parameter_copy;
+    char *parameter_copy, *path_copy;
 
     pa_assert(c);
     pa_assert(object_path);
@@ -100,8 +114,16 @@ int pa_message_handler_send_message(pa_core *c, const char *object_path, const c
 
     *response = NULL;
 
-    if (!(handler = pa_hashmap_get(c->message_handlers, object_path)))
+    path_copy = pa_xstrdup(object_path);
+
+    /* Remove trailing / from path name if present */
+    if (path_copy[strlen(path_copy) - 1] == '/')
+        path_copy[strlen(path_copy) - 1] = 0;
+
+    if (!(handler = pa_hashmap_get(c->message_handlers, path_copy))) {
+        pa_xfree(path_copy);
         return -PA_ERR_NOENTITY;
+    }
 
     parameter_copy = pa_xstrdup(message_parameters);
 
@@ -110,6 +132,7 @@ int pa_message_handler_send_message(pa_core *c, const char *object_path, const c
     ret = handler->callback(handler->object_path, message, parameter_copy, response, handler->userdata);
 
     pa_xfree(parameter_copy);
+    pa_xfree(path_copy);
     return ret;
 }
 
@@ -122,11 +145,6 @@ int pa_message_handler_set_description(pa_core *c, const char *object_path, cons
 
     if (!(handler = pa_hashmap_get(c->message_handlers, object_path)))
         return -PA_ERR_NOENTITY;
-
-    if (description) {
-        if (!string_is_valid(description))
-            return -PA_ERR_INVALID;
-    }
 
     pa_xfree(handler->description);
     handler->description = pa_xstrdup(description);

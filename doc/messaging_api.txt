@@ -14,9 +14,14 @@ look like that:
 {{Integer} {{1st float} {2nd float} ...}}{...}
 Any characters that are not enclosed in curly braces are ignored (all characters
 between { and {, between } and } and between } and {). The same syntax is used
-to specify message parameters. The following reference lists available messages,
+to specify message parameters. The reference further down lists available messages,
 their parameters and return values. If a return value is enclosed in {}, this
 means that multiple elements of the same type may be returned.
+
+For string parameters that contain curly braces or backslashes, those characters
+must be escaped by adding a "\" before them.
+
+Reference:
 
 Object path: /core
 Message: list-handlers

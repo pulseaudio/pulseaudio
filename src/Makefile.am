@@ -711,6 +711,7 @@ libpulsecommon_@PA_MAJORMINOR@_la_SOURCES = \
 		pulse/timeval.c pulse/timeval.h \
 		pulse/rtclock.c pulse/rtclock.h \
 		pulse/volume.c pulse/volume.h \
+		pulse/message-params.c pulse/message-params.h \
 		pulsecore/atomic.h \
 		pulsecore/authkey.c pulsecore/authkey.h \
 		pulsecore/conf-parser.c pulsecore/conf-parser.h \
@@ -917,6 +918,7 @@ libpulse_la_SOURCES = \
 		pulse/mainloop-api.c pulse/mainloop-api.h \
 		pulse/mainloop-signal.c pulse/mainloop-signal.h \
 		pulse/mainloop.c pulse/mainloop.h \
+		pulse/message-params.c pulse/message-params.h \
 		pulse/operation.c pulse/operation.h \
 		pulse/proplist.c pulse/proplist.h \
 		pulse/pulseaudio.h \
@@ -929,7 +931,6 @@ libpulse_la_SOURCES = \
 		pulse/timeval.c pulse/timeval.h \
 		pulse/utf8.c pulse/utf8.h \
 		pulse/util.c pulse/util.h \
-		pulse/message-params.c pulse/message-params.h \
 		pulse/volume.c pulse/volume.h \
 		pulse/xmalloc.c pulse/xmalloc.h
 
