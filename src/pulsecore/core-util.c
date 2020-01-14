@@ -2243,6 +2243,50 @@ int pa_atou(const char *s, uint32_t *ret_u) {
     return 0;
 }
 
+/* Convert the string s to an unsigned 64 bit integer in *ret_u */
+int pa_atou64(const char *s, uint64_t *ret_u) {
+    char *x = NULL;
+    unsigned long long l;
+
+    pa_assert(s);
+    pa_assert(ret_u);
+
+    /* strtoull() ignores leading spaces. We don't. */
+    if (isspace((unsigned char)*s)) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    /* strtoull() accepts strings that start with a minus sign. In that case the
+     * original negative number gets negated, and strtoull() returns the negated
+     * result. We don't want that kind of behaviour. strtoull() also allows a
+     * leading plus sign, which is also a thing that we don't want. */
+    if (*s == '-' || *s == '+') {
+        errno = EINVAL;
+        return -1;
+    }
+
+    errno = 0;
+    l = strtoull(s, &x, 0);
+
+    /* If x doesn't point to the end of s, there was some trailing garbage in
+     * the string. If x points to s, no conversion was done (empty string). */
+    if (!x || *x || x == s || errno) {
+        if (!errno)
+            errno = EINVAL;
+        return -1;
+    }
+
+    if ((uint64_t) l != l) {
+        errno = ERANGE;
+        return -1;
+    }
+
+    *ret_u = (uint64_t) l;
+
+    return 0;
+}
+
 /* Convert the string s to a signed long integer in *ret_l. */
 int pa_atol(const char *s, long *ret_l) {
     char *x = NULL;
@@ -2277,6 +2321,49 @@ int pa_atol(const char *s, long *ret_l) {
     }
 
     *ret_l = l;
+
+    return 0;
+}
+
+/* Convert the string s to a signed 64 bit integer in *ret_l. */
+int pa_atoi64(const char *s, int64_t *ret_l) {
+    char *x = NULL;
+    long long l;
+
+    pa_assert(s);
+    pa_assert(ret_l);
+
+    /* strtoll() ignores leading spaces. We don't. */
+    if (isspace((unsigned char)*s)) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    /* strtoll() accepts leading plus signs, but that's ugly, so we don't allow
+     * that. */
+    if (*s == '+') {
+        errno = EINVAL;
+        return -1;
+    }
+
+    errno = 0;
+    l = strtoll(s, &x, 0);
+
+    /* If x doesn't point to the end of s, there was some trailing garbage in
+     * the string. If x points to s, no conversion was done (at least an empty
+     * string can trigger this). */
+    if (!x || *x || x == s || errno) {
+        if (!errno)
+            errno = EINVAL;
+        return -1;
+    }
+
+    *ret_l = l;
+
+    if ((int64_t) l != l) {
+        errno = ERANGE;
+        return -1;
+    }
 
     return 0;
 }
