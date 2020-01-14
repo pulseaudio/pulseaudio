@@ -121,7 +121,7 @@ _pactl() {
                     set-source-volume set-sink-input-volume set-source-output-volume
                     set-sink-mute set-source-mute set-sink-input-mute
                     set-source-output-mute set-sink-formats set-port-latency-offset
-                    subscribe help)
+                    subscribe send-message help)
 
     _init_completion -n = || return
     preprev=${words[$cword-2]}
@@ -271,7 +271,7 @@ _pacmd() {
                     move-sink-input move-source-output suspend-sink suspend-source
                     suspend set-card-profile set-sink-port set-source-port
                     set-port-latency-offset set-log-target set-log-level set-log-meta
-                    set-log-time set-log-backtrace)
+                    set-log-time set-log-backtrace send-message)
     _init_completion -n = || return
     preprev=${words[$cword-2]}
 

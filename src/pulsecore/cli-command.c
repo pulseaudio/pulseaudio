@@ -53,6 +53,7 @@
 #include <pulsecore/sound-file-stream.h>
 #include <pulsecore/shared.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/message-handler.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/modinfo.h>
 #include <pulsecore/dynarray.h>
@@ -135,6 +136,7 @@ static int pa_cli_command_sink_port(pa_core *c, pa_tokenizer *t, pa_strbuf *buf,
 static int pa_cli_command_source_port(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
 static int pa_cli_command_port_offset(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
 static int pa_cli_command_dump_volumes(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_send_message_to_object(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
 
 /* A method table for all available commands */
 
@@ -191,6 +193,7 @@ static const struct command commands[] = {
     { "set-log-meta",            pa_cli_command_log_meta,           "Show source code location in log messages (args: bool)", 2},
     { "set-log-time",            pa_cli_command_log_time,           "Show timestamps in log messages (args: bool)", 2},
     { "set-log-backtrace",       pa_cli_command_log_backtrace,      "Show backtrace in log messages (args: frames)", 2},
+    { "send-message",            pa_cli_command_send_message_to_object, "Send a message to an object (args: recipient, message, message_parameters)", 4},
     { "play-file",               pa_cli_command_play_file,          "Play a sound file (args: filename, sink|index)", 3},
     { "dump",                    pa_cli_command_dump,               "Dump daemon configuration", 1},
     { "dump-volumes",            pa_cli_command_dump_volumes,       "Debug: Show the state of all volumes", 1 },
@@ -1782,6 +1785,47 @@ static int pa_cli_command_port_offset(pa_core *c, pa_tokenizer *t, pa_strbuf *bu
     pa_device_port_set_latency_offset(port, offset);
 
     return 0;
+}
+
+static int pa_cli_command_send_message_to_object(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
+    const char *object_path, *message, *message_parameters;
+    char *response = NULL;
+    int ret;
+
+    pa_core_assert_ref(c);
+    pa_assert(t);
+    pa_assert(buf);
+    pa_assert(fail);
+
+
+    if (!(object_path = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify an object path as recipient for the message.\n");
+           return -1;
+    }
+
+    if (!(message = pa_tokenizer_get(t, 2))) {
+        pa_strbuf_puts(buf, "You need to specify a message name.\n");
+        return -1;
+    }
+
+    /* parameters may be NULL */
+    message_parameters = pa_tokenizer_get(t, 3);
+
+    ret = pa_message_handler_send_message(c, object_path, message, message_parameters, &response);
+
+    if (ret < 0) {
+        pa_strbuf_printf(buf, "Send message failed: %s\n", pa_strerror(ret));
+        ret = -1;
+
+    } else {
+        if (response)
+            pa_strbuf_puts(buf, response);
+        pa_strbuf_puts(buf, "\n");
+        ret = 0;
+    }
+
+    pa_xfree(response);
+    return ret;
 }
 
 static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {

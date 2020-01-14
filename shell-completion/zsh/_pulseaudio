@@ -263,6 +263,7 @@ _pactl_completion() {
             'set-sink-input-mute: mute a stream'
             'set-source-output-mute: mute a recording stream'
             'set-sink-formats: set supported formats of a sink'
+            'send-message: send a message to a pulseaudio object'
             'subscribe: subscribe to events'
         )
 
@@ -561,6 +562,7 @@ _pacmd_completion() {
             'dump: show daemon configuration'
             'dump-volumes: show the state of all volumes'
             'shared: show shared properties'
+            'send-message: send a message to a pulseaudio object'
             'exit: ask the PulseAudio daemon to exit'
         )
         _describe 'pacmd commands' _pacmd_commands

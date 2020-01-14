@@ -254,6 +254,13 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     </option>
 
     <option>
+      <p><opt>send-message</opt> <arg>RECIPIENT</arg> <arg>MESSAGE</arg> <arg>MESSAGE_PARAMETERS</arg></p>
+      <optdesc><p>Send a message to the specified recipient object. If applicable an additional string containing
+      message parameters can be specified. A string is returned as a response to the message. For available messages
+      see https://cgit.freedesktop.org/pulseaudio/pulseaudio/tree/doc/messaging_api.txt.</p></optdesc>
+    </option>
+
+    <option>
       <p><opt>subscribe</opt></p>
       <optdesc><p>Subscribe to events, pactl does not exit by itself, but keeps waiting for new events.</p></optdesc>
     </option>

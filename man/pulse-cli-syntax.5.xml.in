@@ -307,6 +307,13 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     </option>
 
     <option>
+      <p><opt>send-message</opt> <arg>recipient</arg> <arg>message</arg> <arg>message_parameters</arg></p>
+      <optdesc><p>Send a message to the specified recipient object. If applicable an additional string containing
+      message parameters can be specified. A string is returned as a response to the message. For available messages
+      see https://cgit.freedesktop.org/pulseaudio/pulseaudio/tree/doc/messaging_api.txt.</p></optdesc>
+    </option>
+
+    <option>
       <p><opt>exit</opt></p>
       <optdesc><p>Terminate the daemon. If you want to terminate a CLI
       connection ("log out") you might want to use ctrl+d</p></optdesc>

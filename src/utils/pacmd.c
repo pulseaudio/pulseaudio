@@ -77,6 +77,7 @@ static void help(const char *argv0) {
     printf("%s %s %s\n", argv0, "set-log-meta", _("1|0"));
     printf("%s %s %s\n", argv0, "set-log-time", _("1|0"));
     printf("%s %s %s\n", argv0, "set-log-backtrace", _("FRAMES"));
+    printf("%s %s %s\n", argv0, "send-message", _("RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"));
 
     printf(_("\n"
          "  -h, --help                            Show this help\n"

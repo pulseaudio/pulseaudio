@@ -56,7 +56,10 @@ static char
     *card_name = NULL,
     *profile_name = NULL,
     *port_name = NULL,
-    *formats = NULL;
+    *formats = NULL,
+    *object_path = NULL,
+    *message = NULL,
+    *message_args = NULL;
 
 static uint32_t
     sink_input_idx = PA_INVALID_INDEX,
@@ -130,6 +133,7 @@ static enum {
     SET_SOURCE_OUTPUT_MUTE,
     SET_SINK_FORMATS,
     SET_PORT_LATENCY_OFFSET,
+    SEND_MESSAGE,
     SUBSCRIBE
 } action = NONE;
 
@@ -878,6 +882,19 @@ static void index_callback(pa_context *c, uint32_t idx, void *userdata) {
     complete_action();
 }
 
+static void send_message_callback(pa_context *c, int success, const char *response, void *userdata) {
+
+    if (!success) {
+        pa_log(_("Send message failed: %s"), pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    printf("%s\n", response);
+
+    complete_action();
+}
+
 static void volume_relative_adjust(pa_cvolume *cv) {
     pa_assert(volume_flags & VOL_RELATIVE);
 
@@ -1450,6 +1467,10 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     o = pa_context_set_port_latency_offset(c, card_name, port_name, latency_offset, simple_callback, NULL);
                     break;
 
+                case SEND_MESSAGE:
+                    o = pa_context_send_message_to_object(c, object_path, message, message_args, send_message_callback, NULL);
+                    break;
+
                 case SUBSCRIBE:
                     pa_context_set_subscribe_callback(c, context_subscribe_callback, NULL);
 
@@ -1626,6 +1647,7 @@ static void help(const char *argv0) {
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink-input|source-output)-mute", _("#N 1|0|toggle"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-sink-formats", _("#N FORMATS"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-port-latency-offset", _("CARD-NAME|CARD-#N PORT OFFSET"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "send-message", _("RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"));
     printf("%s %s %s\n",    argv0, _("[options]"), "subscribe");
     printf(_("\nThe special names @DEFAULT_SINK@, @DEFAULT_SOURCE@ and @DEFAULT_MONITOR@\n"
              "can be used to specify the default sink, source and monitor.\n"));
@@ -2061,6 +2083,22 @@ int main(int argc, char *argv[]) {
                 goto quit;
             }
 
+        } else if (pa_streq(argv[optind], "send-message")) {
+            action = SEND_MESSAGE;
+
+            if (argc < optind+3) {
+                pa_log(_("You have to specify at least an object path and a message name"));
+                goto quit;
+            }
+
+            object_path = pa_xstrdup(argv[optind + 1]);
+            message = pa_xstrdup(argv[optind + 2]);
+            if (argc >= optind+4)
+                message_args = pa_xstrdup(argv[optind + 3]);
+
+            if (argc > optind+4)
+                pa_log(_("Excess arguments given, they will be ignored. Note that all message parameters must be given as a single string."));
+
         } else if (pa_streq(argv[optind], "subscribe"))
 
             action = SUBSCRIBE;
@@ -2154,6 +2192,9 @@ quit:
     pa_xfree(profile_name);
     pa_xfree(port_name);
     pa_xfree(formats);
+    pa_xfree(object_path);
+    pa_xfree(message);
+    pa_xfree(message_args);
 
     if (sndfile)
         sf_close(sndfile);
