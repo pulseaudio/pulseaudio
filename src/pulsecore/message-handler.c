@@ -31,6 +31,20 @@
 
 #include "message-handler.h"
 
+/* Check if a string does not contain control characters. Currently these are
+ * only "{" and "}". */
+static bool string_is_valid(const char *test_string) {
+    uint32_t i;
+
+    for (i = 0; test_string[i]; i++) {
+        if (test_string[i] == '{' ||
+            test_string[i] == '}')
+            return false;
+    }
+
+    return true;
+}
+
 /* Message handler functions */
 
 /* Register message handler for the specified object. object_path must be a unique name starting with "/". */
@@ -44,6 +58,11 @@ void pa_message_handler_register(pa_core *c, const char *object_path, const char
 
     /* Ensure that the object path is not empty and starts with "/". */
     pa_assert(object_path[0] == '/');
+
+    /* Ensure that object path and description are valid strings */
+    pa_assert(string_is_valid(object_path));
+    if (description)
+        pa_assert(string_is_valid(description));
 
     handler = pa_xnew0(struct pa_message_handler, 1);
     handler->userdata = userdata;
@@ -96,6 +115,11 @@ int pa_message_handler_set_description(pa_core *c, const char *object_path, cons
 
     if (!(handler = pa_hashmap_get(c->message_handlers, object_path)))
         return -PA_ERR_NOENTITY;
+
+    if (description) {
+        if (!string_is_valid(description))
+            return -PA_ERR_INVALID;
+    }
 
     pa_xfree(handler->description);
     handler->description = pa_xstrdup(description);
