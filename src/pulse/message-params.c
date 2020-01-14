@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
 #include <sys/types.h>
 
 #include <pulse/xmalloc.h>
@@ -62,7 +63,7 @@ static int split_list(char *c, char **result, bool *is_unpacked, void **state) {
 
     /* Empty or no string */
     if (!current || *current == 0)
-        return 0;
+        return PA_MESSAGE_PARAMS_LIST_END;
 
     /* Find opening brace */
     while (*current != 0) {
@@ -79,7 +80,7 @@ static int split_list(char *c, char **result, bool *is_unpacked, void **state) {
 
         /* unexpected closing brace, parse error */
         if (*current == '}' && !found_backslash)
-            return -1;
+            return PA_MESSAGE_PARAMS_PARSE_ERROR;
 
         found_backslash = false;
         current++;
@@ -87,7 +88,7 @@ static int split_list(char *c, char **result, bool *is_unpacked, void **state) {
 
     /* No opening brace found, end of string */
     if (*current == 0)
-        return 0;
+        return PA_MESSAGE_PARAMS_LIST_END;
 
     if (is_unpacked)
         *is_unpacked = true;
@@ -118,7 +119,7 @@ static int split_list(char *c, char **result, bool *is_unpacked, void **state) {
     /* Parse error, closing brace missing */
     if (open_braces != 0) {
         *result = NULL;
-        return -1;
+        return PA_MESSAGE_PARAMS_PARSE_ERROR;
     }
 
     /* Replace } with 0 */
@@ -126,7 +127,7 @@ static int split_list(char *c, char **result, bool *is_unpacked, void **state) {
 
     *state = current + 1;
 
-    return 1;
+    return PA_MESSAGE_PARAMS_OK;
 }
 
 /* Read functions */
@@ -143,13 +144,13 @@ int pa_message_params_read_string(char *c, const char **result, void **state) {
 
     pa_assert(result);
 
-    if ((r = split_list(c, &start_pos, &is_unpacked, state)) == 1)
+    if ((r = split_list(c, &start_pos, &is_unpacked, state)) == PA_MESSAGE_PARAMS_OK)
         value = start_pos;
 
     /* Check if we got a plain string not containing further lists */
     if (!is_unpacked) {
         /* Parse error */
-        r = -1;
+        r = PA_MESSAGE_PARAMS_PARSE_ERROR;
         value = NULL;
     }
 
@@ -163,6 +164,129 @@ int pa_message_params_read_string(char *c, const char **result, void **state) {
  * string data and raw data which may contain further lists. */
 int pa_message_params_read_raw(char *c, char **result, void **state) {
     return split_list(c, result, NULL, state);
+}
+
+/* Read a double from the parameter list. The state pointer is
+ * advanced to the next element of the list. */
+int pa_message_params_read_double(char *c, double *result, void **state) {
+    char *start_pos, *end_pos, *s;
+    int err;
+    struct lconv *locale;
+    double value;
+    bool is_unpacked = true;
+
+    pa_assert(result);
+
+    if ((err = split_list(c, &start_pos, &is_unpacked, state)) != PA_MESSAGE_PARAMS_OK)
+        return err;
+
+    /* Empty element */
+    if (!*start_pos)
+        return PA_MESSAGE_PARAMS_IS_NULL;
+
+    /* Check if we got a plain string not containing further lists */
+    if (!is_unpacked)
+        return PA_MESSAGE_PARAMS_PARSE_ERROR;
+
+    /* Convert to double */
+    locale = localeconv();
+
+    /* Replace decimal point with the correct character for the
+     * current locale. This assumes that no thousand separator
+     * is used. */
+    for (s = start_pos; *s; s++) {
+        if (*s == '.' || *s == ',')
+            *s = *locale->decimal_point;
+     }
+
+    /* Convert to double */
+    errno = 0;
+    value = strtod(start_pos, &end_pos);
+
+    /* Conversion error or string contains invalid characters. If the
+     * whole string was used for conversion, end_pos should point to
+     * the end of the string. */
+    if (errno != 0 || *end_pos != 0 || end_pos == start_pos)
+        return PA_MESSAGE_PARAMS_PARSE_ERROR;
+
+    *result = value;
+    return PA_MESSAGE_PARAMS_OK;
+}
+
+/* Read an integer from the parameter list. The state pointer is
+ * advanced to the next element of the list. */
+int pa_message_params_read_int64(char *c, int64_t *result, void **state) {
+    char *start_pos;
+    int err;
+    int64_t value;
+    bool is_unpacked = true;
+
+    pa_assert(result);
+
+    if ((err = split_list(c, &start_pos, &is_unpacked, state)) != PA_MESSAGE_PARAMS_OK)
+        return err;
+
+    /* Empty element */
+    if (!*start_pos)
+        return PA_MESSAGE_PARAMS_IS_NULL;
+
+    /* Check if we got a plain string not containing further lists */
+    if (!is_unpacked)
+        return PA_MESSAGE_PARAMS_PARSE_ERROR;
+
+    /* Convert to int64 */
+    if (pa_atoi64(start_pos, &value) < 0)
+        return PA_MESSAGE_PARAMS_PARSE_ERROR;
+
+    *result = value;
+    return PA_MESSAGE_PARAMS_OK;
+}
+
+/* Read an unsigned integer from the parameter list. The state pointer is
+ * advanced to the next element of the list. */
+int pa_message_params_read_uint64(char *c, uint64_t *result, void **state) {
+    char *start_pos;
+    int err;
+    uint64_t value;
+    bool is_unpacked = true;
+
+    pa_assert(result);
+
+    if ((err = split_list(c, &start_pos, &is_unpacked, state)) != PA_MESSAGE_PARAMS_OK)
+        return err;
+
+    /* Empty element */
+    if (!*start_pos)
+        return PA_MESSAGE_PARAMS_IS_NULL;
+
+    /* Check if we got a plain string not containing further lists */
+    if (!is_unpacked)
+        return PA_MESSAGE_PARAMS_PARSE_ERROR;
+
+    /* Convert to int64 */
+    if (pa_atou64(start_pos, &value) < 0)
+        return PA_MESSAGE_PARAMS_PARSE_ERROR;
+
+    *result = value;
+    return PA_MESSAGE_PARAMS_OK;
+}
+
+/* Read a boolean from the parameter list. The state pointer is
+ * advanced to the next element of the list. */
+int pa_message_params_read_bool(char *c, bool *result, void **state) {
+    int err;
+    uint64_t value;
+
+    pa_assert(result);
+
+    if ((err = pa_message_params_read_uint64(c, &value, state)) != PA_MESSAGE_PARAMS_OK)
+        return err;
+
+    *result = false;
+    if (value)
+        *result = true;
+
+    return PA_MESSAGE_PARAMS_OK;
 }
 
 /* Write functions. The functions are wrapper functions around pa_strbuf,
@@ -239,7 +363,8 @@ void pa_message_params_write_string(pa_message_params *params, const char *value
 void pa_message_params_write_raw(pa_message_params *params, const char *value, bool add_braces) {
     pa_assert(params);
 
-    /* Null value is written as empty element */
+    /* Null value is written as empty element if add_braces is true.
+     * Otherwise nothing is written. */
     if (!value)
         value = "";
 
@@ -247,4 +372,55 @@ void pa_message_params_write_raw(pa_message_params *params, const char *value, b
         pa_strbuf_printf(params->buffer, "{%s}", value);
     else
         pa_strbuf_puts(params->buffer, value);
+}
+
+/* Writes a double to a message_params structure, adding curly braces.
+ * precision gives the number of significant digits, not digits after
+ * the decimal point. */
+void pa_message_params_write_double(pa_message_params *params, double value, int precision) {
+    char *buf, *s;
+
+    pa_assert(params);
+
+    /* We do not care about locale because we do not know which locale is
+     * used on the server side. If the decimal separator is a comma, we
+     * replace it with a dot to achieve consistent output on all locales. */
+    buf = pa_sprintf_malloc("{%.*g}",  precision, value);
+    for (s = buf; *s; s++) {
+        if (*s == ',') {
+            *s = '.';
+            break;
+        }
+     }
+
+    pa_strbuf_puts(params->buffer, buf);
+
+    pa_xfree(buf);
+}
+
+/* Writes an integer to a message_param structure, adding curly braces. */
+void pa_message_params_write_int64(pa_message_params *params, int64_t value) {
+
+    pa_assert(params);
+
+    pa_strbuf_printf(params->buffer, "{%lli}", (long long)value);
+}
+
+/* Writes an unsigned integer to a message_params structure, adding curly braces. */
+void pa_message_params_write_uint64(pa_message_params *params, uint64_t value) {
+
+    pa_assert(params);
+
+    pa_strbuf_printf(params->buffer, "{%llu}", (unsigned long long)value);
+}
+
+/* Writes a boolean to a message_params structure, adding curly braces. */
+void pa_message_params_write_bool(pa_message_params *params, bool value) {
+
+    pa_assert(params);
+
+    if (value)
+        pa_strbuf_puts(params->buffer, "{1}");
+    else
+        pa_strbuf_puts(params->buffer, "{0}");
 }
