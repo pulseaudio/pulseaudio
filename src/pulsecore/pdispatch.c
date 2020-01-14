@@ -199,6 +199,9 @@ static const char *command_names[PA_COMMAND_MAX] = {
     /* Supported since protocol v31 (9.0) */
     /* BOTH DIRECTIONS */
     [PA_COMMAND_REGISTER_MEMFD_SHMID] = "REGISTER_MEMFD_SHMID",
+
+    /* Supported since protocol v35 (15.0) */
+    [PA_COMMAND_SEND_OBJECT_MESSAGE] = "SEND_OBJECT_MESSAGE",
 };
 
 #endif

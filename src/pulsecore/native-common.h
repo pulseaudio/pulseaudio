@@ -187,6 +187,9 @@ enum {
      * BOTH DIRECTIONS */
     PA_COMMAND_REGISTER_MEMFD_SHMID,
 
+    /* Supported since protocol v34 (14.0) */
+    PA_COMMAND_SEND_OBJECT_MESSAGE,
+
     PA_COMMAND_MAX
 };
 

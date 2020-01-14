@@ -47,6 +47,7 @@
 #include <pulsecore/namereg.h>
 #include <pulsecore/core-scache.h>
 #include <pulsecore/core-subscribe.h>
+#include <pulsecore/message-handler.h>
 #include <pulsecore/log.h>
 #include <pulsecore/mem.h>
 #include <pulsecore/strlist.h>
@@ -4721,6 +4722,55 @@ static void command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, 
         protocol_error(c);
 }
 
+/* Send message to an object which registered a handler. Result must be returned as string. */
+static void command_send_object_message(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
+    const char *object_path = NULL;
+    const char *message = NULL;
+    const char *message_parameters = NULL;
+    const char *client_name;
+    char *response = NULL;
+    int ret;
+    pa_tagstruct *reply;
+
+    pa_native_connection_assert_ref(c);
+    pa_assert(t);
+
+    if (pa_tagstruct_gets(t, &object_path) < 0 ||
+        pa_tagstruct_gets(t, &message) < 0 ||
+        pa_tagstruct_gets(t, &message_parameters) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, object_path != NULL, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, pa_utf8_valid(object_path), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, message != NULL, tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, pa_utf8_valid(message), tag, PA_ERR_INVALID);
+    if (message_parameters)
+        CHECK_VALIDITY(c->pstream, pa_utf8_valid(message_parameters), tag, PA_ERR_INVALID);
+
+    client_name = pa_strnull(pa_proplist_gets(c->client->proplist, PA_PROP_APPLICATION_PROCESS_BINARY));
+    pa_log_debug("Client %s sent message %s to path %s", client_name, message, object_path);
+    if (message_parameters)
+        pa_log_debug("Message parameters: %s", message_parameters);
+
+    ret = pa_message_handler_send_message(c->protocol->core, object_path, message, message_parameters, &response);
+
+    if (ret < 0) {
+        pa_pstream_send_error(c->pstream, tag, -ret);
+        return;
+    }
+
+    reply = reply_new(tag);
+    pa_tagstruct_puts(reply, response);
+    pa_xfree(response);
+
+    pa_pstream_send_tagstruct(c->pstream, reply);
+}
+
 static void command_set_card_profile(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
     uint32_t idx = PA_INVALID_INDEX;
@@ -4971,6 +5021,8 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_ENABLE_SRBCHANNEL] = command_enable_srbchannel,
 
     [PA_COMMAND_REGISTER_MEMFD_SHMID] = command_register_memfd_shmid,
+
+    [PA_COMMAND_SEND_OBJECT_MESSAGE] = command_send_object_message,
 
     [PA_COMMAND_EXTENSION] = command_extension
 };

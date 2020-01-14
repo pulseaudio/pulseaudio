@@ -435,6 +435,23 @@ sink, source and card ports):
     string availability_group
     uint32 type
 
+## v35, implemented by >= 15.0
+
+Added new command for communication with objects.
+
+PA_COMMAND_SEND_OBJECT_MESSAGE:
+sends a message to an object identified by an object path
+
+parameters:
+    string object_path - unique path identifying the object
+    string message - message name
+    string message_parameters - additional parameters if required (may be
+                                NULL, which should be treated the same as an
+                                empty string)
+
+The command returns a string, which may be empty or NULL (NULL should be
+treated the same as an empty string).
+
 #### If you just changed the protocol, read this
 ## module-tunnel depends on the sink/source/sink-input/source-input protocol
 ## internals, so if you changed these, you might have broken module-tunnel.

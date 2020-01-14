@@ -204,6 +204,12 @@
  * Server modules can be remotely loaded and unloaded using
  * pa_context_load_module() and pa_context_unload_module().
  *
+ * \subsection message_subsec Messages
+ *
+ * Server objects like sinks, sink inputs or modules can register a message
+ * handler to communicate with clients. A message can be sent to a named
+ * message handler using pa_context_send_message_to_object().
+ *
  * \subsection client_subsec Clients
  *
  * The only operation supported on clients is the possibility of kicking
@@ -486,6 +492,16 @@ pa_operation* pa_context_load_module(pa_context *c, const char*name, const char 
 
 /** Unload a module. */
 pa_operation* pa_context_unload_module(pa_context *c, uint32_t idx, pa_context_success_cb_t cb, void *userdata);
+
+/** @} */
+
+/** @{ \name Messages */
+
+/** Callback prototype for pa_context_send_message_to_object() \since 15.0 */
+typedef void (*pa_context_string_cb_t)(pa_context *c, int success, const char *response, void *userdata);
+
+/** Send a message to an object that registered a message handler. \since 15.0 */
+pa_operation* pa_context_send_message_to_object(pa_context *c, const char *recipient_name, const char *message, const char *message_parameters, pa_context_string_cb_t cb, void *userdata);
 
 /** @} */
 
