@@ -498,7 +498,7 @@ pa_operation* pa_context_unload_module(pa_context *c, uint32_t idx, pa_context_s
 /** @{ \name Messages */
 
 /** Callback prototype for pa_context_send_message_to_object() \since 15.0 */
-typedef void (*pa_context_string_cb_t)(pa_context *c, int success, const char *response, void *userdata);
+typedef void (*pa_context_string_cb_t)(pa_context *c, int success, char *response, void *userdata);
 
 /** Send a message to an object that registered a message handler. For more information
  * see https://cgit.freedesktop.org/pulseaudio/pulseaudio/tree/doc/messaging_api.txt. \since 15.0 */

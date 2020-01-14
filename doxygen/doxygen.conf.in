@@ -683,6 +683,7 @@ INPUT                  = @top_srcdir@/src/pulse/channelmap.h \
                          @top_srcdir@/src/pulse/mainloop-api.h \
                          @top_srcdir@/src/pulse/mainloop-signal.h \
                          @top_srcdir@/src/pulse/mainloop.h \
+                         @top_srcdir@/src/pulse/message-params.h \
                          @top_srcdir@/src/pulse/operation.h \
                          @top_srcdir@/src/pulse/proplist.h \
                          @top_srcdir@/src/pulse/pulseaudio.h \

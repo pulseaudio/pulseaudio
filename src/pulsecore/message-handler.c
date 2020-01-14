@@ -90,6 +90,8 @@ void pa_message_handler_unregister(pa_core *c, const char *object_path) {
 /* Send a message to an object identified by object_path */
 int pa_message_handler_send_message(pa_core *c, const char *object_path, const char *message, const char *message_parameters, char **response) {
     struct pa_message_handler *handler;
+    int ret;
+    char *parameter_copy;
 
     pa_assert(c);
     pa_assert(object_path);
@@ -101,9 +103,14 @@ int pa_message_handler_send_message(pa_core *c, const char *object_path, const c
     if (!(handler = pa_hashmap_get(c->message_handlers, object_path)))
         return -PA_ERR_NOENTITY;
 
+    parameter_copy = pa_xstrdup(message_parameters);
+
     /* The handler is expected to return an error code and may also
        return an error string in response */
-    return handler->callback(handler->object_path, message, message_parameters, response, handler->userdata);
+    ret = handler->callback(handler->object_path, message, parameter_copy, response, handler->userdata);
+
+    pa_xfree(parameter_copy);
+    return ret;
 }
 
 /* Set handler description */

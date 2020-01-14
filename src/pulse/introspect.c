@@ -2236,8 +2236,15 @@ static void context_string_callback(pa_pdispatch *pd, uint32_t command, uint32_t
         response = "";
 
     if (o->callback) {
-        pa_context_string_cb_t cb = (pa_context_string_cb_t) o->callback;
-        cb(o->context, success, response, o->userdata);
+        char *response_copy;
+        pa_context_string_cb_t cb;
+
+        response_copy = pa_xstrdup(response);
+
+        cb = (pa_context_string_cb_t) o->callback;
+        cb(o->context, success, response_copy, o->userdata);
+
+        pa_xfree(response_copy);
     }
 
 finish:

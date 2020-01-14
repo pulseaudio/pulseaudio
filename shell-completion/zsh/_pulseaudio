@@ -285,6 +285,7 @@ _pactl_completion() {
                 'clients: list connected clients'
                 'samples: list samples'
                 'cards: list available cards'
+                'message-handlers: list available message-handlers'
             )
 
             if ((CURRENT == 2)); then

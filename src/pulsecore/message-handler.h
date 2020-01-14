@@ -26,7 +26,7 @@
 typedef int (*pa_message_handler_cb_t)(
         const char *object_path,
         const char *message,
-        const char *message_parameters,
+        char *message_parameters,
         char **response,
         void *userdata);
 

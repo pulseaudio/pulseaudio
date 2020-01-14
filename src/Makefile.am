@@ -929,6 +929,7 @@ libpulse_la_SOURCES = \
 		pulse/timeval.c pulse/timeval.h \
 		pulse/utf8.c pulse/utf8.h \
 		pulse/util.c pulse/util.h \
+		pulse/message-params.c pulse/message-params.h \
 		pulse/volume.c pulse/volume.h \
 		pulse/xmalloc.c pulse/xmalloc.h
 

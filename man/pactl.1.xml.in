@@ -80,8 +80,8 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     <option>
       <p><opt>list</opt> [<arg>short</arg>] [<arg>TYPE</arg>]</p>
       <optdesc><p>Dump all currently loaded modules, available sinks, sources, streams, etc.  <arg>TYPE</arg> must be one of:
-      modules, sinks, sources, sink-inputs, source-outputs, clients, samples, cards.  If not specified, all info is listed.  If
-      short is given, output is in a tabular format, for easy parsing by scripts.</p></optdesc>
+      modules, sinks, sources, sink-inputs, source-outputs, clients, samples, cards, message-handlers.  If not specified, all info is listed
+      with the exception of the message-handlers. If short is given, output is in a tabular format, for easy parsing by scripts.</p></optdesc>
     </option>
 
     <option>

@@ -86,7 +86,7 @@ static char *message_handler_list(pa_core *c) {
     return pa_strbuf_to_string_free(buf);
 }
 
-static int core_message_handler(const char *object_path, const char *message, const char *message_parameters, char **response, void *userdata) {
+static int core_message_handler(const char *object_path, const char *message, char *message_parameters, char **response, void *userdata) {
     pa_core *c;
 
     pa_assert(c = (pa_core *) userdata);
