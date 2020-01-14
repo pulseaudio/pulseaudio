@@ -39,6 +39,61 @@ struct pa_message_params {
     pa_strbuf *buffer;
 };
 
+/* Helper functions */
+
+/* Count number of top level elements in parameter list */
+static int count_elements(const char *c) {
+    const char *s;
+    uint32_t element_count;
+    bool found_element, found_backslash;
+    int open_braces;
+
+    if (!c || *c == 0)
+        return PA_MESSAGE_PARAMS_LIST_END;
+
+    element_count = 0;
+    open_braces = 0;
+    found_element = false;
+    found_backslash = false;
+    s = c;
+
+    /* Count elements in list */
+    while (*s != 0) {
+
+        /* Skip escaped curly braces. */
+        if (*s == '\\' && !found_backslash) {
+            found_backslash = true;
+            s++;
+            continue;
+        }
+
+        if (*s == '{' && !found_backslash) {
+            found_element = true;
+            open_braces++;
+        }
+        if (*s == '}' && !found_backslash)
+            open_braces--;
+
+        /* unexpected closing brace, parse error */
+        if (open_braces < 0)
+            return PA_MESSAGE_PARAMS_PARSE_ERROR;
+
+        if (open_braces == 0 && found_element) {
+            element_count++;
+            found_element = false;
+        }
+
+        found_backslash = false;
+        s++;
+    }
+
+    /* missing closing brace, parse error */
+    if (open_braces > 0)
+        return PA_MESSAGE_PARAMS_PARSE_ERROR;
+
+    return element_count;
+}
+
 /* Split the specified string into elements. An element is defined as
  * a sub-string between curly braces. The function is needed to parse
  * the parameters of messages. Each time it is called it returns the
@@ -188,7 +243,7 @@ int pa_message_params_read_double(char *c, double *result, void **state) {
     if (!is_unpacked)
         return PA_MESSAGE_PARAMS_PARSE_ERROR;
 
-    /* Convert to double */
+    /* Get decimal separator for current locale */
     locale = localeconv();
 
     /* Replace decimal point with the correct character for the
@@ -287,6 +342,122 @@ int pa_message_params_read_bool(char *c, bool *result, void **state) {
         *result = true;
 
     return PA_MESSAGE_PARAMS_OK;
+}
+
+/* Converts a parameter list to a string array. Escaping is removed from
+ * the strings. Returns an array of pointers to sub-strings within c in
+ * *results. The returned array must be freed, but not the strings
+ * within the array. The function returns the number of strings in the
+ * array. */
+int pa_message_params_read_string_array(char *c, const char ***results) {
+    void *state = NULL;
+    uint32_t element_count, i;
+    int err;
+    const char **values;
+
+    pa_assert(results);
+
+    /* Count elements, return if no element was found or parse error. */
+    if ((element_count = count_elements(c)) <= 0)
+        return element_count;
+
+    /* Allocate array */
+    values = pa_xmalloc0(element_count * sizeof(char *));
+
+    for (i = 0; (err = pa_message_params_read_string(c, &(values[i]), &state)) > 0; i++)
+        ;
+
+    if (err < 0) {
+        pa_xfree(values);
+        return PA_MESSAGE_PARAMS_PARSE_ERROR;
+    }
+
+    *results = values;
+    return element_count;
+}
+
+/* Converts a parameter list to a double array. */
+int pa_message_params_read_double_array(char *c, double **results) {
+    double  *values;
+    void *state = NULL;
+    uint32_t element_count, i;
+    int err;
+
+    pa_assert(results);
+
+    /* Count elements, return if no element was found or parse error. */
+    if ((element_count = count_elements(c)) <= 0)
+        return element_count;
+
+    /* Allocate array */
+    values = pa_xmalloc0(element_count * sizeof(double));
+
+    for (i = 0; (err = pa_message_params_read_double(c, &(values[i]), &state)) > 0; i++)
+        ;
+
+    if (err < 0) {
+        pa_xfree(values);
+        return PA_MESSAGE_PARAMS_PARSE_ERROR;
+    }
+
+    *results = values;
+    return element_count;
+}
+
+/* Converts a parameter list to an int64 array. */
+int pa_message_params_read_int64_array(char *c, int64_t **results) {
+    int64_t  *values;
+    void *state = NULL;
+    uint32_t element_count, i;
+    int err;
+
+    pa_assert(results);
+
+    /* Count elements, return if no element was found or parse error. */
+    if ((element_count = count_elements(c)) <= 0)
+        return element_count;
+
+    /* Allocate array */
+    values = pa_xmalloc0(element_count * sizeof(int64_t));
+
+    for (i = 0; (err = pa_message_params_read_int64(c, &(values[i]), &state)) > 0; i++)
+        ;
+
+    if (err < 0) {
+        pa_xfree(values);
+        return PA_MESSAGE_PARAMS_PARSE_ERROR;
+    }
+
+    *results = values;
+    return element_count;
+}
+
+/* Converts a parameter list to an uint64 array. */
+int pa_message_params_read_uint64_array(char *c, uint64_t **results) {
+    uint64_t  *values;
+    void *state = NULL;
+    uint32_t element_count, i;
+    int err;
+
+    pa_assert(results);
+
+    /* Count elements, return if no element was found or parse error. */
+    if ((element_count = count_elements(c)) <= 0)
+        return element_count;
+
+    /* Allocate array */
+    values = pa_xmalloc0(element_count * sizeof(uint64_t));
+
+    for (i = 0; (err = pa_message_params_read_uint64(c, &(values[i]), &state)) > 0; i++)
+        ;
+
+    if (err < 0) {
+        pa_xfree(values);
+        return PA_MESSAGE_PARAMS_PARSE_ERROR;
+    }
+
+    *results = values;
+    return element_count;
 }
 
 /* Write functions. The functions are wrapper functions around pa_strbuf,

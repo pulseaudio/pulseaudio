@@ -36,7 +36,12 @@
  * the callback, it must be copied using pa_xstrdup().
  * When a read function is called, the state pointer is advanced to the
  * next list element. The variable state points to should be initialized
- * to NULL before the first call.\n
+ * to NULL before the first call.
+ * All read functions except read_raw() preserve a default value passed
+ * in result if the call fails. For the array functions, results must be
+ * initialized prior to the call either to NULL or to an array with default
+ * values. If the function succeeds, the default array will be freed and
+ * the number of elements in the result array is returned.\n\n
  * Write functions operate on a pa_message_params structure which is a
  * wrapper for pa_strbuf. A parameter list or sub-list is started by a
  * call to begin_list() and ended by a call to end_list().
@@ -69,8 +74,18 @@ int pa_message_params_read_bool(char *c, bool *result, void **state);
 /** Read a double from parameter list in c. \since 15.0 */
 int pa_message_params_read_double(char *c, double *result, void **state);
 
+/** Converts a parameter list to a double array. Empty elements in the parameter
+ * list are treated as error. Before the call, results must be initialized, either
+ * to NULL or to an array with default values. \since 15.0 */
+int pa_message_params_read_double_array(char *c, double **results);
+
 /** Read an integer from parameter list in c. \since 15.0 */
 int pa_message_params_read_int64(char *c, int64_t *result, void **state);
+
+/** Converts a parameter list to an int64 array. Empty elements in the parameter
+ * list are treated as error. Before the call, results must be initialized, either
+ * to NULL or to an array with default values. \since 15.0 */
+int pa_message_params_read_int64_array(char *c, int64_t **results);
 
 /** Read raw data from parameter list in c. Used to split a message parameter
  * string into list elements. The string returned in *result must not be freed.  \since 15.0 */
@@ -80,8 +95,20 @@ int pa_message_params_read_raw(char *c, char **result, void **state);
  * will be unescaped. \since 15.0 */
 int pa_message_params_read_string(char *c, const char **result, void **state);
 
+/** Convert a parameter list to a string array. Escaping is removed from
+ * the strings. Returns an array of pointers to sub-strings within c in
+ * *results. The returned array must be freed, but not the strings
+ * within the array. Before the call, results must be initialized, either
+ * to NULL or to an array with default values. \since 15.0 */
+int pa_message_params_read_string_array(char *c, const char ***results);
+
 /** Read an unsigned integer from parameter list in c. \since 15.0 */
 int pa_message_params_read_uint64(char *c, uint64_t *result, void **state);
+
+/** Converts a parameter list to an uint64 array. Empty elements in the parameter
+ * list are treated as error. Before the call, results must be initialized, either
+ * to NULL or to an array with default values. \since 15.0 */
+int pa_message_params_read_uint64_array(char *c, uint64_t **results);
 
 /** @} */
 
