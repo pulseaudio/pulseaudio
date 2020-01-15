@@ -43,7 +43,13 @@
 #include <pulsecore/thread.h>
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
+
+#ifdef USE_SMOOTHER_2
+#include <pulsecore/time-smoother_2.h>
+#else
 #include <pulsecore/time-smoother.h>
+#endif
+
 #include <pulsecore/strlist.h>
 
 PA_MODULE_AUTHOR("Lennart Poettering");
@@ -169,7 +175,11 @@ struct userdata {
         pa_atomic_t running;  /* we cache that value here, so that every thread can query it cheaply */
         pa_usec_t timestamp;
         bool in_null_mode;
-        pa_smoother *smoother;
+#ifdef USE_SMOOTHER_2
+        pa_smoother_2 *smoother;
+#else
+         pa_smoother *smoother;
+#endif
         uint64_t counter;
 
         uint64_t snapshot_counter;
@@ -404,8 +414,13 @@ static void process_render_null(struct userdata *u, pa_usec_t now) {
 
 /*     pa_log_debug("Ate in sum %lu bytes (of %lu)", (unsigned long) ate, (unsigned long) nbytes); */
 
-    pa_smoother_put(u->thread_info.smoother, now,
-                    pa_bytes_to_usec(u->thread_info.counter, &u->sink->sample_spec) - (u->thread_info.timestamp - now));
+#ifdef USE_SMOOTHER_2
+    pa_smoother_2_put(u->thread_info.smoother, now,
+                    u->thread_info.counter - pa_usec_to_bytes(u->thread_info.timestamp - now, &u->sink->sample_spec));
+#else
+     pa_smoother_put(u->thread_info.smoother, now,
+                     pa_bytes_to_usec(u->thread_info.counter, &u->sink->sample_spec) - (u->thread_info.timestamp - now));
+#endif
 }
 
 static void thread_func(void *userdata) {
@@ -860,9 +875,15 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
 
     if (running) {
         u->thread_info.render_timestamp = 0;
+#ifdef USE_SMOOTHER_2
+        pa_smoother_2_resume(u->thread_info.smoother, pa_rtclock_now());
+    } else
+        pa_smoother_2_pause(u->thread_info.smoother, pa_rtclock_now());
+#else
         pa_smoother_resume(u->thread_info.smoother, pa_rtclock_now(), true);
     } else
         pa_smoother_pause(u->thread_info.smoother, pa_rtclock_now());
+#endif
 
     return 0;
 }
@@ -1010,8 +1031,12 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     switch (code) {
 
         case PA_SINK_MESSAGE_GET_LATENCY: {
-            pa_usec_t x, y, c;
             int64_t *delay = data;
+
+#ifdef USE_SMOOTHER_2
+            *delay = pa_smoother_2_get_delay(u->thread_info.smoother, pa_rtclock_now(), u->thread_info.counter);
+#else
+            pa_usec_t x, y, c;
 
             x = pa_rtclock_now();
             y = pa_smoother_get(u->thread_info.smoother, x);
@@ -1019,6 +1044,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             c = pa_bytes_to_usec(u->thread_info.counter, &u->sink->sample_spec);
 
             *delay = (int64_t)c - y;
+#endif
 
             return 0;
         }
@@ -1040,6 +1066,12 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             return 0;
 
         case SINK_MESSAGE_UPDATE_LATENCY: {
+#ifdef USE_SMOOTHER_2
+            size_t latency;
+
+            latency = pa_usec_to_bytes((pa_usec_t)offset,  &u->sink->sample_spec);
+            pa_smoother_2_put(u->thread_info.smoother, pa_rtclock_now(), (int64_t)u->thread_info.counter - latency);
+#else
             pa_usec_t x, y, latency = (pa_usec_t) offset;
 
             /* It may be possible that thread_info.counter has been increased
@@ -1054,6 +1086,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 y = 0;
 
             pa_smoother_put(u->thread_info.smoother, x, y);
+#endif
             return 0;
         }
 
@@ -1472,6 +1505,7 @@ int pa__init(pa_module*m) {
 
     u->resample_method = resample_method;
     u->outputs = pa_idxset_new(NULL, NULL);
+#ifndef USE_SMOOTHER_2
     u->thread_info.smoother = pa_smoother_new(
             PA_USEC_PER_SEC,
             PA_USEC_PER_SEC*2,
@@ -1480,6 +1514,7 @@ int pa__init(pa_module*m) {
             10,
             pa_rtclock_now(),
             true);
+#endif
 
     adjust_time_sec = DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_SEC;
     if (pa_modargs_get_value_u32(ma, "adjust_time", &adjust_time_sec) < 0) {
@@ -1585,6 +1620,11 @@ int pa__init(pa_module*m) {
         pa_log("Failed to create sink");
         goto fail;
     }
+
+#ifdef USE_SMOOTHER_2
+    /* The smoother window size needs to be larger than the time between updates */
+    u->thread_info.smoother = pa_smoother_2_new(u->adjust_time + 5*PA_USEC_PER_SEC, pa_rtclock_now(), pa_frame_size(&u->sink->sample_spec), u->sink->sample_spec.rate);
+#endif
 
     u->sink->parent.process_msg = sink_process_msg;
     u->sink->set_state_in_main_thread = sink_set_state_in_main_thread_cb;
@@ -1727,7 +1767,11 @@ void pa__done(pa_module*m) {
         u->core->mainloop->time_free(u->time_event);
 
     if (u->thread_info.smoother)
+#ifdef USE_SMOOTHER_2
+        pa_smoother_2_free(u->thread_info.smoother);
+#else
         pa_smoother_free(u->thread_info.smoother);
+#endif
 
     pa_xfree(u);
 }
