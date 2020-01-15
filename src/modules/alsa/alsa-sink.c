@@ -52,7 +52,12 @@
 #include <pulsecore/thread.h>
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
+
+#ifdef USE_SMOOTHER_2
+#include <pulsecore/time-smoother_2.h>
+#else
 #include <pulsecore/time-smoother.h>
+#endif
 
 #include <modules/reserve-wrap.h>
 
@@ -78,11 +83,15 @@
 #define TSCHED_MIN_SLEEP_USEC (10*PA_USEC_PER_MSEC)                /* 10ms  -- Sleep at least 10ms on each iteration */
 #define TSCHED_MIN_WAKEUP_USEC (4*PA_USEC_PER_MSEC)                /* 4ms   -- Wakeup at least this long before the buffer runs empty*/
 
+#ifdef USE_SMOOTHER_2
+#define SMOOTHER_WINDOW_USEC  (15*PA_USEC_PER_SEC)                 /* 15s   -- smoother windows size */
+#else
 #define SMOOTHER_WINDOW_USEC  (10*PA_USEC_PER_SEC)                 /* 10s   -- smoother windows size */
 #define SMOOTHER_ADJUST_USEC  (1*PA_USEC_PER_SEC)                  /* 1s    -- smoother adjust time */
 
 #define SMOOTHER_MIN_INTERVAL (2*PA_USEC_PER_MSEC)                 /* 2ms   -- min smoother update interval */
 #define SMOOTHER_MAX_INTERVAL (200*PA_USEC_PER_MSEC)               /* 200ms -- max smoother update interval */
+#endif
 
 #define VOLUME_ACCURACY (PA_VOLUME_NORM/100)  /* don't require volume adjustments to be perfectly correct. don't necessarily extend granularity in software unless the differences get greater than this level */
 
@@ -156,11 +165,18 @@ struct userdata {
 
     pa_rtpoll_item *alsa_rtpoll_item;
 
+#ifdef USE_SMOOTHER_2
+    pa_smoother_2 *smoother;
+#else
     pa_smoother *smoother;
+#endif
     uint64_t write_count;
     uint64_t since_start;
+
+#ifndef USE_SMOOTHER_2
     pa_usec_t smoother_interval;
     pa_usec_t last_smoother_update;
+#endif
 
     pa_idxset *formats;
 
@@ -480,9 +496,13 @@ static void hw_sleep_time(struct userdata *u, pa_usec_t *sleep_usec, pa_usec_t*p
 /* Reset smoother and counters */
 static void reset_vars(struct userdata *u) {
 
+#ifdef USE_SMOOTHER_2
+    pa_smoother_2_reset(u->smoother, pa_rtclock_now());
+#else
     pa_smoother_reset(u->smoother, pa_rtclock_now(), true);
     u->smoother_interval = SMOOTHER_MIN_INTERVAL;
     u->last_smoother_update = 0;
+#endif
 
     u->first = true;
     u->since_start = 0;
@@ -955,7 +975,10 @@ static void update_smoother(struct userdata *u) {
     snd_pcm_sframes_t delay = 0;
     int64_t position;
     int err;
-    pa_usec_t now1 = 0, now2;
+    pa_usec_t now1 = 0;
+#ifndef USE_SMOOTHER_2
+    pa_usec_t now2;
+#endif
     snd_pcm_status_t *status;
     snd_htimestamp_t htstamp = { 0, 0 };
 
@@ -978,12 +1001,15 @@ static void update_smoother(struct userdata *u) {
     if (now1 <= 0)
         now1 = pa_rtclock_now();
 
+    position = (int64_t) u->write_count - ((int64_t) delay * (int64_t) u->frame_size);
+
+#ifdef USE_SMOOTHER_2
+    pa_smoother_2_put(u->smoother, now1, position);
+#else
     /* check if the time since the last update is bigger than the interval */
     if (u->last_smoother_update > 0)
         if (u->last_smoother_update + u->smoother_interval > now1)
             return;
-
-    position = (int64_t) u->write_count - ((int64_t) delay * (int64_t) u->frame_size);
 
     if (PA_UNLIKELY(position < 0))
         position = 0;
@@ -995,18 +1021,26 @@ static void update_smoother(struct userdata *u) {
     u->last_smoother_update = now1;
     /* exponentially increase the update interval up to the MAX limit */
     u->smoother_interval = PA_MIN (u->smoother_interval * 2, SMOOTHER_MAX_INTERVAL);
+#endif
 }
 
 static int64_t sink_get_latency(struct userdata *u) {
     int64_t delay;
-    pa_usec_t now1, now2;
+    pa_usec_t now1;
+#ifndef USE_SMOOTHER_2
+    pa_usec_t now2;
+#endif
 
     pa_assert(u);
 
     now1 = pa_rtclock_now();
+#ifdef USE_SMOOTHER_2
+    delay = pa_smoother_2_get_delay(u->smoother, now1, u->write_count);
+#else
     now2 = pa_smoother_get(u->smoother, now1);
 
     delay = (int64_t) pa_bytes_to_usec(u->write_count, &u->sink->sample_spec) - (int64_t) now2;
+#endif
 
     if (u->memchunk.memblock)
         delay += pa_bytes_to_usec(u->memchunk.length, &u->sink->sample_spec);
@@ -1036,7 +1070,11 @@ static void suspend(struct userdata *u) {
     if (!u->pcm_handle)
         return;
 
+#ifdef USE_SMOOTHER_2
+    pa_smoother_2_pause(u->smoother, pa_rtclock_now());
+#else
     pa_smoother_pause(u->smoother, pa_rtclock_now());
+#endif
 
     /* Close PCM device */
     close_pcm(u);
@@ -1784,12 +1822,22 @@ static void sink_reconfigure_cb(pa_sink *s, pa_sample_spec *spec, bool passthrou
     int i;
     bool format_supported = false;
     bool rate_supported = false;
+#ifdef USE_SMOOTHER_2
+    pa_sample_spec effective_spec;
+#endif
 
     pa_assert(u);
+
+#ifdef USE_SMOOTHER_2
+    effective_spec.channels = s->sample_spec.channels;
+#endif
 
     for (i = 0; u->supported_formats[i] != PA_SAMPLE_MAX; i++) {
         if (u->supported_formats[i] == spec->format) {
             pa_sink_set_sample_format(u->sink, spec->format);
+#ifdef USE_SMOOTHER_2
+            effective_spec.format = spec->format;
+#endif
             format_supported = true;
             break;
         }
@@ -1799,11 +1847,17 @@ static void sink_reconfigure_cb(pa_sink *s, pa_sample_spec *spec, bool passthrou
         pa_log_info("Sink does not support sample format of %s, set it to a verified value",
                     pa_sample_format_to_string(spec->format));
         pa_sink_set_sample_format(u->sink, u->verified_sample_spec.format);
+#ifdef USE_SMOOTHER_2
+        effective_spec.format = u->verified_sample_spec.format;
+#endif
     }
 
     for (i = 0; u->supported_rates[i]; i++) {
         if (u->supported_rates[i] == spec->rate) {
             pa_sink_set_sample_rate(u->sink, spec->rate);
+#ifdef USE_SMOOTHER_2
+            effective_spec.rate = spec->rate;
+#endif
             rate_supported = true;
             break;
         }
@@ -1812,7 +1866,14 @@ static void sink_reconfigure_cb(pa_sink *s, pa_sample_spec *spec, bool passthrou
     if (!rate_supported) {
         pa_log_info("Sink does not support sample rate of %u, set it to a verified value", spec->rate);
         pa_sink_set_sample_rate(u->sink, u->verified_sample_spec.rate);
+#ifdef USE_SMOOTHER_2
+        effective_spec.rate = u->verified_sample_spec.rate;
+#endif
     }
+
+#ifdef USE_SMOOTHER_2
+    pa_smoother_2_set_sample_spec(u->smoother, pa_rtclock_now(), &effective_spec);
+#endif
 
     /* Passthrough status change is handled during unsuspend */
 }
@@ -1947,7 +2008,11 @@ static void thread_func(void *userdata) {
                     pa_log_info("Starting playback.");
                     snd_pcm_start(u->pcm_handle);
 
+#ifdef USE_SMOOTHER_2
+                    pa_smoother_2_resume(u->smoother, pa_rtclock_now());
+#else
                     pa_smoother_resume(u->smoother, pa_rtclock_now(), true);
+#endif
 
                     u->first = false;
                 }
@@ -1981,7 +2046,11 @@ static void thread_func(void *userdata) {
 
                 /* Convert from the sound card time domain to the
                  * system time domain */
+#ifdef USE_SMOOTHER_2
+                cusec = pa_smoother_2_translate(u->smoother, sleep_usec);
+#else
                 cusec = pa_smoother_translate(u->smoother, pa_rtclock_now(), sleep_usec);
+#endif
 
 #ifdef DEBUG_TIMING
                 pa_log_debug("Waking up in %0.2fms (system clock).", (double) cusec / PA_USEC_PER_MSEC);
@@ -2281,7 +2350,11 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     bool volume_is_set;
     bool mute_is_set;
     pa_alsa_profile_set *profile_set = NULL;
-    void *state;
+    void *state = NULL;
+#ifdef USE_SMOOTHER_2
+    snd_pcm_info_t* pcm_info;
+    const char *id;
+#endif
 
     pa_assert(m);
     pa_assert(ma);
@@ -2394,6 +2467,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
         goto fail;
     }
 
+#ifndef USE_SMOOTHER_2
     u->smoother = pa_smoother_new(
             SMOOTHER_ADJUST_USEC,
             SMOOTHER_WINDOW_USEC,
@@ -2403,6 +2477,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
             pa_rtclock_now(),
             true);
     u->smoother_interval = SMOOTHER_MIN_INTERVAL;
+#endif
 
     /* use ucm */
     if (mapping && mapping->ucm_context.ucm)
@@ -2613,6 +2688,25 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
         goto fail;
     }
 
+#ifdef USE_SMOOTHER_2
+    u->smoother = pa_smoother_2_new(SMOOTHER_WINDOW_USEC, pa_rtclock_now(), frame_size, u->sink->sample_spec.rate);
+
+    /* Check if this is an USB device, see alsa-util.c
+     * USB devices unfortunately need some special handling */
+    snd_pcm_info_alloca(&pcm_info);
+    if (snd_pcm_info(u->pcm_handle, pcm_info) == 0 &&
+        (id = snd_pcm_info_get_id(pcm_info))) {
+        if (pa_streq(id, "USB Audio")) {
+            uint32_t hack_threshold;
+            /* USB device, set hack parameter */
+            hack_threshold = 2000;
+            if (!u->use_tsched)
+                hack_threshold = 1000;
+            pa_smoother_2_usb_hack_enable(u->smoother, true, hack_threshold);
+        }
+    }
+#endif
+
     if (u->ucm_context) {
         pa_device_port *port;
         unsigned h_prio = 0;
@@ -2816,7 +2910,11 @@ static void userdata_free(struct userdata *u) {
         pa_hashmap_free(u->mixers);
 
     if (u->smoother)
+#ifdef USE_SMOOTHER_2
+        pa_smoother_2_free(u->smoother);
+#else
         pa_smoother_free(u->smoother);
+#endif
 
     if (u->formats)
         pa_idxset_free(u->formats, (pa_free_cb_t) pa_format_info_free);
