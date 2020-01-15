@@ -615,6 +615,10 @@ if get_option('running-from-build-tree')
   cdata.set('HAVE_RUNNING_FROM_BUILD_TREE', 1)
 endif
 
+if get_option('enable-smoother-2')
+  cdata.set('USE_SMOOTHER_2', 1)
+endif
+
 alsa_dep = dependency('alsa', version : '>= 1.0.24', required : get_option('alsa'))
 if alsa_dep.found()
   cdata.set('HAVE_ALSA', 1)
