@@ -60,7 +60,13 @@
 #include <pulsecore/authkey.h>
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/thread.h>
+
+#ifdef USE_SMOOTHER_2
+#include <pulsecore/time-smoother_2.h>
+#else
 #include <pulsecore/time-smoother.h>
+#endif
+
 #include <pulsecore/socket-util.h>
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/poll.h>
@@ -110,7 +116,12 @@ struct userdata {
     esd_format_t format;
     int32_t rate;
 
+#ifdef USE_SMOOTHER_2
+    pa_smoother_2 *smoother;
+#else
     pa_smoother *smoother;
+#endif
+
     int fd;
 
     int64_t offset;
@@ -142,12 +153,16 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     switch (code) {
 
         case PA_SINK_MESSAGE_GET_LATENCY: {
+#ifdef USE_SMOOTHER_2
+            *((int64_t*) data) = pa_smoother_2_get_delay(u->smoother, pa_rtclock_now(), (uint64_t)u->offset + u->memchunk.length);
+#else
             pa_usec_t w, r;
 
             r = pa_smoother_get(u->smoother, pa_rtclock_now());
             w = pa_bytes_to_usec((uint64_t) u->offset + u->memchunk.length, &u->sink->sample_spec);
 
             *((int64_t*) data) = (int64_t)w - r;
+#endif
             return 0;
         }
 
@@ -185,15 +200,22 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
         case PA_SINK_SUSPENDED:
             pa_assert(PA_SINK_IS_OPENED(s->thread_info.state));
 
+#ifdef USE_SMOOTHER_2
+            pa_smoother_2_pause(u->smoother, pa_rtclock_now());
+#else
             pa_smoother_pause(u->smoother, pa_rtclock_now());
+#endif
             break;
 
         case PA_SINK_IDLE:
         case PA_SINK_RUNNING:
 
             if (s->thread_info.state == PA_SINK_SUSPENDED)
+#ifdef USE_SMOOTHER_2
+                pa_smoother_2_resume(u->smoother, pa_rtclock_now());
+#else
                 pa_smoother_resume(u->smoother, pa_rtclock_now(), true);
-
+#endif
             break;
 
         case PA_SINK_UNLINKED:
@@ -215,7 +237,11 @@ static void thread_func(void *userdata) {
 
     pa_thread_mq_install(&u->thread_mq);
 
+#ifdef USE_SMOOTHER_2
+    pa_smoother_2_reset(u->smoother, pa_rtclock_now());
+#else
     pa_smoother_set_time_offset(u->smoother, pa_rtclock_now());
+#endif
 
     for (;;) {
         int ret;
@@ -229,7 +255,11 @@ static void thread_func(void *userdata) {
 
             /* Render some data and write it to the fifo */
             if (PA_SINK_IS_OPENED(u->sink->thread_info.state) && pollfd->revents) {
+#ifdef USE_SMOOTHER_2
+                size_t bytes;
+#else
                 pa_usec_t usec;
+#endif
                 int64_t n;
 
                 for (;;) {
@@ -298,6 +328,16 @@ static void thread_func(void *userdata) {
                 }
 #endif
 
+#ifdef USE_SMOOTHER_2
+                bytes = pa_usec_to_bytes(u->latency, &u->sink->sample_spec);
+
+                if ((uint64_t)n > bytes)
+                    bytes = n - bytes;
+                else
+                    bytes = 0;
+
+                pa_smoother_2_put(u->smoother, pa_rtclock_now(), bytes);
+#else
                 usec = pa_bytes_to_usec((uint64_t) n, &u->sink->sample_spec);
 
                 if (usec > u->latency)
@@ -306,6 +346,7 @@ static void thread_func(void *userdata) {
                     usec = 0;
 
                 pa_smoother_put(u->smoother, pa_rtclock_now(), usec);
+#endif
             }
 
             /* Hmm, nothing to do. Let's sleep */
@@ -559,6 +600,9 @@ int pa__init(pa_module*m) {
     u->module = m;
     m->userdata = u;
     u->fd = -1;
+#ifdef USE_SMOOTHER_2
+    u->smoother = pa_smoother_2_new(5*PA_USEC_PER_SEC, pa_rtclock_now(), pa_frame_size(&ss), ss.rate);
+#else
     u->smoother = pa_smoother_new(
             PA_USEC_PER_SEC,
             PA_USEC_PER_SEC*2,
@@ -567,6 +611,7 @@ int pa__init(pa_module*m) {
             10,
             0,
             false);
+#endif
     pa_memchunk_reset(&u->memchunk);
     u->offset = 0;
 
@@ -723,7 +768,11 @@ void pa__done(pa_module*m) {
     pa_xfree(u->write_data);
 
     if (u->smoother)
+#ifdef USE_SMOOTHER_2
+        pa_smoother_2_free(u->smoother);
+#else
         pa_smoother_free(u->smoother);
+#endif
 
     if (u->fd >= 0)
         pa_close(u->fd);
