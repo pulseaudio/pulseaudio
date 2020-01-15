@@ -46,7 +46,12 @@
 #include <pulsecore/socket-util.h>
 #include <pulsecore/thread.h>
 #include <pulsecore/thread-mq.h>
+
+#ifdef USE_SMOOTHER_2
+#include <pulsecore/time-smoother_2.h>
+#else
 #include <pulsecore/time-smoother.h>
+#endif
 
 #include "a2dp-codecs.h"
 #include "a2dp-codec-util.h"
@@ -138,7 +143,13 @@ struct userdata {
     uint64_t read_index;
     uint64_t write_index;
     pa_usec_t started_at;
+
+#ifdef USE_SMOOTHER_2
+    pa_smoother_2 *read_smoother;
+#else
     pa_smoother *read_smoother;
+#endif
+
     pa_memchunk write_memchunk;
 
     const pa_bt_codec *bt_codec;
@@ -528,8 +539,13 @@ static int bt_process_push(struct userdata *u) {
     }
 
     u->read_index += (uint64_t) memchunk.length;
-    pa_smoother_put(u->read_smoother, tstamp, pa_bytes_to_usec(u->read_index, &u->decoder_sample_spec));
-    pa_smoother_resume(u->read_smoother, tstamp, true);
+#ifdef USE_SMOOTHER_2
+        pa_smoother_2_resume(u->read_smoother, tstamp);
+        pa_smoother_2_put(u->read_smoother, tstamp, u->read_index);
+#else
+        pa_smoother_put(u->read_smoother, tstamp, pa_bytes_to_usec(u->read_index, &u->decoder_sample_spec));
+        pa_smoother_resume(u->read_smoother, tstamp, true);
+#endif
 
     /* Decoding of data may result in empty buffer, in this case
      * do not post empty audio samples. It may happen due to algorithmic
@@ -589,7 +605,11 @@ static void teardown_stream(struct userdata *u) {
     }
 
     if (u->read_smoother) {
+#ifdef USE_SMOOTHER_2
+        pa_smoother_2_free(u->read_smoother);
+#else
         pa_smoother_free(u->read_smoother);
+#endif
         u->read_smoother = NULL;
     }
 
@@ -746,7 +766,11 @@ static int setup_stream(struct userdata *u) {
     u->stream_setup_done = true;
 
     if (u->source)
+#ifdef USE_SMOOTHER_2
+        u->read_smoother = pa_smoother_2_new(5*PA_USEC_PER_SEC, pa_rtclock_now(), pa_frame_size(&u->decoder_sample_spec), u->decoder_sample_spec.rate);
+#else
         u->read_smoother = pa_smoother_new(PA_USEC_PER_SEC, 2*PA_USEC_PER_SEC, true, true, 10, pa_rtclock_now(), true);
+#endif
 
     return 0;
 }
@@ -812,13 +836,19 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
     switch (code) {
 
         case PA_SOURCE_MESSAGE_GET_LATENCY: {
+#ifndef USE_SMOOTHER_2
             int64_t wi, ri;
+#endif
 
             if (u->read_smoother) {
+#ifdef USE_SMOOTHER_2
+                *((int64_t*) data) = u->source->thread_info.fixed_latency - pa_smoother_2_get_delay(u->read_smoother, pa_rtclock_now(), u->read_index);
+#else
                 wi = pa_smoother_get(u->read_smoother, pa_rtclock_now());
                 ri = pa_bytes_to_usec(u->read_index, &u->decoder_sample_spec);
 
                 *((int64_t*) data) = u->source->thread_info.fixed_latency + wi - ri;
+#endif
             } else
                 *((int64_t*) data) = 0;
 
@@ -863,8 +893,11 @@ static int source_set_state_in_io_thread_cb(pa_source *s, pa_source_state_t new_
                 transport_release(u);
 
             if (u->read_smoother)
+#ifdef USE_SMOOTHER_2
+                pa_smoother_2_pause(u->read_smoother, pa_rtclock_now());
+#else
                 pa_smoother_pause(u->read_smoother, pa_rtclock_now());
-
+#endif
             break;
 
         case PA_SOURCE_IDLE:
@@ -1042,17 +1075,26 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     switch (code) {
 
         case PA_SINK_MESSAGE_GET_LATENCY: {
-            int64_t wi = 0, ri = 0;
+            int64_t wi, ri, delay = 0;
 
             if (u->read_smoother) {
+#ifdef USE_SMOOTHER_2
+                /* This is only used for SCO where encoder and decoder sample specs are
+                 * equal and output timing is based on the source. Therefore we can pass
+                 * the write index without conversion. */
+                delay = pa_smoother_2_get_delay(u->read_smoother, pa_rtclock_now(), u->write_index + u->write_block_size);
+#else
                 ri = pa_smoother_get(u->read_smoother, pa_rtclock_now());
                 wi = pa_bytes_to_usec(u->write_index + u->write_block_size, &u->encoder_sample_spec);
+                delay = wi - ri;
+#endif
             } else if (u->started_at) {
                 ri = pa_rtclock_now() - u->started_at;
                 wi = pa_bytes_to_usec(u->write_index, &u->encoder_sample_spec);
+                delay = wi - ri;
             }
 
-            *((int64_t*) data) = u->sink->thread_info.fixed_latency + wi - ri;
+            *((int64_t*) data) = u->sink->thread_info.fixed_latency + delay;
 
             return 0;
         }
@@ -1795,7 +1837,11 @@ static void stop_thread(struct userdata *u) {
     }
 
     if (u->read_smoother) {
+#ifdef USE_SMOOTHER_2
+        pa_smoother_2_free(u->read_smoother);
+#else
         pa_smoother_free(u->read_smoother);
+#endif
         u->read_smoother = NULL;
     }
 
