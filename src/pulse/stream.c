@@ -48,9 +48,11 @@
 #define AUTO_TIMING_INTERVAL_START_USEC (10*PA_USEC_PER_MSEC)
 #define AUTO_TIMING_INTERVAL_END_USEC (1500*PA_USEC_PER_MSEC)
 
-#define SMOOTHER_ADJUST_TIME (1000*PA_USEC_PER_MSEC)
 #define SMOOTHER_HISTORY_TIME (5000*PA_USEC_PER_MSEC)
+#ifndef USE_SMOOTHER_2
+#define SMOOTHER_ADJUST_TIME (1000*PA_USEC_PER_MSEC)
 #define SMOOTHER_MIN_HISTORY (4)
+#endif
 
 pa_stream *pa_stream_new(pa_context *c, const char *name, const pa_sample_spec *ss, const pa_channel_map *map) {
     return pa_stream_new_with_proplist(c, name, ss, map, NULL);
@@ -303,7 +305,11 @@ static void stream_free(pa_stream *s) {
         pa_proplist_free(s->proplist);
 
     if (s->smoother)
+#ifdef USE_SMOOTHER_2
+        pa_smoother_2_free(s->smoother);
+#else
         pa_smoother_free(s->smoother);
+#endif
 
     for (i = 0; i < s->n_formats; i++)
         pa_format_info_free(s->req_formats[i]);
@@ -463,7 +469,11 @@ static void check_smoother_status(pa_stream *s, bool aposteriori, bool force_sta
     }
 
     if (s->suspended || s->corked || force_stop)
+#ifdef USE_SMOOTHER_2
+        pa_smoother_2_pause(s->smoother, x);
+#else
         pa_smoother_pause(s->smoother, x);
+#endif
     else if (force_start || s->buffer_attr.prebuf == 0) {
 
         if (!s->timing_info_valid &&
@@ -482,7 +492,11 @@ static void check_smoother_status(pa_stream *s, bool aposteriori, bool force_sta
             return;
         }
 
+#ifdef USE_SMOOTHER_2
+        pa_smoother_2_resume(s->smoother, x);
+#else
         pa_smoother_resume(s->smoother, x, true);
+#endif
     }
 
     /* Please note that we have no idea if playback actually started
@@ -1120,6 +1134,11 @@ void pa_create_stream_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag,
         s->sample_spec = ss;
     }
 
+#ifdef USE_SMOOTHER_2
+    if (s->flags & PA_STREAM_INTERPOLATE_TIMING)
+        pa_smoother_2_set_sample_spec(s->smoother, pa_rtclock_now(), &s->sample_spec);
+#endif
+
     if (s->context->version >= 13 && s->direction != PA_STREAM_UPLOAD) {
         pa_usec_t usec;
 
@@ -1254,6 +1273,9 @@ static int create_stream(
         x = pa_rtclock_now();
 
         pa_assert(!s->smoother);
+#ifdef USE_SMOOTHER_2
+        s->smoother = pa_smoother_2_new(SMOOTHER_HISTORY_TIME, x, 0, 0);
+#else
         s->smoother = pa_smoother_new(
                 SMOOTHER_ADJUST_TIME,
                 SMOOTHER_HISTORY_TIME,
@@ -1262,6 +1284,7 @@ static int create_stream(
                 SMOOTHER_MIN_HISTORY,
                 x,
                 true);
+#endif
     }
 
     if (!dev)
@@ -1792,6 +1815,12 @@ static pa_usec_t calc_time(const pa_stream *s, bool ignore_transport) {
     return usec;
 }
 
+#ifdef USE_SMOOTHER_2
+static inline size_t calc_bytes(pa_stream *s, bool ignore_transport) {
+    return pa_usec_to_bytes(calc_time(s, ignore_transport), &s->sample_spec);
+}
+#endif
+
 static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_operation *o = userdata;
     struct timeval local, remote, now;
@@ -1950,15 +1979,27 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
             }
 
             if (!i->playing)
+#ifdef USE_SMOOTHER_2
+                pa_smoother_2_pause(o->stream->smoother, x);
+#else
                 pa_smoother_pause(o->stream->smoother, x);
+#endif
 
             /* Update the smoother */
             if ((o->stream->direction == PA_STREAM_PLAYBACK && !i->read_index_corrupt) ||
                 (o->stream->direction == PA_STREAM_RECORD && !i->write_index_corrupt))
+#ifdef USE_SMOOTHER_2
+                pa_smoother_2_put(o->stream->smoother, u, calc_bytes(o->stream, true));
+#else
                 pa_smoother_put(o->stream->smoother, u, calc_time(o->stream, true));
+#endif
 
             if (i->playing)
+#ifdef USE_SMOOTHER_2
+                pa_smoother_2_resume(o->stream->smoother, x);
+#else
                 pa_smoother_resume(o->stream->smoother, x, true);
+#endif
         }
     }
 
@@ -2467,7 +2508,12 @@ int pa_stream_get_time(pa_stream *s, pa_usec_t *r_usec) {
     PA_CHECK_VALIDITY(s->context, s->direction != PA_STREAM_RECORD || !s->timing_info.write_index_corrupt, PA_ERR_NODATA);
 
     if (s->smoother)
+#ifdef USE_SMOOTHER_2
+        usec = pa_smoother_2_get(s->smoother, pa_rtclock_now());
+#else
         usec = pa_smoother_get(s->smoother, pa_rtclock_now());
+#endif
+
     else
         usec = calc_time(s, false);
 
@@ -2788,6 +2834,10 @@ static void stream_update_sample_rate_callback(pa_pdispatch *pd, uint32_t comman
     }
 
     o->stream->sample_spec.rate = PA_PTR_TO_UINT(o->private);
+#ifdef USE_SMOOTHER_2
+    if (o->stream->smoother)
+        pa_smoother_2_set_rate(o->stream->smoother, pa_rtclock_now(), o->stream->sample_spec.rate);
+#endif
     pa_assert(pa_sample_spec_valid(&o->stream->sample_spec));
 
     if (o->callback) {
