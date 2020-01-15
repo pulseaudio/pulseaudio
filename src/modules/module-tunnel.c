@@ -48,7 +48,13 @@
 #include <pulsecore/pstream.h>
 #include <pulsecore/pstream-util.h>
 #include <pulsecore/socket-client.h>
+
+#ifdef USE_SMOOTHER_2
+#include <pulsecore/time-smoother_2.h>
+#else
 #include <pulsecore/time-smoother.h>
+#endif
+
 #include <pulsecore/thread.h>
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/core-rtclock.h>
@@ -231,7 +237,11 @@ struct userdata {
 
     pa_time_event *time_event;
 
+#ifdef USE_SMOOTHER_2
+    pa_smoother_2 *smoother;
+#else
     pa_smoother *smoother;
+#endif
 
     char *device_description;
     char *server_fqdn;
@@ -424,9 +434,15 @@ static void check_smoother_status(struct userdata *u, bool past) {
         x += u->thread_transport_usec;
 
     if (u->remote_suspended || u->remote_corked)
+#ifdef USE_SMOOTHER_2
+        pa_smoother_2_pause(u->smoother, x);
+    else
+        pa_smoother_2_resume(u->smoother, x);
+#else
         pa_smoother_pause(u->smoother, x);
     else
         pa_smoother_resume(u->smoother, x, true);
+#endif
 }
 
 /* Called from IO thread context */
@@ -514,13 +530,18 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
         }
 
         case PA_SINK_MESSAGE_GET_LATENCY: {
-            pa_usec_t yl, yr;
             int64_t *usec = data;
+
+#ifdef USE_SMOOTHER_2
+            *usec = pa_smoother_2_get_delay(u->smoother, pa_rtclock_now(), u->counter);
+#else
+            pa_usec_t yl, yr;
 
             yl = pa_bytes_to_usec((uint64_t) u->counter, &u->sink->sample_spec);
             yr = pa_smoother_get(u->smoother, pa_rtclock_now());
 
             *usec = (int64_t)yl - yr;
+#endif
             return 0;
         }
 
@@ -547,6 +568,21 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             return 0;
 
         case SINK_MESSAGE_UPDATE_LATENCY: {
+#ifdef USE_SMOOTHER_2
+            int64_t bytes;
+
+            if (offset < 0)
+                bytes = - pa_usec_to_bytes(- offset, &u->sink->sample_spec);
+            else
+                bytes = pa_usec_to_bytes(offset, &u->sink->sample_spec);
+
+            if (u->counter > bytes)
+                bytes = u->counter - bytes;
+            else
+                bytes = 0;
+
+             pa_smoother_2_put(u->smoother, pa_rtclock_now(), bytes);
+#else
             pa_usec_t y;
 
             y = pa_bytes_to_usec((uint64_t) u->counter, &u->sink->sample_spec);
@@ -557,6 +593,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 y = 0;
 
             pa_smoother_put(u->smoother, pa_rtclock_now(), y);
+#endif
 
             /* We can access this freely here, since the main thread is waiting for us */
             u->thread_transport_usec = u->transport_usec;
@@ -632,13 +669,18 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
         }
 
         case PA_SOURCE_MESSAGE_GET_LATENCY: {
-            pa_usec_t yr, yl;
             int64_t *usec = data;
+
+#ifdef USE_SMOOTHER_2
+            *usec = - pa_smoother_2_get_delay(u->smoother, pa_rtclock_now(), u->counter);
+#else
+            pa_usec_t yr, yl;
 
             yl = pa_bytes_to_usec((uint64_t) u->counter, &PA_SOURCE(o)->sample_spec);
             yr = pa_smoother_get(u->smoother, pa_rtclock_now());
 
             *usec = (int64_t)yr - yl;
+#endif
             return 0;
         }
 
@@ -673,12 +715,25 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
             return 0;
 
         case SOURCE_MESSAGE_UPDATE_LATENCY: {
+#ifdef USE_SMOOTHER_2
+            int64_t bytes;
+
+            if (offset < 0)
+                bytes = - pa_usec_to_bytes(- offset, &u->source->sample_spec);
+            else
+                bytes = pa_usec_to_bytes(offset, &u->source->sample_spec);
+
+            bytes += u->counter;
+
+            pa_smoother_2_put(u->smoother, pa_rtclock_now(), bytes);
+#else
             pa_usec_t y;
 
             y = pa_bytes_to_usec((uint64_t) u->counter, &u->source->sample_spec);
-            y += (pa_usec_t) offset;
+            y += offset;
 
             pa_smoother_put(u->smoother, pa_rtclock_now(), y);
+#endif
 
             /* We can access this freely here, since the main thread is waiting for us */
             u->thread_transport_usec = u->transport_usec;
@@ -1991,6 +2046,7 @@ int pa__init(pa_module*m) {
     u->source_name = pa_xstrdup(pa_modargs_get_value(ma, "source", NULL));;
     u->source = NULL;
 #endif
+#ifndef USE_SMOOTHER_2
     u->smoother = pa_smoother_new(
             PA_USEC_PER_SEC,
             PA_USEC_PER_SEC*2,
@@ -1999,6 +2055,7 @@ int pa__init(pa_module*m) {
             10,
             pa_rtclock_now(),
             false);
+#endif
     u->ctag = 1;
     u->device_index = u->channel = PA_INVALID_INDEX;
     u->time_event = NULL;
@@ -2146,6 +2203,11 @@ int pa__init(pa_module*m) {
         pa_log("Invalid sample format specification");
         goto fail;
     }
+
+#ifdef USE_SMOOTHER_2
+    /* Smoother window must be larger than time between updates. */
+    u->smoother = pa_smoother_2_new(LATENCY_INTERVAL + 5*PA_USEC_PER_SEC, pa_rtclock_now(), pa_frame_size(&ss), ss.rate);
+#endif
 
     for (;;) {
         server_list = pa_strlist_pop(server_list, &u->server_name);
@@ -2365,7 +2427,11 @@ void pa__done(pa_module*m) {
         pa_auth_cookie_unref(u->auth_cookie);
 
     if (u->smoother)
+#ifdef USE_SMOOTHER_2
+        pa_smoother_2_free(u->smoother);
+#else
         pa_smoother_free(u->smoother);
+#endif
 
     if (u->time_event)
         u->core->mainloop->time_free(u->time_event);
