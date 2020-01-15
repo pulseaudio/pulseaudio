@@ -170,6 +170,7 @@ src/pulsecore/thread-mq.c
 src/pulsecore/thread-posix.c
 src/pulsecore/thread-win32.c
 src/pulsecore/time-smoother.c
+src/pulsecore/time-smoother_2.c
 src/pulsecore/tokenizer.c
 src/pulsecore/x11prop.c
 src/pulsecore/x11wrap.c
