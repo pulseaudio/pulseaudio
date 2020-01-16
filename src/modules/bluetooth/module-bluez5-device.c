@@ -1126,6 +1126,13 @@ static void sink_setup_volume_callback(pa_sink *s) {
         return;
 
     if (pa_bluetooth_profile_should_attenuate_volume(u->profile)) {
+        /* It is yet unknown how (if at all) volume is synchronized for bidirectional
+         * A2DP codecs.  Disallow attaching hooks to a pa_sink if the peer is in
+         * A2DP_SOURCE role.  This assert should be replaced with the proper logic
+         * when bidirectional codecs are implemented.
+         */
+        pa_assert(u->profile != PA_BLUETOOTH_PROFILE_A2DP_SOURCE);
+
         if (u->sink_volume_changed_slot)
             return;
 
@@ -1146,7 +1153,11 @@ static void sink_setup_volume_callback(pa_sink *s) {
         pa_sink_set_soft_volume(s, NULL);
 
         pa_sink_set_set_volume_callback(s, sink_set_volume_cb);
-        s->n_volume_steps = HSP_MAX_GAIN + 1;
+
+        if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK)
+            s->n_volume_steps = A2DP_MAX_GAIN + 1;
+        else
+            s->n_volume_steps = HSP_MAX_GAIN + 1;
     }
 }
 
