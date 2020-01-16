@@ -525,7 +525,7 @@ void pa_bluetooth_transport_set_state(pa_bluetooth_transport *t, pa_bluetooth_tr
     }
 }
 
-static pa_volume_t pa_bluetooth_transport_set_sink_volume(pa_bluetooth_transport *t, pa_volume_t volume) {
+static pa_volume_t pa_bluetooth_transport_set_volume(pa_bluetooth_transport *t, pa_volume_t volume) {
     static const char *volume_str = "Volume";
     static const char *mediatransport_str = BLUEZ_MEDIA_TRANSPORT_INTERFACE;
     DBusMessage *m;
@@ -541,12 +541,15 @@ static pa_volume_t pa_bluetooth_transport_set_sink_volume(pa_bluetooth_transport
     /* Propagate rounding and bound checks */
     volume = a2dp_gain_to_volume(gain);
 
-    pa_assert(t->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK);
-
-    if (t->sink_volume == volume)
+    if (t->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE && t->source_volume == volume)
+        return volume;
+    else if (t->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK && t->sink_volume == volume)
         return volume;
 
-    t->sink_volume = volume;
+    if (t->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE)
+        t->source_volume = volume;
+    else if (t->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK)
+        t->sink_volume = volume;
 
     pa_log_debug("Sending A2DP volume %d/127 to peer", gain);
 
@@ -570,6 +573,18 @@ static pa_volume_t pa_bluetooth_transport_set_sink_volume(pa_bluetooth_transport
     dbus_message_unref(m);
 
     return volume;
+}
+
+static pa_volume_t pa_bluetooth_transport_set_sink_volume(pa_bluetooth_transport *t, pa_volume_t volume) {
+    pa_assert(t);
+    pa_assert(t->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK);
+    return pa_bluetooth_transport_set_volume(t, volume);
+}
+
+static pa_volume_t pa_bluetooth_transport_set_source_volume(pa_bluetooth_transport *t, pa_volume_t volume) {
+    pa_assert(t);
+    pa_assert(t->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE);
+    return pa_bluetooth_transport_set_volume(t, volume);
 }
 
 static void pa_bluetooth_transport_remote_volume_changed(pa_bluetooth_transport *t, pa_volume_t volume) {
@@ -2100,6 +2115,12 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
     t->acquire = bluez5_transport_acquire_cb;
     t->release = bluez5_transport_release_cb;
     t->set_sink_volume = pa_bluetooth_transport_set_sink_volume;
+    /* A2DP Absolute Volume is optional but BlueZ unconditionally reports
+     * feature category 2, meaning supporting it is mandatory.
+     * PulseAudio can and should perform the attenuation anyway in
+     * the source role as it is the audio rendering device.
+     */
+    t->set_source_volume = pa_bluetooth_transport_set_source_volume;
 
     pa_bluetooth_transport_reconfigure(t, &endpoint_conf->bt_codec, a2dp_transport_write, NULL);
     pa_bluetooth_transport_put(t);

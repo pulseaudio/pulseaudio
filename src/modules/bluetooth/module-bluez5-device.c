@@ -905,6 +905,8 @@ static void source_setup_volume_callback(pa_source *s) {
      * If the peer is an AG however backend-native unconditionally provides this
      * function, PA in the role of HS/HF is responsible for signalling support
      * by emitting an initial volume command.
+     * For A2DP bluez-util also unconditionally provides this function to keep
+     * the peer informed about volume changes.
      */
     if (!u->transport->set_source_volume)
         return;
@@ -921,6 +923,13 @@ static void source_setup_volume_callback(pa_source *s) {
         /* Send initial volume to peer, signalling support for volume control */
         u->transport->set_source_volume(u->transport, pa_cvolume_max(&s->real_volume));
     } else {
+        /* It is yet unknown how (if at all) volume is synchronized for bidirectional
+         * A2DP codecs.  Disallow attaching callbacks (and using HFP n_volume_steps)
+         * below to a pa_source if the peer is in A2DP_SINK role.  This assert should
+         * be replaced with the proper logic when bidirectional codecs are implemented.
+         */
+        pa_assert(u->profile != PA_BLUETOOTH_PROFILE_A2DP_SINK);
+
         if (s->set_volume == source_set_volume_cb)
             return;
 
