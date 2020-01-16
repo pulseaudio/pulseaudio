@@ -1606,6 +1606,12 @@ void pa_source_output_fail_move(pa_source_output *o) {
     if (pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_MOVE_FAIL], o) == PA_HOOK_STOP)
         return;
 
+    /* Can we move the source output to the default source? */
+    if (pa_source_output_may_move_to(o, o->core->default_source)) {
+        if (pa_source_output_finish_move(o, o->core->default_source, false) >= 0)
+            return;
+    }
+
     if (o->moving)
         o->moving(o, NULL);
 

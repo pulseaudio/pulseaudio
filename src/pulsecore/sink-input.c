@@ -1979,6 +1979,12 @@ void pa_sink_input_fail_move(pa_sink_input *i) {
     if (pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_MOVE_FAIL], i) == PA_HOOK_STOP)
         return;
 
+    /* Can we move the sink input to the default sink? */
+    if (pa_sink_input_may_move_to(i, i->core->default_sink)) {
+        if (pa_sink_input_finish_move(i, i->core->default_sink, false) >= 0)
+            return;
+    }
+
     if (i->moving)
         i->moving(i, NULL);
 
