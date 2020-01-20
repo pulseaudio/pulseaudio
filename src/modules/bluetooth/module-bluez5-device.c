@@ -986,6 +986,41 @@ static void source_set_volume_cb(pa_source *s) {
         pa_cvolume_set(&s->soft_volume, u->decoder_sample_spec.channels, volume);
 }
 
+static void source_setup_volume_callback(pa_source *s) {
+    struct userdata *u;
+
+    pa_assert(s);
+
+    if (s->set_volume == source_set_volume_cb)
+        return;
+
+    pa_assert(s->core);
+
+    u = s->userdata;
+    pa_assert(u);
+    pa_assert(u->source == s);
+    pa_assert(u->transport);
+
+    /* Remote volume control/notifications have to be supported for
+     * the callback to make sense, otherwise this source should
+     * continue performing attenuation in software without HW_VOLUME_CTL.
+     */
+    if (!u->transport->set_source_volume)
+        return;
+
+    if (pa_bluetooth_profile_should_attenuate_volume(u->profile)) {
+        pa_log_debug("%s: Peer supports receiving volume update notifications", s->name);
+    } else {
+        pa_log_debug("%s: Resetting software volume for hardware attenuation by peer", s->name);
+
+        /* Reset local attenuation */
+        pa_source_set_soft_volume(s, NULL);
+    }
+
+    pa_source_set_set_volume_callback(s, source_set_volume_cb);
+    s->n_volume_steps = 16;
+}
+
 /* Run from main thread */
 static int add_source(struct userdata *u) {
     pa_source_new_data data;
@@ -1041,11 +1076,8 @@ static int add_source(struct userdata *u) {
     u->source->parent.process_msg = source_process_msg;
     u->source->set_state_in_io_thread = source_set_state_in_io_thread_cb;
 
-    if (u->transport->set_source_volume) {
-        pa_log_debug("Peer supports microphone gain control");
-        pa_source_set_set_volume_callback(u->source, source_set_volume_cb);
-        u->source->n_volume_steps = 16;
-    }
+    source_setup_volume_callback(u->source);
+
     return 0;
 }
 
@@ -1164,6 +1196,41 @@ static void sink_set_volume_cb(pa_sink *s) {
         pa_cvolume_set(&s->soft_volume, u->encoder_sample_spec.channels, volume);
 }
 
+static void sink_setup_volume_callback(pa_sink *s) {
+    struct userdata *u;
+
+    pa_assert(s);
+
+    if (s->set_volume == sink_set_volume_cb)
+        return;
+
+    pa_assert(s->core);
+
+    u = s->userdata;
+    pa_assert(u);
+    pa_assert(u->sink == s);
+    pa_assert(u->transport);
+
+    /* Remote volume control/notifications have to be supported for
+     * the callback to make sense, otherwise this sink should
+     * continue performing attenuation in software without HW_VOLUME_CTL.
+     */
+    if (!u->transport->set_sink_volume)
+        return;
+
+    if (pa_bluetooth_profile_should_attenuate_volume(u->profile)) {
+        pa_log_debug("%s: Peer supports receiving volume update notifications", s->name);
+    } else {
+        pa_log_debug("%s: Resetting software volume for hardware attenuation by peer", s->name);
+
+        /* Reset local attenuation */
+        pa_sink_set_soft_volume(s, NULL);
+    }
+
+    pa_sink_set_set_volume_callback(s, sink_set_volume_cb);
+    s->n_volume_steps = 16;
+}
+
 /* Run from main thread */
 static int add_sink(struct userdata *u) {
     pa_sink_new_data data;
@@ -1220,11 +1287,8 @@ static int add_sink(struct userdata *u) {
     u->sink->parent.process_msg = sink_process_msg;
     u->sink->set_state_in_io_thread = sink_set_state_in_io_thread_cb;
 
-    if (u->transport->set_sink_volume) {
-        pa_log_debug("Peer supports speaker gain control");
-        pa_sink_set_set_volume_callback(u->sink, sink_set_volume_cb);
-        u->sink->n_volume_steps = 16;
-    }
+    sink_setup_volume_callback(u->sink);
+
     return 0;
 }
 
@@ -2252,6 +2316,13 @@ static pa_hook_result_t transport_sink_volume_changed_cb(pa_bluetooth_discovery 
 
     volume = t->sink_volume;
 
+    if (!u->sink) {
+        pa_log_warn("Received peer transport volume change without connected sink");
+        return PA_HOOK_OK;
+    }
+
+    sink_setup_volume_callback(u->sink);
+
     pa_cvolume_set(&v, u->encoder_sample_spec.channels, volume);
     if (pa_bluetooth_profile_should_attenuate_volume(t->profile))
         pa_sink_set_volume(u->sink, &v, true, true);
@@ -2272,6 +2343,13 @@ static pa_hook_result_t transport_source_volume_changed_cb(pa_bluetooth_discover
       return PA_HOOK_OK;
 
     volume = t->source_volume;
+
+    if (!u->source) {
+        pa_log_warn("Received peer transport volume change without connected source");
+        return PA_HOOK_OK;
+    }
+
+    source_setup_volume_callback(u->source);
 
     pa_cvolume_set(&v, u->decoder_sample_spec.channels, volume);
 
