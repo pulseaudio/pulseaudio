@@ -116,11 +116,12 @@ _pactl() {
                     modules samples clients'
     local commands=(stat info list exit upload-sample play-sample remove-sample
                     load-module unload-module move-sink-input move-source-output
-                    suspend-sink suspend-source set-card-profile set-sink-port
-                    set-source-port set-sink-volume set-source-volume
-                    set-sink-input-volume set-source-output-volume set-sink-mute
-                    set-source-mute set-sink-input-mute set-source-output-mute
-                    set-sink-formats set-port-latency-offset subscribe help)
+                    suspend-sink suspend-source set-card-profile set-default-sink
+                    set-sink-port set-default-source set-source-port set-sink-volume
+                    set-source-volume set-sink-input-volume set-source-output-volume
+                    set-sink-mute set-source-mute set-sink-input-mute
+                    set-source-output-mute set-sink-formats set-port-latency-offset
+                    subscribe help)
 
     _init_completion -n = || return
     preprev=${words[$cword-2]}
