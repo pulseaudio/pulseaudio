@@ -1980,7 +1980,7 @@ void pa_sink_input_fail_move(pa_sink_input *i) {
         return;
 
     /* Can we move the sink input to the default sink? */
-    if (pa_sink_input_may_move_to(i, i->core->default_sink)) {
+    if (i->core->rescue_streams && pa_sink_input_may_move_to(i, i->core->default_sink)) {
         if (pa_sink_input_finish_move(i, i->core->default_sink, false) >= 0)
             return;
     }

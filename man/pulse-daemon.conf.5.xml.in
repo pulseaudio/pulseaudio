@@ -255,6 +255,15 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
       to <opt>no</opt>.</p>
     </option>
 
+    <option>
+      <p><opt>rescue-streams=</opt> Enable rescuing of streams if the
+      used sink or source becomes unavailable. Takes a boolean argument.
+      If set to <opt>yes</opt>, pulseaudio will try to move the streams
+      from a sink or source that becomes unavailable to the default sink
+      or source. If set to <opt>no</opt>, streams will be killed if the
+      corresponding sink or source disappears. Defaults to <opt>yes</opt>.</p>
+    </option>
+
   </section>
 
   <section name="Scheduling">

@@ -702,7 +702,7 @@ void pa_source_unlink(pa_source *s) {
 
     pa_core_update_default_source(s->core);
 
-    if (linked)
+    if (linked && s->core->rescue_streams)
 	pa_source_move_streams_to_default_source(s->core, s, false);
 
     if (s->card)

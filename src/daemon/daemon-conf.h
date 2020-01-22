@@ -77,6 +77,7 @@ typedef struct pa_daemon_conf {
         log_meta,
         log_time,
         flat_volumes,
+        rescue_streams,
         lock_memory,
         deferred_volume;
     pa_server_type_t local_server_type;

@@ -69,6 +69,7 @@ static const pa_daemon_conf default_conf = {
     .disallow_module_loading = false,
     .disallow_exit = false,
     .flat_volumes = false,
+    .rescue_streams = true,
     .exit_idle_time = 20,
     .scache_idle_time = 20,
     .script_commands = NULL,
@@ -580,6 +581,7 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
         { "enable-shm",                 pa_config_parse_not_bool, &c->disable_shm, NULL },
         { "enable-memfd",               pa_config_parse_not_bool, &c->disable_memfd, NULL },
         { "flat-volumes",               pa_config_parse_bool,     &c->flat_volumes, NULL },
+        { "rescue-streams",             pa_config_parse_bool,     &c->rescue_streams, NULL },
         { "lock-memory",                pa_config_parse_bool,     &c->lock_memory, NULL },
         { "enable-deferred-volume",     pa_config_parse_bool,     &c->deferred_volume, NULL },
         { "exit-idle-time",             pa_config_parse_int,      &c->exit_idle_time, NULL },
@@ -794,6 +796,7 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     pa_strbuf_printf(s, "cpu-limit = %s\n", pa_yes_no(!c->no_cpu_limit));
     pa_strbuf_printf(s, "enable-shm = %s\n", pa_yes_no(!c->disable_shm));
     pa_strbuf_printf(s, "flat-volumes = %s\n", pa_yes_no(c->flat_volumes));
+    pa_strbuf_printf(s, "rescue-streams = %s\n", pa_yes_no(c->rescue_streams));
     pa_strbuf_printf(s, "lock-memory = %s\n", pa_yes_no(c->lock_memory));
     pa_strbuf_printf(s, "exit-idle-time = %i\n", c->exit_idle_time);
     pa_strbuf_printf(s, "scache-idle-time = %i\n", c->scache_idle_time);

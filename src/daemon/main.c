@@ -1062,6 +1062,7 @@ int main(int argc, char *argv[]) {
     c->running_as_daemon = conf->daemonize;
     c->disallow_exit = conf->disallow_exit;
     c->flat_volumes = conf->flat_volumes;
+    c->rescue_streams = conf->rescue_streams;
 #ifdef HAVE_DBUS
     c->server_type = conf->local_server_type;
 #endif

@@ -213,6 +213,7 @@ struct pa_core {
     int exit_idle_time, scache_idle_time;
 
     bool flat_volumes:1;
+    bool rescue_streams:1;
     bool disallow_module_loading:1;
     bool disallow_exit:1;
     bool running_as_daemon:1;

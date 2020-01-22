@@ -762,7 +762,7 @@ void pa_sink_unlink(pa_sink* s) {
 
     pa_core_update_default_sink(s->core);
 
-    if (linked)
+    if (linked && s->core->rescue_streams)
 	pa_sink_move_streams_to_default_sink(s->core, s, false);
 
     if (s->card)

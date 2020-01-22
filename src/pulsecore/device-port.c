@@ -105,9 +105,10 @@ void pa_device_port_set_available(pa_device_port *p, pa_available_t status) {
 
             sink = pa_device_port_get_sink(p);
             if (sink && p == sink->active_port) {
-                if (sink->active_port->available == PA_AVAILABLE_NO)
-                    pa_sink_move_streams_to_default_sink(p->core, sink, false);
-                else
+                if (sink->active_port->available == PA_AVAILABLE_NO) {
+                    if (p->core->rescue_streams)
+                        pa_sink_move_streams_to_default_sink(p->core, sink, false);
+                } else
                     pa_core_move_streams_to_newly_available_preferred_sink(p->core, sink);
             }
         } else {
@@ -115,9 +116,10 @@ void pa_device_port_set_available(pa_device_port *p, pa_available_t status) {
 
             source = pa_device_port_get_source(p);
             if (source && p == source->active_port) {
-                if (source->active_port->available == PA_AVAILABLE_NO)
-                    pa_source_move_streams_to_default_source(p->core, source, false);
-                else
+                if (source->active_port->available == PA_AVAILABLE_NO) {
+                    if (p->core->rescue_streams)
+                        pa_source_move_streams_to_default_source(p->core, source, false);
+                } else
                     pa_core_move_streams_to_newly_available_preferred_source(p->core, source);
             }
         }

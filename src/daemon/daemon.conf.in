@@ -63,6 +63,8 @@ ifelse(@HAVE_DBUS@, 1, [dnl
 
 ; flat-volumes = no
 
+; rescue-streams = yes
+
 ifelse(@HAVE_SYS_RESOURCE_H@, 1, [dnl
 ; rlimit-fsize = -1
 ; rlimit-data = -1
