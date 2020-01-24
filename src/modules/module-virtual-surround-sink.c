@@ -4,6 +4,8 @@
     Copyright 2010 Intel Corporation
     Contributor: Pierre-Louis Bossart <pierre-louis.bossart@intel.com>
     Copyright 2012 Niels Ole Salscheider <niels_ole@salscheider-online.de>
+    Contributor: Alexander E. Patrakov <patrakov@gmail.com>
+    Copyright 2020 Christopher Snowhill <kode54@gmail.com>
 
     PulseAudio is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published
@@ -23,6 +25,10 @@
 #include <config.h>
 #endif
 
+#include <math.h>
+
+#include <fftw3.h>
+
 #include <pulse/gccmacro.h>
 #include <pulse/xmalloc.h>
 
@@ -39,9 +45,8 @@
 #include <pulsecore/sound-file.h>
 #include <pulsecore/resampler.h>
 
-#include <math.h>
 
-PA_MODULE_AUTHOR("Niels Ole Salscheider");
+PA_MODULE_AUTHOR("Christopher Snowhill");
 PA_MODULE_DESCRIPTION(_("Virtual surround sink"));
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(false);
@@ -57,6 +62,8 @@ PA_MODULE_USAGE(
           "use_volume_sharing=<yes or no> "
           "force_flat_volume=<yes or no> "
           "hrir=/path/to/left_hrir.wav "
+          "hrir_left=/path/to/left_hrir.wav "
+          "hrir_right=/path/to/optional/right_hrir.wav "
           "autoloaded=<set if this module is being loaded automatically> "
         ));
 
@@ -66,31 +73,25 @@ PA_MODULE_USAGE(
 struct userdata {
     pa_module *module;
 
-    /* FIXME: Uncomment this and take "autoloaded" as a modarg if this is a filter */
-    /* bool autoloaded; */
+    bool autoloaded;
 
     pa_sink *sink;
     pa_sink_input *sink_input;
 
-    pa_memblockq *memblockq;
+    pa_memblockq *memblockq_sink;
 
     bool auto_desc;
-    unsigned channels;
-    unsigned hrir_channels;
 
-    unsigned fs, sink_fs;
+    size_t fftlen;
+    size_t hrir_samples;
+    size_t inputs;
 
-    unsigned *mapping_left;
-    unsigned *mapping_right;
-
-    unsigned hrir_samples;
-    float *hrir_data;
-
-    float *input_buffer;
-    int input_buffer_offset;
-
-    bool autoloaded;
+    fftwf_plan *p_fw, p_bw;
+    fftwf_complex *f_in, *f_out, **f_ir;
+    float *revspace, *outspace[2], **inspace;
 };
+
+#define BLOCK_SIZE (512)
 
 static const char* const valid_modargs[] = {
     "sink_name",
@@ -103,10 +104,156 @@ static const char* const valid_modargs[] = {
     "channel_map",
     "use_volume_sharing",
     "force_flat_volume",
-    "hrir",
     "autoloaded",
+    "hrir",
+    "hrir_left",
+    "hrir_right",
     NULL
 };
+
+/* Vector size of 4 floats */
+#define v_size 4
+static void * alloc(size_t x, size_t s) {
+    size_t f;
+    float *t;
+
+    f = PA_ROUND_UP(x*s, sizeof(float)*v_size);
+    pa_assert_se(t = fftwf_malloc(f));
+    pa_memzero(t, f);
+
+    return t;
+}
+
+static size_t sink_input_samples(size_t nbytes)
+{
+    return nbytes / 8;
+}
+
+static size_t sink_input_bytes(size_t nsamples)
+{
+    return nsamples * 8;
+}
+
+static size_t sink_samples(const struct userdata *u, size_t nbytes)
+{
+    return nbytes / (u->inputs * 4);
+}
+
+static size_t sink_bytes(const struct userdata *u, size_t nsamples)
+{
+    return nsamples * (u->inputs * 4);
+}
+
+/* Mirror channels for symmetrical impulse */
+static pa_channel_position_t mirror_channel(pa_channel_position_t channel) {
+    switch (channel) {
+        case PA_CHANNEL_POSITION_FRONT_LEFT:
+            return PA_CHANNEL_POSITION_FRONT_RIGHT;
+
+        case PA_CHANNEL_POSITION_FRONT_RIGHT:
+            return PA_CHANNEL_POSITION_FRONT_LEFT;
+
+        case PA_CHANNEL_POSITION_REAR_LEFT:
+            return PA_CHANNEL_POSITION_REAR_RIGHT;
+
+        case PA_CHANNEL_POSITION_REAR_RIGHT:
+            return PA_CHANNEL_POSITION_REAR_LEFT;
+
+        case PA_CHANNEL_POSITION_SIDE_LEFT:
+            return PA_CHANNEL_POSITION_SIDE_RIGHT;
+
+        case PA_CHANNEL_POSITION_SIDE_RIGHT:
+            return PA_CHANNEL_POSITION_SIDE_LEFT;
+
+        case PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER:
+            return PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER;
+
+        case PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER:
+            return PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER;
+
+        case PA_CHANNEL_POSITION_TOP_FRONT_LEFT:
+            return PA_CHANNEL_POSITION_TOP_FRONT_RIGHT;
+
+        case PA_CHANNEL_POSITION_TOP_FRONT_RIGHT:
+            return PA_CHANNEL_POSITION_TOP_FRONT_LEFT;
+
+        case PA_CHANNEL_POSITION_TOP_REAR_LEFT:
+            return PA_CHANNEL_POSITION_TOP_REAR_RIGHT;
+
+        case PA_CHANNEL_POSITION_TOP_REAR_RIGHT:
+            return PA_CHANNEL_POSITION_TOP_REAR_LEFT;
+
+        default:
+            return channel;
+    }
+}
+
+/* Normalize the hrir */
+static void normalize_hrir(float * hrir_data, unsigned hrir_samples, unsigned hrir_channels) {
+    /* normalize hrir to avoid audible clipping
+     *
+     * The following heuristic tries to avoid audible clipping. It cannot avoid
+     * clipping in the worst case though, because the scaling factor would
+     * become too large resulting in a too quiet signal.
+     * The idea of the heuristic is to avoid clipping when a single click is
+     * played back on all channels. The scaling factor describes the additional
+     * factor that is necessary to avoid clipping for "normal" signals.
+     *
+     * This algorithm doesn't pretend to be perfect, it's just something that
+     * appears to work (not too quiet, no audible clipping) on the material that
+     * it has been tested on. If you find a real-world example where this
+     * algorithm results in audible clipping, please write a patch that adjusts
+     * the scaling factor constants or improves the algorithm (or if you can't
+     * write a patch, at least report the problem to the PulseAudio mailing list
+     * or bug tracker). */
+
+    const float scaling_factor = 2.5;
+
+    float hrir_sum, hrir_max;
+    unsigned i, j;
+
+    hrir_max = 0;
+    for (i = 0; i < hrir_samples; i++) {
+        hrir_sum = 0;
+        for (j = 0; j < hrir_channels; j++)
+            hrir_sum += fabs(hrir_data[i * hrir_channels + j]);
+
+        if (hrir_sum > hrir_max)
+            hrir_max = hrir_sum;
+    }
+
+    for (i = 0; i < hrir_samples; i++) {
+        for (j = 0; j < hrir_channels; j++)
+            hrir_data[i * hrir_channels + j] /= hrir_max * scaling_factor;
+    }
+}
+
+/* Normalize a stereo hrir */
+static void normalize_hrir_stereo(float * hrir_data, float * hrir_right_data, unsigned hrir_samples, unsigned hrir_channels) {
+    const float scaling_factor = 2.5;
+
+    float hrir_sum, hrir_max;
+    unsigned i, j;
+
+    hrir_max = 0;
+    for (i = 0; i < hrir_samples; i++) {
+        hrir_sum = 0;
+        for (j = 0; j < hrir_channels; j++) {
+            hrir_sum += fabs(hrir_data[i * hrir_channels + j]);
+            hrir_sum += fabs(hrir_right_data[i * hrir_channels + j]);
+        }
+
+        if (hrir_sum > hrir_max)
+            hrir_max = hrir_sum;
+    }
+
+    for (i = 0; i < hrir_samples; i++) {
+        for (j = 0; j < hrir_channels; j++) {
+            hrir_data[i * hrir_channels + j] /= hrir_max * scaling_factor;
+            hrir_right_data[i * hrir_channels + j] /= hrir_max * scaling_factor;
+        }
+    }
+}
 
 /* Called from I/O thread context */
 static int sink_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
@@ -121,11 +268,11 @@ static int sink_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t of
              * sink input is first shut down, the sink second. */
             if (!PA_SINK_IS_LINKED(u->sink->thread_info.state) ||
                 !PA_SINK_INPUT_IS_LINKED(u->sink_input->thread_info.state)) {
-                *((int64_t*) data) = 0;
+                *((pa_usec_t*) data) = 0;
                 return 0;
             }
 
-            *((int64_t*) data) =
+            *((pa_usec_t*) data) =
 
                 /* Get the latency of the master sink */
                 pa_sink_get_latency_within_thread(u->sink_input->sink, true) +
@@ -174,6 +321,7 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
 /* Called from I/O thread context */
 static void sink_request_rewind_cb(pa_sink *s) {
     struct userdata *u;
+    size_t nbytes_sink, nbytes_input;
 
     pa_sink_assert_ref(s);
     pa_assert_se(u = s->userdata);
@@ -182,10 +330,11 @@ static void sink_request_rewind_cb(pa_sink *s) {
         !PA_SINK_INPUT_IS_LINKED(u->sink_input->thread_info.state))
         return;
 
+    nbytes_sink = s->thread_info.rewind_nbytes + pa_memblockq_get_length(u->memblockq_sink);
+    nbytes_input = sink_input_bytes(sink_samples(u, nbytes_sink));
+
     /* Just hand this one over to the master sink */
-    pa_sink_input_request_rewind(u->sink_input,
-                                 s->thread_info.rewind_nbytes +
-                                 pa_memblockq_get_length(u->memblockq), true, false, false);
+    pa_sink_input_request_rewind(u->sink_input, nbytes_input, true, false, false);
 }
 
 /* Called from I/O thread context */
@@ -233,136 +382,177 @@ static void sink_set_mute_cb(pa_sink *s) {
     pa_sink_input_set_mute(u->sink_input, s->muted, s->save_muted);
 }
 
+static size_t memblockq_missing(pa_memblockq *bq) {
+    size_t l, tlength;
+    pa_assert(bq);
+
+    tlength = pa_memblockq_get_tlength(bq);
+    if ((l = pa_memblockq_get_length(bq)) >= tlength)
+        return 0;
+
+    l = tlength - l;
+    return l >= pa_memblockq_get_minreq(bq) ? l : 0;
+}
+
 /* Called from I/O thread context */
-static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes, pa_memchunk *chunk) {
+static int sink_input_pop_cb(pa_sink_input *i, size_t nbytes_input, pa_memchunk *chunk) {
     struct userdata *u;
     float *src, *dst;
-    unsigned n;
+    int c, ear;
+    size_t s, bytes_missing, fftlen;
     pa_memchunk tchunk;
-
-    unsigned j, k, l;
-    float sum_right, sum_left;
-    float current_sample;
+    float fftlen_if, *revspace;
 
     pa_sink_input_assert_ref(i);
     pa_assert(chunk);
     pa_assert_se(u = i->userdata);
 
-    if (!PA_SINK_IS_LINKED(u->sink->thread_info.state))
-        return -1;
-
     /* Hmm, process any rewind request that might be queued up */
     pa_sink_process_rewind(u->sink, 0);
 
-    while (pa_memblockq_peek(u->memblockq, &tchunk) < 0) {
+    while ((bytes_missing = memblockq_missing(u->memblockq_sink)) != 0) {
         pa_memchunk nchunk;
 
-        pa_sink_render(u->sink, nbytes * u->sink_fs / u->fs, &nchunk);
-        pa_memblockq_push(u->memblockq, &nchunk);
+        pa_sink_render(u->sink, bytes_missing, &nchunk);
+        pa_memblockq_push(u->memblockq_sink, &nchunk);
         pa_memblock_unref(nchunk.memblock);
     }
 
-    tchunk.length = PA_MIN(nbytes * u->sink_fs / u->fs, tchunk.length);
-    pa_assert(tchunk.length > 0);
+    pa_memblockq_rewind(u->memblockq_sink, sink_bytes(u, u->fftlen - BLOCK_SIZE));
+    pa_memblockq_peek_fixed_size(u->memblockq_sink, sink_bytes(u, u->fftlen), &tchunk);
 
-    n = (unsigned) (tchunk.length / u->sink_fs);
+    pa_memblockq_drop(u->memblockq_sink, tchunk.length);
 
-    pa_assert(n > 0);
+    /* Now tchunk contains enough data to perform the FFT
+     * This should be equal to u->fftlen */
 
     chunk->index = 0;
-    chunk->length = n * u->fs;
+    chunk->length = sink_input_bytes(BLOCK_SIZE);
     chunk->memblock = pa_memblock_new(i->sink->core->mempool, chunk->length);
 
-    pa_memblockq_drop(u->memblockq, n * u->sink_fs);
-
     src = pa_memblock_acquire_chunk(&tchunk);
-    dst = pa_memblock_acquire(chunk->memblock);
 
-    for (l = 0; l < n; l++) {
-        memcpy(((char*) u->input_buffer) + u->input_buffer_offset * u->sink_fs, ((char *) src) + l * u->sink_fs, u->sink_fs);
-
-        sum_right = 0;
-        sum_left = 0;
-
-        /* fold the input buffer with the impulse response */
-        for (j = 0; j < u->hrir_samples; j++) {
-            for (k = 0; k < u->channels; k++) {
-                current_sample = u->input_buffer[((u->input_buffer_offset + j) % u->hrir_samples) * u->channels + k];
-
-                sum_left += current_sample * u->hrir_data[j * u->hrir_channels + u->mapping_left[k]];
-                sum_right += current_sample * u->hrir_data[j * u->hrir_channels + u->mapping_right[k]];
-            }
+    for (c = 0; c < u->inputs; c++) {
+        for (s = 0, fftlen = u->fftlen; s < fftlen; s++) {
+            u->inspace[c][s] = src[s * u->inputs + c];
         }
-
-        dst[2 * l] = PA_CLAMP_UNLIKELY(sum_left, -1.0f, 1.0f);
-        dst[2 * l + 1] = PA_CLAMP_UNLIKELY(sum_right, -1.0f, 1.0f);
-
-        u->input_buffer_offset--;
-        if (u->input_buffer_offset < 0)
-            u->input_buffer_offset += u->hrir_samples;
     }
 
     pa_memblock_release(tchunk.memblock);
-    pa_memblock_release(chunk->memblock);
-
     pa_memblock_unref(tchunk.memblock);
+
+    fftlen_if = 1.0f / (float)u->fftlen;
+    revspace = u->revspace + u->fftlen - BLOCK_SIZE;
+
+    pa_memzero(u->outspace[0], BLOCK_SIZE * 4);
+    pa_memzero(u->outspace[1], BLOCK_SIZE * 4);
+
+    for (c = 0; c < u->inputs; c++) {
+        fftwf_complex *f_in = u->f_in;
+        fftwf_complex *f_out = u->f_out;
+
+        fftwf_execute(u->p_fw[c]);
+
+        for (ear = 0; ear < 2; ear++) {
+            fftwf_complex *f_ir = u->f_ir[c * 2 + ear];
+            float *outspace = u->outspace[ear];
+
+            for (s = 0, fftlen = u->fftlen / 2 + 1; s < fftlen; s++) {
+                float re = f_ir[s][0] * f_in[s][0] - f_ir[s][1] * f_in[s][1];
+                float im = f_ir[s][1] * f_in[s][0] + f_ir[s][0] * f_in[s][1];
+                f_out[s][0] = re;
+                f_out[s][1] = im;
+            }
+
+            fftwf_execute(u->p_bw);
+
+            for (s = 0, fftlen = BLOCK_SIZE; s < fftlen; ++s)
+                outspace[s] += revspace[s] * fftlen_if;
+        }
+    }
+
+    dst = pa_memblock_acquire_chunk(chunk);
+
+    for (s = 0, fftlen = BLOCK_SIZE; s < fftlen; s++) {
+        float output;
+        float *outspace = u->outspace[0];
+
+        output = outspace[s];
+        if (output < -1.0) output = -1.0;
+        if (output > 1.0) output = 1.0;
+        dst[s * 2 + 0] = output;
+
+        outspace = u->outspace[1];
+
+        output = outspace[s];
+        if (output < -1.0) output = -1.0;
+        if (output > 1.0) output = 1.0;
+        dst[s * 2 + 1] = output;
+    }
+
+    pa_memblock_release(chunk->memblock);
 
     return 0;
 }
 
 /* Called from I/O thread context */
-static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes) {
+static void sink_input_process_rewind_cb(pa_sink_input *i, size_t nbytes_input) {
     struct userdata *u;
     size_t amount = 0;
+    size_t nbytes_sink;
 
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    /* If the sink is not yet linked, there is nothing to rewind */
-    if (!PA_SINK_IS_LINKED(u->sink->thread_info.state))
-        return;
+    nbytes_sink = sink_bytes(u, sink_input_samples(nbytes_input));
 
     if (u->sink->thread_info.rewind_nbytes > 0) {
         size_t max_rewrite;
 
-        max_rewrite = nbytes * u->sink_fs / u->fs + pa_memblockq_get_length(u->memblockq);
-        amount = PA_MIN(u->sink->thread_info.rewind_nbytes * u->sink_fs / u->fs, max_rewrite);
+        max_rewrite = nbytes_sink + pa_memblockq_get_length(u->memblockq_sink);
+        amount = PA_MIN(u->sink->thread_info.rewind_nbytes, max_rewrite);
         u->sink->thread_info.rewind_nbytes = 0;
 
         if (amount > 0) {
-            pa_memblockq_seek(u->memblockq, - (int64_t) amount, PA_SEEK_RELATIVE, true);
-
-            /* Reset the input buffer */
-            memset(u->input_buffer, 0, u->hrir_samples * u->sink_fs);
-            u->input_buffer_offset = 0;
+            pa_memblockq_seek(u->memblockq_sink, - (int64_t) amount, PA_SEEK_RELATIVE, true);
         }
     }
 
     pa_sink_process_rewind(u->sink, amount);
-    pa_memblockq_rewind(u->memblockq, nbytes * u->sink_fs / u->fs);
+
+    pa_memblockq_rewind(u->memblockq_sink, nbytes_sink);
 }
 
 /* Called from I/O thread context */
-static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes) {
+static void sink_input_update_max_rewind_cb(pa_sink_input *i, size_t nbytes_input) {
     struct userdata *u;
+    size_t nbytes_sink, nbytes_memblockq;
 
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
+
+    nbytes_sink = sink_bytes(u, sink_input_samples(nbytes_input));
+    nbytes_memblockq = sink_bytes(u, sink_input_samples(nbytes_input) + u->fftlen);
 
     /* FIXME: Too small max_rewind:
      * https://bugs.freedesktop.org/show_bug.cgi?id=53709 */
-    pa_memblockq_set_maxrewind(u->memblockq, nbytes * u->sink_fs / u->fs);
-    pa_sink_set_max_rewind_within_thread(u->sink, nbytes * u->sink_fs / u->fs);
+    pa_memblockq_set_maxrewind(u->memblockq_sink, nbytes_memblockq);
+    pa_sink_set_max_rewind_within_thread(u->sink, nbytes_sink);
 }
 
 /* Called from I/O thread context */
-static void sink_input_update_max_request_cb(pa_sink_input *i, size_t nbytes) {
+static void sink_input_update_max_request_cb(pa_sink_input *i, size_t nbytes_input) {
     struct userdata *u;
+
+    size_t nbytes_sink;
 
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    pa_sink_set_max_request_within_thread(u->sink, nbytes * u->sink_fs / u->fs);
+    nbytes_sink = sink_bytes(u, sink_input_samples(nbytes_input));
+
+    nbytes_sink = PA_ROUND_UP(nbytes_sink, sink_bytes(u, BLOCK_SIZE));
+    pa_sink_set_max_request_within_thread(u->sink, nbytes_sink);
 }
 
 /* Called from I/O thread context */
@@ -401,6 +591,7 @@ static void sink_input_detach_cb(pa_sink_input *i) {
 /* Called from I/O thread context */
 static void sink_input_attach_cb(pa_sink_input *i) {
     struct userdata *u;
+    size_t max_request;
 
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
@@ -410,14 +601,15 @@ static void sink_input_attach_cb(pa_sink_input *i) {
 
     pa_sink_set_fixed_latency_within_thread(u->sink, i->sink->thread_info.fixed_latency);
 
-    pa_sink_set_max_request_within_thread(u->sink, pa_sink_input_get_max_request(i) * u->sink_fs / u->fs);
+    max_request = sink_bytes(u, sink_input_samples(pa_sink_input_get_max_request(i)));
+    max_request = PA_ROUND_UP(max_request, sink_bytes(u, BLOCK_SIZE));
+    pa_sink_set_max_request_within_thread(u->sink, max_request);
 
     /* FIXME: Too small max_rewind:
      * https://bugs.freedesktop.org/show_bug.cgi?id=53709 */
-    pa_sink_set_max_rewind_within_thread(u->sink, pa_sink_input_get_max_rewind(i) * u->sink_fs / u->fs);
+    pa_sink_set_max_rewind_within_thread(u->sink, sink_bytes(u, sink_input_samples(pa_sink_input_get_max_rewind(i))));
 
-    if (PA_SINK_IS_LINKED(u->sink->thread_info.state))
-        pa_sink_attach_within_thread(u->sink);
+    pa_sink_attach_within_thread(u->sink);
 }
 
 /* Called from main context */
@@ -427,12 +619,12 @@ static void sink_input_kill_cb(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
-    /* The order here matters! We first kill the sink so that streams
-     * can properly be moved away while the sink input is still connected
-     * to the master. */
+    /* The order here matters! We first kill the sink input, followed
+     * by the sink. That means the sink callbacks must be protected
+     * against an unconnected sink input! */
     pa_sink_input_cork(u->sink_input, true);
-    pa_sink_unlink(u->sink);
     pa_sink_input_unlink(u->sink_input);
+    pa_sink_unlink(u->sink);
 
     pa_sink_input_unref(u->sink_input);
     u->sink_input = NULL;
@@ -503,118 +695,56 @@ static void sink_input_mute_changed_cb(pa_sink_input *i) {
     pa_sink_mute_changed(u->sink, i->muted);
 }
 
-static pa_channel_position_t mirror_channel(pa_channel_position_t channel) {
-    switch (channel) {
-        case PA_CHANNEL_POSITION_FRONT_LEFT:
-            return PA_CHANNEL_POSITION_FRONT_RIGHT;
-
-        case PA_CHANNEL_POSITION_FRONT_RIGHT:
-            return PA_CHANNEL_POSITION_FRONT_LEFT;
-
-        case PA_CHANNEL_POSITION_REAR_LEFT:
-            return PA_CHANNEL_POSITION_REAR_RIGHT;
-
-        case PA_CHANNEL_POSITION_REAR_RIGHT:
-            return PA_CHANNEL_POSITION_REAR_LEFT;
-
-        case PA_CHANNEL_POSITION_SIDE_LEFT:
-            return PA_CHANNEL_POSITION_SIDE_RIGHT;
-
-        case PA_CHANNEL_POSITION_SIDE_RIGHT:
-            return PA_CHANNEL_POSITION_SIDE_LEFT;
-
-        case PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER:
-            return PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER;
-
-        case PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER:
-            return PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER;
-
-        case PA_CHANNEL_POSITION_TOP_FRONT_LEFT:
-            return PA_CHANNEL_POSITION_TOP_FRONT_RIGHT;
-
-        case PA_CHANNEL_POSITION_TOP_FRONT_RIGHT:
-            return PA_CHANNEL_POSITION_TOP_FRONT_LEFT;
-
-        case PA_CHANNEL_POSITION_TOP_REAR_LEFT:
-            return PA_CHANNEL_POSITION_TOP_REAR_RIGHT;
-
-        case PA_CHANNEL_POSITION_TOP_REAR_RIGHT:
-            return PA_CHANNEL_POSITION_TOP_REAR_LEFT;
-
-        default:
-            return channel;
-    }
-}
-
-static void normalize_hrir(struct userdata *u) {
-    /* normalize hrir to avoid audible clipping
-     *
-     * The following heuristic tries to avoid audible clipping. It cannot avoid
-     * clipping in the worst case though, because the scaling factor would
-     * become too large resulting in a too quiet signal.
-     * The idea of the heuristic is to avoid clipping when a single click is
-     * played back on all channels. The scaling factor describes the additional
-     * factor that is necessary to avoid clipping for "normal" signals.
-     *
-     * This algorithm doesn't pretend to be perfect, it's just something that
-     * appears to work (not too quiet, no audible clipping) on the material that
-     * it has been tested on. If you find a real-world example where this
-     * algorithm results in audible clipping, please write a patch that adjusts
-     * the scaling factor constants or improves the algorithm (or if you can't
-     * write a patch, at least report the problem to the PulseAudio mailing list
-     * or bug tracker). */
-
-    const float scaling_factor = 2.5;
-
-    float hrir_sum, hrir_max;
-    unsigned i, j;
-
-    hrir_max = 0;
-    for (i = 0; i < u->hrir_samples; i++) {
-        hrir_sum = 0;
-        for (j = 0; j < u->hrir_channels; j++)
-            hrir_sum += fabs(u->hrir_data[i * u->hrir_channels + j]);
-
-        if (hrir_sum > hrir_max)
-            hrir_max = hrir_sum;
-    }
-
-    for (i = 0; i < u->hrir_samples; i++) {
-        for (j = 0; j < u->hrir_channels; j++)
-            u->hrir_data[i * u->hrir_channels + j] /= hrir_max * scaling_factor;
-    }
-}
-
 int pa__init(pa_module*m) {
     struct userdata *u;
-    pa_sample_spec ss, sink_input_ss;
-    pa_channel_map map, sink_input_map;
+    pa_sample_spec ss_input, ss_output;
+    pa_channel_map map_output;
     pa_modargs *ma;
     const char *master_name;
-    pa_sink *master = NULL;
+    const char *hrir_left_file;
+    const char *hrir_right_file;
+    pa_sink *master=NULL;
     pa_sink_input_new_data sink_input_data;
     pa_sink_new_data sink_data;
     bool use_volume_sharing = true;
     bool force_flat_volume = false;
     pa_memchunk silence;
+    const char* z;
+    unsigned i, j, ear, found_channel_left, found_channel_right;
 
-    const char *hrir_file;
-    unsigned i, j, found_channel_left, found_channel_right;
-    float *hrir_data;
+    pa_sample_spec ss;
+    pa_channel_map map;
 
-    pa_sample_spec hrir_ss;
-    pa_channel_map hrir_map;
+    float *hrir_data=NULL, *hrir_right_data=NULL;
+    float *hrir_temp_data;
+    size_t hrir_samples;
+    size_t hrir_copied_length, hrir_total_length;
+    int hrir_channels;
+    int fftlen;
 
-    pa_sample_spec hrir_temp_ss;
-    pa_memchunk hrir_temp_chunk, hrir_temp_chunk_resampled;
+    float *impulse_temp=NULL;
+
+    unsigned *mapping_left=NULL;
+    unsigned *mapping_right=NULL;
+
+    fftwf_plan p;
+
+    pa_channel_map hrir_map, hrir_right_map;
+
+    pa_sample_spec hrir_left_temp_ss;
+    pa_memchunk hrir_left_temp_chunk, hrir_left_temp_chunk_resampled;
     pa_resampler *resampler;
 
-    size_t hrir_copied_length, hrir_total_length;
 
-    hrir_temp_chunk.memblock = NULL;
-    hrir_temp_chunk_resampled.memblock = NULL;
+    pa_sample_spec hrir_right_temp_ss;
+    pa_memchunk hrir_right_temp_chunk, hrir_right_temp_chunk_resampled;
 
     pa_assert(m);
+
+    hrir_left_temp_chunk.memblock = NULL;
+    hrir_left_temp_chunk_resampled.memblock = NULL;
+    hrir_right_temp_chunk.memblock = NULL;
+    hrir_right_temp_chunk_resampled.memblock = NULL;
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments.");
@@ -629,45 +759,61 @@ int pa__init(pa_module*m) {
                         "please use the 'sink_master' argument instead.");
     }
 
-    master = pa_namereg_get(m->core, master_name, PA_NAMEREG_SINK);
-    if (!master) {
-        pa_log("Master sink not found.");
+    if (!(master = pa_namereg_get(m->core, master_name, PA_NAMEREG_SINK))) {
+        pa_log("Master sink not found");
         goto fail;
     }
+
+    hrir_left_file = pa_modargs_get_value(ma, "hrir_left", NULL);
+    if (!hrir_left_file) {
+        hrir_left_file = pa_modargs_get_value(ma, "hrir", NULL);
+        if (!hrir_left_file) {
+            pa_log("Either the 'hrir' or 'hrir_left' module arguments are required.");
+            goto fail;
+        }
+    }
+
+    hrir_right_file = pa_modargs_get_value(ma, "hrir_right", NULL);
 
     pa_assert(master);
 
-    u = pa_xnew0(struct userdata, 1);
-    u->module = m;
-    m->userdata = u;
-
-    /* Initialize hrir and input buffer */
-    /* this is the hrir file for the left ear! */
-    if (!(hrir_file = pa_modargs_get_value(ma, "hrir", NULL))) {
-        pa_log("The mandatory 'hrir' module argument is missing.");
-        goto fail;
-    }
-
-    if (pa_sound_file_load(master->core->mempool, hrir_file, &hrir_temp_ss, &hrir_map, &hrir_temp_chunk, NULL) < 0) {
+    if (pa_sound_file_load(master->core->mempool, hrir_left_file, &hrir_left_temp_ss, &hrir_map, &hrir_left_temp_chunk, NULL) < 0) {
         pa_log("Cannot load hrir file.");
         goto fail;
     }
 
-    /* sample spec / map of hrir */
-    hrir_ss.format = PA_SAMPLE_FLOAT32;
-    hrir_ss.rate = master->sample_spec.rate;
-    hrir_ss.channels = hrir_temp_ss.channels;
+    if (hrir_right_file) {
+        if (pa_sound_file_load(master->core->mempool, hrir_right_file, &hrir_right_temp_ss, &hrir_right_map, &hrir_right_temp_chunk, NULL) < 0) {
+            pa_log("Cannot load hrir_right file.");
+            goto fail;
+        }
+        if (!pa_sample_spec_equal(&hrir_left_temp_ss, &hrir_right_temp_ss)) {
+            pa_log("Both hrir_left and hrir_right must have the same sample format");
+            goto fail;
+        }
+        if (!pa_channel_map_equal(&hrir_map, &hrir_right_map)) {
+            pa_log("Both hrir_left and hrir_right must have the same channel layout");
+            goto fail;
+        }
+    }
 
-    /* sample spec of sink */
-    ss = hrir_ss;
+    ss_input.format = PA_SAMPLE_FLOAT32NE;
+    ss_input.rate = master->sample_spec.rate;
+    ss_input.channels = hrir_left_temp_ss.channels;
+
+    ss = ss_input;
     map = hrir_map;
     if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map, PA_CHANNEL_MAP_DEFAULT) < 0) {
         pa_log("Invalid sample format specification or channel map");
         goto fail;
     }
-    ss.format = PA_SAMPLE_FLOAT32;
-    hrir_ss.rate = ss.rate;
-    u->channels = ss.channels;
+
+    ss.format = PA_SAMPLE_FLOAT32NE;
+    ss_input.rate = ss.rate;
+    ss_input.channels = ss.channels;
+
+    ss_output = ss_input;
+    ss_output.channels = 2;
 
     if (pa_modargs_get_value_boolean(ma, "use_volume_sharing", &use_volume_sharing) < 0) {
         pa_log("use_volume_sharing= expects a boolean argument");
@@ -684,14 +830,11 @@ int pa__init(pa_module*m) {
         goto fail;
     }
 
-    /* sample spec / map of sink input */
-    pa_channel_map_init_stereo(&sink_input_map);
-    sink_input_ss.channels = 2;
-    sink_input_ss.format = PA_SAMPLE_FLOAT32;
-    sink_input_ss.rate = ss.rate;
+    pa_channel_map_init_stereo(&map_output);
 
-    u->sink_fs = pa_frame_size(&ss);
-    u->fs = pa_frame_size(&sink_input_ss);
+    u = pa_xnew0(struct userdata, 1);
+    u->module = m;
+    m->userdata = u;
 
     /* Create sink */
     pa_sink_new_data_init(&sink_data);
@@ -699,7 +842,7 @@ int pa__init(pa_module*m) {
     sink_data.module = m;
     if (!(sink_data.name = pa_xstrdup(pa_modargs_get_value(ma, "sink_name", NULL))))
         sink_data.name = pa_sprintf_malloc("%s.vsurroundsink", master->name);
-    pa_sink_new_data_set_sample_spec(&sink_data, &ss);
+    pa_sink_new_data_set_sample_spec(&sink_data, &ss_input);
     pa_sink_new_data_set_channel_map(&sink_data, &map);
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_MASTER_DEVICE, master->name);
     pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_CLASS, "filter");
@@ -718,8 +861,6 @@ int pa__init(pa_module*m) {
     }
 
     if ((u->auto_desc = !pa_proplist_contains(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION))) {
-        const char *z;
-
         z = pa_proplist_gets(master->proplist, PA_PROP_DEVICE_DESCRIPTION);
         pa_proplist_setf(sink_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Virtual Surround Sink %s on %s", sink_data.name, z ? z : master->name);
     }
@@ -743,7 +884,7 @@ int pa__init(pa_module*m) {
         pa_sink_set_set_volume_callback(u->sink, sink_set_volume_cb);
         pa_sink_enable_decibel_volume(u->sink, true);
     }
-    /* Normally this flag would be enabled automatically be we can force it. */
+    /* Normally this flag would be enabled automatically but we can force it. */
     if (force_flat_volume)
         u->sink->flags |= PA_SINK_FLAT_VOLUME;
     u->sink->userdata = u;
@@ -758,9 +899,8 @@ int pa__init(pa_module*m) {
     sink_input_data.origin_sink = u->sink;
     pa_proplist_setf(sink_input_data.proplist, PA_PROP_MEDIA_NAME, "Virtual Surround Sink Stream from %s", pa_proplist_gets(u->sink->proplist, PA_PROP_DEVICE_DESCRIPTION));
     pa_proplist_sets(sink_input_data.proplist, PA_PROP_MEDIA_ROLE, "filter");
-    pa_sink_input_new_data_set_sample_spec(&sink_input_data, &sink_input_ss);
-    pa_sink_input_new_data_set_channel_map(&sink_input_data, &sink_input_map);
-    sink_input_data.flags |= PA_SINK_INPUT_START_CORKED;
+    pa_sink_input_new_data_set_sample_spec(&sink_input_data, &ss_output);
+    pa_sink_input_new_data_set_channel_map(&sink_input_data, &map_output);
 
     pa_sink_input_new(&u->sink_input, m->core, &sink_input_data);
     pa_sink_input_new_data_done(&sink_input_data);
@@ -786,78 +926,107 @@ int pa__init(pa_module*m) {
     u->sink->input_to_master = u->sink_input;
 
     pa_sink_input_get_silence(u->sink_input, &silence);
-    u->memblockq = pa_memblockq_new("module-virtual-surround-sink memblockq", 0, MEMBLOCKQ_MAXLENGTH, 0, &ss, 1, 1, 0, &silence);
-    pa_memblock_unref(silence.memblock);
 
-    /* resample hrir */
-    resampler = pa_resampler_new(u->sink->core->mempool, &hrir_temp_ss, &hrir_map, &hrir_ss, &hrir_map, u->sink->core->lfe_crossover_freq,
+    resampler = pa_resampler_new(u->sink->core->mempool, &hrir_left_temp_ss, &hrir_map, &ss_input, &hrir_map, u->sink->core->lfe_crossover_freq,
                                  PA_RESAMPLER_SRC_SINC_BEST_QUALITY, PA_RESAMPLER_NO_REMAP);
 
-    u->hrir_samples = hrir_temp_chunk.length / pa_frame_size(&hrir_temp_ss) * hrir_ss.rate / hrir_temp_ss.rate;
-    if (u->hrir_samples > 64) {
-        u->hrir_samples = 64;
-        pa_log("The (resampled) hrir contains more than 64 samples. Only the first 64 samples will be used to limit processor usage.");
-    }
+    hrir_samples = hrir_left_temp_chunk.length / pa_frame_size(&hrir_left_temp_ss) * ss_input.rate / hrir_left_temp_ss.rate;
 
-    hrir_total_length = u->hrir_samples * pa_frame_size(&hrir_ss);
-    u->hrir_channels = hrir_ss.channels;
+    hrir_total_length = hrir_samples * pa_frame_size(&ss_input);
+    hrir_channels = ss_input.channels;
 
-    u->hrir_data = (float *) pa_xmalloc(hrir_total_length);
+    hrir_data = (float *) pa_xmalloc(hrir_total_length);
     hrir_copied_length = 0;
+
+    u->hrir_samples = hrir_samples;
+    u->inputs = hrir_channels;
 
     /* add silence to the hrir until we get enough samples out of the resampler */
     while (hrir_copied_length < hrir_total_length) {
-        pa_resampler_run(resampler, &hrir_temp_chunk, &hrir_temp_chunk_resampled);
-        if (hrir_temp_chunk.memblock != hrir_temp_chunk_resampled.memblock) {
+        pa_resampler_run(resampler, &hrir_left_temp_chunk, &hrir_left_temp_chunk_resampled);
+        if (hrir_left_temp_chunk.memblock != hrir_left_temp_chunk_resampled.memblock) {
             /* Silence input block */
-            pa_silence_memblock(hrir_temp_chunk.memblock, &hrir_temp_ss);
+            pa_silence_memblock(hrir_left_temp_chunk.memblock, &hrir_left_temp_ss);
         }
 
-        if (hrir_temp_chunk_resampled.memblock) {
+        if (hrir_left_temp_chunk_resampled.memblock) {
             /* Copy hrir data */
-            hrir_data = (float *) pa_memblock_acquire(hrir_temp_chunk_resampled.memblock);
+            hrir_temp_data = (float *) pa_memblock_acquire(hrir_left_temp_chunk_resampled.memblock);
 
-            if (hrir_total_length - hrir_copied_length >= hrir_temp_chunk_resampled.length) {
-                memcpy(u->hrir_data + hrir_copied_length, hrir_data, hrir_temp_chunk_resampled.length);
-                hrir_copied_length += hrir_temp_chunk_resampled.length;
+            if (hrir_total_length - hrir_copied_length >= hrir_left_temp_chunk_resampled.length) {
+                memcpy(hrir_data + hrir_copied_length, hrir_temp_data, hrir_left_temp_chunk_resampled.length);
+                hrir_copied_length += hrir_left_temp_chunk_resampled.length;
             } else {
-                memcpy(u->hrir_data + hrir_copied_length, hrir_data, hrir_total_length - hrir_copied_length);
+                memcpy(hrir_data + hrir_copied_length, hrir_temp_data, hrir_total_length - hrir_copied_length);
                 hrir_copied_length = hrir_total_length;
             }
 
-            pa_memblock_release(hrir_temp_chunk_resampled.memblock);
-            pa_memblock_unref(hrir_temp_chunk_resampled.memblock);
-            hrir_temp_chunk_resampled.memblock = NULL;
+            pa_memblock_release(hrir_left_temp_chunk_resampled.memblock);
+            pa_memblock_unref(hrir_left_temp_chunk_resampled.memblock);
+            hrir_left_temp_chunk_resampled.memblock = NULL;
         }
+    }
+
+    pa_memblock_unref(hrir_left_temp_chunk.memblock);
+    hrir_left_temp_chunk.memblock = NULL;
+
+    if (hrir_right_file) {
+        pa_resampler_reset(resampler);
+
+        hrir_right_data = (float *) pa_xmalloc(hrir_total_length);
+        hrir_copied_length = 0;
+
+        while (hrir_copied_length < hrir_total_length) {
+            pa_resampler_run(resampler, &hrir_right_temp_chunk, &hrir_right_temp_chunk_resampled);
+            if (hrir_right_temp_chunk.memblock != hrir_right_temp_chunk_resampled.memblock) {
+                /* Silence input block */
+                pa_silence_memblock(hrir_right_temp_chunk.memblock, &hrir_right_temp_ss);
+            }
+
+            if (hrir_right_temp_chunk_resampled.memblock) {
+                /* Copy hrir data */
+                hrir_temp_data = (float *) pa_memblock_acquire(hrir_right_temp_chunk_resampled.memblock);
+
+                if (hrir_total_length - hrir_copied_length >= hrir_right_temp_chunk_resampled.length) {
+                    memcpy(hrir_right_data + hrir_copied_length, hrir_temp_data, hrir_right_temp_chunk_resampled.length);
+                    hrir_copied_length += hrir_right_temp_chunk_resampled.length;
+                } else {
+                    memcpy(hrir_right_data + hrir_copied_length, hrir_temp_data, hrir_total_length - hrir_copied_length);
+                    hrir_copied_length = hrir_total_length;
+                }
+
+                pa_memblock_release(hrir_right_temp_chunk_resampled.memblock);
+                pa_memblock_unref(hrir_right_temp_chunk_resampled.memblock);
+                hrir_right_temp_chunk_resampled.memblock = NULL;
+            }
+        }
+
+        pa_memblock_unref(hrir_right_temp_chunk.memblock);
+        hrir_right_temp_chunk.memblock = NULL;
     }
 
     pa_resampler_free(resampler);
 
-    pa_memblock_unref(hrir_temp_chunk.memblock);
-    hrir_temp_chunk.memblock = NULL;
-
-    if (hrir_map.channels < map.channels) {
-        pa_log("hrir file does not have enough channels!");
-        goto fail;
-    }
-
-    normalize_hrir(u);
+    if (hrir_right_data)
+        normalize_hrir_stereo(hrir_data, hrir_right_data, hrir_samples, hrir_channels);
+    else
+        normalize_hrir(hrir_data, hrir_samples, hrir_channels);
 
     /* create mapping between hrir and input */
-    u->mapping_left = (unsigned *) pa_xnew0(unsigned, u->channels);
-    u->mapping_right = (unsigned *) pa_xnew0(unsigned, u->channels);
+    mapping_left = (unsigned *) pa_xnew0(unsigned, hrir_channels);
+    mapping_right = (unsigned *) pa_xnew0(unsigned, hrir_channels);
     for (i = 0; i < map.channels; i++) {
         found_channel_left = 0;
         found_channel_right = 0;
 
         for (j = 0; j < hrir_map.channels; j++) {
             if (hrir_map.map[j] == map.map[i]) {
-                u->mapping_left[i] = j;
+                mapping_left[i] = j;
                 found_channel_left = 1;
             }
 
             if (hrir_map.map[j] == mirror_channel(map.map[i])) {
-                u->mapping_right[i] = j;
+                mapping_right[i] = j;
                 found_channel_right = 1;
             }
         }
@@ -872,25 +1041,130 @@ int pa__init(pa_module*m) {
         }
     }
 
-    u->input_buffer = pa_xmalloc0(u->hrir_samples * u->sink_fs);
-    u->input_buffer_offset = 0;
+    fftlen = (hrir_samples + BLOCK_SIZE + 1); /* Grow a bit for overlap */
+    {
+        /* Round up to a power of two */
+        int pow = 1;
+        while (fftlen > 2) { pow++; fftlen /= 2; }
+        fftlen = 2 << pow;
+    }
 
-    /* The order here is important. The input must be put first,
-     * otherwise streams might attach to the sink before the sink
-     * input is attached to the master. */
-    pa_sink_input_put(u->sink_input);
+    u->fftlen = fftlen;
+
+    u->f_in = (fftwf_complex*) alloc(sizeof(fftwf_complex), (fftlen/2+1));
+    u->f_out = (fftwf_complex*) alloc(sizeof(fftwf_complex), (fftlen/2+1));
+
+    u->f_ir = (fftwf_complex**) alloc(sizeof(fftwf_complex*), (hrir_channels*2));
+    for (i = 0, j = hrir_channels*2; i < j; i++)
+        u->f_ir[i] = (fftwf_complex*) alloc(sizeof(fftwf_complex), (fftlen/2+1));
+
+    u->revspace = (float*) alloc(sizeof(float), fftlen);
+
+    u->outspace[0] = (float*) alloc(sizeof(float), BLOCK_SIZE);
+    u->outspace[1] = (float*) alloc(sizeof(float), BLOCK_SIZE);
+
+    u->inspace = (float**) alloc(sizeof(float*), hrir_channels);
+    for (i = 0; i < hrir_channels; i++)
+        u->inspace[i] = (float*) alloc(sizeof(float), fftlen);
+
+    u->p_fw = (fftwf_plan*) alloc(sizeof(fftwf_plan), hrir_channels);
+    for (i = 0; i < hrir_channels; i++)
+        pa_assert_se(u->p_fw[i] = fftwf_plan_dft_r2c_1d(fftlen, u->inspace[i], u->f_in, FFTW_ESTIMATE));
+
+    pa_assert_se(u->p_bw = fftwf_plan_dft_c2r_1d(fftlen, u->f_out, u->revspace, FFTW_ESTIMATE));
+
+    impulse_temp = (float*) alloc(sizeof(float), fftlen);
+
+    if (hrir_right_data) {
+        for (i = 0; i < hrir_channels; i++) {
+            for (ear = 0; ear < 2; ear++) {
+                size_t index = i * 2 + ear;
+                size_t impulse_index = mapping_left[i];
+                float *impulse = (ear == 0) ? hrir_data : hrir_right_data;
+                for (j = 0; j < hrir_samples; j++) {
+                    impulse_temp[j] = impulse[j * hrir_channels + impulse_index];
+                }
+
+                p = fftwf_plan_dft_r2c_1d(fftlen, impulse_temp, u->f_ir[index], FFTW_ESTIMATE);
+                if (p) {
+                    fftwf_execute(p);
+                    fftwf_destroy_plan(p);
+                } else {
+                    pa_log("fftw plan creation failed for %s ear speaker index %d", (ear == 0) ? "left" : "right", i);
+                    goto fail;
+                }
+            }
+        }
+    } else {
+        for (i = 0; i < hrir_channels; i++) {
+            for (ear = 0; ear < 2; ear++) {
+                size_t index = i * 2 + ear;
+                size_t impulse_index = (ear == 0) ? mapping_left[i] : mapping_right[i];
+                for (j = 0; j < hrir_samples; j++) {
+                    impulse_temp[j] = hrir_data[j * hrir_channels + impulse_index];
+                }
+
+                p = fftwf_plan_dft_r2c_1d(fftlen, impulse_temp, u->f_ir[index], FFTW_ESTIMATE);
+                if (p) {
+                    fftwf_execute(p);
+                    fftwf_destroy_plan(p);
+                } else {
+                    pa_log("fftw plan creation failed for %s ear speaker index %d", (ear == 0) ? "left" : "right", i);
+                    goto fail;
+                }
+            }
+        }
+    }
+
+    pa_xfree(impulse_temp);
+
+    pa_xfree(hrir_data);
+    if (hrir_right_data)
+        pa_xfree(hrir_right_data);
+
+    pa_xfree(mapping_left);
+    pa_xfree(mapping_right);
+
+    u->memblockq_sink = pa_memblockq_new("module-virtual-surround-sink memblockq (input)", 0, MEMBLOCKQ_MAXLENGTH, sink_bytes(u, BLOCK_SIZE), &ss_input, 0, 0, sink_bytes(u, u->fftlen), &silence);
+    pa_memblock_unref(silence.memblock);
+
+    pa_memblockq_seek(u->memblockq_sink, sink_bytes(u, u->fftlen - BLOCK_SIZE), PA_SEEK_RELATIVE, false);
+    pa_memblockq_flush_read(u->memblockq_sink);
+
     pa_sink_put(u->sink);
-    pa_sink_input_cork(u->sink_input, false);
+    pa_sink_input_put(u->sink_input);
 
     pa_modargs_free(ma);
+
     return 0;
 
 fail:
-    if (hrir_temp_chunk.memblock)
-        pa_memblock_unref(hrir_temp_chunk.memblock);
+    if (impulse_temp)
+        pa_xfree(impulse_temp);
 
-    if (hrir_temp_chunk_resampled.memblock)
-        pa_memblock_unref(hrir_temp_chunk_resampled.memblock);
+    if (mapping_left)
+        pa_xfree(mapping_left);
+
+    if (mapping_right)
+        pa_xfree(mapping_right);
+
+    if (hrir_data)
+        pa_xfree(hrir_data);
+
+    if (hrir_right_data)
+        pa_xfree(hrir_right_data);
+
+    if (hrir_left_temp_chunk.memblock)
+        pa_memblock_unref(hrir_left_temp_chunk.memblock);
+
+    if (hrir_left_temp_chunk_resampled.memblock)
+        pa_memblock_unref(hrir_left_temp_chunk_resampled.memblock);
+
+    if (hrir_right_temp_chunk.memblock)
+        pa_memblock_unref(hrir_right_temp_chunk.memblock);
+
+    if (hrir_right_temp_chunk_resampled.memblock)
+        pa_memblock_unref(hrir_right_temp_chunk_resampled.memblock);
 
     if (ma)
         pa_modargs_free(ma);
@@ -910,6 +1184,7 @@ int pa__get_n_used(pa_module *m) {
 }
 
 void pa__done(pa_module*m) {
+    size_t i, j;
     struct userdata *u;
 
     pa_assert(m);
@@ -921,32 +1196,60 @@ void pa__done(pa_module*m) {
      * destruction order! */
 
     if (u->sink_input)
-        pa_sink_input_cork(u->sink_input, true);
+        pa_sink_input_unlink(u->sink_input);
 
     if (u->sink)
         pa_sink_unlink(u->sink);
 
-    if (u->sink_input) {
-        pa_sink_input_unlink(u->sink_input);
+    if (u->sink_input)
         pa_sink_input_unref(u->sink_input);
-    }
 
     if (u->sink)
         pa_sink_unref(u->sink);
 
-    if (u->memblockq)
-        pa_memblockq_free(u->memblockq);
+    if (u->memblockq_sink)
+        pa_memblockq_free(u->memblockq_sink);
 
-    if (u->hrir_data)
-        pa_xfree(u->hrir_data);
+    if (u->p_fw) {
+        for (i = 0, j = u->inputs; i < j; i++) {
+            if (u->p_fw[i])
+                fftwf_destroy_plan(u->p_fw[i]);
+        }
+        fftwf_free(u->p_fw);
+    }
 
-    if (u->input_buffer)
-        pa_xfree(u->input_buffer);
+    if (u->p_bw)
+        fftwf_destroy_plan(u->p_bw);
 
-    if (u->mapping_left)
-        pa_xfree(u->mapping_left);
-    if (u->mapping_right)
-        pa_xfree(u->mapping_right);
+    if (u->f_ir) {
+        for (i = 0, j = u->inputs * 2; i < j; i++) {
+            if (u->f_ir[i])
+                fftwf_free(u->f_ir[i]);
+        }
+        fftwf_free(u->f_ir);
+    }
+
+    if (u->f_out)
+        fftwf_free(u->f_out);
+
+    if (u->f_in)
+        fftwf_free(u->f_in);
+
+    if (u->revspace)
+        fftwf_free(u->revspace);
+
+    if (u->outspace[0])
+        fftwf_free(u->outspace[0]);
+    if (u->outspace[1])
+        fftwf_free(u->outspace[1]);
+
+    if (u->inspace) {
+        for (i = 0, j = u->inputs; i < j; i++) {
+            if (u->inspace[i])
+                fftwf_free(u->inspace[i]);
+        }
+        fftwf_free(u->inspace);
+    }
 
     pa_xfree(u);
 }

@@ -1268,7 +1268,6 @@ modlibexec_LTLIBRARIES += \
 		module-loopback.la \
 		module-virtual-sink.la \
 		module-virtual-source.la \
-		module-virtual-surround-sink.la \
 		module-switch-on-connect.la \
 		module-switch-on-port-available.la \
 		module-filter-apply.la \
@@ -1530,6 +1529,11 @@ endif
 endif
 endif
 
+if HAVE_FFTW
+modlibexec_LTLIBRARIES += \
+		module-virtual-surround-sink.la
+endif
+
 if HAVE_DBUS
 if HAVE_FFTW
 modlibexec_LTLIBRARIES += \
@@ -1775,9 +1779,9 @@ module_virtual_source_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_virtual_source_la_LIBADD = $(MODULE_LIBADD)
 
 module_virtual_surround_sink_la_SOURCES = modules/module-virtual-surround-sink.c
-module_virtual_surround_sink_la_CFLAGS = $(AM_CFLAGS) $(SERVER_CFLAGS) -DPA_MODULE_NAME=module_virtual_surround_sink
+module_virtual_surround_sink_la_CFLAGS = $(AM_CFLAGS) $(SERVER_CFLAGS) $(FFTW_CFLAGS) -DPA_MODULE_NAME=module_virtual_surround_sink
 module_virtual_surround_sink_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_virtual_surround_sink_la_LIBADD = $(MODULE_LIBADD)
+module_virtual_surround_sink_la_LIBADD = $(MODULE_LIBADD) $(FFTW_LIBS)
 
 # X11
 
