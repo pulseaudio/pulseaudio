@@ -135,6 +135,7 @@ struct userdata {
     uint32_t iteration_counter;
     uint32_t underrun_counter;
     uint32_t adjust_counter;
+    uint32_t target_latency_cross_counter;
 
     /* Various booleans */
     bool fixed_alsa_source;
@@ -289,10 +290,14 @@ static uint32_t rate_controller(
      * of 0.5 Hz needs to be applied by the controller when the latency
      * difference gets larger than the threshold. The weight follows
      * from the definition of the controller. The minimum will only
-     * be reached when one adjust threshold away from the target. */
+     * be reached when one adjust threshold away from the target. Start
+     * using the weight after the target latency has been reached for the
+     * second time to accelerate initial convergence. The second time has
+     * been chosen because it takes a while before the smoother returns
+     * reliable latencies. */
     controller_weight = 1;
     min_weight = PA_CLAMP(0.5 / (double)base_rate * (100.0 + (double)u->real_adjust_time / u->adjust_threshold), 0, 1.0);
-    if ((double)abs((int)(old_rate - base_rate_with_drift)) / base_rate_with_drift < 0.002)
+    if ((double)abs((int)(old_rate - base_rate_with_drift)) / base_rate_with_drift < 0.002 && u->target_latency_cross_counter >= 2)
         controller_weight = PA_CLAMP((double)abs(latency_difference_at_optimum_rate) / u->adjust_threshold * min_weight, min_weight, 1.0);
 
     /* Calculate next rate that is not more than 2‰ away from the last rate */
@@ -520,6 +525,9 @@ static void adjust_rates(struct userdata *u) {
 
         /* Skip real adjust time calculation and reset drift compensation parameters on next iteration. */
         u->source_sink_changed = true;
+
+        /* We probably need to adjust again, reset cross_counter. */
+        u->target_latency_cross_counter = 0;
         return;
     }
 
@@ -538,6 +546,10 @@ static void adjust_rates(struct userdata *u) {
                 (double) u->latency_error,
                 u->drift_compensation_rate + base_rate,
                 (int32_t)(new_rate - base_rate));
+
+    /* If the latency difference changed sign, we have crossed the target latency. */
+    if ((int64_t)latency_difference * u->last_latency_difference < 0)
+        u->target_latency_cross_counter++;
 
     /* Save current latency difference at new rate for next cycle and reset flags */
     u->last_latency_difference = current_source_sink_latency + current_buffer_latency * old_rate / new_rate - final_latency;
@@ -914,10 +926,11 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
     u->iteration_counter = 0;
     u->underrun_counter = 0;
 
-    /* Reset booleans and latency error */
+    /* Reset booleans, latency error and counter */
     u->source_sink_changed = true;
     u->underrun_occured = false;
     u->source_latency_offset_changed = false;
+    u->target_latency_cross_counter = 0;
     u->latency_error = 0;
 
     /* Send a mesage to the output thread that the source has changed.
@@ -1334,10 +1347,11 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
     u->iteration_counter = 0;
     u->underrun_counter = 0;
 
-    /* Reset booleans and latency error */
+    /* Reset booleans, latency error and counter */
     u->source_sink_changed = true;
     u->underrun_occured = false;
     u->sink_latency_offset_changed = false;
+    u->target_latency_cross_counter = 0;
     u->latency_error = 0;
 
     u->output_thread_info.pop_called = false;
@@ -1467,6 +1481,7 @@ static int loopback_process_msg_cb(pa_msgobject *o, int code, void *userdata, in
 
             u->underrun_counter++;
             u->underrun_occured = true;
+            u->target_latency_cross_counter = 0;
             pa_log_debug("Underrun detected, counter incremented to %u", u->underrun_counter);
 
             return 0;
@@ -1494,6 +1509,9 @@ static pa_hook_result_t sink_port_latency_offset_changed_cb(pa_core *core, pa_si
     u->sink_latency_offset = sink->port_latency_offset;
     update_minimum_latency(u, sink, true);
 
+    /* We might need to adjust again, reset counter */
+    u->target_latency_cross_counter = 0;
+
     return PA_HOOK_OK;
 }
 
@@ -1508,6 +1526,9 @@ static pa_hook_result_t source_port_latency_offset_changed_cb(pa_core *core, pa_
     u->source_latency_offset_changed = true;
     u->source_latency_offset = source->port_latency_offset;
     update_minimum_latency(u, u->sink_input->sink, true);
+
+    /* We might need to adjust again, reset counter */
+    u->target_latency_cross_counter = 0;
 
     return PA_HOOK_OK;
 }
@@ -1652,6 +1673,7 @@ int pa__init(pa_module *m) {
     u->sink_latency_offset_changed = false;
     u->latency_error = 0;
     u->adjust_threshold = adjust_threshold;
+    u->target_latency_cross_counter = 0;
     u->initial_adjust_pending = true;
 
     adjust_time_sec = DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_SEC;
