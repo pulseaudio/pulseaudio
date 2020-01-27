@@ -47,6 +47,7 @@ PA_MODULE_USAGE(
         "latency_msec=<latency in ms> "
         "max_latency_msec=<maximum latency in ms> "
         "fast_adjust_threshold_msec=<threshold for fast adjust in ms> "
+        "adjust_threshold_usec=<threshold for latency adjustment in usec> "
         "format=<sample format> "
         "rate=<sample rate> "
         "channels=<number of channels> "
@@ -60,6 +61,8 @@ PA_MODULE_USAGE(
 #define DEFAULT_LATENCY_MSEC 200
 
 #define FILTER_PARAMETER 0.125
+
+#define DEFAULT_ADJUST_THRESHOLD_USEC 250
 
 #define MEMBLOCKQ_MAXLENGTH (1024*1024*32)
 
@@ -96,6 +99,7 @@ struct userdata {
     pa_usec_t max_latency;
     pa_usec_t adjust_time;
     pa_usec_t fast_adjust_threshold;
+    uint32_t adjust_threshold;
 
     /* Latency boundaries and current values */
     pa_usec_t min_source_latency;
@@ -188,6 +192,7 @@ static const char* const valid_modargs[] = {
     "latency_msec",
     "max_latency_msec",
     "fast_adjust_threshold_msec",
+    "adjust_threshold_usec",
     "format",
     "rate",
     "channels",
@@ -263,11 +268,10 @@ static void teardown(struct userdata *u) {
 }
 
 /* rate controller, called from main context
- * - maximum deviation from base rate is less than 1%
- * - controller step size is limited to 2.01‰
+ * - maximum deviation from optimum rate for P-controller is less than 1%
+ * - P-controller step size is limited to 2.01‰
  * - will calculate an optimum rate
- * - exhibits hunting with USB or Bluetooth sources
- */
+*/
 static uint32_t rate_controller(
                 struct userdata *u,
                 uint32_t base_rate, uint32_t old_rate,
@@ -275,7 +279,21 @@ static uint32_t rate_controller(
                 int32_t latency_difference_at_base_rate) {
 
     double new_rate, new_rate_1, new_rate_2;
-    double min_cycles_1, min_cycles_2, drift_rate, latency_drift;
+    double min_cycles_1, min_cycles_2, drift_rate, latency_drift, controller_weight, min_weight;
+    uint32_t base_rate_with_drift;
+
+    base_rate_with_drift = (int)(base_rate + u->drift_compensation_rate);
+
+    /* If we are less than 2‰ away from the optimum rate, lower weight of the
+     * P-controller. The weight is determined by the fact that a correction
+     * of 0.5 Hz needs to be applied by the controller when the latency
+     * difference gets larger than the threshold. The weight follows
+     * from the definition of the controller. The minimum will only
+     * be reached when one adjust threshold away from the target. */
+    controller_weight = 1;
+    min_weight = PA_CLAMP(0.5 / (double)base_rate * (100.0 + (double)u->real_adjust_time / u->adjust_threshold), 0, 1.0);
+    if ((double)abs((int)(old_rate - base_rate_with_drift)) / base_rate_with_drift < 0.002)
+        controller_weight = PA_CLAMP((double)abs(latency_difference_at_optimum_rate) / u->adjust_threshold * min_weight, min_weight, 1.0);
 
     /* Calculate next rate that is not more than 2‰ away from the last rate */
     min_cycles_1 = (double)abs(latency_difference_at_optimum_rate) / u->real_adjust_time / 0.002 + 1;
@@ -284,10 +302,11 @@ static uint32_t rate_controller(
     /* Calculate best rate to correct the current latency offset, limit at
      * 1% difference from base_rate */
     min_cycles_2 = (double)abs(latency_difference_at_optimum_rate) / u->real_adjust_time / 0.01 + 1;
-    new_rate_2 = (double)base_rate * (1.0 + (double)latency_difference_at_optimum_rate / min_cycles_2 / u->real_adjust_time);
+    new_rate_2 = (double)base_rate * (1.0 + controller_weight * latency_difference_at_optimum_rate / min_cycles_2 / u->real_adjust_time);
 
-    /* Choose the rate that is nearer to base_rate */
-    if (abs((int)(new_rate_1 - base_rate)) < abs((int)(new_rate_2 - base_rate)))
+    /* Choose the rate that is nearer to base_rate unless we are already near
+     * to the desired latency and rate */
+    if (abs((int)(new_rate_1 - base_rate)) < abs((int)(new_rate_2 - base_rate)) && controller_weight > 0.99)
         new_rate = new_rate_1;
     else
         new_rate = new_rate_2;
@@ -1505,6 +1524,7 @@ int pa__init(pa_module *m) {
     uint32_t latency_msec;
     uint32_t max_latency_msec;
     uint32_t fast_adjust_threshold;
+    uint32_t adjust_threshold;
     pa_sample_spec ss;
     pa_channel_map map;
     bool format_set = false;
@@ -1583,6 +1603,12 @@ int pa__init(pa_module *m) {
     if (pa_modargs_get_value(ma, "channels", NULL) || pa_modargs_get_value(ma, "channel_map", NULL))
         channels_set = true;
 
+    adjust_threshold = DEFAULT_ADJUST_THRESHOLD_USEC;
+    if (pa_modargs_get_value_u32(ma, "adjust_threshold_usec", &adjust_threshold) < 0 || adjust_threshold < 1 || adjust_threshold > 10000) {
+        pa_log_info("Invalid adjust threshold specification");
+        goto fail;
+    }
+
     latency_msec = DEFAULT_LATENCY_MSEC;
     if (pa_modargs_get_value_u32(ma, "latency_msec", &latency_msec) < 0 || latency_msec < 1 || latency_msec > 30000) {
         pa_log("Invalid latency specification");
@@ -1625,6 +1651,7 @@ int pa__init(pa_module *m) {
     u->source_latency_offset_changed = false;
     u->sink_latency_offset_changed = false;
     u->latency_error = 0;
+    u->adjust_threshold = adjust_threshold;
     u->initial_adjust_pending = true;
 
     adjust_time_sec = DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_SEC;
