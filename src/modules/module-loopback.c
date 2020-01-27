@@ -68,7 +68,7 @@ PA_MODULE_USAGE(
 
 #define MIN_DEVICE_LATENCY (2.5*PA_USEC_PER_MSEC)
 
-#define DEFAULT_ADJUST_TIME_USEC (10*PA_USEC_PER_SEC)
+#define DEFAULT_ADJUST_TIME_USEC (1*PA_USEC_PER_SEC)
 
 typedef struct loopback_msg loopback_msg;
 
@@ -1552,7 +1552,7 @@ int pa__init(pa_module *m) {
     bool rate_set = false;
     bool channels_set = false;
     pa_memchunk silence;
-    uint32_t adjust_time_sec;
+    double adjust_time_sec;
     const char *n;
     bool remix = true;
 
@@ -1677,16 +1677,20 @@ int pa__init(pa_module *m) {
     u->initial_adjust_pending = true;
 
     adjust_time_sec = DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_SEC;
-    if (pa_modargs_get_value_u32(ma, "adjust_time", &adjust_time_sec) < 0) {
+    if (pa_modargs_get_value_double(ma, "adjust_time", &adjust_time_sec) < 0) {
         pa_log("Failed to parse adjust_time value");
         goto fail;
     }
 
-    if (adjust_time_sec != DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_SEC)
-        u->adjust_time = adjust_time_sec * PA_USEC_PER_SEC;
-    else
-        u->adjust_time = DEFAULT_ADJUST_TIME_USEC;
+    /* Allow values >= 0.1 and also 0 which means no adjustment */
+    if (adjust_time_sec < 0.1) {
+        if (adjust_time_sec < 0 || adjust_time_sec > 0) {
+            pa_log("Failed to parse adjust_time value");
+            goto fail;
+        }
+    }
 
+    u->adjust_time = adjust_time_sec * PA_USEC_PER_SEC;
     u->real_adjust_time = u->adjust_time;
 
     pa_source_output_new_data_init(&source_output_data);
