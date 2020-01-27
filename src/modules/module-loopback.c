@@ -941,7 +941,8 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
              * right-away */
             if (u->sink_input->sink->thread_info.state != PA_SINK_SUSPENDED &&
                 u->sink_input->thread_info.underrun_for > 0 &&
-                pa_memblockq_is_readable(u->memblockq)) {
+                pa_memblockq_is_readable(u->memblockq) &&
+                u->output_thread_info.pop_called) {
 
                 pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(u->msg), LOOPBACK_MESSAGE_UNDERRUN, NULL, 0, NULL, NULL);
                 /* If called from within the pop callback skip the rewind */
