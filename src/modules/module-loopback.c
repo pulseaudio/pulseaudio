@@ -240,21 +240,31 @@ static void teardown(struct userdata *u) {
 
 /* rate controller, called from main context
  * - maximum deviation from base rate is less than 1%
- * - can create audible artifacts by changing the rate too quickly
+ * - controller step size is limited to 2.01‰
  * - exhibits hunting with USB or Bluetooth sources
  */
 static uint32_t rate_controller(
-                uint32_t base_rate,
-                pa_usec_t adjust_time,
+                struct userdata *u,
+                uint32_t base_rate, uint32_t old_rate,
                 int32_t latency_difference_usec) {
 
-    uint32_t new_rate;
-    double min_cycles;
+    uint32_t new_rate, new_rate_1, new_rate_2;
+    double min_cycles_1, min_cycles_2;
+
+    /* Calculate next rate that is not more than 2‰ away from the last rate */
+    min_cycles_1 = (double)abs(latency_difference_usec) / u->real_adjust_time / 0.002 + 1;
+    new_rate_1 = old_rate + base_rate * (double)latency_difference_usec / min_cycles_1 / u->real_adjust_time;
 
     /* Calculate best rate to correct the current latency offset, limit at
-     * slightly below 1% difference from base_rate */
-    min_cycles = (double)abs(latency_difference_usec) / adjust_time / 0.01 + 1;
-    new_rate = base_rate * (1.0 + (double)latency_difference_usec / min_cycles / adjust_time);
+     * 1% difference from base_rate */
+    min_cycles_2 = (double)abs(latency_difference_usec) / u->real_adjust_time / 0.01 + 1;
+    new_rate_2 = (double)base_rate * (1.0 + (double)latency_difference_usec / min_cycles_2 / u->real_adjust_time);
+
+    /* Choose the rate that is nearer to base_rate */
+    if (abs((int)new_rate_1 - (int)base_rate) < abs((int)new_rate_2 - (int)base_rate))
+        new_rate = new_rate_1;
+    else
+        new_rate = new_rate_2;
 
     return new_rate;
 }
@@ -415,7 +425,7 @@ static void adjust_rates(struct userdata *u) {
     }
 
     /* Calculate new rate */
-    new_rate = rate_controller(base_rate, u->real_adjust_time, latency_difference);
+    new_rate = rate_controller(u, base_rate, old_rate, latency_difference);
 
     u->source_sink_changed = false;
 
