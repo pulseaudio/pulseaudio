@@ -37,7 +37,7 @@ __source_outputs () {
 }
 
 __ports () {
-    pactl list cards 2> /dev/null | awk -e \
+    pactl list cards 2> /dev/null | awk -- \
         '/^\tPorts:/ {
             flag=1; next
          }
@@ -57,7 +57,7 @@ __ports () {
 }
 
 __profiles () {
-    pactl list cards 2> /dev/null | awk -e \
+    pactl list cards 2> /dev/null | awk -- \
         '/^\tProfiles:/ {
             flag=1; next
         }
