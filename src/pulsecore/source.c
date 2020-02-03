@@ -2999,7 +2999,6 @@ void pa_source_set_reference_volume_direct(pa_source *s, const pa_cvolume *volum
 void pa_source_move_streams_to_default_source(pa_core *core, pa_source *old_source, bool default_source_changed) {
     pa_source_output *o;
     uint32_t idx;
-    bool old_source_is_unavailable = false;
 
     pa_assert(core);
     pa_assert(old_source);
@@ -3013,9 +3012,6 @@ void pa_source_move_streams_to_default_source(pa_core *core, pa_source *old_sour
     if (old_source == core->default_source)
         return;
 
-    if (old_source->active_port && old_source->active_port->available == PA_AVAILABLE_NO)
-        old_source_is_unavailable = true;
-
     PA_IDXSET_FOREACH(o, old_source->outputs, idx) {
         if (!PA_SOURCE_OUTPUT_IS_LINKED(o->state))
             continue;
@@ -3023,7 +3019,8 @@ void pa_source_move_streams_to_default_source(pa_core *core, pa_source *old_sour
         if (!o->source)
             continue;
 
-        if (pa_safe_streq(old_source->name, o->preferred_source) && !old_source_is_unavailable)
+        /* If default_source_changed is false, the old source became unavailable, so all streams must be moved. */
+        if (pa_safe_streq(old_source->name, o->preferred_source) && default_source_changed)
             continue;
 
         if (!pa_source_output_may_move_to(o, core->default_source))

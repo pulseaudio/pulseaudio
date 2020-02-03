@@ -3943,7 +3943,6 @@ void pa_sink_set_reference_volume_direct(pa_sink *s, const pa_cvolume *volume) {
 void pa_sink_move_streams_to_default_sink(pa_core *core, pa_sink *old_sink, bool default_sink_changed) {
     pa_sink_input *i;
     uint32_t idx;
-    bool old_sink_is_unavailable = false;
 
     pa_assert(core);
     pa_assert(old_sink);
@@ -3957,9 +3956,6 @@ void pa_sink_move_streams_to_default_sink(pa_core *core, pa_sink *old_sink, bool
     if (old_sink == core->default_sink)
         return;
 
-    if (old_sink->active_port && old_sink->active_port->available == PA_AVAILABLE_NO)
-        old_sink_is_unavailable = true;
-
     PA_IDXSET_FOREACH(i, old_sink->inputs, idx) {
         if (!PA_SINK_INPUT_IS_LINKED(i->state))
             continue;
@@ -3967,7 +3963,8 @@ void pa_sink_move_streams_to_default_sink(pa_core *core, pa_sink *old_sink, bool
         if (!i->sink)
             continue;
 
-        if (pa_safe_streq(old_sink->name, i->preferred_sink) && !old_sink_is_unavailable)
+        /* If default_sink_changed is false, the old sink became unavailable, so all streams must be moved. */
+        if (pa_safe_streq(old_sink->name, i->preferred_sink) && default_sink_changed)
             continue;
 
         if (!pa_sink_input_may_move_to(i, core->default_sink))
