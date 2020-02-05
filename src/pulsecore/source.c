@@ -3030,7 +3030,7 @@ void pa_source_move_streams_to_default_source(pa_core *core, pa_source *old_sour
             pa_log_info("The source output %u \"%s\" is moving to %s due to change of the default source.",
                         o->index, pa_strnull(pa_proplist_gets(o->proplist, PA_PROP_APPLICATION_NAME)), core->default_source->name);
         else
-            pa_log_info("The source output %u \"%s\" is moving to %s due to unlink of a source.",
+            pa_log_info("The source output %u \"%s\" is moving to %s, because the old source became unavailable.",
                         o->index, pa_strnull(pa_proplist_gets(o->proplist, PA_PROP_APPLICATION_NAME)), core->default_source->name);
 
         pa_source_output_move_to(o, core->default_source, false);

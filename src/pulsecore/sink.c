@@ -3974,7 +3974,7 @@ void pa_sink_move_streams_to_default_sink(pa_core *core, pa_sink *old_sink, bool
             pa_log_info("The sink input %u \"%s\" is moving to %s due to change of the default sink.",
                         i->index, pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_APPLICATION_NAME)), core->default_sink->name);
         else
-            pa_log_info("The sink input %u \"%s\" is moving to %s due to unlink of a sink.",
+            pa_log_info("The sink input %u \"%s\" is moving to %s, because the old sink became unavailable.",
                         i->index, pa_strnull(pa_proplist_gets(i->proplist, PA_PROP_APPLICATION_NAME)), core->default_sink->name);
 
         pa_sink_input_move_to(i, core->default_sink, false);
