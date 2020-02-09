@@ -18,6 +18,10 @@
 # http://www.softcatala.org/projectes/fedora/
 # i contacteu l'anterior traductor/a.
 # Josep Torné Llavall <josep.torne@gmail.com>, 2009, 2012.
+# Robert Antoni Buj Gelonch <rbuj@fedoraproject.org>, 2016. #zanata
+# Wim Taymans <wim.taymans@gmail.com>, 2016. #zanata
+# Robert Antoni Buj Gelonch <rbuj@fedoraproject.org>, 2017. #zanata
+# Robert Antoni Buj Gelonch <rbuj@fedoraproject.org>, 2019. #zanata
 #
 msgid ""
 msgstr ""
@@ -58,8 +62,8 @@ msgstr ""
 "Probablement es tracta d'un error del controlador de l'ALSA '%s'. Informeu "
 "d'aquest incident als desenvolupadors de l'ALSA."
 
-#: ../src/modules/alsa/alsa-util.c:1220
-#, fuzzy, c-format
+#: ../src/modules/alsa/alsa-util.c:1225
+#, c-format
 msgid ""
 "snd_pcm_avail_delay() returned strange values: delay %lu is less than avail "
 "%lu.\n"
@@ -68,8 +72,8 @@ msgid ""
 msgstr ""
 "snd_pcm_avail() ha retornat un valor excepcionalment gran: %lu bytes (%lu "
 "ms).\n"
-"Probablement es tracta d'un error del controlador de l'ALSA '%s'. Informeu "
-"d'aquest incident als desenvolupadors de l'ALSA."
+"Probablement es tracta d'un error del controlador d'ALSA «%s». Informeu "
+"d'aquest problema als desenvolupadors d'ALSA."
 
 #: ../src/modules/alsa/alsa-util.c:1263
 #, c-format
@@ -286,10 +290,10 @@ msgstr ""
 msgid "Failed to acquire stdio."
 msgstr "S'ha produït un error en adquirir stdio."
 
-#: ../src/daemon/main.c:763 ../src/daemon/main.c:828
-#, fuzzy, c-format
+#: ../src/daemon/main.c:762 ../src/daemon/main.c:833
+#, c-format
 msgid "pipe() failed: %s"
-msgstr "Ha fallat la canonada: %s"
+msgstr "Ha fallat pipe(): %s"
 
 #: ../src/daemon/main.c:768 ../src/daemon/main.c:833
 #, c-format
@@ -309,10 +313,10 @@ msgstr "S'ha produït un error en iniciar el dimoni."
 msgid "Daemon startup successful."
 msgstr "S'ha iniciat el dimoni."
 
-#: ../src/daemon/main.c:816
-#, fuzzy, c-format
+#: ../src/daemon/main.c:821
+#, c-format
 msgid "setsid() failed: %s"
-msgstr "Ha fallat read(): %s"
+msgstr "Ha fallat setsid(): %s"
 
 #: ../src/daemon/main.c:901
 #, c-format
@@ -797,10 +801,10 @@ msgstr "[%s:%u] Mida de fragment incorrecta '%s'."
 msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] Nivell de prioritat incorrecte '%s'."
 
-#: ../src/daemon/daemon-conf.c:528
-#, fuzzy, c-format
+#: ../src/daemon/daemon-conf.c:498
+#, c-format
 msgid "[%s:%u] Invalid server type '%s'."
-msgstr "[%s:%u] Velocitat de mostreig '%s'."
+msgstr "[%s:%u] Tipus incorrecte de servidor «%s»."
 
 #: ../src/daemon/daemon-conf.c:641
 #, c-format
@@ -1210,10 +1214,9 @@ msgstr "%0.1f KB"
 msgid "%u B"
 msgstr "%u B"
 
-#: ../src/pulse/client-conf-x11.c:54 ../src/utils/pax11publish.c:100
-#, fuzzy
+#: ../src/pulse/client-conf-x11.c:53 ../src/utils/pax11publish.c:97
 msgid "xcb_connect() failed"
-msgstr "Ha fallat pa_context_connect(): %s"
+msgstr "Ha fallat xcb_connect()"
 
 #: ../src/pulse/client-conf-x11.c:59 ../src/utils/pax11publish.c:105
 msgid "xcb_connection_has_error() returned true"
@@ -1654,10 +1657,9 @@ msgstr "enregistrant"
 msgid "playback"
 msgstr "reproducció"
 
-#: ../src/utils/pacat.c:1110
-#, fuzzy
+#: ../src/utils/pacat.c:1139
 msgid "Failed to set media name."
-msgstr "No s'ha pogut interpretar la línia d'ordres."
+msgstr "No s'ha pogut establir el nom del mitjà."
 
 #: ../src/utils/pacat.c:1117 ../src/utils/pactl.c:1777
 msgid "pa_mainloop_new() failed."
@@ -1807,8 +1809,8 @@ msgid ""
 "Tile Size: %zu\n"
 msgstr ""
 
-#: ../src/utils/pactl.c:192
-#, fuzzy, c-format
+#: ../src/utils/pactl.c:206
+#, c-format
 msgid ""
 "User Name: %s\n"
 "Host Name: %s\n"
@@ -1821,14 +1823,14 @@ msgid ""
 "Cookie: %04x:%04x\n"
 msgstr ""
 "Nom d'usuari: %s\n"
-"Nom del host: %s\n"
+"Nom d'amfitrió: %s\n"
 "Nom del servidor: %s\n"
 "Versió del servidor: %s\n"
-"Especificació per omissió de la mostra: %s\n"
-"Mapa de canals per omissió: %s\n"
-"Conducte per omissió: %s\n"
-"Font per omissió: %s\n"
-"Galeta: %08x\n"
+"Especificació per defecte de la mostra: %s\n"
+"Assignació dels canals per defecte: %s\n"
+"Conducte per defecte: %s\n"
+"Origen per defecte: %s\n"
+"Galeta: %04x:%04x\n"
 
 #: ../src/utils/pactl.c:244 ../src/utils/pactl.c:830
 #, c-format
@@ -1884,10 +1886,10 @@ msgstr "\tPorts:\n"
 msgid "\tActive Port: %s\n"
 msgstr "\tPort actiu: %s\n"
 
-#: ../src/utils/pactl.c:331 ../src/utils/pactl.c:443
-#, fuzzy, c-format
+#: ../src/utils/pactl.c:338 ../src/utils/pactl.c:444
+#, c-format
 msgid "\tFormats:\n"
-msgstr "\tPorts:\n"
+msgstr "\tFormats:\n"
 
 #: ../src/utils/pactl.c:357 ../src/utils/pactl.c:849
 #, c-format
@@ -2156,21 +2158,21 @@ msgstr "No s'ha pogut pujar la mostra: %s"
 msgid "Premature end of file"
 msgstr "S'ha trobat un fi de fitxer prematurament"
 
-#: ../src/utils/pactl.c:991
+#: ../src/utils/pactl.c:1130
 msgid "new"
-msgstr ""
+msgstr "nou"
 
-#: ../src/utils/pactl.c:994
+#: ../src/utils/pactl.c:1133
 msgid "change"
-msgstr ""
+msgstr "canvia"
 
-#: ../src/utils/pactl.c:997
+#: ../src/utils/pactl.c:1136
 msgid "remove"
-msgstr ""
+msgstr "suprimeix"
 
-#: ../src/utils/pactl.c:1000 ../src/utils/pactl.c:1035
+#: ../src/utils/pactl.c:1139 ../src/utils/pactl.c:1174
 msgid "unknown"
-msgstr ""
+msgstr "desconegut"
 
 #: ../src/utils/pactl.c:1008
 msgid "sink"
@@ -2189,27 +2191,26 @@ msgstr ""
 msgid "source-output"
 msgstr "font"
 
-#: ../src/utils/pactl.c:1020
+#: ../src/utils/pactl.c:1159
 msgid "module"
-msgstr ""
+msgstr "mòdul"
 
-#: ../src/utils/pactl.c:1023
+#: ../src/utils/pactl.c:1162
 msgid "client"
-msgstr ""
+msgstr "client"
 
 #: ../src/utils/pactl.c:1026
 msgid "sample-cache"
 msgstr ""
 
-#: ../src/utils/pactl.c:1029 ../src/utils/pactl.c:1032
-#, fuzzy
+#: ../src/utils/pactl.c:1168
 msgid "server"
-msgstr "Servidor incorrecte"
+msgstr "servidor"
 
-#: ../src/utils/pactl.c:1041
+#: ../src/utils/pactl.c:1180
 #, c-format
 msgid "Event '%s' on %s #%u\n"
-msgstr ""
+msgstr "Esdeveniment '%s' en %s #%u\n"
 
 #: ../src/utils/pactl.c:1258
 msgid "Got SIGINT, exiting."
@@ -2223,22 +2224,23 @@ msgstr "Especificació de volum invàlida"
 msgid "Volume outside permissible range.\n"
 msgstr ""
 
-#: ../src/utils/pactl.c:1319 ../src/utils/pactl.c:1320
-#: ../src/utils/pactl.c:1321 ../src/utils/pactl.c:1322
-#: ../src/utils/pactl.c:1323 ../src/utils/pactl.c:1324
-#: ../src/utils/pactl.c:1325 ../src/utils/pactl.c:1326
-#: ../src/utils/pactl.c:1327 ../src/utils/pactl.c:1328
-#: ../src/utils/pactl.c:1329 ../src/utils/pactl.c:1330
-#: ../src/utils/pactl.c:1331 ../src/utils/pactl.c:1332
-#: ../src/utils/pactl.c:1333 ../src/utils/pactl.c:1334
-#: ../src/utils/pactl.c:1335 ../src/utils/pactl.c:1336
-#: ../src/utils/pactl.c:1337
+#: ../src/utils/pactl.c:1557 ../src/utils/pactl.c:1558
+#: ../src/utils/pactl.c:1559 ../src/utils/pactl.c:1560
+#: ../src/utils/pactl.c:1561 ../src/utils/pactl.c:1562
+#: ../src/utils/pactl.c:1563 ../src/utils/pactl.c:1564
+#: ../src/utils/pactl.c:1565 ../src/utils/pactl.c:1566
+#: ../src/utils/pactl.c:1567 ../src/utils/pactl.c:1568
+#: ../src/utils/pactl.c:1569 ../src/utils/pactl.c:1570
+#: ../src/utils/pactl.c:1571 ../src/utils/pactl.c:1572
+#: ../src/utils/pactl.c:1573 ../src/utils/pactl.c:1574
+#: ../src/utils/pactl.c:1575 ../src/utils/pactl.c:1576
+#: ../src/utils/pactl.c:1577
 msgid "[options]"
-msgstr ""
+msgstr "[opcions]"
 
-#: ../src/utils/pactl.c:1321
+#: ../src/utils/pactl.c:1559
 msgid "[TYPE]"
-msgstr ""
+msgstr "[TIPUS]"
 
 #: ../src/utils/pactl.c:1323
 msgid "FILENAME [NAME]"
@@ -2256,9 +2258,9 @@ msgstr ""
 msgid "NAME [ARGS ...]"
 msgstr ""
 
-#: ../src/utils/pactl.c:1327
+#: ../src/utils/pacmd.c:61
 msgid "#N"
-msgstr ""
+msgstr "#N"
 
 #: ../src/utils/pactl.c:1328
 msgid "#N SINK|SOURCE"
@@ -2284,9 +2286,9 @@ msgstr ""
 msgid "#N VOLUME"
 msgstr ""
 
-#: ../src/utils/pactl.c:1335
+#: ../src/utils/pacmd.c:57
 msgid "#N 1|0"
-msgstr ""
+msgstr "#N 1|0"
 
 #: ../src/utils/pactl.c:1336
 msgid "#N FORMATS"
@@ -2370,7 +2372,8 @@ msgstr "Heu d'especificar un índex de mòdul"
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean value."
 msgstr ""
-"No hauríeu d'especificar més d'un conducte. Heu d'especificar un valor booleà."
+"No hauríeu d'especificar més d'un conducte. Heu d'especificar un valor "
+"booleà."
 
 #: ../src/utils/pactl.c:1573
 msgid ""
@@ -2408,26 +2411,23 @@ msgstr "Heu d'especificar un índex entrada del conducte i un volum"
 msgid "Invalid sink input index"
 msgstr "Índex d'entrada del conducte invàlid"
 
-#: ../src/utils/pactl.c:1660
-#, fuzzy
+#: ../src/utils/pactl.c:1934
 msgid "You have to specify a source output index and a volume"
-msgstr "Heu d'especificar un índex de font de sortida i una font"
+msgstr "Heu d'especificar l'índex de sortida d'un origen i un volum"
 
-#: ../src/utils/pactl.c:1665
-#, fuzzy
+#: ../src/utils/pactl.c:1939
 msgid "Invalid source output index"
-msgstr "Índex d'entrada del conducte invàlid"
+msgstr "Índex incorrecte de sortida de l'origen"
 
 #: ../src/utils/pactl.c:1677
 msgid "You have to specify a sink name/index and a mute boolean"
 msgstr ""
 "Heu d'especificar un nom o un índex de conducte i un booleà de silenciat"
 
-#: ../src/utils/pactl.c:1682 ../src/utils/pactl.c:1699
-#: ../src/utils/pactl.c:1721 ../src/utils/pactl.c:1742
-#, fuzzy
+#: ../src/utils/pactl.c:1955 ../src/utils/pactl.c:1970
+#: ../src/utils/pactl.c:1990 ../src/utils/pactl.c:2008
 msgid "Invalid mute specification"
-msgstr "Especificació de mostra invàlida"
+msgstr "Especificació incorrecta de silenci"
 
 #: ../src/utils/pactl.c:1694
 msgid "You have to specify a source name/index and a mute boolean"
@@ -2442,10 +2442,11 @@ msgstr ""
 msgid "Invalid sink input index specification"
 msgstr "Especificació d'índex d'entrada del conducte invàlida"
 
-#: ../src/utils/pactl.c:1732
-#, fuzzy
+#: ../src/utils/pactl.c:1998
 msgid "You have to specify a source output index and a mute boolean"
-msgstr "Heu d'especificar un nom o un índex de font i un booleà de silenciat"
+msgstr ""
+"Heu d'especificar el nom o l'índex de sortida d'un origen i un booleà de "
+"silenci"
 
 #: ../src/utils/pactl.c:1737
 #, fuzzy
@@ -2640,168 +2641,157 @@ msgstr "Captura d'alta fidelitat (A2DP)"
 msgid "Telephony Duplex (HSP/HFP)"
 msgstr "Dúplex de telefonia (HSP/HFP)"
 
-#: ../src/modules/bluetooth/module-bluetooth-device.c:2781
+#: ../src/modules/bluetooth/module-bluez4-device.c:2213
 msgid "Handsfree Gateway"
-msgstr ""
+msgstr "Passarel·la de mans lliures"
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
 msgstr "Servidor de so PulseAudio"
 
-#: ../src/modules/module-rygel-media-server.c:510
-#: ../src/modules/module-rygel-media-server.c:548
-#: ../src/modules/module-rygel-media-server.c:903
+#: ../src/modules/module-rygel-media-server.c:508
+#: ../src/modules/module-rygel-media-server.c:546
+#: ../src/modules/module-rygel-media-server.c:905
 msgid "Output Devices"
-msgstr ""
+msgstr "Dispositius de sortida"
 
-#: ../src/modules/module-rygel-media-server.c:511
-#: ../src/modules/module-rygel-media-server.c:549
-#: ../src/modules/module-rygel-media-server.c:904
-#, fuzzy
+#: ../src/modules/module-rygel-media-server.c:509
+#: ../src/modules/module-rygel-media-server.c:547
+#: ../src/modules/module-rygel-media-server.c:906
 msgid "Input Devices"
-msgstr "Entrada %s"
+msgstr "Dispositius d'entrada"
 
-#: ../src/modules/module-rygel-media-server.c:1056
+#: ../src/modules/module-rygel-media-server.c:1063
 msgid "Audio on @HOSTNAME@"
-msgstr ""
+msgstr "Àudio a @HOSTNAME@"
 
-#: ../src/modules/alsa/alsa-mixer.c:2219
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:2291
 msgid "Input"
-msgstr "Entrada %s"
+msgstr "Entrada"
 
-#: ../src/modules/alsa/alsa-mixer.c:2220
+#: ../src/modules/alsa/alsa-mixer.c:2292
 msgid "Docking Station Input"
-msgstr ""
+msgstr "Entrada de l'estació d'acoblament"
 
-#: ../src/modules/alsa/alsa-mixer.c:2221
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:2293
 msgid "Docking Station Microphone"
-msgstr "Audio intern"
+msgstr "Micròfon de l'estació d'acoblament"
 
-#: ../src/modules/alsa/alsa-mixer.c:2222
+#: ../src/modules/alsa/alsa-mixer.c:2294
 msgid "Docking Station Line In"
-msgstr ""
+msgstr "Entrada de línia de l'estació d'acoblament"
 
-#: ../src/modules/alsa/alsa-mixer.c:2223 ../src/modules/alsa/alsa-mixer.c:2307
+#: ../src/modules/alsa/alsa-mixer.c:2295 ../src/modules/alsa/alsa-mixer.c:2380
 msgid "Line In"
-msgstr ""
+msgstr "Entrada de línia"
 
-#: ../src/modules/alsa/alsa-mixer.c:2224 ../src/modules/alsa/alsa-mixer.c:2302
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:2296 ../src/modules/alsa/alsa-mixer.c:2374
+#: ../src/modules/bluetooth/module-bluez4-device.c:2102
+#: ../src/modules/bluetooth/module-bluez5-device.c:1710
 msgid "Microphone"
-msgstr "Mono analògic"
+msgstr "Micròfon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2225 ../src/modules/alsa/alsa-mixer.c:2303
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:2297 ../src/modules/alsa/alsa-mixer.c:2375
 msgid "Front Microphone"
-msgstr "Mono analògic"
+msgstr "Micròfon frontal"
 
-#: ../src/modules/alsa/alsa-mixer.c:2226 ../src/modules/alsa/alsa-mixer.c:2304
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:2298 ../src/modules/alsa/alsa-mixer.c:2376
 msgid "Rear Microphone"
-msgstr "Mono analògic"
+msgstr "Micròfon posterior"
 
-#: ../src/modules/alsa/alsa-mixer.c:2227
+#: ../src/modules/alsa/alsa-mixer.c:2299
 msgid "External Microphone"
-msgstr ""
+msgstr "Micròfon extern"
 
-#: ../src/modules/alsa/alsa-mixer.c:2228 ../src/modules/alsa/alsa-mixer.c:2306
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:2300 ../src/modules/alsa/alsa-mixer.c:2378
 msgid "Internal Microphone"
-msgstr "Audio intern"
+msgstr "Micròfon intern"
 
-#: ../src/modules/alsa/alsa-mixer.c:2229 ../src/modules/alsa/alsa-mixer.c:2308
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:2301 ../src/modules/alsa/alsa-mixer.c:2381
 msgid "Radio"
-msgstr "Mono analògic"
+msgstr "Ràdio"
 
-#: ../src/modules/alsa/alsa-mixer.c:2230 ../src/modules/alsa/alsa-mixer.c:2309
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:2302 ../src/modules/alsa/alsa-mixer.c:2382
 msgid "Video"
-msgstr "Estèreo analògic"
+msgstr "Vídeo"
 
-#: ../src/modules/alsa/alsa-mixer.c:2231
+#: ../src/modules/alsa/alsa-mixer.c:2303
 msgid "Automatic Gain Control"
-msgstr ""
+msgstr "Control de guany automàtic"
 
-#: ../src/modules/alsa/alsa-mixer.c:2232
+#: ../src/modules/alsa/alsa-mixer.c:2304
 msgid "No Automatic Gain Control"
-msgstr ""
+msgstr "Sense control de guany automàtic"
 
-#: ../src/modules/alsa/alsa-mixer.c:2233
+#: ../src/modules/alsa/alsa-mixer.c:2305
 msgid "Boost"
-msgstr ""
+msgstr "Accentuació"
 
-#: ../src/modules/alsa/alsa-mixer.c:2234
+#: ../src/modules/alsa/alsa-mixer.c:2306
 msgid "No Boost"
-msgstr ""
+msgstr "Sense accentuació"
 
-#: ../src/modules/alsa/alsa-mixer.c:2235
+#: ../src/modules/alsa/alsa-mixer.c:2307
 msgid "Amplifier"
-msgstr ""
+msgstr "Amplificador"
 
-#: ../src/modules/alsa/alsa-mixer.c:2236
+#: ../src/modules/alsa/alsa-mixer.c:2308
 msgid "No Amplifier"
-msgstr ""
+msgstr "Sense amplificador"
 
-#: ../src/modules/alsa/alsa-mixer.c:2237
+#: ../src/modules/alsa/alsa-mixer.c:2309
 msgid "Bass Boost"
-msgstr ""
+msgstr "Sense accentuació dels baixos"
 
-#: ../src/modules/alsa/alsa-mixer.c:2238
+#: ../src/modules/alsa/alsa-mixer.c:2310
 msgid "No Bass Boost"
-msgstr ""
+msgstr "Sense accentuació dels baixos"
 
-#: ../src/modules/alsa/alsa-mixer.c:2239
+#: ../src/modules/alsa/alsa-mixer.c:2311
+#: ../src/modules/bluetooth/module-bluez4-device.c:2107
+#: ../src/modules/bluetooth/module-bluez5-device.c:1717
 msgid "Speaker"
-msgstr ""
+msgstr "Altaveu"
 
-#: ../src/modules/alsa/alsa-mixer.c:2240 ../src/modules/alsa/alsa-mixer.c:2311
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:2312 ../src/modules/alsa/alsa-mixer.c:2384
 msgid "Headphones"
-msgstr "Mono analògic"
+msgstr "Auriculars"
 
-#: ../src/modules/alsa/alsa-mixer.c:2301
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:2373
 msgid "Analog Input"
-msgstr "Mono analògic"
+msgstr "Entrada analògica"
 
 #: ../src/modules/alsa/alsa-mixer.c:2305
 msgid "Dock Microphone"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-mixer.c:2310
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:2383
 msgid "Analog Output"
-msgstr "Sortida nul·la"
+msgstr "Sortida analògica"
 
 #: ../src/modules/alsa/alsa-mixer.c:2312
 msgid "LFE on Separate Mono Output"
 msgstr ""
 
-#: ../src/modules/alsa/alsa-mixer.c:2313
+#: ../src/modules/alsa/alsa-mixer.c:2386
 msgid "Line Out"
-msgstr ""
+msgstr "Sortida de línia"
 
-#: ../src/modules/alsa/alsa-mixer.c:2314
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:2387
 msgid "Analog Mono Output"
-msgstr "Mono analògic"
+msgstr "Sortida mono analògica"
 
-#: ../src/modules/alsa/alsa-mixer.c:2315
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:2388
 msgid "Speakers"
-msgstr "Estèreo analògic"
+msgstr "Altaveus"
 
-#: ../src/modules/alsa/alsa-mixer.c:2316
+#: ../src/modules/alsa/alsa-mixer.c:2389
 msgid "HDMI / DisplayPort"
-msgstr ""
+msgstr "HDMI / DisplayPort"
 
-#: ../src/modules/alsa/alsa-mixer.c:2317
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:2390
 msgid "Digital Output (S/PDIF)"
-msgstr "Estèreo digital (HDMI)"
+msgstr "Sortida digital (S/PDIF)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2318
 #, fuzzy
@@ -2816,20 +2806,17 @@ msgstr "Mono analògic"
 msgid "Analog Stereo"
 msgstr "Estèreo analògic"
 
-#: ../src/modules/alsa/alsa-mixer.c:3758
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:3901
 msgid "Analog Surround 2.1"
-msgstr "Envolvent analògic 4.1 "
+msgstr "So envoltant analògic 2.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3759
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:3902
 msgid "Analog Surround 3.0"
-msgstr "Envolvent analògic 4.0 "
+msgstr "So envoltant analògic 3.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:3760
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:3903
 msgid "Analog Surround 3.1"
-msgstr "Envolvent analògic 4.1 "
+msgstr "So envoltant analògic 4.1"
 
 #: ../src/modules/alsa/alsa-mixer.c:3761
 msgid "Analog Surround 4.0"
@@ -2847,20 +2834,17 @@ msgstr "Envoltant analògic 5.0"
 msgid "Analog Surround 5.1"
 msgstr "Envoltant analògic 5.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3765
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:3908
 msgid "Analog Surround 6.0"
-msgstr "Envolvent analògic 4.0 "
+msgstr "So envoltant analògic 6.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:3766
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:3909
 msgid "Analog Surround 6.1"
-msgstr "Envolvent analògic 4.1 "
+msgstr "So envoltant analògic 6.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:3767
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:3910
 msgid "Analog Surround 7.0"
-msgstr "Envolvent analògic 4.0 "
+msgstr "So envoltant analògic 7.0"
 
 #: ../src/modules/alsa/alsa-mixer.c:3768
 msgid "Analog Surround 7.1"
@@ -2887,33 +2871,29 @@ msgstr "Envolvent digital 5.1 (IEC958/AC3)"
 msgid "Digital Stereo (HDMI)"
 msgstr "Estèreo digital (HDMI)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3774
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:3918
 msgid "Digital Surround 5.1 (HDMI)"
-msgstr "Envolvent digital 5.1 (IEC958/AC3)"
+msgstr "So envoltant digital 5.1 (HDMI)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3895
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:4049
 msgid "Analog Mono Duplex"
-msgstr "Mono analògic"
+msgstr "Dúplex mono analògic"
 
-#: ../src/modules/alsa/alsa-mixer.c:3896
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:4050
 msgid "Analog Stereo Duplex"
-msgstr "Estèreo analògic"
+msgstr "Dúplex estèreo analògic"
 
-#: ../src/modules/alsa/alsa-mixer.c:3897
-#, fuzzy
+#: ../src/modules/alsa/alsa-mixer.c:4051
 msgid "Digital Stereo Duplex (IEC958)"
-msgstr "Estèreo digital (IEC958)"
+msgstr "Dúplex estèreo digital (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:3997
-#, fuzzy, c-format
+#: ../src/modules/alsa/alsa-mixer.c:4151
+#, c-format
 msgid "%s Output"
-msgstr "Sortida nul·la"
+msgstr "Sortida %s"
 
-#: ../src/modules/alsa/alsa-mixer.c:4005
-#, fuzzy, c-format
+#: ../src/modules/alsa/alsa-mixer.c:4159
+#, c-format
 msgid "%s Input"
 msgstr "Entrada %s"
 
@@ -2982,14 +2962,635 @@ msgid ""
 "See --dump-resample-methods for possible values of resample methods.\n"
 msgstr ""
 
-#: ../src/tests/resampler-test.c:356
-#, fuzzy, c-format
+#: ../src/tests/resampler-test.c:354
+#, c-format
 msgid "%s %s\n"
-msgstr "%s %s"
+msgstr "%s %s\n"
 
 #: ../src/tests/resampler-test.c:419
 #, c-format
 msgid "=== %d seconds: %d Hz %d ch (%s) -> %d Hz %d ch (%s)"
+msgstr ""
+
+#: ../src/daemon/cmdline.c:111
+#, c-format
+msgid ""
+"%s [options]\n"
+"\n"
+"COMMANDS:\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"      --dump-conf                       Dump default configuration\n"
+"      --dump-modules                    Dump list of available modules\n"
+"      --dump-resample-methods           Dump available resample methods\n"
+"      --cleanup-shm                     Cleanup stale shared memory "
+"segments\n"
+"      --start                           Start the daemon if it is not "
+"running\n"
+"  -k  --kill                            Kill a running daemon\n"
+"      --check                           Check for a running daemon (only "
+"returns exit code)\n"
+"\n"
+"OPTIONS:\n"
+"      --system[=BOOL]                   Run as system-wide instance\n"
+"  -D, --daemonize[=BOOL]                Daemonize after startup\n"
+"      --fail[=BOOL]                     Quit when startup fails\n"
+"      --high-priority[=BOOL]            Try to set high nice level\n"
+"                                        (only available as root, when SUID "
+"or\n"
+"                                        with elevated RLIMIT_NICE)\n"
+"      --realtime[=BOOL]                 Try to enable realtime scheduling\n"
+"                                        (only available as root, when SUID "
+"or\n"
+"                                        with elevated RLIMIT_RTPRIO)\n"
+"      --disallow-module-loading[=BOOL]  Disallow module user requested "
+"module\n"
+"                                        loading/unloading after startup\n"
+"      --disallow-exit[=BOOL]            Disallow user requested exit\n"
+"      --exit-idle-time=SECS             Terminate the daemon when idle and "
+"this\n"
+"                                        time passed\n"
+"      --scache-idle-time=SECS           Unload autoloaded samples when idle "
+"and\n"
+"                                        this time passed\n"
+"      --log-level[=LEVEL]               Increase or set verbosity level\n"
+"  -v  --verbose                         Increase the verbosity level\n"
+"      --log-target={auto,syslog,stderr,file:PATH,newfile:PATH}\n"
+"                                        Specify the log target\n"
+"      --log-meta[=BOOL]                 Include code location in log "
+"messages\n"
+"      --log-time[=BOOL]                 Include timestamps in log messages\n"
+"      --log-backtrace=FRAMES            Include a backtrace in log messages\n"
+"  -p, --dl-search-path=PATH             Set the search path for dynamic "
+"shared\n"
+"                                        objects (plugins)\n"
+"      --resample-method=METHOD          Use the specified resampling method\n"
+"                                        (See --dump-resample-methods for\n"
+"                                        possible values)\n"
+"      --use-pid-file[=BOOL]             Create a PID file\n"
+"      --no-cpu-limit[=BOOL]             Do not install CPU load limiter on\n"
+"                                        platforms that support it.\n"
+"      --disable-shm[=BOOL]              Disable shared memory support.\n"
+"\n"
+"STARTUP SCRIPT:\n"
+"  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module "
+"with\n"
+"                                        the specified argument\n"
+"  -F, --file=FILENAME                   Run the specified script\n"
+"  -C                                    Open a command line on the running "
+"TTY\n"
+"                                        after startup\n"
+"\n"
+"  -n                                    Don't load default script file\n"
+msgstr ""
+
+#: ../src/daemon/cmdline.c:325
+msgid ""
+"Invalid log target: use either 'syslog', 'journal','stderr' or 'auto' or a "
+"valid file name 'file:<path>', 'newfile:<path>'."
+msgstr ""
+
+#: ../src/daemon/cmdline.c:327
+msgid ""
+"Invalid log target: use either 'syslog', 'stderr' or 'auto' or a valid file "
+"name 'file:<path>', 'newfile:<path>'."
+msgstr ""
+
+#: ../src/daemon/ltdl-bind-now.c:75
+#, c-format
+msgid "Failed to open module %s: %s"
+msgstr "No s'ha pogut obrir el mòdul %s: %s"
+
+#: ../src/modules/alsa/alsa-mixer.c:2379
+msgid "Headset Microphone"
+msgstr ""
+
+#: ../src/modules/alsa/alsa-mixer.c:2391
+msgid "Digital Input (S/PDIF)"
+msgstr "Entrada digital (S/PDIF)"
+
+#: ../src/modules/alsa/alsa-mixer.c:3900
+msgid "Multichannel"
+msgstr "Multicanal"
+
+#: ../src/modules/alsa/alsa-mixer.c:3916
+msgid "Digital Surround 5.1 (IEC958/DTS)"
+msgstr "So envoltant digital 5.1 (IEC958/DTS)"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2092
+#: ../src/modules/bluetooth/module-bluez5-device.c:1700
+msgid "Headset"
+msgstr "Auricular"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2097
+#: ../src/modules/bluetooth/module-bluez5-device.c:1705
+msgid "Handsfree"
+msgstr "Mans lliures"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2112
+#: ../src/modules/bluetooth/module-bluez5-device.c:1723
+msgid "Headphone"
+msgstr "Auricular"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2117
+#: ../src/modules/bluetooth/module-bluez5-device.c:1728
+msgid "Portable"
+msgstr ""
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2122
+#: ../src/modules/bluetooth/module-bluez5-device.c:1733
+msgid "Car"
+msgstr "Cotxe"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2127
+#: ../src/modules/bluetooth/module-bluez5-device.c:1738
+msgid "HiFi"
+msgstr ""
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2132
+#: ../src/modules/bluetooth/module-bluez5-device.c:1743
+msgid "Phone"
+msgstr "Telèfon"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2140
+#: ../src/modules/bluetooth/module-bluez5-device.c:1695
+#: ../src/modules/bluetooth/module-bluez5-device.c:1711
+#: ../src/modules/bluetooth/module-bluez5-device.c:1749
+msgid "Bluetooth Output"
+msgstr "Sortida bluetooth"
+
+#: ../src/modules/bluetooth/module-bluez4-device.c:2143
+#: ../src/modules/bluetooth/module-bluez5-device.c:1694
+#: ../src/modules/bluetooth/module-bluez5-device.c:1716
+#: ../src/modules/bluetooth/module-bluez5-device.c:1722
+#: ../src/modules/bluetooth/module-bluez5-device.c:1748
+msgid "Bluetooth Input"
+msgstr "Entrada bluetooth"
+
+#: ../src/modules/bluetooth/module-bluez5-device.c:1786
+msgid "High Fidelity Playback (A2DP Sink)"
+msgstr "Reproducció d'alta fidelitat (canonada A2DP)"
+
+#: ../src/modules/bluetooth/module-bluez5-device.c:1797
+msgid "High Fidelity Capture (A2DP Source)"
+msgstr "Captura d'alta fidelitat (origen A2DP)"
+
+#: ../src/modules/bluetooth/module-bluez5-device.c:1808
+msgid "Headset Head Unit (HSP/HFP)"
+msgstr ""
+
+#: ../src/modules/bluetooth/module-bluez5-device.c:1820
+msgid "Headset Audio Gateway (HSP/HFP)"
+msgstr ""
+
+#. add on profile
+#: ../src/modules/macosx/module-coreaudio-device.c:754
+msgid "On"
+msgstr ""
+
+#. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
+#. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
+#: ../src/modules/module-tunnel-sink-new.c:307
+#: ../src/modules/module-tunnel-source-new.c:305
+#, c-format
+msgid "Tunnel for %s@%s"
+msgstr "Túnel per %s@%s"
+
+#: ../src/modules/module-tunnel-sink-new.c:517
+#: ../src/modules/module-tunnel-source-new.c:516
+#, c-format
+msgid "Tunnel to %s/%s"
+msgstr ""
+
+#: ../src/modules/module-virtual-surround-sink.c:47
+msgid "Virtual surround sink"
+msgstr ""
+
+#: ../src/modules/module-virtual-surround-sink.c:51
+msgid ""
+"sink_name=<name for the sink> sink_properties=<properties for the sink> "
+"master=<name of sink to filter> format=<sample format> rate=<sample rate> "
+"channels=<number of channels> channel_map=<channel map> "
+"use_volume_sharing=<yes or no> force_flat_volume=<yes or no> hrir=/path/to/"
+"left_hrir.wav "
+msgstr ""
+
+#: ../src/pulse/direction.c:37
+msgid "input"
+msgstr "entrada"
+
+#: ../src/pulse/direction.c:39
+msgid "output"
+msgstr "sortida"
+
+#: ../src/pulse/direction.c:41
+msgid "bidirectional"
+msgstr "bidireccional"
+
+#: ../src/pulse/direction.c:43
+msgid "invalid"
+msgstr "no vàlid"
+
+#: ../src/pulsecore/core-util.c:1820
+#, c-format
+msgid ""
+"XDG_RUNTIME_DIR (%s) is not owned by us (uid %d), but by uid %d! (This could "
+"e g happen if you try to connect to a non-root PulseAudio as a root user, "
+"over the native protocol. Don't do that.)"
+msgstr ""
+
+#: ../src/pulsecore/core-util.h:93
+msgid "yes"
+msgstr "sí"
+
+#: ../src/pulsecore/core-util.h:93
+msgid "no"
+msgstr "no"
+
+#: ../src/pulsecore/log.c:153
+#, c-format
+msgid "Failed to open target file '%s'."
+msgstr ""
+
+#: ../src/pulsecore/log.c:176
+#, c-format
+msgid ""
+"Tried to open target file '%s', '%s.1', '%s.2' ... '%s.%d', but all failed."
+msgstr ""
+
+#: ../src/pulsecore/log.c:631
+msgid "Invalid log target."
+msgstr ""
+
+#: ../src/pulse/error.c:47
+msgid "No authentication key"
+msgstr ""
+
+#: ../src/tests/resampler-test.c:255
+#, c-format
+msgid ""
+"%s [options]\n"
+"\n"
+"-h, --help                            Show this help\n"
+"-v, --verbose                         Print debug messages\n"
+"      --from-rate=SAMPLERATE          From sample rate in Hz (defaults to "
+"44100)\n"
+"      --from-format=SAMPLEFORMAT      From sample type (defaults to s16le)\n"
+"      --from-channels=CHANNELS        From number of channels (defaults to "
+"1)\n"
+"      --to-rate=SAMPLERATE            To sample rate in Hz (defaults to "
+"44100)\n"
+"      --to-format=SAMPLEFORMAT        To sample type (defaults to s16le)\n"
+"      --to-channels=CHANNELS          To number of channels (defaults to 1)\n"
+"      --resample-method=METHOD        Resample method (defaults to auto)\n"
+"      --seconds=SECONDS               From stream duration (defaults to 60)\n"
+"\n"
+"If the formats are not specified, the test performs all formats "
+"combinations,\n"
+"back and forth.\n"
+"\n"
+"Sample type must be one of s16le, s16be, u8, float32le, float32be, ulaw, "
+"alaw,\n"
+"s24le, s24be, s24-32le, s24-32be, s32le, s32be (defaults to s16ne)\n"
+"\n"
+"See --dump-resample-methods for possible values of resample methods.\n"
+msgstr ""
+
+#: ../src/utils/pacat.c:357
+#, c-format
+msgid "Connected to device %s (index: %u, suspended: %s)."
+msgstr ""
+
+#: ../src/utils/pacat.c:512
+#, c-format
+msgid "Failed to set monitor stream: %s"
+msgstr ""
+
+#: ../src/utils/pacat.c:670
+#, c-format
+msgid ""
+"%s [options]\n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"\n"
+"  -r, --record                          Create a connection for recording\n"
+"  -p, --playback                        Create a connection for playback\n"
+"\n"
+"  -v, --verbose                         Enable verbose operations\n"
+"\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -d, --device=DEVICE                   The name of the sink/source to "
+"connect to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
+"      --stream-name=NAME                How to call this stream on the "
+"server\n"
+"      --volume=VOLUME                   Specify the initial (linear) volume "
+"in range 0...65536\n"
+"      --rate=SAMPLERATE                 The sample rate in Hz (defaults to "
+"44100)\n"
+"      --format=SAMPLEFORMAT             The sample type, one of s16le, "
+"s16be, u8, float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, s32be, "
+"s24le, s24be,\n"
+"                                        s24-32le, s24-32be (defaults to "
+"s16ne)\n"
+"      --channels=CHANNELS               The number of channels, 1 for mono, "
+"2 for stereo\n"
+"                                        (defaults to 2)\n"
+"      --channel-map=CHANNELMAP          Channel map to use instead of the "
+"default\n"
+"      --fix-format                      Take the sample format from the sink/"
+"source the stream is\n"
+"                                        being connected to.\n"
+"      --fix-rate                        Take the sampling rate from the sink/"
+"source the stream is\n"
+"                                        being connected to.\n"
+"      --fix-channels                    Take the number of channels and the "
+"channel map\n"
+"                                        from the sink/source the stream is "
+"being connected to.\n"
+"      --no-remix                        Don't upmix or downmix channels.\n"
+"      --no-remap                        Map channels by index instead of "
+"name.\n"
+"      --latency=BYTES                   Request the specified latency in "
+"bytes.\n"
+"      --process-time=BYTES              Request the specified process time "
+"per request in bytes.\n"
+"      --latency-msec=MSEC               Request the specified latency in "
+"msec.\n"
+"      --process-time-msec=MSEC          Request the specified process time "
+"per request in msec.\n"
+"      --property=PROPERTY=VALUE         Set the specified property to the "
+"specified value.\n"
+"      --raw                             Record/play raw PCM data.\n"
+"      --passthrough                     Passthrough data.\n"
+"      --file-format[=FFORMAT]           Record/play formatted PCM data.\n"
+"      --list-file-formats               List available file formats.\n"
+"      --monitor-stream=INDEX            Record from the sink input with "
+"index INDEX.\n"
+msgstr ""
+
+#: ../src/utils/pacat.c:989
+msgid "Failed to parse the argument for --monitor-stream"
+msgstr ""
+
+#: ../src/utils/pacmd.c:52 ../src/utils/pacmd.c:60 ../src/utils/pactl.c:1565
+msgid "NAME|#N"
+msgstr ""
+
+#: ../src/utils/pacmd.c:58
+msgid "NAME|#N KEY=VALUE"
+msgstr ""
+
+#: ../src/utils/pacmd.c:59
+msgid "#N KEY=VALUE"
+msgstr ""
+
+#: ../src/utils/pacmd.c:62
+msgid "NAME SINK|#N"
+msgstr ""
+
+#: ../src/utils/pacmd.c:64 ../src/utils/pacmd.c:65
+msgid "NAME FILENAME"
+msgstr ""
+
+#: ../src/utils/pacmd.c:66
+msgid "PATHNAME"
+msgstr ""
+
+#: ../src/utils/pacmd.c:67
+msgid "FILENAME SINK|#N"
+msgstr ""
+
+#: ../src/utils/pacmd.c:71 ../src/utils/pacmd.c:77 ../src/utils/pacmd.c:78
+msgid "1|0"
+msgstr "1|0"
+
+#: ../src/utils/pacmd.c:74 ../src/utils/pactl.c:1576
+msgid "CARD-NAME|CARD-#N PORT OFFSET"
+msgstr ""
+
+#: ../src/utils/pacmd.c:75
+msgid "TARGET"
+msgstr ""
+
+#: ../src/utils/pacmd.c:76
+msgid "NUMERIC LEVEL"
+msgstr ""
+
+#: ../src/utils/pacmd.c:79
+msgid "FRAMES"
+msgstr ""
+
+#: ../src/utils/pacmd.c:81
+#, c-format
+msgid ""
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"When no command is given pacmd starts in the interactive mode.\n"
+msgstr ""
+
+#: ../src/utils/pacmd.c:128
+#, c-format
+msgid ""
+"pacmd %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+
+#: ../src/utils/pactl.c:281
+#, c-format
+msgid ""
+"Sink #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tOwner Module: %u\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s\n"
+"\tMonitor Source: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tFlags: %s%s%s%s%s%s%s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+
+#: ../src/utils/pactl.c:388
+#, c-format
+msgid ""
+"Source #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tOwner Module: %u\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s\n"
+"\tMonitor of Sink: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tFlags: %s%s%s%s%s%s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+
+#: ../src/utils/pactl.c:600
+#, c-format
+msgid ""
+"\t\t\tProperties:\n"
+"\t\t\t\t%s\n"
+msgstr ""
+"\t\t\tPropietats:\n"
+"\t\t\t\t%s\n"
+
+#: ../src/utils/pactl.c:605
+#, c-format
+msgid "\t\t\tPart of profile(s): %s"
+msgstr ""
+
+#: ../src/utils/pactl.c:651
+#, c-format
+msgid ""
+"Sink Input #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tClient: %s\n"
+"\tSink: %u\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tFormat: %s\n"
+"\tCorked: %s\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        balance %0.2f\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSink Latency: %0.0f usec\n"
+"\tResample method: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+
+#: ../src/utils/pactl.c:721
+#, c-format
+msgid ""
+"Source Output #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tClient: %s\n"
+"\tSource: %u\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tFormat: %s\n"
+"\tCorked: %s\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        balance %0.2f\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSource Latency: %0.0f usec\n"
+"\tResample method: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+
+#: ../src/utils/pactl.c:789
+#, c-format
+msgid ""
+"Sample #%u\n"
+"\tName: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tVolume: %s\n"
+"\t        balance %0.2f\n"
+"\tDuration: %0.1fs\n"
+"\tSize: %s\n"
+"\tLazy: %s\n"
+"\tFilename: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+
+#: ../src/utils/pactl.c:866
+#, c-format
+msgid "Failed to unload module: Module %s not loaded"
+msgstr ""
+
+#: ../src/utils/pactl.c:884
+#, c-format
+msgid ""
+"Failed to set volume: You tried to set volumes for %d channels, whereas "
+"channel/s supported = %d\n"
+msgstr ""
+
+#: ../src/utils/pactl.c:1171
+msgid "card"
+msgstr "targeta"
+
+#: ../src/utils/pactl.c:1515
+msgid "Invalid number of volume specifications.\n"
+msgstr ""
+
+#: ../src/utils/pactl.c:1527
+msgid "Inconsistent volume specification.\n"
+msgstr ""
+
+#: ../src/utils/pactl.c:1571
+msgid "NAME|#N VOLUME [VOLUME ...]"
+msgstr ""
+
+#: ../src/utils/pactl.c:1572
+msgid "#N VOLUME [VOLUME ...]"
+msgstr ""
+
+#: ../src/utils/pactl.c:1573
+msgid "NAME|#N 1|0|toggle"
+msgstr ""
+
+#: ../src/utils/pactl.c:1574
+msgid "#N 1|0|toggle"
+msgstr ""
+
+#: ../src/utils/pactl.c:1578
+#, c-format
+msgid ""
+"\n"
+"The special names @DEFAULT_SINK@, @DEFAULT_SOURCE@ and @DEFAULT_MONITOR@\n"
+"can be used to specify the default sink, source and monitor.\n"
+msgstr ""
+
+#: ../src/utils/pactl.c:1789
+msgid "You have to specify a module index or name"
+msgstr ""
+
+#: ../src/utils/pactl.c:1807 ../src/utils/pactl.c:1827
+msgid "Invalid suspend specification."
+msgstr ""
+
+#: ../src/utils/pactl.c:1861
+msgid "You have to specify a sink name"
+msgstr ""
+
+#: ../src/utils/pactl.c:1882
+msgid "You have to specify a source name"
+msgstr ""
+
+#: ../src/utils/pactl.c:2032
+msgid "You have to specify a card name/index, a port name and a latency offset"
+msgstr ""
+
+#: ../src/utils/pactl.c:2039
+msgid "Could not parse latency offset"
 msgstr ""
 
 #~ msgid "[%s:%u] rlimit not supported on this platform."
