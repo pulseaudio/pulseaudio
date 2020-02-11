@@ -377,6 +377,13 @@ static int ucm_get_device_property(
             pa_log("UCM playback device %s fetch pcm failed", device_name);
     }
 
+    if (pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_SINK) &&
+        device->playback_channels == 0) {
+        pa_log("UCM file does not specify 'PlaybackChannels' "
+                    "for device %s, assuming stereo duplex.", device_name);
+        device->playback_channels = 2;
+    }
+
     value = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_CAPTURE_CHANNELS);
     if (value) { /* input */
         /* get channels */
@@ -391,10 +398,10 @@ static int ucm_get_device_property(
             pa_log("UCM capture device %s fetch pcm failed", device_name);
     }
 
-    if (device->playback_channels == 0 && device->capture_channels == 0) {
-        pa_log_warn("UCM file does not specify 'PlaybackChannels' or 'CaptureChannels'"
+    if (pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_SOURCE) &&
+        device->capture_channels == 0) {
+        pa_log("UCM file does not specify 'CaptureChannels' "
                     "for device %s, assuming stereo duplex.", device_name);
-        device->playback_channels = 2;
         device->capture_channels = 2;
     }
 
