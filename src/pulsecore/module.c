@@ -45,6 +45,7 @@
 #define PA_SYMBOL_LOAD_ONCE "pa__load_once"
 #define PA_SYMBOL_GET_N_USED "pa__get_n_used"
 #define PA_SYMBOL_GET_DEPRECATE "pa__get_deprecated"
+#define PA_SYMBOL_GET_VERSION "pa__get_version"
 
 bool pa_module_exists(const char *name) {
     const char *paths, *state = NULL;
@@ -113,6 +114,7 @@ void pa_module_hook_connect(pa_module *m, pa_hook *hook, pa_hook_priority_t prio
 
 int pa_module_load(pa_module** module, pa_core *c, const char *name, const char *argument) {
     pa_module *m = NULL;
+    const char *(*get_version)(void);
     bool (*load_once)(void);
     const char* (*get_deprecated)(void);
     pa_modinfo *mi;
@@ -143,6 +145,21 @@ int pa_module_load(pa_module** module, pa_core *c, const char *name, const char 
          * loader, which never finds anything, and therefore says "file not
          * found". */
         pa_log("Failed to open module \"%s\".", name);
+        errcode = -PA_ERR_IO;
+        goto fail;
+    }
+
+    if ((get_version = (const char *(*)(void)) pa_load_sym(m->dl, name, PA_SYMBOL_GET_VERSION))) {
+        const char *version = get_version();
+
+        if (!pa_safe_streq(version, PACKAGE_VERSION)) {
+            pa_log("Module \"%s\" version (%s) doesn't match the expected version (%s).",
+                   name, pa_strnull(version), PACKAGE_VERSION);
+            errcode = -PA_ERR_IO;
+            goto fail;
+        }
+    } else {
+        pa_log("Symbol \"%s\" not found in module \"%s\".", PA_SYMBOL_GET_VERSION, name);
         errcode = -PA_ERR_IO;
         goto fail;
     }
