@@ -141,6 +141,9 @@ option('systemd',
 option('udev',
        type : 'feature', value : 'auto',
        description : 'Optional udev support')
+option('valgrind',
+       type : 'feature', value : 'auto',
+       description : 'Optional Valgrind support')
 option('x11',
        type : 'feature', value : 'auto',
        description : 'Optional X11 support')

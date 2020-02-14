@@ -221,7 +221,6 @@ check_headers = [
   'sys/un.h',
   'sys/wait.h',
   'syslog.h',
-  'valgrind/memcheck.h',
   'xlocale.h',
 ]
 
@@ -231,6 +230,10 @@ foreach h : check_headers
     cdata.set(define, 1)
   endif
 endforeach
+
+if cc.has_header('valgrind/memcheck.h', required: get_option('valgrind'))
+  cdata.set('HAVE_VALGRIND_MEMCHECK_H', 1)
+endif
 
 # FIXME: move this to the above set
 if cc.has_header('pthread.h')
@@ -842,6 +845,7 @@ summary = [
   'Enable SoXR (resampler):       @0@'.format(soxr_dep.found()),
   'Enable WebRTC echo canceller:  @0@'.format(webrtc_dep.found()),
   'Enable Gcov coverage:          @0@'.format(get_option('gcov')),
+  'Enable Valgrind:               @0@'.format(cdata.has('HAVE_VALGRIND_MEMCHECK_H')),
   'Enable man pages:              @0@'.format(get_option('man')),
   'Enable unit tests:             @0@'.format(get_option('tests')),
   '',
