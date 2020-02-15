@@ -135,7 +135,10 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     <option>
       <p><opt>enable-remixing=</opt> If disabled never upmix or
       downmix channels to different channel maps. Instead, do a simple
-      name-based matching only. Defaults to <opt>yes.</opt></p>
+      name-based matching only. Defaults to <opt>yes</opt>.
+      There is no known valid use case for setting this option to
+      <opt>no</opt>, therefore, this option is deprecated and may be
+      removed in a future version of PulseAudio.</p>
     </option>
 
     <option>
