@@ -1317,14 +1317,14 @@ AC_ARG_ENABLE([gstreamer],
 
 AS_IF([test "x$enable_gstreamer" != "xno"],
     [PKG_CHECK_MODULES(GSTREAMER, [ gstreamer-1.0 gstreamer-app-1.0 gstreamer-rtp-1.0 gio-2.0 ],
-                       HAVE_GSTREAMER=yes, HAVE_GSTREAMER=no)],
-    HAVE_GSTREAMER=no)
+                       HAVE_GSTREAMER=1, HAVE_GSTREAMER=0)],
+    HAVE_GSTREAMER=0)
 
-AS_IF([test "x$enable_gstreamer" = "xyes" && test "x$HAVE_GSTREAMER" = "xno"],
+AS_IF([test "x$enable_gstreamer" = "xyes" && test "x$HAVE_GSTREAMER" = "x0"],
     [AC_MSG_ERROR([*** GStreamer 1.0 support not found])])
 
-AM_CONDITIONAL([HAVE_GSTREAMER], [test "x$HAVE_GSTREAMER" = xyes])
-AS_IF([test "x$HAVE_GSTREAMER" = "xyes"], AC_DEFINE([HAVE_GSTREAMER], 1, [Have GStreamer?]))
+AM_CONDITIONAL([HAVE_GSTREAMER], [test "x$HAVE_GSTREAMER" = x1])
+AS_IF([test "x$HAVE_GSTREAMER" = "x1"], AC_DEFINE([HAVE_GSTREAMER], 1, [Have GStreamer?]))
 
 #### Build and Install man pages ####
 
