@@ -1370,7 +1370,8 @@ dist_alsaprofilesets_DATA = \
 		modules/alsa/mixer/profile-sets/dell-dock-tb16-usb-audio.conf \
 		modules/alsa/mixer/profile-sets/cmedia-high-speed-true-hdaudio.conf \
 		modules/alsa/mixer/profile-sets/hp-tbt-dock-120w-g2.conf \
-		modules/alsa/mixer/profile-sets/hp-tbt-dock-audio-module.conf
+		modules/alsa/mixer/profile-sets/hp-tbt-dock-audio-module.conf \
+		modules/alsa/mixer/profile-sets/sennheiser-gsx.conf
 
 if HAVE_UDEV
 dist_udevrules_DATA = \
@@ -1417,7 +1418,9 @@ dist_alsapaths_DATA = \
 		modules/alsa/mixer/paths/steelseries-arctis-output-game-common.conf \
 		modules/alsa/mixer/paths/usb-gaming-headset-input.conf \
 		modules/alsa/mixer/paths/usb-gaming-headset-output-mono.conf \
-		modules/alsa/mixer/paths/usb-gaming-headset-output-stereo.conf
+		modules/alsa/mixer/paths/usb-gaming-headset-output-stereo.conf \
+		modules/alsa/mixer/paths/analog-output-chat.conf \
+		modules/alsa/mixer/paths/virtual-surround-7.1.conf
 
 endif
 

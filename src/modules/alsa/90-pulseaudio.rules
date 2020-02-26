@@ -150,6 +150,13 @@ ATTRS{idVendor}=="0951", ATTRS{idProduct}=="1703", ENV{ID_ID}="usb-HyperX_Cloud_
 # OnePlus Type-C Bullets (ED117)
 ATTRS{idVendor}=="2a70", ATTRS{idProduct}=="1881", ENV{PULSE_PROFILE_SET}="simple-headphones-mic.conf"
 
+# ID 1395:005e is for Sennheiser GSX 1000
+# ID 1395:00a0 is for Sennheiser GSX 1000
+# ID 1395:005f is for Sennheiser GSX 1200
+ATTRS{idVendor}=="1395", ATTRS{idProduct}=="005e", ENV{PULSE_PROFILE_SET}="sennheiser-gsx.conf"
+ATTRS{idVendor}=="1395", ATTRS{idProduct}=="00a0", ENV{PULSE_PROFILE_SET}="sennheiser-gsx.conf"
+ATTRS{idVendor}=="1395", ATTRS{idProduct}=="005f", ENV{PULSE_PROFILE_SET}="sennheiser-gsx.conf"
+
 GOTO="pulseaudio_end"
 
 LABEL="pulseaudio_check_pci"
