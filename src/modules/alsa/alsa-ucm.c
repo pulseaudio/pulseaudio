@@ -1730,6 +1730,10 @@ static int ucm_create_profile(
         /* JackHWMute contains a list of device names. Each listed device must
          * be associated with the jack object that we just created. */
         jack_hw_mute = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_JACK_HW_MUTE);
+        if (jack_hw_mute && !jack) {
+            pa_log("[%s] JackHWMute set, but JackControl is missing", name);
+            jack_hw_mute = NULL;
+        }
         if (jack_hw_mute) {
             char *hw_mute_device_name;
             const char *state = NULL;
