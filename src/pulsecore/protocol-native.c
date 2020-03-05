@@ -2145,7 +2145,7 @@ static void command_delete_stream(pa_pdispatch *pd, uint32_t command, uint32_t t
         case PA_COMMAND_DELETE_PLAYBACK_STREAM: {
             playback_stream *s;
             if (!(s = pa_idxset_get_by_index(c->output_streams, channel)) || !playback_stream_isinstance(s)) {
-                pa_pstream_send_error(c->pstream, tag, PA_ERR_EXIST);
+                pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
                 return;
             }
 
@@ -2156,7 +2156,7 @@ static void command_delete_stream(pa_pdispatch *pd, uint32_t command, uint32_t t
         case PA_COMMAND_DELETE_RECORD_STREAM: {
             record_stream *s;
             if (!(s = pa_idxset_get_by_index(c->record_streams, channel))) {
-                pa_pstream_send_error(c->pstream, tag, PA_ERR_EXIST);
+                pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
                 return;
             }
 
@@ -2168,7 +2168,7 @@ static void command_delete_stream(pa_pdispatch *pd, uint32_t command, uint32_t t
             upload_stream *s;
 
             if (!(s = pa_idxset_get_by_index(c->output_streams, channel)) || !upload_stream_isinstance(s)) {
-                pa_pstream_send_error(c->pstream, tag, PA_ERR_EXIST);
+                pa_pstream_send_error(c->pstream, tag, PA_ERR_NOENTITY);
                 return;
             }
 
