@@ -18,14 +18,18 @@ variables:
   # Update this tag when you want to trigger a rebuild the container in which
   # CI runs, for example when adding new packages to UBUNTU_DEBS. The tag is
   # an arbitrary string that identifies the exact container contents.
-  FDO_DISTRIBUTION_TAG: '2020-03-06-01'
+  FDO_DISTRIBUTION_TAG: '2020-03-07-01'
   FDO_DISTRIBUTION_VERSION: '18.04'
   FDO_UPSTREAM_REPO: 'pulseaudio/pulseaudio'
   UBUNTU_IMAGE: "$CI_REGISTRY_IMAGE/ubuntu/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG"
 
 include:
+  # We pull templates from master to avoid the overhead of periodically
+  # scanning for changes upstream. This does means builds might occasionally
+  # break due to upstream changing things, so if you see unexpected build
+  # failures, this might be one cause.
   - project: 'wayland/ci-templates'
-    ref: 'df52af2195b052325daf5d715c88be90f8ec7d86'
+    ref: 'master'
     file: '/templates/ubuntu.yml'
 
 build-container:
