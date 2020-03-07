@@ -18,24 +18,26 @@ variables:
   # Update this tag when you want to trigger a rebuild the container in which
   # CI runs, for example when adding new packages to UBUNTU_DEBS. The tag is
   # an arbitrary string that identifies the exact container contents.
-  UBUNTU_TAG: '2019-11-21-01'
-  UBUNTU_VERSION: '18.04'
-  UBUNTU_IMAGE: "$CI_REGISTRY_IMAGE/ubuntu/$UBUNTU_VERSION:$UBUNTU_TAG"
+  FDO_DISTRIBUTION_TAG: '2020-03-06-01'
+  FDO_DISTRIBUTION_VERSION: '18.04'
+  FDO_UPSTREAM_REPO: 'pulseaudio/pulseaudio'
+  UBUNTU_IMAGE: "$CI_REGISTRY_IMAGE/ubuntu/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG"
 
 include:
   - project: 'wayland/ci-templates'
-    ref: master
+    ref: 'df52af2195b052325daf5d715c88be90f8ec7d86'
     file: '/templates/ubuntu.yml'
 
 build-container:
-  extends: .ubuntu@container-ifnot-exists
+  extends: .fdo.container-ifnot-exists@ubuntu
   stage: container
   variables:
     GIT_STRATEGY: none # no need to pull the whole tree for rebuilding the image
 
-    # Remember to update UBUNTU_TAG when modifying this package list! Otherwise
-    # the changes won't have effect since an old container image will be used.
-    UBUNTU_DEBS: >-
+    # Remember to update FDO_DISTRIBUTION_TAG when modifying this package list!
+    # Otherwise the changes won't have effect since an old container image will
+    # be used.
+    FDO_DISTRIBUTION_PACKAGES: >-
       autoconf
       automake
       autopoint
