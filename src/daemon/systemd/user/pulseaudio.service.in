@@ -17,7 +17,7 @@ Requires=pulseaudio.socket
 ConditionUser=!root
 
 [Service]
-ExecStart=@PA_BINARY@ --daemonize=no
+ExecStart=@PA_BINARY@ --daemonize=no --log-target=journal
 LockPersonality=yes
 MemoryDenyWriteExecute=yes
 NoNewPrivileges=yes
