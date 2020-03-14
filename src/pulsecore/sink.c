@@ -3609,10 +3609,18 @@ unsigned pa_device_init_priority(pa_proplist *p) {
 
     if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_PROFILE_NAME))) {
 
-        if (pa_startswith(s, "analog-"))
+        if (pa_startswith(s, "analog-")) {
             priority += 9;
+
+            /* If an analog device has an intended role of "phone", it probably
+             * co-exists with another device that is meant for everything else,
+             * and that other device should have higher priority than the phone
+             * device. */
+            if (pa_str_in_list_spaces(pa_proplist_gets(p, PA_PROP_DEVICE_INTENDED_ROLES), "phone"))
+                priority -= 1;
+        }
         else if (pa_startswith(s, "iec958-"))
-            priority += 8;
+            priority += 7;
     }
 
     return priority;
