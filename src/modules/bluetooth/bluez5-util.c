@@ -944,8 +944,9 @@ static void parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessa
         pa_assert(dbus_message_iter_get_arg_type(&iface_i) == DBUS_TYPE_ARRAY);
 
         if (pa_streq(interface, BLUEZ_ADAPTER_INTERFACE)) {
+
+            const pa_a2dp_codec *a2dp_codec_sbc;
             pa_bluetooth_adapter *a;
-            unsigned a2dp_codec_i;
 
             if ((a = pa_hashmap_get(y->adapters, path))) {
                 pa_log_error("Found duplicated D-Bus path for adapter %s", path);
@@ -960,20 +961,13 @@ static void parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessa
             if (!a->valid)
                 return;
 
-            /* Order is important. bluez prefers endpoints registered earlier.
-             * And codec with higher number has higher priority. So iterate in reverse order. */
-            for (a2dp_codec_i = pa_bluetooth_a2dp_codec_count(); a2dp_codec_i > 0; a2dp_codec_i--) {
-                const pa_a2dp_codec *a2dp_codec = pa_bluetooth_a2dp_codec_iter(a2dp_codec_i-1);
-                char *endpoint;
-
-                endpoint = pa_sprintf_malloc("%s/%s", A2DP_SINK_ENDPOINT, a2dp_codec->name);
-                register_endpoint(y, a2dp_codec, path, endpoint, PA_BLUETOOTH_UUID_A2DP_SINK);
-                pa_xfree(endpoint);
-
-                endpoint = pa_sprintf_malloc("%s/%s", A2DP_SOURCE_ENDPOINT, a2dp_codec->name);
-                register_endpoint(y, a2dp_codec, path, endpoint, PA_BLUETOOTH_UUID_A2DP_SOURCE);
-                pa_xfree(endpoint);
-            }
+            /* Currently only one A2DP codec is supported, so register only SBC
+             * Support for multiple codecs needs to use a new Bluez API which
+             * pulseaudio does not implement yet, patches are waiting in queue */
+            a2dp_codec_sbc = pa_bluetooth_get_a2dp_codec("sbc");
+            pa_assert(a2dp_codec_sbc);
+            register_endpoint(y, a2dp_codec_sbc, path, A2DP_SINK_ENDPOINT "/sbc", PA_BLUETOOTH_UUID_A2DP_SINK);
+            register_endpoint(y, a2dp_codec_sbc, path, A2DP_SOURCE_ENDPOINT "/sbc", PA_BLUETOOTH_UUID_A2DP_SOURCE);
 
         } else if (pa_streq(interface, BLUEZ_DEVICE_INTERFACE)) {
 
