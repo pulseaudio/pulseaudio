@@ -1525,7 +1525,7 @@ static int source_set_port_ucm_cb(pa_source *s, pa_device_port *p) {
     pa_assert(u->ucm_context);
 
     data = PA_DEVICE_PORT_DATA(p);
-    pa_assert_se(u->mixer_path = data->path);
+    u->mixer_path = data->path;
     mixer_volume_init(u);
 
     if (s->flags & PA_SOURCE_DEFERRED_VOLUME)
