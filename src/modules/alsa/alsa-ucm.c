@@ -1315,7 +1315,7 @@ int pa_alsa_ucm_set_profile(pa_alsa_ucm_config *ucm, pa_card *card, const char *
     /* select volume controls on ports */
     PA_HASHMAP_FOREACH(port, card->ports, state) {
         data = PA_DEVICE_PORT_DATA(port);
-        data->path = pa_hashmap_get(data->paths, new_profile);
+        data->path = pa_hashmap_get(data->paths, profile);
     }
 
     return ret;
