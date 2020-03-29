@@ -1,8 +1,10 @@
 libpulsecommon_sources = [
   'pulse/client-conf.c',
+  'pulse/error.c',
   'pulse/fork-detect.c',
   'pulse/format.c',
   'pulse/json.c',
+  'pulse/mainloop-api.c',
   'pulse/xmalloc.c',
   'pulse/proplist.c',
   'pulse/utf8.c',
@@ -71,9 +73,11 @@ libpulsecommon_sources = [
 
 libpulsecommon_headers = [
   'pulse/client-conf.h',
+  'pulse/error.h',
   'pulse/fork-detect.h',
   'pulse/format.h',
   'pulse/json.h',
+  'pulse/mainloop-api.h',
   'pulse/xmalloc.h',
   'pulse/proplist.h',
   'pulse/utf8.h',
