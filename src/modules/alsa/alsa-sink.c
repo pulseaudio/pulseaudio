@@ -2511,8 +2511,6 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     /* ALSA might tweak the sample spec, so recalculate the frame size */
     frame_size = pa_frame_size(&ss);
 
-    find_mixer(u, mapping, pa_modargs_get_value(ma, "control", NULL), ignore_dB);
-
     pa_sink_new_data_init(&data);
     data.driver = driver;
     data.module = m;
