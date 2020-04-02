@@ -431,7 +431,7 @@ if shm_dep.found()
 endif
 
 dl_dep = cc.find_library('dl', required : false)
-if dl_dep.found()
+if cc.has_function('dladdr', dependencies : dl_dep)
   cdata.set('HAVE_DLADDR', 1)
 endif
 
