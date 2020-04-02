@@ -31,6 +31,10 @@
 #include <sys/ioctl.h>
 #include <math.h>
 
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+
 #ifdef HAVE_SYS_FILIO_H
 #include <sys/filio.h>
 #endif
