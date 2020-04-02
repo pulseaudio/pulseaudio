@@ -91,6 +91,10 @@ static int _main() PA_GCC_WEAKREF(main);
 #include <sys/sysctl.h>
 #endif
 
+#ifdef __FreeBSD__
+#include <sys/sysctl.h>
+#endif
+
 #ifdef HAVE_DBUS
 #include <pulsecore/rtkit.h>
 #endif
@@ -224,7 +228,7 @@ char *pa_get_binary_name(char *s, size_t l) {
     }
 #endif
 
-#if defined(__linux__) || defined(__FreeBSD_kernel__)
+#if defined(__linux__) || (defined(__FreeBSD_kernel__) && !defined(__FreeBSD__))
     {
         char *rp;
         /* This works on Linux and Debian/kFreeBSD */
@@ -239,11 +243,12 @@ char *pa_get_binary_name(char *s, size_t l) {
 
 #ifdef __FreeBSD__
     {
-        char *rp;
+        char path[PATH_MAX + 1];
+        size_t len = PATH_MAX;
+        int mib[] = { CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1 };
 
-        if ((rp = pa_readlink("/proc/curproc/file"))) {
-            pa_strlcpy(s, pa_path_get_filename(rp), l);
-            pa_xfree(rp);
+        if (sysctl(mib, 4, &path, &len, NULL, 0) == 0) {
+            pa_strlcpy(s, pa_path_get_filename(path), l);
             return s;
         }
     }
