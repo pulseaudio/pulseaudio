@@ -426,7 +426,7 @@ endforeach
 cap_dep = cc.find_library('cap', required : false)
 
 shm_dep = cc.find_library('rt', required : false)
-if shm_dep.found()
+if cc.has_function('shm_open', dependencies : shm_dep)
   cdata.set('HAVE_SHM_OPEN', 1)
 endif
 
