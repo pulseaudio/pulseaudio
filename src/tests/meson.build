@@ -169,7 +169,7 @@ endif
 
 if alsa_dep.found()
   norun_tests += [
-    [ 'alsa-time-test', 'alsa-time-test.c', [ alsa_dep ] ]
+    [ 'alsa-time-test', 'alsa-time-test.c', [ alsa_dep, thread_dep ] ]
   ]
 endif
 
