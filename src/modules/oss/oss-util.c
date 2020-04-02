@@ -164,8 +164,13 @@ int pa_oss_auto_format(int fd, pa_sample_spec *ss) {
         [PA_SAMPLE_FLOAT32BE] = AFMT_QUERY, /* not supported */
         [PA_SAMPLE_S32LE] = AFMT_QUERY, /* not supported */
         [PA_SAMPLE_S32BE] = AFMT_QUERY, /* not supported */
+#if defined(AFMT_S24_LE) && defined(AFMT_S24_BE)
+        [PA_SAMPLE_S24LE] = AFMT_S24_LE,
+        [PA_SAMPLE_S24BE] = AFMT_S24_BE,
+#else
         [PA_SAMPLE_S24LE] = AFMT_QUERY, /* not supported */
         [PA_SAMPLE_S24BE] = AFMT_QUERY, /* not supported */
+#endif
         [PA_SAMPLE_S24_32LE] = AFMT_QUERY, /* not supported */
         [PA_SAMPLE_S24_32BE] = AFMT_QUERY, /* not supported */
     };
