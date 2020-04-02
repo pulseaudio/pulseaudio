@@ -126,6 +126,8 @@ struct userdata {
 
     int nfrags, frag_size, orig_frag_size;
 
+    bool shutdown;
+
     bool use_mmap;
     unsigned out_mmap_current, in_mmap_current;
     void *in_mmap, *out_mmap;
@@ -843,14 +845,10 @@ static void sink_set_volume(pa_sink *s) {
     pa_assert(u->mixer_devmask & (SOUND_MASK_VOLUME|SOUND_MASK_PCM));
 
     if (u->mixer_devmask & SOUND_MASK_VOLUME)
-        if (pa_oss_set_volume(u->mixer_fd, SOUND_MIXER_WRITE_VOLUME, &s->sample_spec, &s->real_volume) >= 0)
-            return;
+        (void) pa_oss_set_volume(u->mixer_fd, SOUND_MIXER_WRITE_VOLUME, &s->sample_spec, &s->real_volume);
 
     if (u->mixer_devmask & SOUND_MASK_PCM)
-        if (pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_WRITE_PCM, &s->sample_spec, &s->real_volume) >= 0)
-            return;
-
-    pa_log_info("Device doesn't support writing mixer settings: %s", pa_cstrerror(errno));
+        (void) pa_oss_set_volume(u->mixer_fd, SOUND_MIXER_WRITE_PCM, &s->sample_spec, &s->real_volume);
 }
 
 static void source_get_volume(pa_source *s) {
@@ -858,7 +856,7 @@ static void source_get_volume(pa_source *s) {
 
     pa_assert_se(u = s->userdata);
 
-    pa_assert(u->mixer_devmask & (SOUND_MASK_IGAIN|SOUND_MASK_RECLEV));
+    pa_assert(u->mixer_devmask & (SOUND_MASK_MIC|SOUND_MASK_IGAIN|SOUND_MASK_RECLEV));
 
     if (u->mixer_devmask & SOUND_MASK_IGAIN)
         if (pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_READ_IGAIN, &s->sample_spec, &s->real_volume) >= 0)
@@ -866,6 +864,10 @@ static void source_get_volume(pa_source *s) {
 
     if (u->mixer_devmask & SOUND_MASK_RECLEV)
         if (pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_READ_RECLEV, &s->sample_spec, &s->real_volume) >= 0)
+            return;
+
+    if (u->mixer_devmask & SOUND_MASK_MIC)
+        if (pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_READ_MIC, &s->sample_spec, &s->real_volume) >= 0)
             return;
 
     pa_log_info("Device doesn't support reading mixer settings: %s", pa_cstrerror(errno));
@@ -876,17 +878,16 @@ static void source_set_volume(pa_source *s) {
 
     pa_assert_se(u = s->userdata);
 
-    pa_assert(u->mixer_devmask & (SOUND_MASK_IGAIN|SOUND_MASK_RECLEV));
+    pa_assert(u->mixer_devmask & (SOUND_MASK_MIC|SOUND_MASK_IGAIN|SOUND_MASK_RECLEV));
 
     if (u->mixer_devmask & SOUND_MASK_IGAIN)
-        if (pa_oss_set_volume(u->mixer_fd, SOUND_MIXER_WRITE_IGAIN, &s->sample_spec, &s->real_volume) >= 0)
-            return;
+        (void) pa_oss_set_volume(u->mixer_fd, SOUND_MIXER_WRITE_IGAIN, &s->sample_spec, &s->real_volume);
 
     if (u->mixer_devmask & SOUND_MASK_RECLEV)
-        if (pa_oss_get_volume(u->mixer_fd, SOUND_MIXER_WRITE_RECLEV, &s->sample_spec, &s->real_volume) >= 0)
-            return;
+        (void) pa_oss_set_volume(u->mixer_fd, SOUND_MIXER_WRITE_RECLEV, &s->sample_spec, &s->real_volume);
 
-    pa_log_info("Device doesn't support writing mixer settings: %s", pa_cstrerror(errno));
+    if (u->mixer_devmask & SOUND_MASK_MIC)
+        (void) pa_oss_set_volume(u->mixer_fd, SOUND_MIXER_WRITE_MIC, &s->sample_spec, &s->real_volume);
 }
 
 static void thread_func(void *userdata) {
@@ -1127,15 +1128,22 @@ static void thread_func(void *userdata) {
             pollfd = pa_rtpoll_item_get_pollfd(u->rtpoll_item, NULL);
             pollfd->events = (short)
                 (((u->source && PA_SOURCE_IS_OPENED(u->source->thread_info.state)) ? POLLIN : 0) |
-                 ((u->sink && PA_SINK_IS_OPENED(u->sink->thread_info.state)) ? POLLOUT : 0));
+                 ((u->sink && PA_SINK_IS_OPENED(u->sink->thread_info.state)) ? POLLOUT : 0) |
+                 POLLHUP);
         }
 
-        /* Hmm, nothing to do. Let's sleep */
-        if ((ret = pa_rtpoll_run(u->rtpoll)) < 0)
-            goto fail;
+        /* set a watchdog timeout of one second */
+        pa_rtpoll_set_timer_relative(u->rtpoll, 1000000);
 
-        if (ret == 0)
-            goto finish;
+        /* Hmm, nothing to do. Let's sleep */
+        if ((ret = pa_rtpoll_run(u->rtpoll)) < 0) {
+            goto fail;
+        }
+
+        /* check for shutdown */
+        if (u->shutdown) {
+            goto fail;
+        }
 
         if (u->rtpoll_item) {
             struct pollfd *pollfd;
@@ -1150,6 +1158,16 @@ static void thread_func(void *userdata) {
             revents = pollfd->revents;
         } else
             revents = 0;
+
+        /* check for mixer shutdown, if any */
+        if ((revents & (POLLOUT | POLLIN)) == 0) {
+            int mixer_fd = u->mixer_fd;
+            int devmask;
+            if (mixer_fd > -1 && ioctl(mixer_fd, SOUND_MIXER_READ_DEVMASK, &devmask) < 0) {
+                pa_log("Mixer shutdown.");
+                goto fail;
+            }
+        }
     }
 
 fail:
@@ -1157,9 +1175,6 @@ fail:
      * processing messages until we received PA_MESSAGE_SHUTDOWN */
     pa_asyncmsgq_post(u->thread_mq.outq, PA_MSGOBJECT(u->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, 0, NULL, NULL);
     pa_asyncmsgq_wait_for(u->thread_mq.inq, PA_MESSAGE_SHUTDOWN);
-
-finish:
-    pa_log_debug("Thread shutting down");
 }
 
 int pa__init(pa_module*m) {
@@ -1448,7 +1463,7 @@ int pa__init(pa_module*m) {
                 do_close = false;
             }
 
-            if (u->source && (u->mixer_devmask & (SOUND_MASK_RECLEV|SOUND_MASK_IGAIN))) {
+            if (u->source && (u->mixer_devmask & (SOUND_MASK_MIC|SOUND_MASK_RECLEV|SOUND_MASK_IGAIN))) {
                 pa_log_debug("Found hardware mixer track for recording.");
                 pa_source_set_get_volume_callback(u->source, source_get_volume);
                 pa_source_set_set_volume_callback(u->source, source_set_volume);
@@ -1533,6 +1548,7 @@ void pa__done(pa_module*m) {
         pa_source_unlink(u->source);
 
     if (u->thread) {
+        u->shutdown = true;
         pa_asyncmsgq_send(u->thread_mq.inq, NULL, PA_MESSAGE_SHUTDOWN, NULL, 0, NULL);
         pa_thread_free(u->thread);
     }
