@@ -352,8 +352,8 @@ int pa_oss_get_hw_description(const char *dev, char *name, size_t l) {
     }
 
     while (!feof(f)) {
-        char line[64];
-        int device;
+        char line[1024] = { 0 };
+        unsigned device;
 
         if (!fgets(line, sizeof(line), f))
             break;
@@ -361,26 +361,29 @@ int pa_oss_get_hw_description(const char *dev, char *name, size_t l) {
         line[strcspn(line, "\r\n")] = 0;
 
         if (!b) {
-            b = pa_streq(line, "Audio devices:");
+            b = pa_streq(line, "Audio devices:") || pa_streq(line, "Installed devices:");
             continue;
         }
 
         if (line[0] == 0)
             break;
 
-        if (sscanf(line, "%i: ", &device) != 1)
+        if (sscanf(line, "%u: ", &device) != 1 && sscanf(line, "pcm%u: ", &device) != 1)
             continue;
 
         if (device == n) {
             char *k = strchr(line, ':');
             pa_assert(k);
             k++;
-            k += strspn(k, " ");
+            k += strspn(k, " <");
 
             if (pa_endswith(k, " (DUPLEX)"))
                 k[strlen(k)-9] = 0;
 
-            pa_strlcpy(name, k, l);
+            k[strcspn(k, ">")] = 0;
+
+            // Include the number to disambiguate devices with the same name
+            pa_snprintf(name, l, "%u - %s", device, k);
             r = 0;
             break;
         }
