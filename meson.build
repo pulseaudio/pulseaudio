@@ -439,6 +439,8 @@ have_iconv = false
 if cc.has_function('iconv_open')
   iconv_dep = dependency('', required : false)
   have_iconv = true
+  # tell the libiconv header to pretend to be libc iconv
+  cdata.set('LIBICONV_PLUG', 1)
 else
   iconv_dep = cc.find_library('iconv', required : false)
   have_iconv = iconv_dep.found()
