@@ -217,6 +217,10 @@ if udev_dep.found()
   endif
 endif
 
+if host_machine.system() == 'freebsd'
+  all_modules += [ [ 'module-devd-detect', 'module-devd-detect.c', [], [], [] ] ]
+endif
+
 if x11_dep.found()
   all_modules += [
     [ 'module-x11-bell', 'x11/module-x11-bell.c', [], [], [x11_dep] ],

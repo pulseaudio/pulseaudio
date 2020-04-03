@@ -67,6 +67,12 @@ load-module module-coreaudio-detect
 ### Use the static hardware detection module (for systems that lack udev support)
 load-module module-detect
 .endif
+ifelse(@OS_IS_FREEBSD@, 1, [dnl
+### FreeBSD devd is used in addition to static detection (only handles hotplug)
+.ifexists module-devd-detect@PA_SOEXT@
+load-module module-devd-detect
+.endif
+])dnl
 
 ### Automatically connect sink and source if JACK server is present
 .ifexists module-jackdbus-detect@PA_SOEXT@

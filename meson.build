@@ -187,6 +187,8 @@ elif host_machine.system() == 'windows'
   pcreposix_dep = meson.get_compiler('c').find_library('pcreposix')
   platform_socket_dep = [ws2_32_dep, winsock_dep]
   platform_dep = [ole32_dep, ssp_dep, pcreposix_dep]
+elif host_machine.system() == 'freebsd'
+  cdata.set('OS_IS_FREEBSD', 1)
 #elif host_machine.system() == 'solaris'
 #  # Apparently meson has no solaris support?
 #  # Needed to get declarations for msg_control and msg_controllen on Solaris
