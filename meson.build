@@ -333,7 +333,8 @@ foreach f : check_functions
   endif
 endforeach
 
-if cc.has_header_symbol('sys/syscall.h', 'SYS_memfd_create')
+if cc.has_header_symbol('sys/syscall.h', 'SYS_memfd_create') \
+  or cc.has_function('memfd_create')
   cdata.set('HAVE_MEMFD', 1)
 endif
 
