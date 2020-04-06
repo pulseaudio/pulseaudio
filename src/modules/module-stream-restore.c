@@ -1450,8 +1450,10 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
     else if ((e = entry_read(u, name))) {
         pa_sink *s = NULL;
 
-        if (e->device_valid)
+        if (e->device_valid) {
             s = pa_namereg_get(c, e->device, PA_NAMEREG_SINK);
+            new_data->preferred_sink = pa_xstrdup(e->device);
+        }
 
         if (!s && e->card_valid) {
             pa_card *card;
@@ -1555,8 +1557,10 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
     else if ((e = entry_read(u, name))) {
         pa_source *s = NULL;
 
-        if (e->device_valid)
+        if (e->device_valid) {
             s = pa_namereg_get(c, e->device, PA_NAMEREG_SOURCE);
+            new_data->preferred_source = pa_xstrdup(e->device);
+        }
 
         if (!s && e->card_valid) {
             pa_card *card;
