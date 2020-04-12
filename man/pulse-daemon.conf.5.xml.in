@@ -61,7 +61,7 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
   <section name="General Directives">
 
     <option>
-      <p><opt>daemonize= </opt> Daemonize after startup. Takes a
+      <p><opt>daemonize=</opt> Daemonize after startup. Takes a
       boolean value, defaults to <opt>no</opt>. The <opt>--daemonize</opt>
       command line option takes precedence.</p>
     </option>
