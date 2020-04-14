@@ -230,6 +230,7 @@ typedef struct pa_sink_port_info {
     uint32_t priority;                  /**< The higher this value is, the more useful this port is as a default. */
     int available;                      /**< A flags (see #pa_port_available), indicating availability status of this port. \since 2.0 */
     const char *available_group;        /**< A string indentifier which determine the group of devices handling the available state simultaneously. \since 14.0 */
+    uint32_t type;			/**< Port device type (PA_PORT_DEVICE_TYPE). \since 14.0 */
 } pa_sink_port_info;
 
 /** Stores information about sinks. Please note that this structure
@@ -311,6 +312,7 @@ typedef struct pa_source_port_info {
     uint32_t priority;                  /**< The higher this value is, the more useful this port is as a default. */
     int available;                      /**< A flags (see #pa_port_available), indicating availability status of this port. \since 2.0 */
     const char *available_group;        /**< A string indentifier which determine the group of devices handling the available state simultaneously. \since 14.0 */
+    uint32_t type;			/**< Port device type (PA_PORT_DEVICE_TYPE). \since 14.0 */
 } pa_source_port_info;
 
 /** Stores information about sources. Please note that this structure
@@ -512,6 +514,7 @@ typedef struct pa_card_port_info {
     int64_t latency_offset;             /**< Latency offset of the port that gets added to the sink/source latency when the port is active. \since 3.0 */
     pa_card_profile_info2** profiles2;  /**< Array of pointers to available profiles, or NULL. Array is terminated by an entry set to NULL. \since 5.0 */
     const char *available_group;        /**< A string indentifier which determine the group of devices handling the available state simultaneously. \since 14.0 */
+    uint32_t type;			/**< Port device type (PA_PORT_DEVICE_TYPE). \since 14.0 */
 } pa_card_port_info;
 
 /** Stores information about cards. Please note that this structure

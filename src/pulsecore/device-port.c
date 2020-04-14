@@ -29,6 +29,7 @@ pa_device_port_new_data *pa_device_port_new_data_init(pa_device_port_new_data *d
     pa_assert(data);
 
     pa_zero(*data);
+    data->type = PA_DEVICE_PORT_TYPE_UNKNOWN;
     data->available = PA_AVAILABLE_UNKNOWN;
     return data;
 }
@@ -64,6 +65,12 @@ void pa_device_port_new_data_set_direction(pa_device_port_new_data *data, pa_dir
     pa_assert(data);
 
     data->direction = direction;
+}
+
+void pa_device_port_new_data_set_type(pa_device_port_new_data *data, pa_device_port_type_t type) {
+    pa_assert(data);
+
+    data->type = type;
 }
 
 void pa_device_port_new_data_done(pa_device_port_new_data *data) {
@@ -182,6 +189,7 @@ pa_device_port *pa_device_port_new(pa_core *c, pa_device_port_new_data *data, si
     data->available_group = NULL;
     p->profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     p->direction = data->direction;
+    p->type = data->type;
 
     p->latency_offset = 0;
     p->proplist = pa_proplist_new();

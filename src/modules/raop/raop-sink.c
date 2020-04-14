@@ -635,6 +635,7 @@ static pa_device_port *raop_create_port(struct userdata *u, const char *server) 
     pa_device_port_new_data_set_name(&data, "network-output");
     pa_device_port_new_data_set_description(&data, server);
     pa_device_port_new_data_set_direction(&data, PA_DIRECTION_OUTPUT);
+    pa_device_port_new_data_set_type(&data, PA_DEVICE_PORT_TYPE_NETWORK);
 
     port = pa_device_port_new(u->core, &data, 0);
 

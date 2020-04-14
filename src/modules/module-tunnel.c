@@ -1039,7 +1039,9 @@ static int read_ports(struct userdata *u, pa_tagstruct *t) {
                     pa_log("Parse failure");
                     return -PA_ERR_PROTOCOL;
                 }
-                if (u->version >= 34 && pa_tagstruct_gets(t, &s) < 0) { /* available_group */
+                if (u->version >= 34 &&
+                    (pa_tagstruct_gets(t, &s) < 0 || /* available_group */
+                     pa_tagstruct_getu32(t, &priority) < 0)) { /* device port type */
                     pa_log("Parse failure");
                     return -PA_ERR_PROTOCOL;
                 }

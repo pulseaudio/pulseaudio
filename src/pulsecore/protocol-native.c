@@ -3207,8 +3207,10 @@ static void sink_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_sin
             pa_tagstruct_putu32(t, p->priority);
             if (c->version >= 24) {
                 pa_tagstruct_putu32(t, p->available);
-                if (c->version >= 34)
+                if (c->version >= 34) {
                     pa_tagstruct_puts(t, p->available_group);
+                    pa_tagstruct_putu32(t, p->type);
+                }
             }
         }
 
@@ -3280,8 +3282,10 @@ static void source_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_s
             pa_tagstruct_putu32(t, p->priority);
             if (c->version >= 24) {
                 pa_tagstruct_putu32(t, p->available);
-                if (c->version >= 34)
+                if (c->version >= 34) {
                     pa_tagstruct_puts(t, p->available_group);
+                    pa_tagstruct_putu32(t, p->type);
+                }
             }
         }
 
@@ -3366,8 +3370,10 @@ static void card_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_car
 
         if (c->version >= 27) {
             pa_tagstruct_puts64(t, port->latency_offset);
-            if (c->version >= 34)
+            if (c->version >= 34) {
                 pa_tagstruct_puts(t, port->available_group);
+                pa_tagstruct_putu32(t, port->type);
+            }
         }
     }
 }

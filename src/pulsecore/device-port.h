@@ -43,6 +43,7 @@ struct pa_device_port {
     char *name;
     char *description;
     char *preferred_profile;
+    pa_device_port_type_t type;
 
     unsigned priority;
     pa_available_t available;         /* PA_AVAILABLE_UNKNOWN, PA_AVAILABLE_NO or PA_AVAILABLE_YES */
@@ -70,6 +71,7 @@ typedef struct pa_device_port_new_data {
     pa_available_t available;
     char *available_group;
     pa_direction_t direction;
+    pa_device_port_type_t type;
 } pa_device_port_new_data;
 
 pa_device_port_new_data *pa_device_port_new_data_init(pa_device_port_new_data *data);
@@ -78,6 +80,7 @@ void pa_device_port_new_data_set_description(pa_device_port_new_data *data, cons
 void pa_device_port_new_data_set_available(pa_device_port_new_data *data, pa_available_t available);
 void pa_device_port_new_data_set_available_group(pa_device_port_new_data *data, const char *group);
 void pa_device_port_new_data_set_direction(pa_device_port_new_data *data, pa_direction_t direction);
+void pa_device_port_new_data_set_type(pa_device_port_new_data *data, pa_device_port_type_t type);
 void pa_device_port_new_data_done(pa_device_port_new_data *data);
 
 pa_device_port *pa_device_port_new(pa_core *c, pa_device_port_new_data *data, size_t extra);
