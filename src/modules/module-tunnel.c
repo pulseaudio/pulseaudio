@@ -1034,9 +1034,15 @@ static int read_ports(struct userdata *u, pa_tagstruct *t) {
                 pa_log("Parse failure");
                 return -PA_ERR_PROTOCOL;
             }
-            if (u->version >= 24 && pa_tagstruct_getu32(t, &priority) < 0) { /* available */
-                pa_log("Parse failure");
-                return -PA_ERR_PROTOCOL;
+            if (u->version >= 24) {
+                if (pa_tagstruct_getu32(t, &priority) < 0) { /* available */
+                    pa_log("Parse failure");
+                    return -PA_ERR_PROTOCOL;
+                }
+                if (u->version >= 34 && pa_tagstruct_gets(t, &s) < 0) { /* available_group */
+                    pa_log("Parse failure");
+                    return -PA_ERR_PROTOCOL;
+                }
             }
         }
 
