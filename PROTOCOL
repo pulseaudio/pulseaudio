@@ -427,6 +427,10 @@ Added two values to the pa_encoding_t enum:
     PA_ENCODING_TRUEHD_IEC61937 := 7
     PA_ENCODING_DTSHD_IEC61937 := 8
 
+## v34, implemented by >= 14.0
+
+Added available_group and type fields to the device port info.
+
 #### If you just changed the protocol, read this
 ## module-tunnel depends on the sink/source/sink-input/source-input protocol
 ## internals, so if you changed these, you might have broken module-tunnel.
