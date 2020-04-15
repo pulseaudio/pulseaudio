@@ -76,6 +76,7 @@ struct ucm_info {
     unsigned priority;
 };
 
+static pa_alsa_jack* ucm_get_jack(pa_alsa_ucm_config *ucm, pa_alsa_ucm_device *device);
 static void device_set_jack(pa_alsa_ucm_device *device, pa_alsa_jack *jack);
 static void device_add_hw_mute_jack(pa_alsa_ucm_device *device, pa_alsa_jack *jack);
 
@@ -955,6 +956,7 @@ static void ucm_add_port_combination(
     pa_alsa_ucm_device *sorted[num], *dev;
     pa_alsa_ucm_port_data *data;
     pa_alsa_ucm_volume *vol;
+    pa_alsa_jack *jack, *jack2;
     void *state;
 
     for (i = 0; i < num; i++)
@@ -973,6 +975,7 @@ static void ucm_add_port_combination(
 
     priority = is_sink ? dev->playback_priority : dev->capture_priority;
     prio2 = (priority == 0 ? 0 : 1.0/priority);
+    jack = ucm_get_jack(context->ucm, dev);
 
     for (i = 1; i < num; i++) {
         char *tmp;
@@ -991,6 +994,13 @@ static void ucm_add_port_combination(
         priority = is_sink ? dev->playback_priority : dev->capture_priority;
         if (priority != 0 && prio2 > 0)
             prio2 += 1.0/priority;
+
+        jack2 = ucm_get_jack(context->ucm, dev);
+        if (jack2) {
+            if (jack && jack != jack2)
+                pa_log_warn("Multiple jacks per combined device '%s': '%s' '%s'", name, jack->name, jack2->name);
+            jack = jack2;
+        }
     }
 
     /* Make combination ports always have lower priority, and use the formula
@@ -1009,6 +1019,8 @@ static void ucm_add_port_combination(
         pa_device_port_new_data_set_name(&port_data, name);
         pa_device_port_new_data_set_description(&port_data, desc);
         pa_device_port_new_data_set_direction(&port_data, is_sink ? PA_DIRECTION_OUTPUT : PA_DIRECTION_INPUT);
+        if (jack)
+            pa_device_port_new_data_set_available_group(&port_data, jack->name);
 
         port = pa_device_port_new(core, &port_data, sizeof(pa_alsa_ucm_port_data));
         pa_device_port_new_data_done(&port_data);
