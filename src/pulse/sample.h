@@ -171,6 +171,10 @@ typedef enum pa_sample_format {
     PA_SAMPLE_S24_32BE,
     /**< Signed 24 Bit PCM in LSB of 32 Bit words, big endian. \since 0.9.15 */
 
+    /* Remeber to update
+     * https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/SupportedAudioFormats/
+     * when adding new formats! */
+
     PA_SAMPLE_MAX,
     /**< Upper limit of valid sample types */
 

@@ -243,11 +243,15 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
 
     <option>
       <p><opt>set-sink-formats</opt> <arg>SINK</arg> <arg>FORMATS</arg></p>
-      <optdesc><p>Set the supported formats of the specified sink (identified by its numerical index) if supported by the sink.
-      <arg>FORMATS</arg> is specified as a semi-colon (;) separated list of formats in the form
-      'encoding[, key1=value1, key2=value2, ...]' (for example, AC3 at 32000, 44100 and 48000 Hz would be specified as
-      'ac3-iec61937, format.rate = "[ 32000, 44100, 48000 ]"').
-      </p></optdesc> </option>
+      <optdesc><p>Set the supported formats of the specified sink (identified
+      by its numerical index) if supported by the sink. <arg>FORMATS</arg> is
+      specified as a semi-colon (;) separated list of formats in the form
+      'encoding[, key1=value1, key2=value2, ...]' (for example, AC3 at 32000,
+      44100 and 48000 Hz would be specified as
+      'ac3-iec61937, format.rate = "[ 32000, 44100, 48000 ]"'). See
+      https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/SupportedAudioFormats/
+      for possible encodings. </p></optdesc>
+    </option>
 
     <option>
       <p><opt>subscribe</opt></p>

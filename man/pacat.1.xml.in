@@ -116,18 +116,9 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
       <p><opt>--format</opt><arg>=FORMAT</arg></p>
 
       <optdesc><p>Capture or play back audio with the specified sample
-      format. Specify one of <opt>u8</opt>, <opt>s16le</opt>,
-      <opt>s16be</opt>, <opt>s32le</opt>, <opt>s32be</opt>,
-      <opt>float32le</opt>, <opt>float32be</opt>, <opt>ulaw</opt>,
-      <opt>alaw</opt>, <opt>s32le</opt>, <opt>s32be</opt>,
-      <opt>s24le</opt>, <opt>s24be</opt>, <opt>s24-32le</opt>,
-      <opt>s24-32be</opt>. Depending on the endianness of the CPU the
-      formats <opt>s16ne</opt>, <opt>s16re</opt>, <opt>s32ne</opt>,
-      <opt>s32re</opt>, <opt>float32ne</opt>, <opt>float32re</opt>,
-      <opt>s32ne</opt>, <opt>s32re</opt>, <opt>s24ne</opt>,
-      <opt>s24re</opt>, <opt>s24-32ne</opt>, <opt>s24-32re</opt> (for
-      native, resp. reverse endian) are available as aliases. Defaults
-      to s16ne.</p></optdesc>
+      format. See
+      https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/SupportedAudioFormats/
+      for supported values. Defaults to s16ne.</p></optdesc>
     </option>
 
     <option>
