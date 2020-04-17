@@ -739,6 +739,7 @@ void pa_alsa_path_free(pa_alsa_path *p) {
     }
 
     pa_proplist_free(p->proplist);
+    pa_xfree(p->available_group);
     pa_xfree(p->name);
     pa_xfree(p->description);
     pa_xfree(p->description_key);
@@ -4180,6 +4181,51 @@ fail:
     return -1;
 }
 
+/* the logic is simple: if we see the jack in multiple paths */
+/* assign all those jacks to one available_group */
+static void mapping_group_available(pa_hashmap *paths)
+{
+    void *state, *state2;
+    pa_alsa_path *p, *p2;
+    pa_alsa_jack *j, *j2;
+    uint32_t num = 1;
+
+    PA_HASHMAP_FOREACH(p, paths, state) {
+        const char *found = NULL;
+        bool has_control = false;
+        PA_LLIST_FOREACH(j, p->jacks) {
+           if (!j->has_control || j->state_plugged == PA_AVAILABLE_NO)
+               continue;
+           has_control = true;
+           j->state_plugged = PA_AVAILABLE_UNKNOWN;
+           PA_HASHMAP_FOREACH(p2, paths, state2) {
+               if (p2 == p)
+                   break;
+               PA_LLIST_FOREACH(j2, p->jacks) {
+                   if (!j2->has_control || j->state_plugged == PA_AVAILABLE_NO)
+                       continue;
+                   if (pa_streq(j->name, j2->name)) {
+                       j2->state_plugged = PA_AVAILABLE_UNKNOWN;
+                       found = p2->available_group;
+                       break;
+                   }
+               }
+           }
+           if (found)
+               break;
+       }
+       if (!has_control)
+           continue;
+       if (!found) {
+           p->available_group = pa_sprintf_malloc("Legacy %d", num);
+       } else {
+           p->available_group = pa_xstrdup(found);
+       }
+       if (!found)
+            num++;
+    }
+}
+
 static void mapping_paths_probe(pa_alsa_mapping *m, pa_alsa_profile *profile,
                                 pa_alsa_direction_t direction, pa_hashmap *used_paths,
                                 pa_hashmap *mixers) {
@@ -4227,6 +4273,8 @@ static void mapping_paths_probe(pa_alsa_mapping *m, pa_alsa_profile *profile,
 
     PA_HASHMAP_FOREACH(p, ps->paths, state)
         pa_hashmap_put(used_paths, p, p);
+
+    mapping_group_available(ps->paths);
 
     pa_log_debug("Available mixer paths (after tidying):");
     pa_alsa_path_set_dump(ps);
@@ -5026,6 +5074,7 @@ static pa_device_port* device_port_alsa_init(pa_hashmap *ports, /* card ports */
         pa_device_port_new_data_set_name(&port_data, name);
         pa_device_port_new_data_set_description(&port_data, description);
         pa_device_port_new_data_set_direction(&port_data, path->direction == PA_ALSA_DIRECTION_OUTPUT ? PA_DIRECTION_OUTPUT : PA_DIRECTION_INPUT);
+        pa_device_port_new_data_set_available_group(&port_data, path->available_group);
 
         p = pa_device_port_new(core, &port_data, sizeof(pa_alsa_port_data));
         pa_device_port_new_data_done(&port_data);

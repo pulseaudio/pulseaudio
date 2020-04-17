@@ -211,6 +211,7 @@ struct pa_alsa_path {
     char *name;
     char *description_key;
     char *description;
+    char *available_group;
     unsigned priority;
     bool autodetect_eld_device;
     pa_alsa_mixer *eld_mixer_handle;
