@@ -1877,8 +1877,11 @@ static int process_rewind(struct userdata *u) {
             u->after_rewind = true;
             return 0;
         }
-    } else
+    } else {
         pa_log_debug("Mhmm, actually there is nothing to rewind.");
+        if (u->use_tsched)
+            increase_watermark(u);
+    }
 
 rewind_done:
     pa_sink_process_rewind(u->sink, 0);
