@@ -81,6 +81,12 @@ struct ucm_info {
     unsigned priority;
 };
 
+typedef struct {
+    bool is_sink;
+    char *pcm_name;
+    pa_idxset *ucm_devices;
+} pa_alsa_conflict_pcm;
+
 static pa_alsa_jack* ucm_get_jack(pa_alsa_ucm_config *ucm, pa_alsa_ucm_device *device);
 static void device_set_jack(pa_alsa_ucm_device *device, pa_alsa_jack *jack);
 static void device_add_hw_mute_jack(pa_alsa_ucm_device *device, pa_alsa_jack *jack);
@@ -726,7 +732,28 @@ static void ucm_set_media_roles(pa_alsa_ucm_modifier *modifier, pa_alsa_ucm_devi
     }
 }
 
-static void append_lost_relationship(pa_alsa_ucm_device *dev) {
+static void convert_to_conflicting(pa_alsa_ucm_verb *verb, pa_alsa_ucm_device *dev)
+{
+    pa_alsa_ucm_device *verbdev, *d;
+    uint32_t idx;
+    int found;
+
+    dev->conflicting_devices = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+    PA_LLIST_FOREACH(verbdev, verb->devices) {
+        found = false;
+        PA_IDXSET_FOREACH(d, dev->supported_devices, idx)
+           if (verbdev == d) {
+               found = true;
+               break;
+           }
+        if (!found)
+            pa_idxset_put(dev->conflicting_devices, verbdev, NULL);
+    }
+    pa_idxset_free(dev->supported_devices, NULL);
+    dev->supported_devices = NULL;
+}
+
+static void append_lost_relationship(pa_alsa_ucm_verb *verb, pa_alsa_ucm_device *dev) {
     uint32_t idx;
     pa_alsa_ucm_device *d;
 
@@ -752,6 +779,8 @@ static void append_lost_relationship(pa_alsa_ucm_device *dev) {
                         pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME),
                         pa_proplist_gets(d->proplist, PA_ALSA_PROP_UCM_NAME));
         }
+
+        convert_to_conflicting(verb, dev);
     }
 }
 
@@ -877,7 +906,7 @@ int pa_alsa_ucm_get_verb(snd_use_case_mgr_t *uc_mgr, const char *verb_name, cons
     }
     /* make conflicting or supported device mutual */
     PA_LLIST_FOREACH(d, verb->devices)
-        append_lost_relationship(d);
+        append_lost_relationship(verb, d);
 
     PA_LLIST_FOREACH(mod, verb->modifiers) {
         const char *mod_name = pa_proplist_gets(mod->proplist, PA_ALSA_PROP_UCM_NAME);
@@ -1345,48 +1374,78 @@ void pa_alsa_ucm_add_ports(
     pa_xfree(merged_roles);
 }
 
+static int switch_off_combined_devices(pa_alsa_ucm_config *ucm, pa_idxset *set)
+{
+    pa_alsa_ucm_device *dev, *dev2;
+    uint32_t idx, idx2;
+    int ret = 0;
+
+    if (set == NULL)
+	return 0;
+    PA_IDXSET_FOREACH(dev, set, idx)
+        PA_IDXSET_FOREACH(dev2, dev->conflicting_devices, idx2) {
+            const char *name = pa_proplist_gets(dev2->proplist, PA_ALSA_PROP_UCM_NAME);
+            pa_log_debug("Disable ucm combined device %s", name);
+            if (snd_use_case_set(ucm->ucm_mgr, "_disdev", name) > 0) {
+                pa_log("Failed to disable ucm combined device %s", name);
+                ret = -1;
+            }
+        }
+    return ret;
+}
+
 /* Change UCM verb and device to match selected card profile */
-int pa_alsa_ucm_set_profile(pa_alsa_ucm_config *ucm, pa_card *card, const char *new_profile, const char *old_profile) {
+int pa_alsa_ucm_set_profile(pa_alsa_ucm_config *ucm, pa_card *card, pa_alsa_profile *new_profile, pa_alsa_profile *old_profile) {
     int ret = 0;
     const char *profile;
     pa_alsa_ucm_verb *verb;
     pa_device_port *port;
     pa_alsa_ucm_port_data *data;
     void *state;
+    char *verb_name, *s;
 
     if (new_profile == old_profile)
         return ret;
     else if (new_profile == NULL || old_profile == NULL)
-        profile = new_profile ? new_profile : SND_USE_CASE_VERB_INACTIVE;
-    else if (!pa_streq(new_profile, old_profile))
-        profile = new_profile;
+        profile = new_profile && new_profile->name ? new_profile->name : SND_USE_CASE_VERB_INACTIVE;
+    else if (!pa_streq(new_profile->name ? new_profile->name : "", old_profile->name ? old_profile->name : ""))
+        profile = new_profile->name ? new_profile->name : SND_USE_CASE_VERB_INACTIVE;
     else
         return ret;
 
+    verb_name = pa_xstrdup(profile);
+    s = strstr(verb_name, " (");
+    if (s)
+        *s = '\0';
+
     /* change verb */
-    pa_log_info("Set UCM verb to %s", profile);
-    if ((snd_use_case_set(ucm->ucm_mgr, "_verb", profile)) < 0) {
-        pa_log("Failed to set verb %s", profile);
+    pa_log_info("Set UCM verb to %s [%s]", profile, verb_name);
+    if ((snd_use_case_set(ucm->ucm_mgr, "_verb", verb_name)) < 0) {
+        pa_log("Failed to set verb %s", verb_name);
         ret = -1;
     }
-
     /* find active verb */
     ucm->active_verb = NULL;
     PA_LLIST_FOREACH(verb, ucm->verbs) {
-        const char *verb_name;
-        verb_name = pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_NAME);
-        if (pa_streq(verb_name, profile)) {
+        const char *verb_name2;
+        verb_name2 = pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_NAME);
+        if (pa_streq(verb_name, verb_name2)) {
             ucm->active_verb = verb;
             break;
         }
     }
 
+    /* Switch off the combined devices */
+    if (ret == 0 && new_profile)
+        ret = switch_off_combined_devices(new_profile->ucm_context.ucm, new_profile->ucm_context.combined_devices);
+
     /* select volume controls on ports */
     PA_HASHMAP_FOREACH(port, card->ports, state) {
         data = PA_DEVICE_PORT_DATA(port);
-        data->path = pa_hashmap_get(data->paths, profile);
+        data->path = pa_hashmap_get(data->paths, verb_name);
     }
 
+    pa_xfree(verb_name);
     return ret;
 }
 
@@ -1576,11 +1635,12 @@ static int ucm_create_mapping_direction(
         m->device_strings[0] = pa_xstrdup(device_str);
         m->direction = is_sink ? PA_ALSA_DIRECTION_OUTPUT : PA_ALSA_DIRECTION_INPUT;
 
-        ucm_add_mapping(p, m);
         if (rate)
             m->sample_spec.rate = rate;
         pa_channel_map_init_extend(&m->channel_map, channels, PA_CHANNEL_MAP_ALSA);
     }
+
+    ucm_add_mapping(p, m);
 
     /* mapping priority is the highest one of ucm devices */
     if (priority > m->priority)
@@ -1733,7 +1793,11 @@ static int ucm_create_profile(
         pa_alsa_profile_set *ps,
         pa_alsa_ucm_verb *verb,
         const char *verb_name,
-        const char *verb_desc) {
+        const char *verb_extra_name,
+        const char *verb_desc,
+        pa_idxset *devices,
+        pa_idxset *combined_devices,
+        uint32_t extra_priority) {
 
     pa_alsa_profile *p;
     pa_alsa_ucm_device *dev;
@@ -1741,6 +1805,7 @@ static int ucm_create_profile(
     int i = 0;
     const char *name, *sink, *source;
     unsigned int priority;
+    uint32_t idx;
 
     pa_assert(ps);
 
@@ -1751,14 +1816,23 @@ static int ucm_create_profile(
 
     p = pa_xnew0(pa_alsa_profile, 1);
     p->profile_set = ps;
-    p->name = pa_xstrdup(verb_name);
-    p->description = pa_xstrdup(verb_desc);
+    p->ucm_context.ucm = ucm;
+    if (verb_extra_name) {
+        p->name = pa_sprintf_malloc("%s (%s)", verb_name, verb_extra_name);
+        p->description = pa_sprintf_malloc("%s (%s)", verb_desc, verb_extra_name);
+    } else {
+        p->name = pa_xstrdup(verb_name);
+        p->description = pa_xstrdup(verb_desc);
+    }
 
     p->output_mappings = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
     p->input_mappings = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
     p->supported = true;
     pa_hashmap_put(ps->profiles, p->name, p);
+
+    if (combined_devices && pa_idxset_size(combined_devices) > 0)
+        p->ucm_context.combined_devices = pa_idxset_copy(combined_devices, NULL);
 
     /* TODO: get profile priority from policy management */
     priority = verb->priority;
@@ -1779,9 +1853,9 @@ static int ucm_create_profile(
         pa_xfree(verb_cmp);
     }
 
-    p->priority = priority;
+    p->priority = priority + extra_priority;
 
-    PA_LLIST_FOREACH(dev, verb->devices) {
+    PA_IDXSET_FOREACH(dev, devices, idx) {
         pa_alsa_jack *jack;
         const char *jack_hw_mute;
 
@@ -1966,14 +2040,22 @@ static void ucm_probe_profile_set(pa_alsa_ucm_config *ucm, pa_alsa_profile_set *
     uint32_t idx;
 
     PA_HASHMAP_FOREACH(p, ps->profiles, state) {
-        /* change verb */
-        pa_log_info("Set ucm verb to %s", p->name);
+        char *verb_name = pa_xstrdup(p->name);
+        char *s = strstr(verb_name, " (");
 
-        if ((snd_use_case_set(ucm->ucm_mgr, "_verb", p->name)) < 0) {
-            pa_log("Failed to set verb %s", p->name);
+        if (s)
+            *s = '\0';
+
+        /* change verb */
+        pa_log_info("Set ucm verb to %s [%s]", p->name, verb_name);
+
+        if ((snd_use_case_set(ucm->ucm_mgr, "_verb", verb_name)) < 0) {
+            pa_log("Failed to set verb %s", verb_name);
             p->supported = false;
             continue;
         }
+
+        pa_xfree(verb_name);
 
         PA_IDXSET_FOREACH(m, p->output_mappings, idx) {
             if (PA_UCM_IS_MODIFIER_MAPPING(m)) {
@@ -2029,6 +2111,146 @@ static void ucm_probe_profile_set(pa_alsa_ucm_config *ucm, pa_alsa_profile_set *
     pa_alsa_profile_set_drop_unsupported(ps);
 }
 
+static void ucm_analyze_add_device(pa_idxset *top, const char *name, const char *pcm_name, bool is_sink) {
+    pa_alsa_conflict_pcm *pcm;
+    uint32_t idx;
+
+    PA_IDXSET_FOREACH(pcm, top, idx) {
+	if (pcm->is_sink == is_sink && pa_streq(pcm->pcm_name, pcm_name) == 0)
+	    break;
+    }
+    if (!pcm) {
+        pcm = pa_xnew0(pa_alsa_conflict_pcm, 1);
+        pcm->is_sink = is_sink;
+        pcm->pcm_name = pa_xstrdup(pcm_name);
+        pcm->ucm_devices = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+        pa_idxset_put(top, pcm, NULL);
+    }
+    pa_idxset_put(pcm->ucm_devices, pa_xstrdup(name), NULL);
+}
+
+/* we need to split verbs to satisfy conflicting device hints */
+static pa_idxset *ucm_analyze_conflicting(pa_alsa_ucm_verb *verb) {
+    pa_alsa_ucm_device *dev, *dev2;
+    uint32_t idx;
+    pa_idxset *top = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+    PA_LLIST_FOREACH(dev, verb->devices) {
+        const char *name = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME);
+        const char *sink = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_SINK);
+        const char *source = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_SOURCE);
+	if (dev->conflicting_devices) {
+            PA_IDXSET_FOREACH(dev2, dev->conflicting_devices, idx) {
+                const char *sink2 = pa_proplist_gets(dev2->proplist, PA_ALSA_PROP_UCM_SINK);
+                const char *source2 = pa_proplist_gets(dev2->proplist, PA_ALSA_PROP_UCM_SOURCE);
+                if (sink && sink2 && !pa_streq(sink, sink2))
+                    ucm_analyze_add_device(top, name, sink, true);
+                if (source && source2 && !pa_streq(source, source2))
+                    ucm_analyze_add_device(top, name, source, false);
+            }
+        }
+    }
+    return top;
+}
+
+static void ucm_analyze_conflicting_free(pa_idxset *top) {
+    pa_alsa_conflict_pcm *pcm;
+    uint32_t idx;
+
+    PA_IDXSET_FOREACH(pcm, top, idx) {
+        pa_xfree(pcm->pcm_name);
+        pa_idxset_free(pcm->ucm_devices, NULL);
+    }
+    pa_idxset_free(top, pa_xfree);
+}
+
+static void ucm_analyze_create_profile(
+        pa_alsa_ucm_config *ucm, pa_alsa_profile_set *ps,
+        pa_alsa_ucm_verb *verb, pa_idxset *devices,
+        pa_idxset *combined_devices,
+        const char *verb_extra_name,
+        uint32_t extra_priority) {
+
+    const char *verb_name;
+    const char *verb_desc;
+
+    verb_name = pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_NAME);
+    verb_desc = pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_DESCRIPTION);
+    if (verb_name == NULL) {
+        pa_log("Verb with no name");
+        return;
+    }
+
+    ucm_create_profile(ucm, ps, verb, verb_name, verb_extra_name, verb_desc,
+                       devices, combined_devices, extra_priority);
+}
+
+/* return -1: normal device handling, 0 = combination is not selected, 1 = combination is selected */
+static int ucm_analyze_is_combination(pa_idxset *top, const char *name, uint32_t combination) {
+    pa_alsa_conflict_pcm *pcm;
+    uint32_t idx, idx2, devices, remainder;
+    char *name2;
+    int res = -1;
+    PA_IDXSET_FOREACH(pcm, top, idx) {
+        devices = pa_idxset_size(pcm->ucm_devices);
+        remainder = combination % devices;
+        combination /= devices;
+        PA_IDXSET_FOREACH(name2, pcm->ucm_devices, idx2) {
+            if (pa_streq(name2, name)) {
+                if (remainder == 0)
+                    return 1;
+                res = 0;
+            }
+            remainder--;
+        }
+    }
+    return res;
+}
+
+static void ucm_analyze_iterate(
+        pa_alsa_ucm_config *ucm, pa_alsa_profile_set *ps,
+        pa_alsa_ucm_verb *verb, pa_idxset *top) {
+
+    pa_idxset *set, *cset;
+    pa_alsa_conflict_pcm *pcm;
+    pa_alsa_ucm_device *dev;
+    char *verb_extra_name;
+    uint32_t combination, combinations, idx, extra_priority;
+
+    combinations = 0;
+    PA_IDXSET_FOREACH(pcm, top, idx)
+        combinations += pa_idxset_size(pcm->ucm_devices);
+
+    /* we have at least one profile per verb */
+    if (combinations == 0)
+        combinations = 1;
+
+    for (combination = 0; combination < combinations; combination++) {
+        set = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+        cset = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+        verb_extra_name = NULL;
+        extra_priority = 0;
+        PA_LLIST_FOREACH(dev, verb->devices) {
+            /* accept the device only when the combination is selected or */
+            /* the device is not in the combination group */
+            const char *name = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME);
+            int r = ucm_analyze_is_combination(top, name, combination);
+            if (r != 0)
+                pa_idxset_put(set, dev, NULL);
+            if (r > 0) {
+                char *tmp = pa_sprintf_malloc("%s%s%s", verb_extra_name ? verb_extra_name : "", verb_extra_name ? ", " : "", name);
+                pa_xfree(verb_extra_name);
+                verb_extra_name = tmp;
+                extra_priority += dev->playback_priority;
+                pa_idxset_put(cset, dev, NULL);
+            }
+        }
+        ucm_analyze_create_profile(ucm, ps, verb, set, cset, verb_extra_name, extra_priority);
+        pa_xfree(verb_extra_name);
+        pa_idxset_free(set, NULL);
+        pa_idxset_free(cset, NULL);
+    }
+}
+
 pa_alsa_profile_set* pa_alsa_ucm_add_profile_set(pa_alsa_ucm_config *ucm, pa_channel_map *default_channel_map) {
     pa_alsa_ucm_verb *verb;
     pa_alsa_profile_set *ps;
@@ -2038,19 +2260,11 @@ pa_alsa_profile_set* pa_alsa_ucm_add_profile_set(pa_alsa_ucm_config *ucm, pa_cha
     ps->profiles = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
     ps->decibel_fixes = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
-    /* create a profile for each verb */
+    /* create a profile for each verb and conflicting devices combination */
     PA_LLIST_FOREACH(verb, ucm->verbs) {
-        const char *verb_name;
-        const char *verb_desc;
-
-        verb_name = pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_NAME);
-        verb_desc = pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_DESCRIPTION);
-        if (verb_name == NULL) {
-            pa_log("Verb with no name");
-            continue;
-        }
-
-        ucm_create_profile(ucm, ps, verb, verb_name, verb_desc);
+        pa_idxset *analyze = ucm_analyze_conflicting(verb);
+        ucm_analyze_iterate(ucm, ps, verb, analyze);
+        ucm_analyze_conflicting_free(analyze);
     }
 
     ucm_probe_profile_set(ucm, ps);

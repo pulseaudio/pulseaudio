@@ -3922,6 +3922,9 @@ static void profile_free(pa_alsa_profile *p) {
     if (p->output_mappings)
         pa_idxset_free(p->output_mappings, NULL);
 
+    if (p->ucm_context.combined_devices)
+        pa_idxset_free(p->ucm_context.combined_devices, NULL);
+
     pa_xfree(p);
 }
 
