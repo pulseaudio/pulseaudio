@@ -140,12 +140,13 @@ typedef struct pa_alsa_ucm_modifier pa_alsa_ucm_modifier;
 typedef struct pa_alsa_ucm_device pa_alsa_ucm_device;
 typedef struct pa_alsa_ucm_config pa_alsa_ucm_config;
 typedef struct pa_alsa_ucm_mapping_context pa_alsa_ucm_mapping_context;
+typedef struct pa_alsa_ucm_profile_context pa_alsa_ucm_profile_context;
 typedef struct pa_alsa_ucm_port_data pa_alsa_ucm_port_data;
 typedef struct pa_alsa_ucm_volume pa_alsa_ucm_volume;
 
 int pa_alsa_ucm_query_profiles(pa_alsa_ucm_config *ucm, int card_index);
 pa_alsa_profile_set* pa_alsa_ucm_add_profile_set(pa_alsa_ucm_config *ucm, pa_channel_map *default_channel_map);
-int pa_alsa_ucm_set_profile(pa_alsa_ucm_config *ucm, pa_card *card, const char *new_profile, const char *old_profile);
+int pa_alsa_ucm_set_profile(pa_alsa_ucm_config *ucm, pa_card *card, pa_alsa_profile *new_profile, pa_alsa_profile *old_profile);
 
 int pa_alsa_ucm_get_verb(snd_use_case_mgr_t *uc_mgr, const char *verb_name, const char *verb_desc, pa_alsa_ucm_verb **p_verb);
 
@@ -265,6 +266,11 @@ struct pa_alsa_ucm_mapping_context {
 
     pa_idxset *ucm_devices;
     pa_idxset *ucm_modifiers;
+};
+
+struct pa_alsa_ucm_profile_context {
+    pa_alsa_ucm_config *ucm;
+    pa_idxset *combined_devices;
 };
 
 struct pa_alsa_ucm_port_data {
