@@ -44,7 +44,6 @@ static const char* const valid_modargs[] = {
     "auto_switch",
     "a2dp_source",
     "ag",
-    "hfgw",
     NULL
 };
 
