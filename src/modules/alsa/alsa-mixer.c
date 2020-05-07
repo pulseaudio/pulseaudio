@@ -2763,13 +2763,66 @@ static int path_verify(pa_alsa_path *p) {
     return 0;
 }
 
-static const char *get_default_paths_dir(void) {
+static char *get_path_config_path(const char *paths_dir, const char *fname) {
+    char *path_config_path;
+    char *dir;
+    char *data_home;
+    pa_dynarray *data_dirs;
+
+    if (paths_dir) {
+        path_config_path = pa_maybe_prefix_path(fname, paths_dir);
+        if (access(path_config_path, R_OK) == 0)
+            return path_config_path;
+        else
+            pa_xfree(path_config_path);
+    }
+
 #ifdef HAVE_RUNNING_FROM_BUILD_TREE
-    if (pa_run_from_build_tree())
-        return PA_SRCDIR "/modules/alsa/mixer/paths/";
-    else
+    if (pa_run_from_build_tree()) {
+        path_config_path = pa_maybe_prefix_path(fname, PA_SRCDIR "/modules/alsa/mixer/paths/");
+        if (access(path_config_path, R_OK) == 0)
+            return path_config_path;
+        else
+            pa_xfree(path_config_path);
+    }
 #endif
-        return PA_ALSA_PATHS_DIR;
+
+    if (pa_get_data_home_dir(&data_home) == 0) {
+        dir = pa_sprintf_malloc("%s" PA_PATH_SEP "alsa-mixer" PA_PATH_SEP "paths", data_home);
+        pa_xfree(data_home);
+
+        path_config_path = pa_maybe_prefix_path(fname, dir);
+        pa_xfree(dir);
+
+        if (access(path_config_path, R_OK) == 0)
+            return path_config_path;
+        else
+            pa_xfree(path_config_path);
+    }
+
+    if (pa_get_data_dirs(&data_dirs) == 0) {
+        int idx;
+        const char *n;
+
+        PA_DYNARRAY_FOREACH(n, data_dirs, idx) {
+            dir = pa_sprintf_malloc("%s" PA_PATH_SEP "alsa-mixer" PA_PATH_SEP "paths", n);
+            path_config_path = pa_maybe_prefix_path(fname, dir);
+            pa_xfree(dir);
+
+            if (access(path_config_path, R_OK) == 0) {
+                pa_dynarray_free(data_dirs);
+                return path_config_path;
+            }
+            else {
+                pa_xfree(path_config_path);
+            }
+        }
+
+        pa_dynarray_free(data_dirs);
+    }
+
+    path_config_path = pa_maybe_prefix_path(fname, PA_ALSA_PATHS_DIR);
+    return path_config_path;
 }
 
 pa_alsa_path* pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa_direction_t direction) {
@@ -2827,10 +2880,9 @@ pa_alsa_path* pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa
     items[2].data = &p->description;
     items[3].data = &mute_during_activation;
 
-    if (!paths_dir)
-        paths_dir = get_default_paths_dir();
+    fn = get_path_config_path(paths_dir, fname);
 
-    fn = pa_maybe_prefix_path(fname, paths_dir);
+    pa_log_info("Loading path config: %s", fn);
 
     r = pa_config_parse(fn, NULL, items, p->proplist, false, p);
     pa_xfree(fn);

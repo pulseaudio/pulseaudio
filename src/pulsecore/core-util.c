@@ -1568,6 +1568,70 @@ int pa_get_config_home_dir(char **_r) {
     return 0;
 }
 
+int pa_get_data_home_dir(char **_r) {
+    const char *e;
+    char *home_dir;
+
+    pa_assert(_r);
+
+    e = getenv("XDG_DATA_HOME");
+    if (e && *e) {
+        if (pa_is_path_absolute(e)) {
+            *_r = pa_sprintf_malloc("%s" PA_PATH_SEP "pulseaudio", e);
+            return 0;
+        }
+        else
+            pa_log_warn("Ignored non-absolute XDG_DATA_HOME value '%s'", e);
+    }
+
+    home_dir = pa_get_home_dir_malloc();
+    if (!home_dir)
+        return -PA_ERR_NOENTITY;
+
+    *_r = pa_sprintf_malloc("%s" PA_PATH_SEP ".local" PA_PATH_SEP "share" PA_PATH_SEP "pulseaudio", home_dir);
+    pa_xfree(home_dir);
+    return 0;
+}
+
+int pa_get_data_dirs(pa_dynarray **_r) {
+    const char *e;
+    const char *def = "/usr/local/share/:/usr/share/";
+    const char *p;
+    const char *split_state = NULL;
+    char *n;
+    pa_dynarray *paths;
+
+    pa_assert(_r);
+
+    e = getenv("XDG_DATA_DIRS");
+    p = e && *e ? e : def;
+
+    paths = pa_dynarray_new((pa_free_cb_t) pa_xfree);
+
+    while ((n = pa_split(p, ":", &split_state))) {
+        char *path;
+
+        if (!pa_is_path_absolute(n)) {
+            pa_log_warn("Ignored non-absolute path '%s' in XDG_DATA_DIRS", n);
+            pa_xfree(n);
+            continue;
+        }
+
+        path = pa_sprintf_malloc("%s" PA_PATH_SEP "pulseaudio", n);
+        pa_xfree(n);
+        pa_dynarray_append(paths, path);
+    }
+
+    if (pa_dynarray_size(paths) == 0) {
+        pa_log_warn("XDG_DATA_DIRS contains no valid paths");
+        pa_dynarray_free(paths);
+        return -PA_ERR_INVALID;
+    }
+
+    *_r = paths;
+    return 0;
+}
+
 int pa_append_to_config_home_dir(const char *path, char **_r) {
     int r;
     char *config_home_dir;

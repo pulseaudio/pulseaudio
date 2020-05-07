@@ -37,6 +37,7 @@
 #include <pulsecore/i18n.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/socket.h>
+#include <pulsecore/dynarray.h>
 
 #ifndef PACKAGE
 #error "Please include config.h before including this file!"
@@ -142,6 +143,8 @@ char *pa_get_state_dir(void);
 char *pa_get_home_dir_malloc(void);
 int pa_append_to_home_dir(const char *path, char **_r);
 int pa_get_config_home_dir(char **_r);
+int pa_get_data_home_dir(char **_r);
+int pa_get_data_dirs(pa_dynarray **_r);
 int pa_append_to_config_home_dir(const char *path, char **_r);
 char *pa_get_binary_name_malloc(void);
 char *pa_runtime_path(const char *fn);
