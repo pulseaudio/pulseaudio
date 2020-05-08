@@ -249,10 +249,23 @@ void pa_alsa_jack_set_plugged_in(pa_alsa_jack *jack, bool plugged_in) {
 }
 
 void pa_alsa_jack_add_ucm_device(pa_alsa_jack *jack, pa_alsa_ucm_device *device) {
+    pa_alsa_ucm_device *idevice;
+    unsigned idx, prio, iprio;
+
     pa_assert(jack);
     pa_assert(device);
 
-    pa_dynarray_append(jack->ucm_devices, device);
+    /* store the ucm device with the sequence of priority from low to high. this
+     * could guarantee when the jack state is changed, the device with highest
+     * priority will send to the module-switch-on-port-available last */
+    prio = device->playback_priority ? device->playback_priority : device->capture_priority;
+
+    PA_DYNARRAY_FOREACH(idevice, jack->ucm_devices, idx) {
+        iprio = idevice->playback_priority ? idevice->playback_priority : idevice->capture_priority;
+        if (iprio > prio)
+            break;
+    }
+    pa_dynarray_insert_by_index(jack->ucm_devices, device, idx);
 }
 
 void pa_alsa_jack_add_ucm_hw_mute_device(pa_alsa_jack *jack, pa_alsa_ucm_device *device) {
