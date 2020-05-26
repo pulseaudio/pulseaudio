@@ -400,8 +400,9 @@ static void sink_set_mute_cb(pa_sink *s) {
 static void thread_func(void *userdata) {
     struct userdata *u = userdata;
     size_t offset = 0;
-    pa_usec_t last_timing;
-    uint32_t check_timing_count;
+    pa_usec_t last_timing = 0;
+    uint32_t check_timing_count = 1;
+    pa_usec_t intvl = 0;
 
     pa_assert(u);
 
@@ -413,7 +414,7 @@ static void thread_func(void *userdata) {
     for (;;) {
         struct pollfd *pollfd = NULL;
         unsigned int i, nbfds = 0;
-        pa_usec_t now, estimated, intvl;
+        pa_usec_t now, estimated;
         uint64_t position;
         size_t index;
         int ret;
