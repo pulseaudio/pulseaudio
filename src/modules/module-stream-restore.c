@@ -1144,12 +1144,12 @@ static struct entry *entry_read(struct userdata *u, const char *name) {
     if (!pa_tagstruct_eof(t))
         goto fail;
 
-    if (e->device_valid && !pa_namereg_is_valid_name(e->device)) {
+    if (e->device_valid && (!e->device || !pa_namereg_is_valid_name(e->device))) {
         pa_log_warn("Invalid device name stored in database for stream %s", name);
         goto fail;
     }
 
-    if (e->card_valid && !pa_namereg_is_valid_name(e->card)) {
+    if (e->card_valid && (!e->card || !pa_namereg_is_valid_name(e->card))) {
         pa_log_warn("Invalid card name stored in database for stream %s", name);
         goto fail;
     }
