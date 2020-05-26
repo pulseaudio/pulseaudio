@@ -1477,6 +1477,12 @@ if test "x$enable_legacy_database_entry_format" != "xno" ; then
         AC_DEFINE(ENABLE_LEGACY_DATABASE_ENTRY_FORMAT, [1], [Legacy database entry format])
 fi
 
+AC_ARG_ENABLE([stream-restore-clear-old-devices],
+    AS_HELP_STRING([--enable-stream-restore-clear-old-devices], [Forget per-stream routing settings that have been set before version 14.0. Recommended when using GNOME. See https://gitlab.freedesktop.org/pulseaudio/pulseaudio/-/issues/832]))
+if test "x$enable_stream_restore_clear_old_devices" == "xyes" ; then
+    AC_DEFINE(STREAM_RESTORE_CLEAR_OLD_DEVICES, [1], [module-stream-restore: Clear old devices])
+fi
+
 AC_ARG_ENABLE([static-bins],
     AS_HELP_STRING([--enable-static-bins],[Statically link executables.]))
 AM_CONDITIONAL([STATIC_BINS], [test "x$enable_static_bins" = "xyes"])
@@ -1639,6 +1645,7 @@ AS_IF([test "x$HAVE_ESOUND" = "x1" -a "x$USE_PER_USER_ESOUND_SOCKET" = "x1"], EN
 AS_IF([test "x$HAVE_GCOV" = "x1"], ENABLE_GCOV=yes, ENABLE_GCOV=no)
 AS_IF([test "x$HAVE_LIBCHECK" = "x1"], ENABLE_TESTS=yes, ENABLE_TESTS=no)
 AS_IF([test "x$enable_legacy_database_entry_format" != "xno"], ENABLE_LEGACY_DATABASE_ENTRY_FORMAT=yes, ENABLE_LEGACY_DATABASE_ENTRY_FORMAT=no)
+AS_IF([test "x$enable_stream_restore_clear_old_devices" == "xyes"], ENABLE_STREAM_RESTORE_CLEAR_OLD_DEVICES=yes, ENABLE_STREAM_RESTORE_CLEAR_OLD_DEVICES=no)
 
 echo "
  ---{ $PACKAGE_NAME $VERSION }---
@@ -1710,6 +1717,8 @@ echo "
     Preopened modules:             ${PREOPEN_MODS}
 
     Legacy Database Entry Support: ${ENABLE_LEGACY_DATABASE_ENTRY_FORMAT}
+    module-stream-restore:
+      Clear old devices:           ${ENABLE_STREAM_RESTORE_CLEAR_OLD_DEVICES}
 "
 
 if test "${ENABLE_SPEEX}" = "no" && test "${ENABLE_WEBRTC}" = "no" && test "${ENABLE_ADRIAN_EC}" = "no" ; then

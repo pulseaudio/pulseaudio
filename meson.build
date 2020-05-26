@@ -522,6 +522,10 @@ if get_option('legacy-database-entry-format')
   cdata.set('ENABLE_LEGACY_DATABASE_ENTRY_FORMAT', 1)
 endif
 
+if get_option('stream-restore-clear-old-devices')
+  cdata.set('STREAM_RESTORE_CLEAR_OLD_DEVICES', 1)
+endif
+
 if get_option('running-from-build-tree')
   cdata.set('HAVE_RUNNING_FROM_BUILD_TREE', 1)
 endif
@@ -835,6 +839,8 @@ summary = [
   '',
   'Database:                      @0@'.format(get_option('database')),
   'Legacy Database Entry Support: @0@'.format(get_option('legacy-database-entry-format')),
+  'module-stream-restore:',
+  '  Clear old devices:           @0@'.format(get_option('stream-restore-clear-old-devices')),
   'Running from build tree:       @0@'.format(get_option('running-from-build-tree')),
   'System User:                   @0@'.format(cdata.get_unquoted('PA_SYSTEM_USER')),
   'System Group:                  @0@'.format(cdata.get_unquoted('PA_SYSTEM_GROUP')),

@@ -113,7 +113,7 @@ struct userdata {
 #endif
 };
 
-#define ENTRY_VERSION 1
+#define ENTRY_VERSION 2
 
 struct entry {
     bool muted_valid, volume_valid, device_valid, card_valid;
@@ -1166,6 +1166,46 @@ static struct entry *entry_read(struct userdata *u, const char *name) {
 
     pa_tagstruct_free(t);
     pa_datum_free(&data);
+
+#ifdef STREAM_RESTORE_CLEAR_OLD_DEVICES
+    if (version < ENTRY_VERSION && e->device_valid) {
+        /* Prior to PulseAudio 14.0, GNOME's sound settings overwrote the
+         * routing for all entries in the stream-restore database when
+         * selecting a device. PulseAudio 14.0 prevents that from happening,
+         * but the old overwritten settings can still be in the database after
+         * updating to PulseAudio 14.0, and they can cause problems, as
+         * documented here:
+         * https://gitlab.freedesktop.org/pulseaudio/pulseaudio/-/issues/832
+         *
+         * We can't distinguish between devices set by GNOME's sound settings
+         * and devices set by the user, so we discard all old device settings,
+         * even though that is going to cause PulseAudio to forget routing
+         * settings for many users. This is less bad than keeping the incorrect
+         * routing settings in the database, because it's difficult for users
+         * to figure out how to fix the situation when e.g. speaker test tones
+         * go to the internal speakers no matter what device is selected as the
+         * default, whereas old manual configuration can be restored restored
+         * by doing the manual configuration again. Also, it's probably more
+         * common to have at some point changed the default device in GNOME's
+         * sound settings than it is to have any manual per-stream routing
+         * settings. */
+        pa_log_warn("Device set, but it might be incorrect. Clearing the device. If this messes up your manual stream "
+                    "routing configuration, sorry about that. This is a workaround for this bug: "
+                    "https://gitlab.freedesktop.org/pulseaudio/pulseaudio/-/issues/832");
+        pa_log_warn("%s: device: %s -> (unset)", name, e->device);
+        pa_xfree(e->device);
+        e->device = NULL;
+        e->device_valid = false;
+        if (e->card_valid) {
+            pa_log_warn("%s: card: %s -> (unset)", name, e->card);
+            pa_xfree(e->card);
+            e->card = NULL;
+            e->card_valid = false;
+        }
+        entry_write(u, name, e, true);
+        trigger_save(u);
+    }
+#endif
 
     return e;
 
