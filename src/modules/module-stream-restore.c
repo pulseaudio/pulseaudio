@@ -116,7 +116,6 @@ struct userdata {
 #define ENTRY_VERSION 1
 
 struct entry {
-    uint8_t version;
     bool muted_valid, volume_valid, device_valid, card_valid;
     bool muted;
     pa_channel_map channel_map;
@@ -968,7 +967,6 @@ static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct
 
 static struct entry* entry_new(void) {
     struct entry *r = pa_xnew0(struct entry, 1);
-    r->version = ENTRY_VERSION;
     return r;
 }
 
@@ -990,7 +988,7 @@ static bool entry_write(struct userdata *u, const char *name, const struct entry
     pa_assert(e);
 
     t = pa_tagstruct_new();
-    pa_tagstruct_putu8(t, e->version);
+    pa_tagstruct_putu8(t, ENTRY_VERSION);
     pa_tagstruct_put_boolean(t, e->volume_valid);
     pa_tagstruct_put_channel_map(t, &e->channel_map);
     pa_tagstruct_put_cvolume(t, &e->volume);
@@ -1108,6 +1106,7 @@ static struct entry *entry_read(struct userdata *u, const char *name) {
     pa_datum key, data;
     struct entry *e = NULL;
     pa_tagstruct *t = NULL;
+    uint8_t version;
     const char *device, *card;
 
     pa_assert(u);
@@ -1124,8 +1123,8 @@ static struct entry *entry_read(struct userdata *u, const char *name) {
     t = pa_tagstruct_new_fixed(data.data, data.size);
     e = entry_new();
 
-    if (pa_tagstruct_getu8(t, &e->version) < 0 ||
-        e->version > ENTRY_VERSION ||
+    if (pa_tagstruct_getu8(t, &version) < 0 ||
+        version > ENTRY_VERSION ||
         pa_tagstruct_get_boolean(t, &e->volume_valid) < 0 ||
         pa_tagstruct_get_channel_map(t, &e->channel_map) < 0 ||
         pa_tagstruct_get_cvolume(t, &e->volume) < 0 ||
@@ -1694,7 +1693,6 @@ static int fill_db(struct userdata *u, const char *filename) {
                 struct entry e;
 
                 pa_zero(e);
-                e.version = ENTRY_VERSION;
                 e.volume_valid = true;
                 pa_cvolume_set(&e.volume, 1, pa_sw_volume_from_dB(db));
                 pa_channel_map_init_mono(&e.channel_map);
