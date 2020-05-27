@@ -66,9 +66,11 @@ PA_C_DECL_BEGIN
  * number of times you called pa_threaded_mainloop_lock().
  *
  * The lock needs to be held whenever you call any PulseAudio function that
- * uses an object associated with this main loop. Make sure you do not hold
- * on to the lock more than necessary though, as the threaded main loop stops
- * while the lock is held.
+ * uses an object associated with this main loop. Those objects include
+ * pa_mainloop, pa_context, pa_stream and pa_operation, and the various event
+ * objects (pa_io_event, pa_time_event, pa_defer_event). Make sure you do not
+ * hold on to the lock more than necessary though, as the threaded main loop
+ * stops while the lock is held.
  *
  * Example:
  *
