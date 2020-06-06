@@ -5155,14 +5155,14 @@ void pa_alsa_profile_set_probe(
         if (p->output_mappings)
             PA_IDXSET_FOREACH(m, p->output_mappings, idx)
                 if (m->output_pcm) {
-                    found_output |= !p->fallback_output;
+                    found_output = true;
                     mapping_paths_probe(m, p, PA_ALSA_DIRECTION_OUTPUT, used_paths, mixers);
                 }
 
         if (p->input_mappings)
             PA_IDXSET_FOREACH(m, p->input_mappings, idx)
                 if (m->input_pcm) {
-                    found_input |= !p->fallback_input;
+                    found_input = true;
                     mapping_paths_probe(m, p, PA_ALSA_DIRECTION_INPUT, used_paths, mixers);
                 }
     }
