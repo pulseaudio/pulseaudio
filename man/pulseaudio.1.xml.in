@@ -110,7 +110,23 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
       <optdesc><p>Return 0 as return code when the PulseAudio daemon
       is already running for the calling user, or non-zero
       otherwise. Produces no output on the console except for errors
-      to stderr.</p></optdesc>
+      to stderr.</p>
+
+      <p>Note that a non-zero return value doesn't necessarily mean that
+      PulseAudio is not usable. Even if the server is not running, it
+      may get automatically started via PulseAudio's autospawning
+      mechanism or systemd's socket activation, or the environment might
+      be such that checking for processes doesn't work (for example, the
+      running server might not show up in a container, even if the
+      server is accessible via a socket). Also disabling PID files with
+      <opt>--use-pid-file=no</opt> prevents <opt>--check</opt> from
+      detecting running servers.</p>
+
+      <p>A more robust check in most situations would be to try
+      establishing a client connection to the server. Unfortunately
+      there's currently no <opt>--check-connection</opt> option to
+      replace <opt>--check</opt>, but running "pactl info" could be a
+      pretty good substitute.</p></optdesc>
     </option>
 
 
