@@ -33,6 +33,13 @@
 
 #include "alsa-mixer.h"
 
+enum {
+    PA_ALSA_ERR_UNSPECIFIED = 1,
+    PA_ALSA_ERR_UCM_OPEN = 1000,
+    PA_ALSA_ERR_UCM_NO_VERB = 1001,
+    PA_ALSA_ERR_UCM_LINKED = 1002
+};
+
 int pa_alsa_set_hw_params(
         snd_pcm_t *pcm_handle,
         pa_sample_spec *ss,                /* modified at return */

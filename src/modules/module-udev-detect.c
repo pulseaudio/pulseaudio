@@ -52,6 +52,7 @@ PA_MODULE_USAGE(
 struct device {
     char *path;
     bool need_verify;
+    bool ignore;
     char *card_name;
     char *args;
     uint32_t module;
@@ -286,6 +287,9 @@ static void verify_access(struct userdata *u, struct device *d) {
     pa_assert(u);
     pa_assert(d);
 
+    if (d->ignore)
+        return;
+
     cd = pa_sprintf_malloc("/dev/snd/controlC%s", path_get_card_id(d->path));
     accessible = access(cd, R_OK|W_OK) >= 0;
     pa_log_debug("%s is accessible: %s", cd, pa_yes_no(accessible));
@@ -332,14 +336,20 @@ static void verify_access(struct userdata *u, struct device *d) {
                  * failure or a "fatal" failure. */
 
                 if (pa_ratelimit_test(&d->ratelimit, PA_LOG_DEBUG)) {
+                    int err;
+
                     pa_log_debug("Loading module-alsa-card with arguments '%s'", d->args);
-                    pa_module_load(&m, u->core, "module-alsa-card", d->args);
+                    err = pa_module_load(&m, u->core, "module-alsa-card", d->args);
 
                     if (m) {
                         d->module = m->index;
                         pa_log_info("Card %s (%s) module loaded.", d->path, d->card_name);
-                    } else
+                    } else if (err == -PA_ERR_NOENTITY) {
+                        pa_log_info("Card %s (%s) module skipped.", d->path, d->card_name);
+                        d->ignore = true;
+                    } else {
                         pa_log_info("Card %s (%s) failed to load module.", d->path, d->card_name);
+                    }
                 } else
                     pa_log_warn("Tried to configure %s (%s) more often than %u times in %llus",
                                 d->path,

@@ -30,6 +30,11 @@ typedef struct pa_module pa_module;
 
 #include <pulsecore/core.h>
 
+enum {
+  PA_MODULE_ERR_UNSPECIFIED = 1,
+  PA_MODULE_ERR_SKIP = 2
+};
+
 struct pa_module {
     pa_core *core;
     char *name, *argument;
