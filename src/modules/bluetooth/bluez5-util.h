@@ -59,11 +59,11 @@ typedef struct pa_bluetooth_discovery pa_bluetooth_discovery;
 typedef struct pa_bluetooth_backend pa_bluetooth_backend;
 
 typedef enum pa_bluetooth_hook {
-    PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED,          /* Call data: pa_bluetooth_device */
-    PA_BLUETOOTH_HOOK_DEVICE_UNLINK,                      /* Call data: pa_bluetooth_device */
-    PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED,            /* Call data: pa_bluetooth_transport */
-    PA_BLUETOOTH_HOOK_TRANSPORT_MICROPHONE_GAIN_CHANGED,  /* Call data: pa_bluetooth_transport */
-    PA_BLUETOOTH_HOOK_TRANSPORT_SPEAKER_GAIN_CHANGED,     /* Call data: pa_bluetooth_transport */
+    PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED,            /* Call data: pa_bluetooth_device */
+    PA_BLUETOOTH_HOOK_DEVICE_UNLINK,                        /* Call data: pa_bluetooth_device */
+    PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED,              /* Call data: pa_bluetooth_transport */
+    PA_BLUETOOTH_HOOK_TRANSPORT_MICROPHONE_VOLUME_CHANGED,  /* Call data: pa_bluetooth_transport */
+    PA_BLUETOOTH_HOOK_TRANSPORT_SPEAKER_VOLUME_CHANGED,     /* Call data: pa_bluetooth_transport */
     PA_BLUETOOTH_HOOK_MAX
 } pa_bluetooth_hook_t;
 
@@ -87,8 +87,8 @@ typedef enum pa_bluetooth_transport_state {
 typedef int (*pa_bluetooth_transport_acquire_cb)(pa_bluetooth_transport *t, bool optional, size_t *imtu, size_t *omtu);
 typedef void (*pa_bluetooth_transport_release_cb)(pa_bluetooth_transport *t);
 typedef void (*pa_bluetooth_transport_destroy_cb)(pa_bluetooth_transport *t);
-typedef void (*pa_bluetooth_transport_set_speaker_gain_cb)(pa_bluetooth_transport *t, uint16_t gain);
-typedef void (*pa_bluetooth_transport_set_microphone_gain_cb)(pa_bluetooth_transport *t, uint16_t gain);
+typedef pa_volume_t (*pa_bluetooth_transport_set_speaker_volume_cb)(pa_bluetooth_transport *t, pa_volume_t volume);
+typedef pa_volume_t (*pa_bluetooth_transport_set_microphone_volume_cb)(pa_bluetooth_transport *t, pa_volume_t volume);
 
 struct pa_bluetooth_transport {
     pa_bluetooth_device *device;
@@ -103,16 +103,16 @@ struct pa_bluetooth_transport {
 
     const pa_a2dp_codec *a2dp_codec;
 
-    uint16_t microphone_gain;
-    uint16_t speaker_gain;
+    pa_volume_t microphone_volume;
+    pa_volume_t speaker_volume;
 
     pa_bluetooth_transport_state_t state;
 
     pa_bluetooth_transport_acquire_cb acquire;
     pa_bluetooth_transport_release_cb release;
     pa_bluetooth_transport_destroy_cb destroy;
-    pa_bluetooth_transport_set_speaker_gain_cb set_speaker_gain;
-    pa_bluetooth_transport_set_microphone_gain_cb set_microphone_gain;
+    pa_bluetooth_transport_set_speaker_volume_cb set_speaker_volume;
+    pa_bluetooth_transport_set_microphone_volume_cb set_microphone_volume;
     void *userdata;
 };
 
