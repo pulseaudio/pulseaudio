@@ -124,11 +124,14 @@ static uint32_t hfp_features =
     "</node>"
 
 static pa_volume_t hsp_gain_to_volume(uint16_t gain) {
-    pa_volume_t volume = (pa_volume_t) (gain * PA_VOLUME_NORM / HSP_MAX_GAIN);
+    pa_volume_t volume = (pa_volume_t) ((
+        gain * PA_VOLUME_NORM
+        /* Round to closest by adding half the denominator */
+        + HSP_MAX_GAIN / 2
+    ) / HSP_MAX_GAIN);
 
-    /* increment volume by one to correct rounding errors */
-    if (volume < PA_VOLUME_NORM)
-        volume++;
+    if (volume > PA_VOLUME_NORM)
+        volume = PA_VOLUME_NORM;
 
     return volume;
 }
