@@ -133,7 +133,8 @@ static void dump_event(const char * prefix, pa_subscription_event*e) {
         [PA_SUBSCRIPTION_EVENT_CLIENT] = "CLIENT",
         [PA_SUBSCRIPTION_EVENT_SAMPLE_CACHE] = "SAMPLE_CACHE",
         [PA_SUBSCRIPTION_EVENT_SERVER] = "SERVER",
-        [PA_SUBSCRIPTION_EVENT_AUTOLOAD] = "AUTOLOAD"
+        [PA_SUBSCRIPTION_EVENT_AUTOLOAD] = "AUTOLOAD",
+        [PA_SUBSCRIPTION_EVENT_CARD] = "CARD"
     };
 
     const char * const type_table[] = {
