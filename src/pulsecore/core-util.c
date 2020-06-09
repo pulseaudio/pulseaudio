@@ -2189,7 +2189,7 @@ int pa_atoi(const char *s, int32_t *ret_i) {
     if (pa_atol(s, &l) < 0)
         return -1;
 
-    if ((int32_t) l != l) {
+    if (l < INT32_MIN || l > INT32_MAX) {
         errno = ERANGE;
         return -1;
     }
@@ -2233,7 +2233,7 @@ int pa_atou(const char *s, uint32_t *ret_u) {
         return -1;
     }
 
-    if ((uint32_t) l != l) {
+    if (l > UINT32_MAX) {
         errno = ERANGE;
         return -1;
     }
@@ -2277,7 +2277,7 @@ int pa_atou64(const char *s, uint64_t *ret_u) {
         return -1;
     }
 
-    if ((uint64_t) l != l) {
+    if (l > UINT64_MAX) {
         errno = ERANGE;
         return -1;
     }
@@ -2360,7 +2360,7 @@ int pa_atoi64(const char *s, int64_t *ret_l) {
 
     *ret_l = l;
 
-    if ((int64_t) l != l) {
+    if (l < INT64_MIN || l > INT64_MAX) {
         errno = ERANGE;
         return -1;
     }
