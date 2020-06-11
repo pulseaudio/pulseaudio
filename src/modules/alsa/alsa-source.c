@@ -2284,6 +2284,19 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
         goto fail;
     }
 
+    if (u->ucm_context) {
+        pa_device_port *port;
+        void *state;
+        unsigned h_prio = 0;
+        PA_HASHMAP_FOREACH(port, u->source->ports, state) {
+            if (!h_prio || port->priority > h_prio)
+                h_prio = port->priority;
+        }
+        /* ucm ports prioriy is 100, 200, ..., 900, change it to units digit */
+        h_prio = h_prio / 100;
+        u->source->priority += h_prio;
+    }
+
     if (pa_modargs_get_value_u32(ma, "deferred_volume_safety_margin",
                                  &u->source->thread_info.volume_change_safety_margin) < 0) {
         pa_log("Failed to parse deferred_volume_safety_margin parameter");
