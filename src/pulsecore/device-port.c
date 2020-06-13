@@ -107,6 +107,8 @@ void pa_device_port_set_available(pa_device_port *p, pa_available_t status) {
      * be created before port objects, and then p->card could be non-NULL for
      * the whole lifecycle of pa_device_port. */
     if (p->card && p->card->linked) {
+        pa_subscription_post(p->core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, p->card->index);
+        pa_hook_fire(&p->core->hooks[PA_CORE_HOOK_PORT_AVAILABLE_CHANGED], p);
         /* A sink or source whose active port is unavailable can't be the
          * default sink/source, so port availability changes may affect the
          * default sink/source choice. */
@@ -138,9 +140,6 @@ void pa_device_port_set_available(pa_device_port *p, pa_available_t status) {
                     pa_core_move_streams_to_newly_available_preferred_source(p->core, source);
             }
         }
-
-        pa_subscription_post(p->core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, p->card->index);
-        pa_hook_fire(&p->core->hooks[PA_CORE_HOOK_PORT_AVAILABLE_CHANGED], p);
     }
 }
 
