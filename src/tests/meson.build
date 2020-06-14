@@ -30,6 +30,8 @@ default_tests = [
     [ check_dep, libpulse_dep, libpulsecommon_dep, libpulsecore_dep ] ],
   [ 'get-binary-name-test', 'get-binary-name-test.c',
     [ check_dep, libpulse_dep, libpulsecommon_dep ] ],
+  [ 'hashmap-test', 'hashmap-test.c',
+    [ check_dep, libpulse_dep, libpulsecommon_dep ] ],
   [ 'hook-list-test', 'hook-list-test.c',
     [ check_dep, libpulse_dep, libpulsecommon_dep, libpulsecore_dep ] ],
   [ 'json-test', 'json-test.c',
