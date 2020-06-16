@@ -343,8 +343,10 @@ int pa__init(pa_module*m) {
 
             if (!format) {
                 pa_log(_("Failed to set format: invalid format string %s"), f);
+		pa_xfree(f);
                 goto fail;
             }
+            pa_xfree(f);
 
             pa_idxset_put(u->formats, format, NULL);
         }
