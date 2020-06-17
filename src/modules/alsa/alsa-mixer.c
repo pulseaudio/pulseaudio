@@ -758,7 +758,7 @@ void pa_alsa_path_free(pa_alsa_path *p) {
     }
 
     pa_proplist_free(p->proplist);
-    pa_xfree(p->available_group);
+    pa_xfree(p->availability_group);
     pa_xfree(p->name);
     pa_xfree(p->description);
     pa_xfree(p->description_key);
@@ -4276,7 +4276,7 @@ fail:
 }
 
 /* the logic is simple: if we see the jack in multiple paths */
-/* assign all those jacks to one available_group */
+/* assign all those jacks to one availability_group */
 static void mapping_group_available(pa_hashmap *paths)
 {
     void *state, *state2;
@@ -4300,7 +4300,7 @@ static void mapping_group_available(pa_hashmap *paths)
                    if (pa_streq(j->name, j2->name)) {
                         j->state_plugged = PA_AVAILABLE_UNKNOWN;
                        j2->state_plugged = PA_AVAILABLE_UNKNOWN;
-                       found = p2->available_group;
+                       found = p2->availability_group;
                        break;
                    }
                }
@@ -4311,9 +4311,9 @@ static void mapping_group_available(pa_hashmap *paths)
        if (!has_control)
            continue;
        if (!found) {
-           p->available_group = pa_sprintf_malloc("Legacy %d", num);
+           p->availability_group = pa_sprintf_malloc("Legacy %d", num);
        } else {
-           p->available_group = pa_xstrdup(found);
+           p->availability_group = pa_xstrdup(found);
        }
        if (!found)
             num++;
@@ -5173,7 +5173,7 @@ static pa_device_port* device_port_alsa_init(pa_hashmap *ports, /* card ports */
         pa_device_port_new_data_set_description(&port_data, description);
         pa_device_port_new_data_set_direction(&port_data, path->direction == PA_ALSA_DIRECTION_OUTPUT ? PA_DIRECTION_OUTPUT : PA_DIRECTION_INPUT);
         pa_device_port_new_data_set_type(&port_data, path->device_port_type);
-        pa_device_port_new_data_set_available_group(&port_data, path->available_group);
+        pa_device_port_new_data_set_availability_group(&port_data, path->availability_group);
 
         p = pa_device_port_new(core, &port_data, sizeof(pa_alsa_port_data));
         pa_device_port_new_data_done(&port_data);

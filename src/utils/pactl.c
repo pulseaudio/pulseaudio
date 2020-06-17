@@ -363,8 +363,8 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
         for (p = i->ports; *p; p++)
             printf(_("\t\t%s: %s (type: %s, priority: %u%s%s%s)\n"),
                     (*p)->name, (*p)->description, get_device_port_type((*p)->type),
-                    (*p)->priority, (*p)->available_group ? _(", available group: ") : "",
-                    (*p)->available_group ?: "", get_available_str_ynonly((*p)->available));
+                    (*p)->priority, (*p)->availability_group ? _(", availability group: ") : "",
+                    (*p)->availability_group ?: "", get_available_str_ynonly((*p)->available));
     }
 
     if (i->active_port)
@@ -471,8 +471,8 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
         for (p = i->ports; *p; p++)
             printf(_("\t\t%s: %s (type: %s, priority: %u%s%s%s)\n"),
                     (*p)->name, (*p)->description, get_device_port_type((*p)->type),
-                    (*p)->priority, (*p)->available_group ? _(", available group: ") : "",
-                    (*p)->available_group ?: "", get_available_str_ynonly((*p)->available));
+                    (*p)->priority, (*p)->availability_group ? _(", availability group: ") : "",
+                    (*p)->availability_group ?: "", get_available_str_ynonly((*p)->available));
     }
 
     if (i->active_port)
@@ -635,7 +635,7 @@ static void get_card_info_callback(pa_context *c, const pa_card_info *i, int is_
             pa_card_profile_info **pr = (*p)->profiles;
             printf(_("\t\t%s: %s (type: %s, priority: %u, latency offset: %" PRId64 " usec%s%s%s)\n"), (*p)->name,
                 (*p)->description, get_device_port_type((*p)->type), (*p)->priority, (*p)->latency_offset,
-                (*p)->available_group ? _(", available group: ") : "", (*p)->available_group ?: "",
+                (*p)->availability_group ? _(", availability group: ") : "", (*p)->availability_group ?: "",
                 get_available_str_ynonly((*p)->available));
 
             if (!pa_proplist_isempty((*p)->proplist)) {

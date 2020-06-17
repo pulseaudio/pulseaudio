@@ -432,7 +432,7 @@ Added two values to the pa_encoding_t enum:
 New fields in the port introspection data (duplicated for all port types:
 sink, source and card ports):
 
-    string available_group
+    string availability_group
     uint32 type
 
 #### If you just changed the protocol, read this

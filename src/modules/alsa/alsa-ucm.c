@@ -1065,7 +1065,7 @@ static void ucm_add_port_combination(
         pa_device_port_new_data_set_type(&port_data, type);
         pa_device_port_new_data_set_direction(&port_data, is_sink ? PA_DIRECTION_OUTPUT : PA_DIRECTION_INPUT);
         if (jack)
-            pa_device_port_new_data_set_available_group(&port_data, jack->name);
+            pa_device_port_new_data_set_availability_group(&port_data, jack->name);
 
         port = pa_device_port_new(core, &port_data, sizeof(pa_alsa_ucm_port_data));
         pa_device_port_new_data_done(&port_data);
