@@ -28,8 +28,9 @@ if HAVE_X11
 xdgautostartdir=$(sysconfdir)/xdg/autostart
 endif
 if HAVE_ALSA
-alsaprofilesetsdir=$(datadir)/pulseaudio/alsa-mixer/profile-sets
-alsapathsdir=$(datadir)/pulseaudio/alsa-mixer/paths
+alsadatadir=$(datadir)/pulseaudio/alsa-mixer
+alsaprofilesetsdir=$(alsadatadir)/profile-sets
+alsapathsdir=$(alsadatadir)/paths
 endif
 if HAVE_DBUS
 dbuspolicydir=$(sysconfdir)/dbus-1/system.d
@@ -46,8 +47,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/src/modules \
 	-I$(top_builddir)/src/modules \
-	-DPA_ALSA_PATHS_DIR=\"$(alsapathsdir)\" \
-	-DPA_ALSA_PROFILE_SETS_DIR=\"$(alsaprofilesetsdir)\" \
+	-DPA_ALSA_DATA_DIR=\"$(alsadatadir)\" \
 	-DPA_SRCDIR=\"$(abs_srcdir)\" \
 	-DPA_BUILDDIR=\"$(abs_builddir)\" \
 	-DPULSE_LOCALEDIR=\"$(localedir)\"
