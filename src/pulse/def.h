@@ -1070,7 +1070,9 @@ typedef enum pa_port_available {
 /** \endcond */
 #endif
 
-/** Port type. \since 14.0 */
+/** Port type. New types can be added in the future, so applications should
+ * gracefully handle situations where a type identifier doesn't match any item
+ * in this enumeration. \since 14.0 */
 typedef enum pa_device_port_type {
     PA_DEVICE_PORT_TYPE_UNKNOWN = 0,
     PA_DEVICE_PORT_TYPE_AUX = 1,
