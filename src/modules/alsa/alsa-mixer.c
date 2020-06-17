@@ -2851,41 +2851,44 @@ static int path_verify(pa_alsa_path *p) {
     return 0;
 }
 
-static char *get_path_config_path(const char *paths_dir, const char *fname) {
-    char *path_config_path;
+static char *get_data_path(const char *data_dir, const char *data_type, const char *fname) {
+    char *result;
     char *dir;
     char *data_home;
     pa_dynarray *data_dirs;
 
-    if (paths_dir) {
-        path_config_path = pa_maybe_prefix_path(fname, paths_dir);
-        if (access(path_config_path, R_OK) == 0)
-            return path_config_path;
+    if (data_dir) {
+        result = pa_maybe_prefix_path(fname, data_dir);
+        if (access(result, R_OK) == 0)
+            return result;
         else
-            pa_xfree(path_config_path);
+            pa_xfree(result);
     }
 
 #ifdef HAVE_RUNNING_FROM_BUILD_TREE
     if (pa_run_from_build_tree()) {
-        path_config_path = pa_maybe_prefix_path(fname, PA_SRCDIR "/modules/alsa/mixer/paths/");
-        if (access(path_config_path, R_OK) == 0)
-            return path_config_path;
+        dir = pa_sprintf_malloc(PA_SRCDIR "/modules/alsa/mixer/%s/", data_type);
+        result = pa_maybe_prefix_path(fname, dir);
+        pa_xfree(dir);
+
+        if (access(result, R_OK) == 0)
+            return result;
         else
-            pa_xfree(path_config_path);
+            pa_xfree(result);
     }
 #endif
 
     if (pa_get_data_home_dir(&data_home) == 0) {
-        dir = pa_sprintf_malloc("%s" PA_PATH_SEP "alsa-mixer" PA_PATH_SEP "paths", data_home);
+        dir = pa_sprintf_malloc("%s" PA_PATH_SEP "alsa-mixer" PA_PATH_SEP "%s", data_home, data_type);
         pa_xfree(data_home);
 
-        path_config_path = pa_maybe_prefix_path(fname, dir);
+        result = pa_maybe_prefix_path(fname, dir);
         pa_xfree(dir);
 
-        if (access(path_config_path, R_OK) == 0)
-            return path_config_path;
+        if (access(result, R_OK) == 0)
+            return result;
         else
-            pa_xfree(path_config_path);
+            pa_xfree(result);
     }
 
     if (pa_get_data_dirs(&data_dirs) == 0) {
@@ -2893,24 +2896,27 @@ static char *get_path_config_path(const char *paths_dir, const char *fname) {
         const char *n;
 
         PA_DYNARRAY_FOREACH(n, data_dirs, idx) {
-            dir = pa_sprintf_malloc("%s" PA_PATH_SEP "alsa-mixer" PA_PATH_SEP "paths", n);
-            path_config_path = pa_maybe_prefix_path(fname, dir);
+            dir = pa_sprintf_malloc("%s" PA_PATH_SEP "alsa-mixer" PA_PATH_SEP "%s", n, data_type);
+            result = pa_maybe_prefix_path(fname, dir);
             pa_xfree(dir);
 
-            if (access(path_config_path, R_OK) == 0) {
+            if (access(result, R_OK) == 0) {
                 pa_dynarray_free(data_dirs);
-                return path_config_path;
+                return result;
             }
             else {
-                pa_xfree(path_config_path);
+                pa_xfree(result);
             }
         }
 
         pa_dynarray_free(data_dirs);
     }
 
-    path_config_path = pa_maybe_prefix_path(fname, PA_ALSA_PATHS_DIR);
-    return path_config_path;
+    dir = pa_sprintf_malloc(PA_ALSA_DATA_DIR PA_PATH_SEP "%s", data_type);
+    result = pa_maybe_prefix_path(fname, dir);
+    pa_xfree(dir);
+
+    return result;
 }
 
 pa_alsa_path* pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa_direction_t direction) {
@@ -2977,7 +2983,7 @@ pa_alsa_path* pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa
     items[2].data = &p->description;
     items[3].data = &mute_during_activation;
 
-    fn = get_path_config_path(paths_dir, fname);
+    fn = get_data_path(paths_dir, "paths", fname);
 
     pa_log_info("Loading path config: %s", fn);
 
@@ -4971,11 +4977,9 @@ pa_alsa_profile_set* pa_alsa_profile_set_new(const char *fname, const pa_channel
     if (!fname)
         fname = "default.conf";
 
-    fn = pa_maybe_prefix_path(fname,
-#ifdef HAVE_RUNNING_FROM_BUILD_TREE
-                              pa_run_from_build_tree() ? PA_SRCDIR "/modules/alsa/mixer/profile-sets/" :
-#endif
-                              PA_ALSA_PROFILE_SETS_DIR);
+    fn = get_data_path(NULL, "profile-sets", fname);
+
+    pa_log_info("Loading profile set: %s", fn);
 
     r = pa_config_parse(fn, NULL, items, NULL, false, ps);
     pa_xfree(fn);
