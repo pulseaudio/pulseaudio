@@ -66,6 +66,11 @@
 
 #ifdef HAVE_ALSA_UCM
 
+struct ucm_type {
+    const char *prefix;
+    pa_device_port_type_t type;
+};
+
 struct ucm_items {
     const char *id;
     const char *property;
@@ -76,6 +81,7 @@ struct ucm_info {
     unsigned priority;
 };
 
+static pa_alsa_jack* ucm_get_jack(pa_alsa_ucm_config *ucm, pa_alsa_ucm_device *device);
 static void device_set_jack(pa_alsa_ucm_device *device, pa_alsa_jack *jack);
 static void device_add_hw_mute_jack(pa_alsa_ucm_device *device, pa_alsa_jack *jack);
 
@@ -86,6 +92,21 @@ static void ucm_port_data_init(pa_alsa_ucm_port_data *port, pa_alsa_ucm_config *
                                pa_alsa_ucm_device **devices, unsigned n_devices);
 static void ucm_port_data_free(pa_device_port *port);
 static void ucm_port_update_available(pa_alsa_ucm_port_data *port);
+
+static struct ucm_type types[] = {
+    {"None", PA_DEVICE_PORT_TYPE_UNKNOWN},
+    {"Speaker", PA_DEVICE_PORT_TYPE_SPEAKER},
+    {"Line", PA_DEVICE_PORT_TYPE_LINE},
+    {"Mic", PA_DEVICE_PORT_TYPE_MIC},
+    {"Headphones", PA_DEVICE_PORT_TYPE_HEADPHONES},
+    {"Headset", PA_DEVICE_PORT_TYPE_HEADSET},
+    {"Handset", PA_DEVICE_PORT_TYPE_HANDSET},
+    {"Bluetooth", PA_DEVICE_PORT_TYPE_BLUETOOTH},
+    {"Earpiece", PA_DEVICE_PORT_TYPE_EARPIECE},
+    {"SPDIF", PA_DEVICE_PORT_TYPE_SPDIF},
+    {"HDMI", PA_DEVICE_PORT_TYPE_HDMI},
+    {NULL, 0}
+};
 
 static struct ucm_items item[] = {
     {"PlaybackPCM", PA_ALSA_PROP_UCM_SINK},
@@ -343,13 +364,27 @@ static int ucm_get_device_property(
 
     const char *value;
     const char **devices;
-    char *id;
+    char *id, *s;
     int i;
     int err;
     uint32_t ui;
     int n_confdev, n_suppdev;
     pa_alsa_ucm_volume *vol;
 
+    /* determine the device type */
+    device->type = PA_DEVICE_PORT_TYPE_UNKNOWN;
+    id = s = pa_xstrdup(device_name);
+    while (s && *s && isalpha(*s)) s++;
+    if (s)
+        *s = '\0';
+    for (i = 0; types[i].prefix; i++)
+        if (pa_streq(id, types[i].prefix)) {
+            device->type = types[i].type;
+            break;
+        }
+    pa_xfree(id);
+
+    /* set properties */
     for (i = 0; item[i].id; i++) {
         id = pa_sprintf_malloc("%s/%s", item[i].id, device_name);
         err = snd_use_case_get(uc_mgr, id, &value);
@@ -955,6 +990,8 @@ static void ucm_add_port_combination(
     pa_alsa_ucm_device *sorted[num], *dev;
     pa_alsa_ucm_port_data *data;
     pa_alsa_ucm_volume *vol;
+    pa_alsa_jack *jack, *jack2;
+    pa_device_port_type_t type, type2;
     void *state;
 
     for (i = 0; i < num; i++)
@@ -973,6 +1010,8 @@ static void ucm_add_port_combination(
 
     priority = is_sink ? dev->playback_priority : dev->capture_priority;
     prio2 = (priority == 0 ? 0 : 1.0/priority);
+    jack = ucm_get_jack(context->ucm, dev);
+    type = dev->type;
 
     for (i = 1; i < num; i++) {
         char *tmp;
@@ -991,6 +1030,20 @@ static void ucm_add_port_combination(
         priority = is_sink ? dev->playback_priority : dev->capture_priority;
         if (priority != 0 && prio2 > 0)
             prio2 += 1.0/priority;
+
+        jack2 = ucm_get_jack(context->ucm, dev);
+        if (jack2) {
+            if (jack && jack != jack2)
+                pa_log_warn("Multiple jacks per combined device '%s': '%s' '%s'", name, jack->name, jack2->name);
+            jack = jack2;
+        }
+
+        type2 = dev->type;
+        if (type2 != PA_DEVICE_PORT_TYPE_UNKNOWN) {
+            if (type != PA_DEVICE_PORT_TYPE_UNKNOWN && type != type2)
+                pa_log_warn("Multiple device types per combined device '%s': %d %d", name, type, type2);
+            type = type2;
+        }
     }
 
     /* Make combination ports always have lower priority, and use the formula
@@ -1008,7 +1061,10 @@ static void ucm_add_port_combination(
         pa_device_port_new_data_init(&port_data);
         pa_device_port_new_data_set_name(&port_data, name);
         pa_device_port_new_data_set_description(&port_data, desc);
+        pa_device_port_new_data_set_type(&port_data, type);
         pa_device_port_new_data_set_direction(&port_data, is_sink ? PA_DIRECTION_OUTPUT : PA_DIRECTION_INPUT);
+        if (jack)
+            pa_device_port_new_data_set_available_group(&port_data, jack->name);
 
         port = pa_device_port_new(core, &port_data, sizeof(pa_alsa_ucm_port_data));
         pa_device_port_new_data_done(&port_data);

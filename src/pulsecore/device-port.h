@@ -43,9 +43,11 @@ struct pa_device_port {
     char *name;
     char *description;
     char *preferred_profile;
+    pa_device_port_type_t type;
 
     unsigned priority;
     pa_available_t available;         /* PA_AVAILABLE_UNKNOWN, PA_AVAILABLE_NO or PA_AVAILABLE_YES */
+    char *available_group;	      /* a string indentifier which determine the group of devices handling the available state simulteneously */
 
     pa_proplist *proplist;
     pa_hashmap *profiles; /* Does not own the profiles */
@@ -67,14 +69,18 @@ typedef struct pa_device_port_new_data {
     char *name;
     char *description;
     pa_available_t available;
+    char *available_group;
     pa_direction_t direction;
+    pa_device_port_type_t type;
 } pa_device_port_new_data;
 
 pa_device_port_new_data *pa_device_port_new_data_init(pa_device_port_new_data *data);
 void pa_device_port_new_data_set_name(pa_device_port_new_data *data, const char *name);
 void pa_device_port_new_data_set_description(pa_device_port_new_data *data, const char *description);
 void pa_device_port_new_data_set_available(pa_device_port_new_data *data, pa_available_t available);
+void pa_device_port_new_data_set_available_group(pa_device_port_new_data *data, const char *group);
 void pa_device_port_new_data_set_direction(pa_device_port_new_data *data, pa_direction_t direction);
+void pa_device_port_new_data_set_type(pa_device_port_new_data *data, pa_device_port_type_t type);
 void pa_device_port_new_data_done(pa_device_port_new_data *data);
 
 pa_device_port *pa_device_port_new(pa_core *c, pa_device_port_new_data *data, size_t extra);

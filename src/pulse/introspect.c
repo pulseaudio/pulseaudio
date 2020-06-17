@@ -219,6 +219,13 @@ static void context_get_sink_info_callback(pa_pdispatch *pd, uint32_t command, u
                                 goto fail;
                             i.ports[j]->available = av;
                         }
+                        i.ports[j]->available_group = NULL;
+                        i.ports[j]->type = PA_DEVICE_PORT_TYPE_UNKNOWN;
+                        if (o->context->version >= 34) {
+                            if (pa_tagstruct_gets(t, &i.ports[j]->available_group) < 0 ||
+                                pa_tagstruct_getu32(t, &i.ports[j]->type) < 0)
+                                goto fail;
+                        }
                     }
 
                     i.ports[j] = NULL;
@@ -492,11 +499,17 @@ static void context_get_source_info_callback(pa_pdispatch *pd, uint32_t command,
                                 goto fail;
                             i.ports[j]->available = av;
                         }
+                        i.ports[j]->available_group = NULL;
+                        i.ports[j]->type = PA_DEVICE_PORT_TYPE_UNKNOWN;
+                        if (o->context->version >= 34) {
+                            if (pa_tagstruct_gets(t, &i.ports[j]->available_group) < 0 ||
+                                pa_tagstruct_getu32(t, &i.ports[j]->type))
+                                goto fail;
+                        }
                     }
 
                     i.ports[j] = NULL;
                 }
-
                 if (pa_tagstruct_gets(t, &ap) < 0)
                     goto fail;
 
@@ -863,6 +876,14 @@ static int fill_card_port_info(pa_context *context, pa_tagstruct* t, pa_card_inf
                 return -PA_ERR_PROTOCOL;
         } else
             port->latency_offset = 0;
+
+        port->type = PA_DEVICE_PORT_TYPE_UNKNOWN;
+        if (context->version >= 34) {
+            if (pa_tagstruct_gets(t, &port->available_group) < 0 ||
+                pa_tagstruct_getu32(t, &port->type) < 0)
+                return -PA_ERR_PROTOCOL;
+        } else
+            port->available_group = NULL;
     }
 
     return 0;

@@ -234,10 +234,41 @@ static void get_server_info_callback(pa_context *c, const pa_server_info *i, voi
 
 static const char* get_available_str_ynonly(int available) {
     switch (available) {
-        case PA_PORT_AVAILABLE_YES: return ", available";
-        case PA_PORT_AVAILABLE_NO: return ", not available";
+        case PA_PORT_AVAILABLE_YES: return _(", available");
+        case PA_PORT_AVAILABLE_NO: return _(", not available");
     }
     return "";
+}
+
+static const char* get_device_port_type(unsigned int type) {
+    static char buf[32];
+    switch (type) {
+    case PA_DEVICE_PORT_TYPE_UNKNOWN: return _("Unknown");
+    case PA_DEVICE_PORT_TYPE_AUX: return _("Aux");
+    case PA_DEVICE_PORT_TYPE_SPEAKER: return _("Speaker");
+    case PA_DEVICE_PORT_TYPE_HEADPHONES: return _("Headphones");
+    case PA_DEVICE_PORT_TYPE_LINE: return _("Line");
+    case PA_DEVICE_PORT_TYPE_MIC: return _("Mic");
+    case PA_DEVICE_PORT_TYPE_HEADSET: return _("Headset");
+    case PA_DEVICE_PORT_TYPE_HANDSET: return _("Handset");
+    case PA_DEVICE_PORT_TYPE_EARPIECE: return _("Earpiece");
+    case PA_DEVICE_PORT_TYPE_SPDIF: return _("SPDIF");
+    case PA_DEVICE_PORT_TYPE_HDMI: return _("HDMI");
+    case PA_DEVICE_PORT_TYPE_TV: return _("TV");
+    case PA_DEVICE_PORT_TYPE_RADIO: return _("Radio");
+    case PA_DEVICE_PORT_TYPE_VIDEO: return _("Video");
+    case PA_DEVICE_PORT_TYPE_USB: return _("USB");
+    case PA_DEVICE_PORT_TYPE_BLUETOOTH: return _("Bluetooth");
+    case PA_DEVICE_PORT_TYPE_PORTABLE: return _("Portable");
+    case PA_DEVICE_PORT_TYPE_HANDSFREE: return _("Handsfree");
+    case PA_DEVICE_PORT_TYPE_CAR: return _("Car");
+    case PA_DEVICE_PORT_TYPE_HIFI: return _("HiFi");
+    case PA_DEVICE_PORT_TYPE_PHONE: return _("Phone");
+    case PA_DEVICE_PORT_TYPE_NETWORK: return _("Network");
+    case PA_DEVICE_PORT_TYPE_ANALOG: return _("Analog");
+    }
+    snprintf(buf, sizeof(buf), "%s-%u", _("Unknown"), type);
+    return buf;
 }
 
 static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_last, void *userdata) {
@@ -330,8 +361,10 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
 
         printf(_("\tPorts:\n"));
         for (p = i->ports; *p; p++)
-            printf("\t\t%s: %s (priority: %u%s)\n", (*p)->name, (*p)->description,
-                    (*p)->priority, get_available_str_ynonly((*p)->available));
+            printf(_("\t\t%s: %s (type: %s, priority: %u%s%s%s)\n"),
+                    (*p)->name, (*p)->description, get_device_port_type((*p)->type),
+                    (*p)->priority, (*p)->available_group ? _(", available group: ") : "",
+                    (*p)->available_group ?: "", get_available_str_ynonly((*p)->available));
     }
 
     if (i->active_port)
@@ -436,8 +469,10 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
 
         printf(_("\tPorts:\n"));
         for (p = i->ports; *p; p++)
-            printf("\t\t%s: %s (priority: %u%s)\n", (*p)->name, (*p)->description,
-                    (*p)->priority, get_available_str_ynonly((*p)->available));
+            printf(_("\t\t%s: %s (type: %s, priority: %u%s%s%s)\n"),
+                    (*p)->name, (*p)->description, get_device_port_type((*p)->type),
+                    (*p)->priority, (*p)->available_group ? _(", available group: ") : "",
+                    (*p)->available_group ?: "", get_available_str_ynonly((*p)->available));
     }
 
     if (i->active_port)
@@ -598,8 +633,9 @@ static void get_card_info_callback(pa_context *c, const pa_card_info *i, int is_
         printf(_("\tPorts:\n"));
         for (p = i->ports; *p; p++) {
             pa_card_profile_info **pr = (*p)->profiles;
-            printf("\t\t%s: %s (priority: %u, latency offset: %" PRId64 " usec%s)\n", (*p)->name,
-                (*p)->description, (*p)->priority, (*p)->latency_offset,
+            printf(_("\t\t%s: %s (type: %s, priority: %u, latency offset: %" PRId64 " usec%s%s%s)\n"), (*p)->name,
+                (*p)->description, get_device_port_type((*p)->type), (*p)->priority, (*p)->latency_offset,
+                (*p)->available_group ? _(", available group: ") : "", (*p)->available_group ?: "",
                 get_available_str_ynonly((*p)->available));
 
             if (!pa_proplist_isempty((*p)->proplist)) {

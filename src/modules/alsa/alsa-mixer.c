@@ -107,6 +107,12 @@ struct description_map {
     const char *description;
 };
 
+struct description2_map {
+    const char *key;
+    const char *description;
+    pa_device_port_type_t type;
+};
+
 static char *alsa_id_str(char *dst, size_t dst_len, pa_alsa_mixer_id *id) {
     if (id->index > 0) {
         snprintf(dst, dst_len, "'%s',%d", id->name, id->index);
@@ -249,10 +255,23 @@ void pa_alsa_jack_set_plugged_in(pa_alsa_jack *jack, bool plugged_in) {
 }
 
 void pa_alsa_jack_add_ucm_device(pa_alsa_jack *jack, pa_alsa_ucm_device *device) {
+    pa_alsa_ucm_device *idevice;
+    unsigned idx, prio, iprio;
+
     pa_assert(jack);
     pa_assert(device);
 
-    pa_dynarray_append(jack->ucm_devices, device);
+    /* store the ucm device with the sequence of priority from low to high. this
+     * could guarantee when the jack state is changed, the device with highest
+     * priority will send to the module-switch-on-port-available last */
+    prio = device->playback_priority ? device->playback_priority : device->capture_priority;
+
+    PA_DYNARRAY_FOREACH(idevice, jack->ucm_devices, idx) {
+        iprio = idevice->playback_priority ? idevice->playback_priority : idevice->capture_priority;
+        if (iprio > prio)
+            break;
+    }
+    pa_dynarray_insert_by_index(jack->ucm_devices, device, idx);
 }
 
 void pa_alsa_jack_add_ucm_hw_mute_device(pa_alsa_jack *jack, pa_alsa_ucm_device *device) {
@@ -271,6 +290,19 @@ static const char *lookup_description(const char *key, const struct description_
     for (i = 0; i < n; i++)
         if (pa_streq(dm[i].key, key))
             return _(dm[i].description);
+
+    return NULL;
+}
+
+static const struct description2_map *lookup_description2(const char *key, const struct description2_map dm[], unsigned n) {
+    unsigned i;
+
+    if (!key)
+        return NULL;
+
+    for (i = 0; i < n; i++)
+        if (pa_streq(dm[i].key, key))
+            return &dm[i];
 
     return NULL;
 }
@@ -726,6 +758,7 @@ void pa_alsa_path_free(pa_alsa_path *p) {
     }
 
     pa_proplist_free(p->proplist);
+    pa_xfree(p->available_group);
     pa_xfree(p->name);
     pa_xfree(p->description);
     pa_xfree(p->description_key);
@@ -2146,6 +2179,50 @@ static int element_parse_enumeration(pa_config_parser_state *state) {
     return 0;
 }
 
+static int parse_type(pa_config_parser_state *state) {
+    struct device_port_types {
+        const char *name;
+        pa_device_port_type_t type;
+    } device_port_types[] = {
+        { "unknown",      PA_DEVICE_PORT_TYPE_UNKNOWN },
+        { "aux",          PA_DEVICE_PORT_TYPE_AUX },
+        { "speaker",      PA_DEVICE_PORT_TYPE_SPEAKER },
+        { "headphones",   PA_DEVICE_PORT_TYPE_HEADPHONES },
+        { "line",         PA_DEVICE_PORT_TYPE_LINE },
+        { "mic",          PA_DEVICE_PORT_TYPE_MIC },
+        { "headset",      PA_DEVICE_PORT_TYPE_HEADSET },
+        { "handset",      PA_DEVICE_PORT_TYPE_HANDSET },
+        { "earpiece",     PA_DEVICE_PORT_TYPE_EARPIECE },
+        { "spdif",        PA_DEVICE_PORT_TYPE_SPDIF },
+        { "hdmi",         PA_DEVICE_PORT_TYPE_HDMI },
+        { "tv",           PA_DEVICE_PORT_TYPE_TV },
+        { "radio",        PA_DEVICE_PORT_TYPE_RADIO },
+        { "video",        PA_DEVICE_PORT_TYPE_VIDEO },
+        { "usb",          PA_DEVICE_PORT_TYPE_USB },
+        { "bluetooth",    PA_DEVICE_PORT_TYPE_BLUETOOTH },
+        { "portable",     PA_DEVICE_PORT_TYPE_PORTABLE },
+        { "handsfree",    PA_DEVICE_PORT_TYPE_HANDSFREE },
+        { "car",          PA_DEVICE_PORT_TYPE_CAR },
+        { "hifi",         PA_DEVICE_PORT_TYPE_HIFI },
+        { "phone",        PA_DEVICE_PORT_TYPE_PHONE },
+        { "network",      PA_DEVICE_PORT_TYPE_NETWORK },
+        { "analog",       PA_DEVICE_PORT_TYPE_ANALOG },
+    };
+    pa_alsa_path *path;
+    unsigned int idx;
+
+    path = state->userdata;
+
+    for (idx = 0; idx < PA_ELEMENTSOF(device_port_types); idx++)
+        if (pa_streq(state->rvalue, device_port_types[idx].name)) {
+            path->device_port_type = device_port_types[idx].type;
+            return 0;
+        }
+
+    pa_log("[%s:%u] Invalid value for option 'type': %s", state->filename, state->lineno, state->rvalue);
+    return -1;
+}
+
 static int parse_eld_device(pa_config_parser_state *state) {
     pa_alsa_path *path;
     uint32_t eld_device;
@@ -2628,35 +2705,38 @@ static int element_verify(pa_alsa_element *e) {
 }
 
 static int path_verify(pa_alsa_path *p) {
-    static const struct description_map well_known_descriptions[] = {
-        { "analog-input",               N_("Analog Input") },
-        { "analog-input-microphone",    N_("Microphone") },
-        { "analog-input-microphone-front",    N_("Front Microphone") },
-        { "analog-input-microphone-rear",     N_("Rear Microphone") },
-        { "analog-input-microphone-dock",     N_("Dock Microphone") },
-        { "analog-input-microphone-internal", N_("Internal Microphone") },
-        { "analog-input-microphone-headset",  N_("Headset Microphone") },
-        { "analog-input-linein",        N_("Line In") },
-        { "analog-input-radio",         N_("Radio") },
-        { "analog-input-video",         N_("Video") },
-        { "analog-output",              N_("Analog Output") },
-        { "analog-output-headphones",   N_("Headphones") },
-        { "analog-output-headphones-mono",    N_("Headphones Mono Output") },
-        { "analog-output-lfe-on-mono",  N_("LFE on Separate Mono Output") },
-        { "analog-output-lineout",      N_("Line Out") },
-        { "analog-output-mono",         N_("Analog Mono Output") },
-        { "analog-output-speaker",      N_("Speakers") },
-        { "hdmi-output",                N_("HDMI / DisplayPort") },
-        { "iec958-stereo-output",       N_("Digital Output (S/PDIF)") },
-        { "iec958-stereo-input",        N_("Digital Input (S/PDIF)") },
-        { "iec958-passthrough-output",  N_("Digital Passthrough (S/PDIF)") },
-        { "multichannel-input",         N_("Multichannel Input") },
-        { "multichannel-output",        N_("Multichannel Output") },
-        { "steelseries-arctis-5-output-game", N_("Game Output") },
-        { "steelseries-arctis-5-output-chat", N_("Chat Output") },
+    static const struct description2_map well_known_descriptions[] = {
+        { "analog-input",                     N_("Analog Input"),                 PA_DEVICE_PORT_TYPE_ANALOG },
+        { "analog-input-microphone",          N_("Microphone"),                   PA_DEVICE_PORT_TYPE_MIC },
+        { "analog-input-microphone-front",    N_("Front Microphone"),             PA_DEVICE_PORT_TYPE_MIC },
+        { "analog-input-microphone-rear",     N_("Rear Microphone"),              PA_DEVICE_PORT_TYPE_MIC },
+        { "analog-input-microphone-dock",     N_("Dock Microphone"),              PA_DEVICE_PORT_TYPE_MIC },
+        { "analog-input-microphone-internal", N_("Internal Microphone"),          PA_DEVICE_PORT_TYPE_MIC },
+        { "analog-input-microphone-headset",  N_("Headset Microphone"),           PA_DEVICE_PORT_TYPE_MIC },
+        { "analog-input-linein",              N_("Line In"),                      PA_DEVICE_PORT_TYPE_LINE },
+        { "analog-input-radio",               N_("Radio"),                        PA_DEVICE_PORT_TYPE_RADIO },
+        { "analog-input-video",               N_("Video"),                        PA_DEVICE_PORT_TYPE_VIDEO },
+        { "analog-output",                    N_("Analog Output"),                PA_DEVICE_PORT_TYPE_ANALOG },
+        { "analog-output-headphones",         N_("Headphones"),                   PA_DEVICE_PORT_TYPE_HEADPHONES },
+        { "analog-output-headphones-mono",    N_("Headphones Mono Output"),       PA_DEVICE_PORT_TYPE_HEADPHONES },
+        { "analog-output-lineout",            N_("Line Out"),                     PA_DEVICE_PORT_TYPE_LINE },
+        { "analog-output-mono",               N_("Analog Mono Output"),           PA_DEVICE_PORT_TYPE_ANALOG },
+        { "analog-output-speaker",            N_("Speakers"),                     PA_DEVICE_PORT_TYPE_SPEAKER },
+        { "hdmi-output",                      N_("HDMI / DisplayPort"),           PA_DEVICE_PORT_TYPE_HDMI },
+        { "iec958-stereo-output",             N_("Digital Output (S/PDIF)"),      PA_DEVICE_PORT_TYPE_SPDIF },
+        { "iec958-stereo-input",              N_("Digital Input (S/PDIF)"),       PA_DEVICE_PORT_TYPE_SPDIF },
+        { "iec958-passthrough-output",        N_("Digital Passthrough (S/PDIF)"), PA_DEVICE_PORT_TYPE_SPDIF },
+        { "multichannel-input",               N_("Multichannel Input"),           PA_DEVICE_PORT_TYPE_LINE },
+        { "multichannel-output",              N_("Multichannel Output"),          PA_DEVICE_PORT_TYPE_LINE },
+        { "steelseries-arctis-5-output-game", N_("Game Output"),                  PA_DEVICE_PORT_TYPE_HEADSET },
+        { "steelseries-arctis-5-output-chat", N_("Chat Output"),                  PA_DEVICE_PORT_TYPE_HEADSET },
     };
 
     pa_alsa_element *e;
+    const char *key = p->description_key ? p->description_key : p->name;
+    const struct description2_map *map = lookup_description2(key,
+                                                             well_known_descriptions,
+                                                             PA_ELEMENTSOF(well_known_descriptions));
 
     pa_assert(p);
 
@@ -2664,10 +2744,12 @@ static int path_verify(pa_alsa_path *p) {
         if (element_verify(e) < 0)
             return -1;
 
-    if (!p->description)
-        p->description = pa_xstrdup(lookup_description(p->description_key ? p->description_key : p->name,
-                                                       well_known_descriptions,
-                                                       PA_ELEMENTSOF(well_known_descriptions)));
+    if (map) {
+        if (p->device_port_type == PA_DEVICE_PORT_TYPE_UNKNOWN)
+            p->device_port_type = map->type;
+        if (!p->description)
+            p->description = pa_xstrdup(map->description);
+    }
 
     if (!p->description) {
         if (p->description_key)
@@ -2753,6 +2835,7 @@ pa_alsa_path* pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa
         { "priority",            pa_config_parse_unsigned,          NULL, "General" },
         { "description-key",     pa_config_parse_string,            NULL, "General" },
         { "description",         pa_config_parse_string,            NULL, "General" },
+        { "type",                parse_type,                        NULL, "General" },
         { "mute-during-activation", pa_config_parse_bool,           NULL, "General" },
         { "eld-device",          parse_eld_device,                  NULL, "General" },
 
@@ -4219,6 +4302,51 @@ fail:
     return -1;
 }
 
+/* the logic is simple: if we see the jack in multiple paths */
+/* assign all those jacks to one available_group */
+static void mapping_group_available(pa_hashmap *paths)
+{
+    void *state, *state2;
+    pa_alsa_path *p, *p2;
+    pa_alsa_jack *j, *j2;
+    uint32_t num = 1;
+
+    PA_HASHMAP_FOREACH(p, paths, state) {
+        const char *found = NULL;
+        bool has_control = false;
+        PA_LLIST_FOREACH(j, p->jacks) {
+           if (!j->has_control || j->state_plugged == PA_AVAILABLE_NO)
+               continue;
+           has_control = true;
+           j->state_plugged = PA_AVAILABLE_UNKNOWN;
+           PA_HASHMAP_FOREACH(p2, paths, state2) {
+               if (p2 == p)
+                   break;
+               PA_LLIST_FOREACH(j2, p->jacks) {
+                   if (!j2->has_control || j->state_plugged == PA_AVAILABLE_NO)
+                       continue;
+                   if (pa_streq(j->name, j2->name)) {
+                       j2->state_plugged = PA_AVAILABLE_UNKNOWN;
+                       found = p2->available_group;
+                       break;
+                   }
+               }
+           }
+           if (found)
+               break;
+       }
+       if (!has_control)
+           continue;
+       if (!found) {
+           p->available_group = pa_sprintf_malloc("Legacy %d", num);
+       } else {
+           p->available_group = pa_xstrdup(found);
+       }
+       if (!found)
+            num++;
+    }
+}
+
 static void mapping_paths_probe(pa_alsa_mapping *m, pa_alsa_profile *profile,
                                 pa_alsa_direction_t direction, pa_hashmap *used_paths,
                                 pa_hashmap *mixers) {
@@ -4266,6 +4394,8 @@ static void mapping_paths_probe(pa_alsa_mapping *m, pa_alsa_profile *profile,
 
     PA_HASHMAP_FOREACH(p, ps->paths, state)
         pa_hashmap_put(used_paths, p, p);
+
+    mapping_group_available(ps->paths);
 
     pa_log_debug("Available mixer paths (after tidying):");
     pa_alsa_path_set_dump(ps);
@@ -5065,6 +5195,8 @@ static pa_device_port* device_port_alsa_init(pa_hashmap *ports, /* card ports */
         pa_device_port_new_data_set_name(&port_data, name);
         pa_device_port_new_data_set_description(&port_data, description);
         pa_device_port_new_data_set_direction(&port_data, path->direction == PA_ALSA_DIRECTION_OUTPUT ? PA_DIRECTION_OUTPUT : PA_DIRECTION_INPUT);
+        pa_device_port_new_data_set_type(&port_data, path->device_port_type);
+        pa_device_port_new_data_set_available_group(&port_data, path->available_group);
 
         p = pa_device_port_new(core, &port_data, sizeof(pa_alsa_port_data));
         pa_device_port_new_data_done(&port_data);

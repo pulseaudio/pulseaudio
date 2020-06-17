@@ -140,3 +140,26 @@ unsigned pa_dynarray_size(pa_dynarray *array) {
 
     return array->n_entries;
 }
+
+int pa_dynarray_insert_by_index(pa_dynarray *array, void *p, unsigned i) {
+    void *entry;
+    unsigned j;
+
+    pa_assert(array);
+
+    if (i > array->n_entries)
+        return -PA_ERR_NOENTITY;
+
+    if (i == array->n_entries)
+        pa_dynarray_append(array, p);
+    else {
+        entry = pa_dynarray_last(array);
+        pa_dynarray_append(array, entry);
+        j = array->n_entries - 2;
+        for (;j > i; j--)
+	    array->data[j] = array->data[j-1];
+        array->data[i] = p;
+    }
+
+    return 0;
+}
