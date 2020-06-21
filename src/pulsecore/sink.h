@@ -384,6 +384,7 @@ typedef struct pa_sink_new_data {
     bool sample_spec_is_set:1;
     bool channel_map_is_set:1;
     bool alternate_sample_rate_is_set:1;
+    bool avoid_resampling_is_set:1;
     bool volume_is_set:1;
     bool muted_is_set:1;
 
@@ -399,6 +400,7 @@ void pa_sink_new_data_set_name(pa_sink_new_data *data, const char *name);
 void pa_sink_new_data_set_sample_spec(pa_sink_new_data *data, const pa_sample_spec *spec);
 void pa_sink_new_data_set_channel_map(pa_sink_new_data *data, const pa_channel_map *map);
 void pa_sink_new_data_set_alternate_sample_rate(pa_sink_new_data *data, const uint32_t alternate_sample_rate);
+void pa_sink_new_data_set_avoid_resampling(pa_sink_new_data *data, bool avoid_resampling);
 void pa_sink_new_data_set_volume(pa_sink_new_data *data, const pa_cvolume *volume);
 void pa_sink_new_data_set_muted(pa_sink_new_data *data, bool mute);
 void pa_sink_new_data_set_port(pa_sink_new_data *data, const char *port);

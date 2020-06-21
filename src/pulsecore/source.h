@@ -324,6 +324,7 @@ typedef struct pa_source_new_data {
     bool sample_spec_is_set:1;
     bool channel_map_is_set:1;
     bool alternate_sample_rate_is_set:1;
+    bool avoid_resampling_is_set:1;
 
     bool namereg_fail:1;
 
@@ -337,6 +338,7 @@ void pa_source_new_data_set_name(pa_source_new_data *data, const char *name);
 void pa_source_new_data_set_sample_spec(pa_source_new_data *data, const pa_sample_spec *spec);
 void pa_source_new_data_set_channel_map(pa_source_new_data *data, const pa_channel_map *map);
 void pa_source_new_data_set_alternate_sample_rate(pa_source_new_data *data, const uint32_t alternate_sample_rate);
+void pa_source_new_data_set_avoid_resampling(pa_source_new_data *data, bool avoid_resampling);
 void pa_source_new_data_set_volume(pa_source_new_data *data, const pa_cvolume *volume);
 void pa_source_new_data_set_muted(pa_source_new_data *data, bool mute);
 void pa_source_new_data_set_port(pa_source_new_data *data, const char *port);

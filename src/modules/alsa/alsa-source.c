@@ -2221,7 +2221,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
         pa_source_new_data_done(&data);
         goto fail;
     }
-    data.avoid_resampling = avoid_resampling;
+    pa_source_new_data_set_avoid_resampling(&data, avoid_resampling);
 
     pa_source_new_data_set_sample_spec(&data, &ss);
     pa_source_new_data_set_channel_map(&data, &map);

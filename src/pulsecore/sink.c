@@ -113,6 +113,13 @@ void pa_sink_new_data_set_alternate_sample_rate(pa_sink_new_data *data, const ui
     data->alternate_sample_rate = alternate_sample_rate;
 }
 
+void pa_sink_new_data_set_avoid_resampling(pa_sink_new_data *data, bool avoid_resampling) {
+    pa_assert(data);
+
+    data->avoid_resampling_is_set = true;
+    data->avoid_resampling = avoid_resampling;
+}
+
 void pa_sink_new_data_set_volume(pa_sink_new_data *data, const pa_cvolume *volume) {
     pa_assert(data);
 
@@ -271,7 +278,10 @@ pa_sink* pa_sink_new(
     else
         s->alternate_sample_rate = s->core->alternate_sample_rate;
 
-    s->avoid_resampling = data->avoid_resampling;
+    if (data->avoid_resampling_is_set)
+        s->avoid_resampling = data->avoid_resampling;
+    else
+        s->avoid_resampling = s->core->avoid_resampling;
 
     s->inputs = pa_idxset_new(NULL, NULL);
     s->n_corked = 0;
@@ -363,11 +373,11 @@ pa_sink* pa_sink_new(
     pa_source_new_data_set_sample_spec(&source_data, &s->sample_spec);
     pa_source_new_data_set_channel_map(&source_data, &s->channel_map);
     pa_source_new_data_set_alternate_sample_rate(&source_data, s->alternate_sample_rate);
+    pa_source_new_data_set_avoid_resampling(&source_data, s->avoid_resampling);
     source_data.name = pa_sprintf_malloc("%s.monitor", name);
     source_data.driver = data->driver;
     source_data.module = data->module;
     source_data.card = data->card;
-    source_data.avoid_resampling = data->avoid_resampling;
 
     dn = pa_proplist_gets(s->proplist, PA_PROP_DEVICE_DESCRIPTION);
     pa_proplist_setf(source_data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Monitor of %s", dn ? dn : s->name);

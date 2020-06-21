@@ -2534,7 +2534,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
         pa_sink_new_data_done(&data);
         goto fail;
     }
-    data.avoid_resampling = avoid_resampling;
+    pa_sink_new_data_set_avoid_resampling(&data, avoid_resampling);
 
     pa_sink_new_data_set_sample_spec(&data, &ss);
     pa_sink_new_data_set_channel_map(&data, &map);

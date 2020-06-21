@@ -104,6 +104,13 @@ void pa_source_new_data_set_alternate_sample_rate(pa_source_new_data *data, cons
     data->alternate_sample_rate = alternate_sample_rate;
 }
 
+void pa_source_new_data_set_avoid_resampling(pa_source_new_data *data, bool avoid_resampling) {
+    pa_assert(data);
+
+    data->avoid_resampling_is_set = true;
+    data->avoid_resampling = avoid_resampling;
+}
+
 void pa_source_new_data_set_volume(pa_source_new_data *data, const pa_cvolume *volume) {
     pa_assert(data);
 
@@ -258,7 +265,10 @@ pa_source* pa_source_new(
     else
         s->alternate_sample_rate = s->core->alternate_sample_rate;
 
-    s->avoid_resampling = data->avoid_resampling;
+    if (data->avoid_resampling_is_set)
+        s->avoid_resampling = data->avoid_resampling;
+    else
+        s->avoid_resampling = s->core->avoid_resampling;
 
     s->outputs = pa_idxset_new(NULL, NULL);
     s->n_corked = 0;
