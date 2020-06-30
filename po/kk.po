@@ -1,0 +1,2864 @@
+# Kazakh translation of pulseaudio.
+# Copyright (C) 2020 The pulseaudio authors.
+# This file is distributed under the same license as the pulseaudio package.
+# Baurzhan Muftakhidinov <baurthefirst@gmail.com>, 2020.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
+"issues\n"
+"POT-Creation-Date: 2020-06-18 03:28+0000\n"
+"PO-Revision-Date: 2020-06-30 08:04+0500\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.3.1\n"
+"Last-Translator: Baurzhan Muftakhidinov <baurthefirst@gmail.com>\n"
+"Language: kk\n"
+
+#: src/daemon/cmdline.c:113
+#, c-format
+msgid ""
+"%s [options]\n"
+"\n"
+"COMMANDS:\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"      --dump-conf                       Dump default configuration\n"
+"      --dump-modules                    Dump list of available modules\n"
+"      --dump-resample-methods           Dump available resample methods\n"
+"      --cleanup-shm                     Cleanup stale shared memory "
+"segments\n"
+"      --start                           Start the daemon if it is not "
+"running\n"
+"  -k  --kill                            Kill a running daemon\n"
+"      --check                           Check for a running daemon (only "
+"returns exit code)\n"
+"\n"
+"OPTIONS:\n"
+"      --system[=BOOL]                   Run as system-wide instance\n"
+"  -D, --daemonize[=BOOL]                Daemonize after startup\n"
+"      --fail[=BOOL]                     Quit when startup fails\n"
+"      --high-priority[=BOOL]            Try to set high nice level\n"
+"                                        (only available as root, when SUID "
+"or\n"
+"                                        with elevated RLIMIT_NICE)\n"
+"      --realtime[=BOOL]                 Try to enable realtime scheduling\n"
+"                                        (only available as root, when SUID "
+"or\n"
+"                                        with elevated RLIMIT_RTPRIO)\n"
+"      --disallow-module-loading[=BOOL]  Disallow user requested module\n"
+"                                        loading/unloading after startup\n"
+"      --disallow-exit[=BOOL]            Disallow user requested exit\n"
+"      --exit-idle-time=SECS             Terminate the daemon when idle and "
+"this\n"
+"                                        time passed\n"
+"      --scache-idle-time=SECS           Unload autoloaded samples when idle "
+"and\n"
+"                                        this time passed\n"
+"      --log-level[=LEVEL]               Increase or set verbosity level\n"
+"  -v  --verbose                         Increase the verbosity level\n"
+"      --log-target={auto,syslog,stderr,file:PATH,newfile:PATH}\n"
+"                                        Specify the log target\n"
+"      --log-meta[=BOOL]                 Include code location in log "
+"messages\n"
+"      --log-time[=BOOL]                 Include timestamps in log messages\n"
+"      --log-backtrace=FRAMES            Include a backtrace in log messages\n"
+"  -p, --dl-search-path=PATH             Set the search path for dynamic "
+"shared\n"
+"                                        objects (plugins)\n"
+"      --resample-method=METHOD          Use the specified resampling method\n"
+"                                        (See --dump-resample-methods for\n"
+"                                        possible values)\n"
+"      --use-pid-file[=BOOL]             Create a PID file\n"
+"      --no-cpu-limit[=BOOL]             Do not install CPU load limiter on\n"
+"                                        platforms that support it.\n"
+"      --disable-shm[=BOOL]              Disable shared memory support.\n"
+"      --enable-memfd[=BOOL]             Enable memfd shared memory support.\n"
+"\n"
+"STARTUP SCRIPT:\n"
+"  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module "
+"with\n"
+"                                        the specified argument\n"
+"  -F, --file=FILENAME                   Run the specified script\n"
+"  -C                                    Open a command line on the running "
+"TTY\n"
+"                                        after startup\n"
+"\n"
+"  -n                                    Don't load default script file\n"
+msgstr ""
+
+#: src/daemon/cmdline.c:246
+msgid "--daemonize expects boolean argument"
+msgstr ""
+
+#: src/daemon/cmdline.c:254
+msgid "--fail expects boolean argument"
+msgstr ""
+
+#: src/daemon/cmdline.c:265
+msgid ""
+"--log-level expects log level argument (either numeric in range 0..4 or one "
+"of debug, info, notice, warn, error)."
+msgstr ""
+
+#: src/daemon/cmdline.c:277
+msgid "--high-priority expects boolean argument"
+msgstr ""
+
+#: src/daemon/cmdline.c:285
+msgid "--realtime expects boolean argument"
+msgstr ""
+
+#: src/daemon/cmdline.c:293
+msgid "--disallow-module-loading expects boolean argument"
+msgstr ""
+
+#: src/daemon/cmdline.c:301
+msgid "--disallow-exit expects boolean argument"
+msgstr ""
+
+#: src/daemon/cmdline.c:309
+msgid "--use-pid-file expects boolean argument"
+msgstr ""
+
+#: src/daemon/cmdline.c:328
+msgid ""
+"Invalid log target: use either 'syslog', 'journal', 'stderr' or 'auto' or a "
+"valid file name 'file:<path>', 'newfile:<path>'."
+msgstr ""
+
+#: src/daemon/cmdline.c:330
+msgid ""
+"Invalid log target: use either 'syslog', 'stderr' or 'auto' or a valid file "
+"name 'file:<path>', 'newfile:<path>'."
+msgstr ""
+
+#: src/daemon/cmdline.c:338
+msgid "--log-time expects boolean argument"
+msgstr ""
+
+#: src/daemon/cmdline.c:346
+msgid "--log-meta expects boolean argument"
+msgstr ""
+
+#: src/daemon/cmdline.c:366
+#, c-format
+msgid "Invalid resample method '%s'."
+msgstr ""
+
+#: src/daemon/cmdline.c:373
+msgid "--system expects boolean argument"
+msgstr ""
+
+#: src/daemon/cmdline.c:381
+msgid "--no-cpu-limit expects boolean argument"
+msgstr ""
+
+#: src/daemon/cmdline.c:389
+msgid "--disable-shm expects boolean argument"
+msgstr ""
+
+#: src/daemon/cmdline.c:397
+msgid "--enable-memfd expects boolean argument"
+msgstr ""
+
+#: src/daemon/daemon-conf.c:270
+#, c-format
+msgid "[%s:%u] Invalid log target '%s'."
+msgstr ""
+
+#: src/daemon/daemon-conf.c:285
+#, c-format
+msgid "[%s:%u] Invalid log level '%s'."
+msgstr ""
+
+#: src/daemon/daemon-conf.c:300
+#, c-format
+msgid "[%s:%u] Invalid resample method '%s'."
+msgstr ""
+
+#: src/daemon/daemon-conf.c:322
+#, c-format
+msgid "[%s:%u] Invalid rlimit '%s'."
+msgstr ""
+
+#: src/daemon/daemon-conf.c:342
+#, c-format
+msgid "[%s:%u] Invalid sample format '%s'."
+msgstr ""
+
+#: src/daemon/daemon-conf.c:359 src/daemon/daemon-conf.c:376
+#, c-format
+msgid "[%s:%u] Invalid sample rate '%s'."
+msgstr ""
+
+#: src/daemon/daemon-conf.c:399
+#, c-format
+msgid "[%s:%u] Invalid sample channels '%s'."
+msgstr ""
+
+#: src/daemon/daemon-conf.c:416
+#, c-format
+msgid "[%s:%u] Invalid channel map '%s'."
+msgstr ""
+
+#: src/daemon/daemon-conf.c:433
+#, c-format
+msgid "[%s:%u] Invalid number of fragments '%s'."
+msgstr ""
+
+#: src/daemon/daemon-conf.c:450
+#, c-format
+msgid "[%s:%u] Invalid fragment size '%s'."
+msgstr ""
+
+#: src/daemon/daemon-conf.c:467
+#, c-format
+msgid "[%s:%u] Invalid nice level '%s'."
+msgstr ""
+
+#: src/daemon/daemon-conf.c:552
+#, c-format
+msgid "[%s:%u] Invalid server type '%s'."
+msgstr ""
+
+#: src/daemon/daemon-conf.c:673
+#, c-format
+msgid "Failed to open configuration file: %s"
+msgstr "Баптаулар файлын ашу сәтсіз аяқталды: %s"
+
+#: src/daemon/daemon-conf.c:689
+msgid ""
+"The specified default channel map has a different number of channels than "
+"the specified default number of channels."
+msgstr ""
+
+#: src/daemon/daemon-conf.c:776
+#, c-format
+msgid "### Read from configuration file: %s ###\n"
+msgstr ""
+
+#: src/daemon/dumpmodules.c:57
+#, c-format
+msgid "Name: %s\n"
+msgstr "Аты: %s\n"
+
+#: src/daemon/dumpmodules.c:60
+#, c-format
+msgid "No module information available\n"
+msgstr "Модуль ақпараты жоқ\n"
+
+#: src/daemon/dumpmodules.c:63
+#, c-format
+msgid "Version: %s\n"
+msgstr "Нұсқасы: %s\n"
+
+#: src/daemon/dumpmodules.c:65
+#, c-format
+msgid "Description: %s\n"
+msgstr "Сипаттамасы: %s\n"
+
+#: src/daemon/dumpmodules.c:67
+#, c-format
+msgid "Author: %s\n"
+msgstr "Автор: %s\n"
+
+#: src/daemon/dumpmodules.c:69
+#, c-format
+msgid "Usage: %s\n"
+msgstr "Қолданылуы: %s\n"
+
+#: src/daemon/dumpmodules.c:70
+#, c-format
+msgid "Load Once: %s\n"
+msgstr "Бір рет жүктеу: %s\n"
+
+#: src/daemon/dumpmodules.c:72
+#, c-format
+msgid "DEPRECATION WARNING: %s\n"
+msgstr ""
+
+#: src/daemon/dumpmodules.c:76
+#, c-format
+msgid "Path: %s\n"
+msgstr ""
+
+#: src/daemon/ltdl-bind-now.c:75
+#, c-format
+msgid "Failed to open module %s: %s"
+msgstr ""
+
+#: src/daemon/ltdl-bind-now.c:126
+msgid "Failed to find original lt_dlopen loader."
+msgstr ""
+
+#: src/daemon/ltdl-bind-now.c:131
+msgid "Failed to allocate new dl loader."
+msgstr ""
+
+#: src/daemon/ltdl-bind-now.c:144
+msgid "Failed to add bind-now-loader."
+msgstr ""
+
+#: src/daemon/main.c:171
+#, c-format
+msgid "Failed to find user '%s'."
+msgstr ""
+
+#: src/daemon/main.c:176
+#, c-format
+msgid "Failed to find group '%s'."
+msgstr ""
+
+#: src/daemon/main.c:185
+#, c-format
+msgid "GID of user '%s' and of group '%s' don't match."
+msgstr ""
+
+#: src/daemon/main.c:190
+#, c-format
+msgid "Home directory of user '%s' is not '%s', ignoring."
+msgstr ""
+
+#: src/daemon/main.c:193 src/daemon/main.c:198
+#, c-format
+msgid "Failed to create '%s': %s"
+msgstr ""
+
+#: src/daemon/main.c:205
+#, c-format
+msgid "Failed to change group list: %s"
+msgstr ""
+
+#: src/daemon/main.c:221
+#, c-format
+msgid "Failed to change GID: %s"
+msgstr ""
+
+#: src/daemon/main.c:237
+#, c-format
+msgid "Failed to change UID: %s"
+msgstr ""
+
+#: src/daemon/main.c:266
+msgid "System wide mode unsupported on this platform."
+msgstr ""
+
+#: src/daemon/main.c:495
+msgid "Failed to parse command line."
+msgstr ""
+
+#: src/daemon/main.c:534
+msgid ""
+"System mode refused for non-root user. Only starting the D-Bus server lookup "
+"service."
+msgstr ""
+
+#: src/daemon/main.c:633
+#, c-format
+msgid "Failed to kill daemon: %s"
+msgstr ""
+
+#: src/daemon/main.c:662
+msgid ""
+"This program is not intended to be run as root (unless --system is "
+"specified)."
+msgstr ""
+
+#: src/daemon/main.c:665
+msgid "Root privileges required."
+msgstr "Әкімші құқықтары керек."
+
+#: src/daemon/main.c:672
+msgid "--start not supported for system instances."
+msgstr ""
+
+#: src/daemon/main.c:712
+#, c-format
+msgid "User-configured server at %s, refusing to start/autospawn."
+msgstr ""
+
+#: src/daemon/main.c:718
+#, c-format
+msgid ""
+"User-configured server at %s, which appears to be local. Probing deeper."
+msgstr ""
+
+#: src/daemon/main.c:723
+msgid "Running in system mode, but --disallow-exit not set."
+msgstr ""
+
+#: src/daemon/main.c:726
+msgid "Running in system mode, but --disallow-module-loading not set."
+msgstr ""
+
+#: src/daemon/main.c:729
+msgid "Running in system mode, forcibly disabling SHM mode."
+msgstr ""
+
+#: src/daemon/main.c:734
+msgid "Running in system mode, forcibly disabling exit idle time."
+msgstr ""
+
+#: src/daemon/main.c:767
+msgid "Failed to acquire stdio."
+msgstr ""
+
+#: src/daemon/main.c:773 src/daemon/main.c:844
+#, c-format
+msgid "pipe() failed: %s"
+msgstr "pipe() сәтсіз аяқталды: %s"
+
+#: src/daemon/main.c:778 src/daemon/main.c:849
+#, c-format
+msgid "fork() failed: %s"
+msgstr "fork() сәтсіз аяқталды: %s"
+
+#: src/daemon/main.c:793 src/daemon/main.c:864 src/utils/pacat.c:562
+#, c-format
+msgid "read() failed: %s"
+msgstr "read() сәтсіз аяқталды: %s"
+
+#: src/daemon/main.c:799
+msgid "Daemon startup failed."
+msgstr ""
+
+#: src/daemon/main.c:832
+#, c-format
+msgid "setsid() failed: %s"
+msgstr "setsid() сәтсіз аяқталды: %s"
+
+#: src/daemon/main.c:965
+msgid "Failed to get machine ID"
+msgstr ""
+
+#: src/daemon/main.c:991
+msgid ""
+"OK, so you are running PA in system mode. Please make sure that you actually "
+"do want to do that.\n"
+"Please read http://www.freedesktop.org/wiki/Software/PulseAudio/"
+"Documentation/User/WhatIsWrongWithSystemWide/ for an explanation why system "
+"mode is usually a bad idea."
+msgstr ""
+
+#: src/daemon/main.c:1007
+msgid "pa_pid_file_create() failed."
+msgstr "pa_pid_file_create() сәтсіз аяқталды."
+
+#: src/daemon/main.c:1039
+msgid "pa_core_new() failed."
+msgstr "pa_core_new() сәтсіз аяқталды."
+
+#: src/daemon/main.c:1110
+msgid "command line arguments"
+msgstr "командалық жол аргументтері"
+
+#: src/daemon/main.c:1117
+#, c-format
+msgid ""
+"Failed to initialize daemon due to errors while executing startup commands. "
+"Source of commands: %s"
+msgstr ""
+
+#: src/daemon/main.c:1122
+msgid "Daemon startup without any loaded modules, refusing to work."
+msgstr ""
+
+#: src/daemon/pulseaudio.desktop.in:4
+msgid "PulseAudio Sound System"
+msgstr "PulseAudio дыбыс жүйесі"
+
+#: src/daemon/pulseaudio.desktop.in:5
+msgid "Start the PulseAudio Sound System"
+msgstr "PulseAudio дыбыс жүйесін іске қосу"
+
+#: src/modules/alsa/alsa-mixer.c:2621
+msgid "Input"
+msgstr "Кіріс"
+
+#: src/modules/alsa/alsa-mixer.c:2622
+msgid "Docking Station Input"
+msgstr "Док-станция кірісі"
+
+#: src/modules/alsa/alsa-mixer.c:2623
+msgid "Docking Station Microphone"
+msgstr "Док-станция микрофоны"
+
+#: src/modules/alsa/alsa-mixer.c:2624
+msgid "Docking Station Line In"
+msgstr "Док-станцияның сызықтық кірісі"
+
+#: src/modules/alsa/alsa-mixer.c:2625 src/modules/alsa/alsa-mixer.c:2716
+msgid "Line In"
+msgstr "Сызықтық кіріс"
+
+#: src/modules/alsa/alsa-mixer.c:2626 src/modules/alsa/alsa-mixer.c:2710
+#: src/modules/bluetooth/module-bluez5-device.c:1792
+msgid "Microphone"
+msgstr "Микрофон"
+
+#: src/modules/alsa/alsa-mixer.c:2627 src/modules/alsa/alsa-mixer.c:2711
+msgid "Front Microphone"
+msgstr "Алдыңғы микрофон"
+
+#: src/modules/alsa/alsa-mixer.c:2628 src/modules/alsa/alsa-mixer.c:2712
+msgid "Rear Microphone"
+msgstr "Артқы микрофон"
+
+#: src/modules/alsa/alsa-mixer.c:2629
+msgid "External Microphone"
+msgstr "Сыртқы микрофон"
+
+#: src/modules/alsa/alsa-mixer.c:2630 src/modules/alsa/alsa-mixer.c:2714
+msgid "Internal Microphone"
+msgstr "Ішкі микрофон"
+
+#: src/modules/alsa/alsa-mixer.c:2631 src/modules/alsa/alsa-mixer.c:2717
+#: src/utils/pactl.c:258
+msgid "Radio"
+msgstr "Радио"
+
+#: src/modules/alsa/alsa-mixer.c:2632 src/modules/alsa/alsa-mixer.c:2718
+#: src/utils/pactl.c:259
+msgid "Video"
+msgstr "Видео"
+
+#: src/modules/alsa/alsa-mixer.c:2633
+msgid "Automatic Gain Control"
+msgstr "Күшейтуді автореттеу"
+
+#: src/modules/alsa/alsa-mixer.c:2634
+msgid "No Automatic Gain Control"
+msgstr "Күшейтуді автореттеу жоқ"
+
+#: src/modules/alsa/alsa-mixer.c:2635
+msgid "Boost"
+msgstr "Күшейту"
+
+#: src/modules/alsa/alsa-mixer.c:2636
+msgid "No Boost"
+msgstr "Күшейту жоқ"
+
+#: src/modules/alsa/alsa-mixer.c:2637
+msgid "Amplifier"
+msgstr "Күшейткіш"
+
+#: src/modules/alsa/alsa-mixer.c:2638
+msgid "No Amplifier"
+msgstr "Күшейткіш жоқ"
+
+#: src/modules/alsa/alsa-mixer.c:2639
+msgid "Bass Boost"
+msgstr "Бас күшейту"
+
+#: src/modules/alsa/alsa-mixer.c:2640
+msgid "No Bass Boost"
+msgstr "Бас күшейту жоқ"
+
+#: src/modules/alsa/alsa-mixer.c:2641
+#: src/modules/bluetooth/module-bluez5-device.c:1800 src/utils/pactl.c:248
+msgid "Speaker"
+msgstr "Динамик"
+
+#: src/modules/alsa/alsa-mixer.c:2642 src/modules/alsa/alsa-mixer.c:2720
+#: src/utils/pactl.c:249
+msgid "Headphones"
+msgstr "Құлаққаптар"
+
+#: src/modules/alsa/alsa-mixer.c:2709
+msgid "Analog Input"
+msgstr "Аналогтық кіріс"
+
+#: src/modules/alsa/alsa-mixer.c:2713
+msgid "Dock Microphone"
+msgstr "Док-станция микрофоны"
+
+#: src/modules/alsa/alsa-mixer.c:2715
+msgid "Headset Microphone"
+msgstr "Гарнитура микрофоны"
+
+#: src/modules/alsa/alsa-mixer.c:2719
+msgid "Analog Output"
+msgstr "Аналогтық шығыс"
+
+#: src/modules/alsa/alsa-mixer.c:2721
+msgid "Headphones Mono Output"
+msgstr "Құлаққаптардың моно шығысы"
+
+#: src/modules/alsa/alsa-mixer.c:2722
+msgid "Line Out"
+msgstr "Сызықтық шығыс"
+
+#: src/modules/alsa/alsa-mixer.c:2723
+msgid "Analog Mono Output"
+msgstr "Аналогтық моно шығысы"
+
+#: src/modules/alsa/alsa-mixer.c:2724
+msgid "Speakers"
+msgstr "Динамиктер"
+
+#: src/modules/alsa/alsa-mixer.c:2725
+msgid "HDMI / DisplayPort"
+msgstr "HDMI / DisplayPort"
+
+#: src/modules/alsa/alsa-mixer.c:2726
+msgid "Digital Output (S/PDIF)"
+msgstr "Цифрлық шығыс (S/PDIF)"
+
+#: src/modules/alsa/alsa-mixer.c:2727
+msgid "Digital Input (S/PDIF)"
+msgstr "Цифрлық кіріс (S/PDIF)"
+
+#: src/modules/alsa/alsa-mixer.c:2728
+msgid "Digital Passthrough (S/PDIF)"
+msgstr "Өтпелі цифрлық арна (S/PDIF)"
+
+#: src/modules/alsa/alsa-mixer.c:2729
+msgid "Multichannel Input"
+msgstr "Көпарналы кіріс"
+
+#: src/modules/alsa/alsa-mixer.c:2730
+msgid "Multichannel Output"
+msgstr "Көпарналы шығыс"
+
+#: src/modules/alsa/alsa-mixer.c:2731
+msgid "Game Output"
+msgstr "Ойын шығысы"
+
+#: src/modules/alsa/alsa-mixer.c:2732
+msgid "Chat Output"
+msgstr "Чат шығысы"
+
+#: src/modules/alsa/alsa-mixer.c:4355
+msgid "Analog Mono"
+msgstr "Аналогтық моно"
+
+#. Note: Not translated to "Analog Stereo Input", because the source
+#. * name gets "Input" appended to it automatically, so adding "Input"
+#. * here would lead to the source name to become "Analog Stereo Input
+#. * Input". The same logic applies to analog-stereo-output,
+#. * multichannel-input and multichannel-output.
+#: src/modules/alsa/alsa-mixer.c:4356 src/modules/alsa/alsa-mixer.c:4364
+#: src/modules/alsa/alsa-mixer.c:4365
+msgid "Analog Stereo"
+msgstr "Аналогтық стерео"
+
+#: src/modules/alsa/alsa-mixer.c:4357 src/pulse/channelmap.c:103
+#: src/pulse/channelmap.c:771
+msgid "Mono"
+msgstr "Моно"
+
+#: src/modules/alsa/alsa-mixer.c:4358 src/pulse/channelmap.c:775
+msgid "Stereo"
+msgstr "Стерео"
+
+#: src/modules/alsa/alsa-mixer.c:4366 src/modules/alsa/alsa-mixer.c:4367
+msgid "Multichannel"
+msgstr "Көпарналы"
+
+#: src/modules/alsa/alsa-mixer.c:4368
+msgid "Analog Surround 2.1"
+msgstr "Аналогтық көлемді 2.1"
+
+#: src/modules/alsa/alsa-mixer.c:4369
+msgid "Analog Surround 3.0"
+msgstr "Аналогтық көлемді 3.0"
+
+#: src/modules/alsa/alsa-mixer.c:4370
+msgid "Analog Surround 3.1"
+msgstr "Аналогтық көлемді 3.1"
+
+#: src/modules/alsa/alsa-mixer.c:4371
+msgid "Analog Surround 4.0"
+msgstr "Аналогтық көлемді 4.0"
+
+#: src/modules/alsa/alsa-mixer.c:4372
+msgid "Analog Surround 4.1"
+msgstr "Аналогтық көлемді 4.1"
+
+#: src/modules/alsa/alsa-mixer.c:4373
+msgid "Analog Surround 5.0"
+msgstr "Аналогтық көлемді 5.0"
+
+#: src/modules/alsa/alsa-mixer.c:4374
+msgid "Analog Surround 5.1"
+msgstr "Аналогтық көлемді 5.1"
+
+#: src/modules/alsa/alsa-mixer.c:4375
+msgid "Analog Surround 6.0"
+msgstr "Аналогтық көлемді 6.0"
+
+#: src/modules/alsa/alsa-mixer.c:4376
+msgid "Analog Surround 6.1"
+msgstr "Аналогтық көлемді 6.1"
+
+#: src/modules/alsa/alsa-mixer.c:4377
+msgid "Analog Surround 7.0"
+msgstr "Аналогтық көлемді 7.0"
+
+#: src/modules/alsa/alsa-mixer.c:4378
+msgid "Analog Surround 7.1"
+msgstr "Аналогтық көлемді 7.1"
+
+#: src/modules/alsa/alsa-mixer.c:4379
+msgid "Digital Stereo (IEC958)"
+msgstr "Цифрлық стерео (IEC958)"
+
+#: src/modules/alsa/alsa-mixer.c:4380
+msgid "Digital Passthrough (IEC958)"
+msgstr "Цифрлық өтпелі арна (IEC958)"
+
+#: src/modules/alsa/alsa-mixer.c:4381
+msgid "Digital Surround 4.0 (IEC958/AC3)"
+msgstr "Цифрлық көлемді 4.0 (IEC958/AC3)"
+
+#: src/modules/alsa/alsa-mixer.c:4382
+msgid "Digital Surround 5.1 (IEC958/AC3)"
+msgstr "Цифрлық көлемді 5.1 (IEC958/AC3)"
+
+#: src/modules/alsa/alsa-mixer.c:4383
+msgid "Digital Surround 5.1 (IEC958/DTS)"
+msgstr "Цифрлық көлемді 5.1 (IEC958/DTS)"
+
+#: src/modules/alsa/alsa-mixer.c:4384
+msgid "Digital Stereo (HDMI)"
+msgstr "Цифрлық стерео (HDMI)"
+
+#: src/modules/alsa/alsa-mixer.c:4385
+msgid "Digital Surround 5.1 (HDMI)"
+msgstr "Цифрлық көлемді 5.1 (HDMI)"
+
+#: src/modules/alsa/alsa-mixer.c:4518
+msgid "Analog Mono Duplex"
+msgstr "Аналогтық моно дуплекс"
+
+#: src/modules/alsa/alsa-mixer.c:4519
+msgid "Analog Stereo Duplex"
+msgstr "Аналогтық стерео дуплекс"
+
+#: src/modules/alsa/alsa-mixer.c:4520
+msgid "Digital Stereo Duplex (IEC958)"
+msgstr "Цифрлық стерео дуплекс (IEC958)"
+
+#: src/modules/alsa/alsa-mixer.c:4521
+msgid "Multichannel Duplex"
+msgstr "Көпарналы дуплекс"
+
+#: src/modules/alsa/alsa-mixer.c:4522
+msgid "Stereo Duplex"
+msgstr "Стерео дуплекс"
+
+#: src/modules/alsa/alsa-mixer.c:4523 src/modules/alsa/module-alsa-card.c:188
+#: src/modules/bluetooth/module-bluez5-device.c:2053
+msgid "Off"
+msgstr "Сөнд."
+
+#: src/modules/alsa/alsa-mixer.c:4622
+#, c-format
+msgid "%s Output"
+msgstr "%s шығысы"
+
+#: src/modules/alsa/alsa-mixer.c:4630
+#, c-format
+msgid "%s Input"
+msgstr "%s кірісі"
+
+#: src/modules/alsa/alsa-sink.c:652 src/modules/alsa/alsa-sink.c:842
+#, c-format
+msgid ""
+"ALSA woke us up to write new data to the device, but there was actually "
+"nothing to write.\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers.\n"
+"We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
+msgstr ""
+
+#: src/modules/alsa/alsa-source.c:611 src/modules/alsa/alsa-source.c:777
+#, c-format
+msgid ""
+"ALSA woke us up to read new data from the device, but there was actually "
+"nothing to read.\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers.\n"
+"We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
+"returned 0 or another value < min_avail."
+msgstr ""
+
+#: src/modules/alsa/alsa-util.c:1183 src/modules/alsa/alsa-util.c:1277
+#, c-format
+msgid ""
+"snd_pcm_avail() returned a value that is exceptionally large: %lu byte (%lu "
+"ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgid_plural ""
+"snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
+"ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/modules/alsa/alsa-util.c:1249
+#, c-format
+msgid ""
+"snd_pcm_delay() returned a value that is exceptionally large: %li byte (%s"
+"%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgid_plural ""
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s"
+"%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/modules/alsa/alsa-util.c:1296
+#, c-format
+msgid ""
+"snd_pcm_avail_delay() returned strange values: delay %lu is less than avail "
+"%lu.\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgstr ""
+
+#: src/modules/alsa/alsa-util.c:1339
+#, c-format
+msgid ""
+"snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu byte "
+"(%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgid_plural ""
+"snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
+"(%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/modules/bluetooth/module-bluez5-device.c:1773
+#: src/modules/bluetooth/module-bluez5-device.c:1799
+#: src/modules/bluetooth/module-bluez5-device.c:1806
+msgid "Bluetooth Input"
+msgstr "Bluetooth кірісі"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1774
+#: src/modules/bluetooth/module-bluez5-device.c:1793
+msgid "Bluetooth Output"
+msgstr "Bluetooth шығысы"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1780 src/utils/pactl.c:252
+msgid "Headset"
+msgstr "Гарнитура"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1786 src/utils/pactl.c:263
+msgid "Handsfree"
+msgstr "Хендс-фри"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1807
+msgid "Headphone"
+msgstr "Құлаққап"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1813 src/utils/pactl.c:262
+msgid "Portable"
+msgstr "Портативті динамик"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1819 src/utils/pactl.c:264
+msgid "Car"
+msgstr "Автомобильдік динамик"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1825 src/utils/pactl.c:265
+msgid "HiFi"
+msgstr "HiFi"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1831 src/utils/pactl.c:266
+msgid "Phone"
+msgstr "Телефон"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1878
+msgid "High Fidelity Playback (A2DP Sink)"
+msgstr "Жоғарғы сапалы ойнату (A2DP қабылдағышы)"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1890
+msgid "High Fidelity Capture (A2DP Source)"
+msgstr "Жоғарғы сапалы жазу (A2DP қайнаркөзі)"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1902
+msgid "Headset Head Unit (HSP/HFP)"
+msgstr "Гарнитура (HSP/HFP)"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1915
+msgid "Headset Audio Gateway (HSP/HFP)"
+msgstr "Аудиогарнитура адаптері (HSP/HFP)"
+
+#: src/modules/echo-cancel/module-echo-cancel.c:59
+msgid ""
+"source_name=<name for the source> source_properties=<properties for the "
+"source> source_master=<name of source to filter> sink_name=<name for the "
+"sink> sink_properties=<properties for the sink> sink_master=<name of sink to "
+"filter> adjust_time=<how often to readjust rates in s> adjust_threshold=<how "
+"much drift to readjust after in ms> format=<sample format> rate=<sample "
+"rate> channels=<number of channels> channel_map=<channel map> "
+"aec_method=<implementation to use> aec_args=<parameters for the AEC engine> "
+"save_aec=<save AEC data in /tmp> autoloaded=<set if this module is being "
+"loaded automatically> use_volume_sharing=<yes or no> use_master_format=<yes "
+"or no> "
+msgstr ""
+
+#. add on profile
+#: src/modules/macosx/module-coreaudio-device.c:824
+msgid "On"
+msgstr "Іске қос."
+
+#: src/modules/module-allow-passthrough.c:71
+#: src/modules/module-always-sink.c:80
+msgid "Dummy Output"
+msgstr "Жалған шығыс"
+
+#: src/modules/module-always-sink.c:34
+msgid "Always keeps at least one sink loaded even if it's a null one"
+msgstr ""
+
+#: src/modules/module-always-source.c:35
+msgid "Always keeps at least one source loaded even if it's a null one"
+msgstr ""
+
+#: src/modules/module-equalizer-sink.c:68
+msgid "General Purpose Equalizer"
+msgstr "Жалпы мақсатты эквалайзер"
+
+#: src/modules/module-equalizer-sink.c:72
+msgid ""
+"sink_name=<name of the sink> sink_properties=<properties for the sink> "
+"sink_master=<sink to connect to> format=<sample format> rate=<sample rate> "
+"channels=<number of channels> channel_map=<channel map> autoloaded=<set if "
+"this module is being loaded automatically> use_volume_sharing=<yes or no> "
+msgstr ""
+
+#: src/modules/module-equalizer-sink.c:1094
+#: src/modules/module-equalizer-sink.c:1217
+#, c-format
+msgid "FFT based equalizer on %s"
+msgstr ""
+
+#: src/modules/module-filter-apply.c:47
+msgid "autoclean=<automatically unload unused filters?>"
+msgstr ""
+
+#: src/modules/module-ladspa-sink.c:50
+msgid "Virtual LADSPA sink"
+msgstr "Виртуалды LADSPA аудиоқабылдағышы"
+
+#: src/modules/module-ladspa-sink.c:54
+msgid ""
+"sink_name=<name for the sink> sink_properties=<properties for the sink> "
+"sink_input_properties=<properties for the sink input> master=<name of sink "
+"to filter> sink_master=<name of sink to filter> format=<sample format> "
+"rate=<sample rate> channels=<number of channels> channel_map=<input channel "
+"map> plugin=<ladspa plugin name> label=<ladspa plugin label> control=<comma "
+"separated list of input control values> input_ladspaport_map=<comma "
+"separated list of input LADSPA port names> output_ladspaport_map=<comma "
+"separated list of output LADSPA port names> autoloaded=<set if this module "
+"is being loaded automatically> "
+msgstr ""
+
+#: src/modules/module-null-sink.c:46
+msgid "Clocked NULL sink"
+msgstr ""
+
+#: src/modules/module-null-sink.c:333
+msgid "Null Output"
+msgstr "Бос шығысы"
+
+#: src/modules/module-null-sink.c:345 src/utils/pactl.c:1094
+#, c-format
+msgid "Failed to set format: invalid format string %s"
+msgstr ""
+
+#: src/modules/module-rygel-media-server.c:506
+#: src/modules/module-rygel-media-server.c:544
+#: src/modules/module-rygel-media-server.c:903
+msgid "Output Devices"
+msgstr "Шығыс құрылғылары"
+
+#: src/modules/module-rygel-media-server.c:507
+#: src/modules/module-rygel-media-server.c:545
+#: src/modules/module-rygel-media-server.c:904
+msgid "Input Devices"
+msgstr "Кіріс құрылғылары"
+
+#: src/modules/module-rygel-media-server.c:1061
+msgid "Audio on @HOSTNAME@"
+msgstr ""
+
+#. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
+#. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
+#: src/modules/module-tunnel-sink-new.c:307
+#: src/modules/module-tunnel-source-new.c:305
+#, c-format
+msgid "Tunnel for %s@%s"
+msgstr ""
+
+#: src/modules/module-tunnel-sink-new.c:544
+#: src/modules/module-tunnel-source-new.c:540
+#, c-format
+msgid "Tunnel to %s/%s"
+msgstr ""
+
+#: src/modules/module-virtual-surround-sink.c:45
+msgid "Virtual surround sink"
+msgstr "Виртуалды көлемді аудиоқабылдағыш"
+
+#: src/modules/module-virtual-surround-sink.c:49
+msgid ""
+"sink_name=<name for the sink> sink_properties=<properties for the sink> "
+"master=<name of sink to filter> sink_master=<name of sink to filter> "
+"format=<sample format> rate=<sample rate> channels=<number of channels> "
+"channel_map=<channel map> use_volume_sharing=<yes or no> "
+"force_flat_volume=<yes or no> hrir=/path/to/left_hrir.wav autoloaded=<set if "
+"this module is being loaded automatically> "
+msgstr ""
+
+#: src/modules/raop/module-raop-discover.c:295
+msgid "Unknown device model"
+msgstr "Белгісіз құрылғы моделі"
+
+#: src/modules/raop/raop-sink.c:655
+msgid "RAOP standard profile"
+msgstr "RAOP қалыпты профилі"
+
+#: src/modules/reserve-wrap.c:149
+msgid "PulseAudio Sound Server"
+msgstr "PulseAudio дыбыс сервері"
+
+#: src/pulse/channelmap.c:105
+msgid "Front Center"
+msgstr "Алдыңғы орталық"
+
+#: src/pulse/channelmap.c:106
+msgid "Front Left"
+msgstr "Алдыңғы сол жақ"
+
+#: src/pulse/channelmap.c:107
+msgid "Front Right"
+msgstr "Алдыңғы оң жақ"
+
+#: src/pulse/channelmap.c:109
+msgid "Rear Center"
+msgstr "Артқы орталық"
+
+#: src/pulse/channelmap.c:110
+msgid "Rear Left"
+msgstr "Артқы сол жақ"
+
+#: src/pulse/channelmap.c:111
+msgid "Rear Right"
+msgstr "Артқы оң жақ"
+
+#: src/pulse/channelmap.c:113
+msgid "Subwoofer"
+msgstr "Сабвуфер"
+
+#: src/pulse/channelmap.c:115
+msgid "Front Left-of-center"
+msgstr "Алдыңғы орталықтан сол жақта"
+
+#: src/pulse/channelmap.c:116
+msgid "Front Right-of-center"
+msgstr "Алдыңғы орталықтан оң жақта"
+
+#: src/pulse/channelmap.c:118
+msgid "Side Left"
+msgstr "Сол жақ жаны"
+
+#: src/pulse/channelmap.c:119
+msgid "Side Right"
+msgstr "Оң жақ жаны"
+
+#: src/pulse/channelmap.c:121
+msgid "Auxiliary 0"
+msgstr "Қосалқы 0"
+
+#: src/pulse/channelmap.c:122
+msgid "Auxiliary 1"
+msgstr "Қосалқы 1"
+
+#: src/pulse/channelmap.c:123
+msgid "Auxiliary 2"
+msgstr "Қосалқы 2"
+
+#: src/pulse/channelmap.c:124
+msgid "Auxiliary 3"
+msgstr "Қосалқы 3"
+
+#: src/pulse/channelmap.c:125
+msgid "Auxiliary 4"
+msgstr "Қосалқы 4"
+
+#: src/pulse/channelmap.c:126
+msgid "Auxiliary 5"
+msgstr "Қосалқы 5"
+
+#: src/pulse/channelmap.c:127
+msgid "Auxiliary 6"
+msgstr "Қосалқы 6"
+
+#: src/pulse/channelmap.c:128
+msgid "Auxiliary 7"
+msgstr "Қосалқы 7"
+
+#: src/pulse/channelmap.c:129
+msgid "Auxiliary 8"
+msgstr "Қосалқы 8"
+
+#: src/pulse/channelmap.c:130
+msgid "Auxiliary 9"
+msgstr "Қосалқы 9"
+
+#: src/pulse/channelmap.c:131
+msgid "Auxiliary 10"
+msgstr "Қосалқы 10"
+
+#: src/pulse/channelmap.c:132
+msgid "Auxiliary 11"
+msgstr "Қосалқы 11"
+
+#: src/pulse/channelmap.c:133
+msgid "Auxiliary 12"
+msgstr "Қосалқы 12"
+
+#: src/pulse/channelmap.c:134
+msgid "Auxiliary 13"
+msgstr "Қосалқы 13"
+
+#: src/pulse/channelmap.c:135
+msgid "Auxiliary 14"
+msgstr "Қосалқы 14"
+
+#: src/pulse/channelmap.c:136
+msgid "Auxiliary 15"
+msgstr "Қосалқы 15"
+
+#: src/pulse/channelmap.c:137
+msgid "Auxiliary 16"
+msgstr "Қосалқы 16"
+
+#: src/pulse/channelmap.c:138
+msgid "Auxiliary 17"
+msgstr "Қосалқы 17"
+
+#: src/pulse/channelmap.c:139
+msgid "Auxiliary 18"
+msgstr "Қосалқы 18"
+
+#: src/pulse/channelmap.c:140
+msgid "Auxiliary 19"
+msgstr "Қосалқы 19"
+
+#: src/pulse/channelmap.c:141
+msgid "Auxiliary 20"
+msgstr "Қосалқы 20"
+
+#: src/pulse/channelmap.c:142
+msgid "Auxiliary 21"
+msgstr "Қосалқы 21"
+
+#: src/pulse/channelmap.c:143
+msgid "Auxiliary 22"
+msgstr "Қосалқы 22"
+
+#: src/pulse/channelmap.c:144
+msgid "Auxiliary 23"
+msgstr "Қосалқы 23"
+
+#: src/pulse/channelmap.c:145
+msgid "Auxiliary 24"
+msgstr "Қосалқы 24"
+
+#: src/pulse/channelmap.c:146
+msgid "Auxiliary 25"
+msgstr "Қосалқы 25"
+
+#: src/pulse/channelmap.c:147
+msgid "Auxiliary 26"
+msgstr "Қосалқы 26"
+
+#: src/pulse/channelmap.c:148
+msgid "Auxiliary 27"
+msgstr "Қосалқы 27"
+
+#: src/pulse/channelmap.c:149
+msgid "Auxiliary 28"
+msgstr "Қосалқы 28"
+
+#: src/pulse/channelmap.c:150
+msgid "Auxiliary 29"
+msgstr "Қосалқы 29"
+
+#: src/pulse/channelmap.c:151
+msgid "Auxiliary 30"
+msgstr "Қосалқы 30"
+
+#: src/pulse/channelmap.c:152
+msgid "Auxiliary 31"
+msgstr "Қосалқы 31"
+
+#: src/pulse/channelmap.c:154
+msgid "Top Center"
+msgstr "Жоғарғы орталық"
+
+#: src/pulse/channelmap.c:156
+msgid "Top Front Center"
+msgstr "Жоғарғы алдыңғы орталық"
+
+#: src/pulse/channelmap.c:157
+msgid "Top Front Left"
+msgstr "Жоғарғы алдыңғы сол жақ"
+
+#: src/pulse/channelmap.c:158
+msgid "Top Front Right"
+msgstr "Жоғарғы алдыңғы оң жақ"
+
+#: src/pulse/channelmap.c:160
+msgid "Top Rear Center"
+msgstr "Жоғарғы артқы орталық"
+
+#: src/pulse/channelmap.c:161
+msgid "Top Rear Left"
+msgstr "Жоғарғы артқы сол жақ"
+
+#: src/pulse/channelmap.c:162
+msgid "Top Rear Right"
+msgstr "Жоғарғы артқы оң жақ"
+
+#: src/pulse/channelmap.c:479 src/pulse/format.c:123 src/pulse/sample.c:177
+#: src/pulse/volume.c:306 src/pulse/volume.c:332 src/pulse/volume.c:352
+#: src/pulse/volume.c:384 src/pulse/volume.c:424 src/pulse/volume.c:443
+msgid "(invalid)"
+msgstr "(жарамсыз)"
+
+#: src/pulse/channelmap.c:780
+msgid "Surround 4.0"
+msgstr "Көлемді 4.0"
+
+#: src/pulse/channelmap.c:786
+msgid "Surround 4.1"
+msgstr "Көлемді 4.1"
+
+#: src/pulse/channelmap.c:792
+msgid "Surround 5.0"
+msgstr "Көлемді 5.0"
+
+#: src/pulse/channelmap.c:798
+msgid "Surround 5.1"
+msgstr "Көлемді 5.1"
+
+#: src/pulse/channelmap.c:805
+msgid "Surround 7.1"
+msgstr "Көлемді 7.1"
+
+#: src/pulse/client-conf-x11.c:61 src/utils/pax11publish.c:97
+msgid "xcb_connect() failed"
+msgstr "xcb_connect() сәтсіз аяқталды"
+
+#: src/pulse/client-conf-x11.c:66 src/utils/pax11publish.c:102
+msgid "xcb_connection_has_error() returned true"
+msgstr "xcb_connection_has_error() true қайтарды"
+
+#: src/pulse/client-conf-x11.c:102
+msgid "Failed to parse cookie data"
+msgstr ""
+
+#: src/pulse/context.c:706
+#, c-format
+msgid "fork(): %s"
+msgstr "fork(): %s"
+
+#: src/pulse/context.c:761
+#, c-format
+msgid "waitpid(): %s"
+msgstr "waitpid(): %s"
+
+#: src/pulse/context.c:1467
+#, c-format
+msgid "Received message for unknown extension '%s'"
+msgstr ""
+
+#: src/pulse/direction.c:37
+msgid "input"
+msgstr "кіріс"
+
+#: src/pulse/direction.c:39
+msgid "output"
+msgstr "шығыс"
+
+#: src/pulse/direction.c:41
+msgid "bidirectional"
+msgstr "қосбағытты"
+
+#: src/pulse/direction.c:43
+msgid "invalid"
+msgstr "жарамсыз"
+
+#: src/pulsecore/core-util.c:1712
+#, c-format
+msgid ""
+"XDG_RUNTIME_DIR (%s) is not owned by us (uid %d), but by uid %d! (This could "
+"e.g. happen if you try to connect to a non-root PulseAudio as a root user, "
+"over the native protocol. Don't do that.)"
+msgstr ""
+
+#: src/pulsecore/core-util.h:96
+msgid "yes"
+msgstr "иә"
+
+#: src/pulsecore/core-util.h:96
+msgid "no"
+msgstr "жоқ"
+
+#: src/pulsecore/lock-autospawn.c:141 src/pulsecore/lock-autospawn.c:227
+msgid "Cannot access autospawn lock."
+msgstr ""
+
+#: src/pulsecore/log.c:165
+#, c-format
+msgid "Failed to open target file '%s'."
+msgstr ""
+
+#: src/pulsecore/log.c:188
+#, c-format
+msgid ""
+"Tried to open target file '%s', '%s.1', '%s.2' ... '%s.%d', but all failed."
+msgstr ""
+
+#: src/pulsecore/log.c:651
+msgid "Invalid log target."
+msgstr "Журнал мақсаты дұрыс емес."
+
+#: src/pulsecore/sink.c:3524
+msgid "Built-in Audio"
+msgstr "Құрамындағы аудио"
+
+#: src/pulsecore/sink.c:3529
+msgid "Modem"
+msgstr "Модем"
+
+#: src/pulse/error.c:38
+msgid "OK"
+msgstr "ОК"
+
+#: src/pulse/error.c:39
+msgid "Access denied"
+msgstr "Рұқсат етілмеген"
+
+#: src/pulse/error.c:40
+msgid "Unknown command"
+msgstr "Белгісіз команда"
+
+#: src/pulse/error.c:41
+msgid "Invalid argument"
+msgstr "Жарамсыз аргумент"
+
+#: src/pulse/error.c:42
+msgid "Entity exists"
+msgstr "Нәрсе бар болып тұр"
+
+#: src/pulse/error.c:43
+msgid "No such entity"
+msgstr "Ондай нәрсе жоқ"
+
+#: src/pulse/error.c:44
+msgid "Connection refused"
+msgstr "Байланыс тайдырылды"
+
+#: src/pulse/error.c:45
+msgid "Protocol error"
+msgstr "Хаттама қатесі"
+
+#: src/pulse/error.c:46
+msgid "Timeout"
+msgstr "Таймаут"
+
+#: src/pulse/error.c:47
+msgid "No authentication key"
+msgstr "Аутентификация кілті жоқ"
+
+#: src/pulse/error.c:48
+msgid "Internal error"
+msgstr "Ішкі қате"
+
+#: src/pulse/error.c:49
+msgid "Connection terminated"
+msgstr "Байланыс тоқтатылды"
+
+#: src/pulse/error.c:50
+msgid "Entity killed"
+msgstr "Нәрсе үзілді"
+
+#: src/pulse/error.c:51
+msgid "Invalid server"
+msgstr "Жарамсыз сервер"
+
+#: src/pulse/error.c:52
+msgid "Module initialization failed"
+msgstr "Модуль инициализациясы сәтсіз аяқталды"
+
+#: src/pulse/error.c:53
+msgid "Bad state"
+msgstr "Жаман қалып-күйі"
+
+#: src/pulse/error.c:54
+msgid "No data"
+msgstr "Деректер жоқ"
+
+#: src/pulse/error.c:55
+msgid "Incompatible protocol version"
+msgstr "Үйлеспейтін хаттама нұсқасы"
+
+#: src/pulse/error.c:56
+msgid "Too large"
+msgstr "Тым үлкен"
+
+#: src/pulse/error.c:57
+msgid "Not supported"
+msgstr "Қолдау жоқ"
+
+#: src/pulse/error.c:58
+msgid "Unknown error code"
+msgstr "Белгісіз қате коды"
+
+#: src/pulse/error.c:59
+msgid "No such extension"
+msgstr "Ондай кеңейту жоқ"
+
+#: src/pulse/error.c:60
+msgid "Obsolete functionality"
+msgstr "Ескірген функционалдылық"
+
+#: src/pulse/error.c:61
+msgid "Missing implementation"
+msgstr "Іске асыруы жоқ"
+
+#: src/pulse/error.c:62
+msgid "Client forked"
+msgstr ""
+
+#: src/pulse/error.c:63
+msgid "Input/Output error"
+msgstr "Енгізу/шығару қатесі"
+
+#: src/pulse/error.c:64
+msgid "Device or resource busy"
+msgstr "Құрылғы немесе ресурс бос емес"
+
+#: src/pulse/sample.c:179
+#, c-format
+msgid "%s %uch %uHz"
+msgstr "%s %u арна %u Гц"
+
+#: src/pulse/sample.c:191
+#, c-format
+msgid "%0.1f GiB"
+msgstr "%0.1f ГиБ"
+
+#: src/pulse/sample.c:193
+#, c-format
+msgid "%0.1f MiB"
+msgstr "%0.1f МиБ"
+
+#: src/pulse/sample.c:195
+#, c-format
+msgid "%0.1f KiB"
+msgstr "%0.1f КиБ"
+
+#: src/pulse/sample.c:197
+#, c-format
+msgid "%u B"
+msgstr "%u Б"
+
+#: src/utils/pacat.c:134
+#, c-format
+msgid "Failed to drain stream: %s"
+msgstr ""
+
+#: src/utils/pacat.c:139
+msgid "Playback stream drained."
+msgstr ""
+
+#: src/utils/pacat.c:150
+msgid "Draining connection to server."
+msgstr ""
+
+#: src/utils/pacat.c:163
+#, c-format
+msgid "pa_stream_drain(): %s"
+msgstr "pa_stream_drain(): %s"
+
+#: src/utils/pacat.c:194 src/utils/pacat.c:543
+#, c-format
+msgid "pa_stream_begin_write() failed: %s"
+msgstr "pa_stream_begin_write() сәтсіз аяқталды: %s"
+
+#: src/utils/pacat.c:244 src/utils/pacat.c:274
+#, c-format
+msgid "pa_stream_peek() failed: %s"
+msgstr "pa_stream_peek() сәтсіз аяқталды: %s"
+
+#: src/utils/pacat.c:324
+msgid "Stream successfully created."
+msgstr "Ағын сәтті жасалды."
+
+#: src/utils/pacat.c:327
+#, c-format
+msgid "pa_stream_get_buffer_attr() failed: %s"
+msgstr "pa_stream_get_buffer_attr() сәтсіз аяқталды: %s"
+
+#: src/utils/pacat.c:331
+#, c-format
+msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
+msgstr ""
+
+#: src/utils/pacat.c:334
+#, c-format
+msgid "Buffer metrics: maxlength=%u, fragsize=%u"
+msgstr ""
+
+#: src/utils/pacat.c:338
+#, c-format
+msgid "Using sample spec '%s', channel map '%s'."
+msgstr ""
+
+#: src/utils/pacat.c:342
+#, c-format
+msgid "Connected to device %s (index: %u, suspended: %s)."
+msgstr ""
+
+#: src/utils/pacat.c:352
+#, c-format
+msgid "Stream error: %s"
+msgstr "Ағын қатесі: %s"
+
+#: src/utils/pacat.c:362
+#, c-format
+msgid "Stream device suspended.%s"
+msgstr ""
+
+#: src/utils/pacat.c:364
+#, c-format
+msgid "Stream device resumed.%s"
+msgstr ""
+
+#: src/utils/pacat.c:372
+#, c-format
+msgid "Stream underrun.%s"
+msgstr ""
+
+#: src/utils/pacat.c:379
+#, c-format
+msgid "Stream overrun.%s"
+msgstr ""
+
+#: src/utils/pacat.c:386
+#, c-format
+msgid "Stream started.%s"
+msgstr ""
+
+#: src/utils/pacat.c:393
+#, c-format
+msgid "Stream moved to device %s (%u, %ssuspended).%s"
+msgstr ""
+
+#: src/utils/pacat.c:393
+msgid "not "
+msgstr "емес "
+
+#: src/utils/pacat.c:400
+#, c-format
+msgid "Stream buffer attributes changed.%s"
+msgstr ""
+
+#: src/utils/pacat.c:415
+msgid "Cork request stack is empty: corking stream"
+msgstr ""
+
+#: src/utils/pacat.c:421
+msgid "Cork request stack is empty: uncorking stream"
+msgstr ""
+
+#: src/utils/pacat.c:425
+msgid "Warning: Received more uncork requests than cork requests."
+msgstr ""
+
+#: src/utils/pacat.c:450
+#, c-format
+msgid "Connection established.%s"
+msgstr ""
+
+#: src/utils/pacat.c:453
+#, c-format
+msgid "pa_stream_new() failed: %s"
+msgstr "pa_stream_new() сәтсіз аяқталды: %s"
+
+#: src/utils/pacat.c:491
+#, c-format
+msgid "pa_stream_connect_playback() failed: %s"
+msgstr "pa_stream_connect_playback() сәтсіз аяқталды: %s"
+
+#: src/utils/pacat.c:497
+#, c-format
+msgid "Failed to set monitor stream: %s"
+msgstr ""
+
+#: src/utils/pacat.c:501
+#, c-format
+msgid "pa_stream_connect_record() failed: %s"
+msgstr ""
+
+#: src/utils/pacat.c:514 src/utils/pactl.c:1490
+#, c-format
+msgid "Connection failure: %s"
+msgstr "Байланысты орнату сәтсіз аяқталды: %s"
+
+#: src/utils/pacat.c:557
+msgid "Got EOF."
+msgstr "EOF алынды."
+
+#: src/utils/pacat.c:581
+#, c-format
+msgid "pa_stream_write() failed: %s"
+msgstr "pa_stream_write() сәтсіз аяқталды: %s"
+
+#: src/utils/pacat.c:605
+#, c-format
+msgid "write() failed: %s"
+msgstr "write() сәтсіз аяқталды: %s"
+
+#: src/utils/pacat.c:626
+msgid "Got signal, exiting."
+msgstr "Сигнал алынды, шығу."
+
+#: src/utils/pacat.c:640
+#, c-format
+msgid "Failed to get latency: %s"
+msgstr ""
+
+#: src/utils/pacat.c:645
+#, c-format
+msgid "Time: %0.3f sec; Latency: %0.0f usec."
+msgstr ""
+
+#: src/utils/pacat.c:666
+#, c-format
+msgid "pa_stream_update_timing_info() failed: %s"
+msgstr ""
+
+#: src/utils/pacat.c:676
+#, c-format
+msgid ""
+"%s [options]\n"
+"%s\n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"\n"
+"  -r, --record                          Create a connection for recording\n"
+"  -p, --playback                        Create a connection for playback\n"
+"\n"
+"  -v, --verbose                         Enable verbose operations\n"
+"\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -d, --device=DEVICE                   The name of the sink/source to "
+"connect to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
+"      --stream-name=NAME                How to call this stream on the "
+"server\n"
+"      --volume=VOLUME                   Specify the initial (linear) volume "
+"in range 0...65536\n"
+"      --rate=SAMPLERATE                 The sample rate in Hz (defaults to "
+"44100)\n"
+"      --format=SAMPLEFORMAT             The sample format, see\n"
+"                                        https://www.freedesktop.org/wiki/"
+"Software/PulseAudio/Documentation/User/SupportedAudioFormats/\n"
+"                                        for possible values (defaults to "
+"s16ne)\n"
+"      --channels=CHANNELS               The number of channels, 1 for mono, "
+"2 for stereo\n"
+"                                        (defaults to 2)\n"
+"      --channel-map=CHANNELMAP          Channel map to use instead of the "
+"default\n"
+"      --fix-format                      Take the sample format from the sink/"
+"source the stream is\n"
+"                                        being connected to.\n"
+"      --fix-rate                        Take the sampling rate from the sink/"
+"source the stream is\n"
+"                                        being connected to.\n"
+"      --fix-channels                    Take the number of channels and the "
+"channel map\n"
+"                                        from the sink/source the stream is "
+"being connected to.\n"
+"      --no-remix                        Don't upmix or downmix channels.\n"
+"      --no-remap                        Map channels by index instead of "
+"name.\n"
+"      --latency=BYTES                   Request the specified latency in "
+"bytes.\n"
+"      --process-time=BYTES              Request the specified process time "
+"per request in bytes.\n"
+"      --latency-msec=MSEC               Request the specified latency in "
+"msec.\n"
+"      --process-time-msec=MSEC          Request the specified process time "
+"per request in msec.\n"
+"      --property=PROPERTY=VALUE         Set the specified property to the "
+"specified value.\n"
+"      --raw                             Record/play raw PCM data.\n"
+"      --passthrough                     Passthrough data.\n"
+"      --file-format[=FFORMAT]           Record/play formatted PCM data.\n"
+"      --list-file-formats               List available file formats.\n"
+"      --monitor-stream=INDEX            Record from the sink input with "
+"index INDEX.\n"
+msgstr ""
+
+#: src/utils/pacat.c:793
+msgid "Play back encoded audio files on a PulseAudio sound server."
+msgstr ""
+
+#: src/utils/pacat.c:797
+msgid ""
+"Capture audio data from a PulseAudio sound server and write it to a file."
+msgstr ""
+
+#: src/utils/pacat.c:801
+msgid ""
+"Capture audio data from a PulseAudio sound server and write it to STDOUT or "
+"the specified file."
+msgstr ""
+
+#: src/utils/pacat.c:805
+msgid ""
+"Play back audio data from STDIN or the specified file on a PulseAudio sound "
+"server."
+msgstr ""
+
+#: src/utils/pacat.c:819
+#, c-format
+msgid ""
+"pacat %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+
+#: src/utils/pacat.c:852 src/utils/pactl.c:1692
+#, c-format
+msgid "Invalid client name '%s'"
+msgstr ""
+
+#: src/utils/pacat.c:867
+#, c-format
+msgid "Invalid stream name '%s'"
+msgstr ""
+
+#: src/utils/pacat.c:904
+#, c-format
+msgid "Invalid channel map '%s'"
+msgstr ""
+
+#: src/utils/pacat.c:933 src/utils/pacat.c:947
+#, c-format
+msgid "Invalid latency specification '%s'"
+msgstr ""
+
+#: src/utils/pacat.c:940 src/utils/pacat.c:954
+#, c-format
+msgid "Invalid process time specification '%s'"
+msgstr ""
+
+#: src/utils/pacat.c:966
+#, c-format
+msgid "Invalid property '%s'"
+msgstr ""
+
+#: src/utils/pacat.c:985
+#, c-format
+msgid "Unknown file format %s."
+msgstr "%s файл пішімі белгісіз."
+
+#: src/utils/pacat.c:1000
+msgid "Failed to parse the argument for --monitor-stream"
+msgstr ""
+
+#: src/utils/pacat.c:1011
+msgid "Invalid sample specification"
+msgstr ""
+
+#: src/utils/pacat.c:1021
+#, c-format
+msgid "open(): %s"
+msgstr "open(): %s"
+
+#: src/utils/pacat.c:1026
+#, c-format
+msgid "dup2(): %s"
+msgstr "dup2(): %s"
+
+#: src/utils/pacat.c:1033
+msgid "Too many arguments."
+msgstr "Тым көп аргументтер."
+
+#: src/utils/pacat.c:1044
+msgid "Failed to generate sample specification for file."
+msgstr ""
+
+#: src/utils/pacat.c:1070
+msgid "Failed to open audio file."
+msgstr "Аудио файлын ашу сәтсіз аяқталды."
+
+#: src/utils/pacat.c:1076
+msgid ""
+"Warning: specified sample specification will be overwritten with "
+"specification from file."
+msgstr ""
+
+#: src/utils/pacat.c:1079 src/utils/pactl.c:1756
+msgid "Failed to determine sample specification from file."
+msgstr ""
+
+#: src/utils/pacat.c:1088
+msgid "Warning: Failed to determine channel map from file."
+msgstr ""
+
+#: src/utils/pacat.c:1099
+msgid "Channel map doesn't match sample specification"
+msgstr ""
+
+#: src/utils/pacat.c:1110
+msgid "Warning: failed to write channel map to file."
+msgstr ""
+
+#: src/utils/pacat.c:1125
+#, c-format
+msgid ""
+"Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgstr ""
+
+#: src/utils/pacat.c:1126
+msgid "recording"
+msgstr "жазуда"
+
+#: src/utils/pacat.c:1126
+msgid "playback"
+msgstr "ойнау"
+
+#: src/utils/pacat.c:1150
+msgid "Failed to set media name."
+msgstr ""
+
+#: src/utils/pacat.c:1160 src/utils/pactl.c:2106
+msgid "pa_mainloop_new() failed."
+msgstr "pa_mainloop_new() сәтсіз аяқталды."
+
+#: src/utils/pacat.c:1183
+msgid "io_new() failed."
+msgstr "io_new() сәтсіз аяқталды."
+
+#: src/utils/pacat.c:1190 src/utils/pactl.c:2118
+msgid "pa_context_new() failed."
+msgstr "pa_context_new() сәтсіз аяқталды."
+
+#: src/utils/pacat.c:1198 src/utils/pactl.c:2124
+#, c-format
+msgid "pa_context_connect() failed: %s"
+msgstr "pa_context_connect() сәтсіз аяқталды: %s"
+
+#: src/utils/pacat.c:1204
+msgid "pa_context_rttime_new() failed."
+msgstr "pa_context_rttime_new() сәтсіз аяқталды."
+
+#: src/utils/pacat.c:1211 src/utils/pactl.c:2129
+msgid "pa_mainloop_run() failed."
+msgstr "pa_mainloop_run() сәтсіз аяқталды."
+
+#: src/utils/pacmd.c:51 src/utils/pactl.c:1614
+msgid "NAME [ARGS ...]"
+msgstr ""
+
+#: src/utils/pacmd.c:52 src/utils/pacmd.c:60 src/utils/pactl.c:1615
+msgid "NAME|#N"
+msgstr ""
+
+#: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:1613
+#: src/utils/pactl.c:1619
+msgid "NAME"
+msgstr ""
+
+#: src/utils/pacmd.c:54
+msgid "NAME|#N VOLUME"
+msgstr ""
+
+#: src/utils/pacmd.c:55
+msgid "#N VOLUME"
+msgstr ""
+
+#: src/utils/pacmd.c:56 src/utils/pacmd.c:70 src/utils/pactl.c:1617
+msgid "NAME|#N 1|0"
+msgstr ""
+
+#: src/utils/pacmd.c:57
+msgid "#N 1|0"
+msgstr ""
+
+#: src/utils/pacmd.c:58
+msgid "NAME|#N KEY=VALUE"
+msgstr ""
+
+#: src/utils/pacmd.c:59
+msgid "#N KEY=VALUE"
+msgstr ""
+
+#: src/utils/pacmd.c:61
+msgid "#N"
+msgstr ""
+
+#: src/utils/pacmd.c:62
+msgid "NAME SINK|#N"
+msgstr ""
+
+#: src/utils/pacmd.c:64 src/utils/pacmd.c:65
+msgid "NAME FILENAME"
+msgstr ""
+
+#: src/utils/pacmd.c:66
+msgid "PATHNAME"
+msgstr ""
+
+#: src/utils/pacmd.c:67
+msgid "FILENAME SINK|#N"
+msgstr ""
+
+#: src/utils/pacmd.c:69 src/utils/pactl.c:1616
+msgid "#N SINK|SOURCE"
+msgstr ""
+
+#: src/utils/pacmd.c:71 src/utils/pacmd.c:77 src/utils/pacmd.c:78
+msgid "1|0"
+msgstr ""
+
+#: src/utils/pacmd.c:72 src/utils/pactl.c:1618
+msgid "CARD PROFILE"
+msgstr ""
+
+#: src/utils/pacmd.c:73 src/utils/pactl.c:1620
+msgid "NAME|#N PORT"
+msgstr ""
+
+#: src/utils/pacmd.c:74 src/utils/pactl.c:1626
+msgid "CARD-NAME|CARD-#N PORT OFFSET"
+msgstr ""
+
+#: src/utils/pacmd.c:75
+msgid "TARGET"
+msgstr ""
+
+#: src/utils/pacmd.c:76
+msgid "NUMERIC-LEVEL"
+msgstr ""
+
+#: src/utils/pacmd.c:79
+msgid "FRAMES"
+msgstr ""
+
+#: src/utils/pacmd.c:81
+#, c-format
+msgid ""
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"When no command is given pacmd starts in the interactive mode.\n"
+msgstr ""
+
+#: src/utils/pacmd.c:128
+#, c-format
+msgid ""
+"pacmd %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+
+#: src/utils/pacmd.c:142
+msgid "No PulseAudio daemon running, or not running as session daemon."
+msgstr ""
+
+#: src/utils/pacmd.c:147
+#, c-format
+msgid "socket(PF_UNIX, SOCK_STREAM, 0): %s"
+msgstr ""
+
+#: src/utils/pacmd.c:164
+#, c-format
+msgid "connect(): %s"
+msgstr "connect(): %s"
+
+#: src/utils/pacmd.c:172
+msgid "Failed to kill PulseAudio daemon."
+msgstr ""
+
+#: src/utils/pacmd.c:180
+msgid "Daemon not responding."
+msgstr "Демон жауап бермейді."
+
+#: src/utils/pacmd.c:212 src/utils/pacmd.c:321 src/utils/pacmd.c:339
+#, c-format
+msgid "write(): %s"
+msgstr "write(): %s"
+
+#: src/utils/pacmd.c:268
+#, c-format
+msgid "poll(): %s"
+msgstr "poll(): %s"
+
+#: src/utils/pacmd.c:279 src/utils/pacmd.c:299
+#, c-format
+msgid "read(): %s"
+msgstr "read(): %s"
+
+#: src/utils/pactl.c:164
+#, c-format
+msgid "Failed to get statistics: %s"
+msgstr "Статистиканы алу сәтсіз аяқталды: %s"
+
+#: src/utils/pactl.c:170
+#, c-format
+msgid "Currently in use: %u block containing %s bytes total.\n"
+msgid_plural "Currently in use: %u blocks containing %s bytes total.\n"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/utils/pactl.c:176
+#, c-format
+msgid "Allocated during whole lifetime: %u block containing %s bytes total.\n"
+msgid_plural ""
+"Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/utils/pactl.c:182
+#, c-format
+msgid "Sample cache size: %s\n"
+msgstr ""
+
+#: src/utils/pactl.c:191
+#, c-format
+msgid "Failed to get server information: %s"
+msgstr ""
+
+#: src/utils/pactl.c:196
+#, c-format
+msgid ""
+"Server String: %s\n"
+"Library Protocol Version: %u\n"
+"Server Protocol Version: %u\n"
+"Is Local: %s\n"
+"Client Index: %u\n"
+"Tile Size: %zu\n"
+msgstr ""
+
+#: src/utils/pactl.c:212
+#, c-format
+msgid ""
+"User Name: %s\n"
+"Host Name: %s\n"
+"Server Name: %s\n"
+"Server Version: %s\n"
+"Default Sample Specification: %s\n"
+"Default Channel Map: %s\n"
+"Default Sink: %s\n"
+"Default Source: %s\n"
+"Cookie: %04x:%04x\n"
+msgstr ""
+
+#: src/utils/pactl.c:237
+msgid ", available"
+msgstr ", қолжетімді"
+
+#: src/utils/pactl.c:238
+msgid ", not available"
+msgstr ", қолжетімсіз"
+
+#: src/utils/pactl.c:246 src/utils/pactl.c:270
+msgid "Unknown"
+msgstr "Белгісіз"
+
+#: src/utils/pactl.c:247
+msgid "Aux"
+msgstr "Қосалқы"
+
+#: src/utils/pactl.c:250
+msgid "Line"
+msgstr "Сызықтық"
+
+#: src/utils/pactl.c:251
+msgid "Mic"
+msgstr "Микрофон"
+
+#: src/utils/pactl.c:253
+msgid "Handset"
+msgstr "Телефон тұтқасы"
+
+#: src/utils/pactl.c:254
+msgid "Earpiece"
+msgstr "Құлаққап"
+
+#: src/utils/pactl.c:255
+msgid "SPDIF"
+msgstr "SPDIF"
+
+#: src/utils/pactl.c:256
+msgid "HDMI"
+msgstr "HDMI"
+
+#: src/utils/pactl.c:257
+msgid "TV"
+msgstr "TV"
+
+#: src/utils/pactl.c:260
+msgid "USB"
+msgstr "USB"
+
+#: src/utils/pactl.c:261
+msgid "Bluetooth"
+msgstr "Bluetooth"
+
+#: src/utils/pactl.c:267
+msgid "Network"
+msgstr "Желі"
+
+#: src/utils/pactl.c:268
+msgid "Analog"
+msgstr "Аналогтық"
+
+#: src/utils/pactl.c:292 src/utils/pactl.c:944 src/utils/pactl.c:1022
+#, c-format
+msgid "Failed to get sink information: %s"
+msgstr ""
+
+#: src/utils/pactl.c:318
+#, c-format
+msgid ""
+"Sink #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tOwner Module: %u\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s\n"
+"\tMonitor Source: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tFlags: %s%s%s%s%s%s%s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+
+#: src/utils/pactl.c:362 src/utils/pactl.c:470 src/utils/pactl.c:633
+#, c-format
+msgid "\tPorts:\n"
+msgstr "\tПорттар:\n"
+
+#: src/utils/pactl.c:364 src/utils/pactl.c:472
+#, c-format
+msgid "\t\t%s: %s (type: %s, priority: %u%s%s%s)\n"
+msgstr ""
+
+#: src/utils/pactl.c:366 src/utils/pactl.c:474 src/utils/pactl.c:638
+msgid ", available group: "
+msgstr ", қолжетімді топ: "
+
+#: src/utils/pactl.c:371 src/utils/pactl.c:479
+#, c-format
+msgid "\tActive Port: %s\n"
+msgstr "\tБелсенді порт: %s\n"
+
+#: src/utils/pactl.c:377 src/utils/pactl.c:485
+#, c-format
+msgid "\tFormats:\n"
+msgstr "\tПішімдер:\n"
+
+#: src/utils/pactl.c:401 src/utils/pactl.c:964 src/utils/pactl.c:1037
+#, c-format
+msgid "Failed to get source information: %s"
+msgstr ""
+
+#: src/utils/pactl.c:427
+#, c-format
+msgid ""
+"Source #%u\n"
+"\tState: %s\n"
+"\tName: %s\n"
+"\tDescription: %s\n"
+"\tDriver: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tOwner Module: %u\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        balance %0.2f\n"
+"\tBase Volume: %s\n"
+"\tMonitor of Sink: %s\n"
+"\tLatency: %0.0f usec, configured %0.0f usec\n"
+"\tFlags: %s%s%s%s%s%s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+
+#: src/utils/pactl.c:455 src/utils/pactl.c:527 src/utils/pactl.c:570
+#: src/utils/pactl.c:612 src/utils/pactl.c:711 src/utils/pactl.c:712
+#: src/utils/pactl.c:723 src/utils/pactl.c:781 src/utils/pactl.c:782
+#: src/utils/pactl.c:793 src/utils/pactl.c:844 src/utils/pactl.c:845
+#: src/utils/pactl.c:851
+msgid "n/a"
+msgstr "қ/ж"
+
+#: src/utils/pactl.c:496 src/utils/pactl.c:901
+#, c-format
+msgid "Failed to get module information: %s"
+msgstr ""
+
+#: src/utils/pactl.c:519
+#, c-format
+msgid ""
+"Module #%u\n"
+"\tName: %s\n"
+"\tArgument: %s\n"
+"\tUsage counter: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+
+#: src/utils/pactl.c:538
+#, c-format
+msgid "Failed to get client information: %s"
+msgstr ""
+
+#: src/utils/pactl.c:564
+#, c-format
+msgid ""
+"Client #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+
+#: src/utils/pactl.c:581
+#, c-format
+msgid "Failed to get card information: %s"
+msgstr ""
+
+#: src/utils/pactl.c:604
+#, c-format
+msgid ""
+"Card #%u\n"
+"\tName: %s\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+
+#: src/utils/pactl.c:620
+#, c-format
+msgid "\tProfiles:\n"
+msgstr "\tПрофильдер:\n"
+
+#: src/utils/pactl.c:622
+#, c-format
+msgid "\t\t%s: %s (sinks: %u, sources: %u, priority: %u, available: %s)\n"
+msgstr ""
+
+#: src/utils/pactl.c:627
+#, c-format
+msgid "\tActive Profile: %s\n"
+msgstr "\tБелсенді профиль: %s\n"
+
+#: src/utils/pactl.c:636
+#, c-format
+msgid ""
+"\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s%s)\n"
+msgstr ""
+
+#: src/utils/pactl.c:642
+#, c-format
+msgid ""
+"\t\t\tProperties:\n"
+"\t\t\t\t%s\n"
+msgstr ""
+"\t\t\tҚасиеттері:\n"
+"\t\t\t\t%s\n"
+
+#: src/utils/pactl.c:647
+#, c-format
+msgid "\t\t\tPart of profile(s): %s"
+msgstr ""
+
+#: src/utils/pactl.c:664 src/utils/pactl.c:984 src/utils/pactl.c:1052
+#, c-format
+msgid "Failed to get sink input information: %s"
+msgstr ""
+
+#: src/utils/pactl.c:693
+#, c-format
+msgid ""
+"Sink Input #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tClient: %s\n"
+"\tSink: %u\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tFormat: %s\n"
+"\tCorked: %s\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        balance %0.2f\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSink Latency: %0.0f usec\n"
+"\tResample method: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+
+#: src/utils/pactl.c:734 src/utils/pactl.c:1004 src/utils/pactl.c:1067
+#, c-format
+msgid "Failed to get source output information: %s"
+msgstr ""
+
+#: src/utils/pactl.c:763
+#, c-format
+msgid ""
+"Source Output #%u\n"
+"\tDriver: %s\n"
+"\tOwner Module: %s\n"
+"\tClient: %s\n"
+"\tSource: %u\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tFormat: %s\n"
+"\tCorked: %s\n"
+"\tMute: %s\n"
+"\tVolume: %s\n"
+"\t        balance %0.2f\n"
+"\tBuffer Latency: %0.0f usec\n"
+"\tSource Latency: %0.0f usec\n"
+"\tResample method: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+
+#: src/utils/pactl.c:804
+#, c-format
+msgid "Failed to get sample information: %s"
+msgstr ""
+
+#: src/utils/pactl.c:831
+#, c-format
+msgid ""
+"Sample #%u\n"
+"\tName: %s\n"
+"\tSample Specification: %s\n"
+"\tChannel Map: %s\n"
+"\tVolume: %s\n"
+"\t        balance %0.2f\n"
+"\tDuration: %0.1fs\n"
+"\tSize: %s\n"
+"\tLazy: %s\n"
+"\tFilename: %s\n"
+"\tProperties:\n"
+"\t\t%s\n"
+msgstr ""
+
+#: src/utils/pactl.c:859 src/utils/pactl.c:869
+#, c-format
+msgid "Failure: %s"
+msgstr ""
+
+#: src/utils/pactl.c:908
+#, c-format
+msgid "Failed to unload module: Module %s not loaded"
+msgstr ""
+
+#: src/utils/pactl.c:926
+#, c-format
+msgid ""
+"Failed to set volume: You tried to set volumes for %d channel, whereas "
+"channel(s) supported = %d\n"
+msgid_plural ""
+"Failed to set volume: You tried to set volumes for %d channels, whereas "
+"channel(s) supported = %d\n"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/utils/pactl.c:1137
+#, c-format
+msgid "Failed to upload sample: %s"
+msgstr ""
+
+#: src/utils/pactl.c:1154
+msgid "Premature end of file"
+msgstr "Файлдың уақытынан бұрын аяқталуы"
+
+#: src/utils/pactl.c:1174
+msgid "new"
+msgstr "жаңа"
+
+#: src/utils/pactl.c:1177
+msgid "change"
+msgstr "өзгерту"
+
+#: src/utils/pactl.c:1180
+msgid "remove"
+msgstr "өшіру"
+
+#: src/utils/pactl.c:1183 src/utils/pactl.c:1218
+msgid "unknown"
+msgstr "белгісіз"
+
+#: src/utils/pactl.c:1191
+msgid "sink"
+msgstr "аудиоқабылдағыш"
+
+#: src/utils/pactl.c:1194
+msgid "source"
+msgstr "қайнаркөз"
+
+#: src/utils/pactl.c:1197
+msgid "sink-input"
+msgstr "аудиоқабылдағыш-кіріс"
+
+#: src/utils/pactl.c:1200
+msgid "source-output"
+msgstr "қайнаркөз-шығыс"
+
+#: src/utils/pactl.c:1203
+msgid "module"
+msgstr "модуль"
+
+#: src/utils/pactl.c:1206
+msgid "client"
+msgstr "клиент"
+
+#: src/utils/pactl.c:1209
+msgid "sample-cache"
+msgstr ""
+
+#: src/utils/pactl.c:1212
+msgid "server"
+msgstr "сервер"
+
+#: src/utils/pactl.c:1215
+msgid "card"
+msgstr "карта"
+
+#: src/utils/pactl.c:1224
+#, c-format
+msgid "Event '%s' on %s #%u\n"
+msgstr ""
+
+#: src/utils/pactl.c:1496
+msgid "Got SIGINT, exiting."
+msgstr "SIGINT алынды, шығу."
+
+#: src/utils/pactl.c:1529
+msgid "Invalid volume specification"
+msgstr ""
+
+#: src/utils/pactl.c:1552
+msgid "Volume outside permissible range.\n"
+msgstr ""
+
+#: src/utils/pactl.c:1565
+msgid "Invalid number of volume specifications.\n"
+msgstr ""
+
+#: src/utils/pactl.c:1577
+msgid "Inconsistent volume specification.\n"
+msgstr ""
+
+#: src/utils/pactl.c:1607 src/utils/pactl.c:1608 src/utils/pactl.c:1609
+#: src/utils/pactl.c:1610 src/utils/pactl.c:1611 src/utils/pactl.c:1612
+#: src/utils/pactl.c:1613 src/utils/pactl.c:1614 src/utils/pactl.c:1615
+#: src/utils/pactl.c:1616 src/utils/pactl.c:1617 src/utils/pactl.c:1618
+#: src/utils/pactl.c:1619 src/utils/pactl.c:1620 src/utils/pactl.c:1621
+#: src/utils/pactl.c:1622 src/utils/pactl.c:1623 src/utils/pactl.c:1624
+#: src/utils/pactl.c:1625 src/utils/pactl.c:1626 src/utils/pactl.c:1627
+msgid "[options]"
+msgstr "[опциялар]"
+
+#: src/utils/pactl.c:1609
+msgid "[TYPE]"
+msgstr "[ТҮРІ]"
+
+#: src/utils/pactl.c:1611
+msgid "FILENAME [NAME]"
+msgstr ""
+
+#: src/utils/pactl.c:1612
+msgid "NAME [SINK]"
+msgstr ""
+
+#: src/utils/pactl.c:1621
+msgid "NAME|#N VOLUME [VOLUME ...]"
+msgstr ""
+
+#: src/utils/pactl.c:1622
+msgid "#N VOLUME [VOLUME ...]"
+msgstr ""
+
+#: src/utils/pactl.c:1623
+msgid "NAME|#N 1|0|toggle"
+msgstr ""
+
+#: src/utils/pactl.c:1624
+msgid "#N 1|0|toggle"
+msgstr ""
+
+#: src/utils/pactl.c:1625
+msgid "#N FORMATS"
+msgstr ""
+
+#: src/utils/pactl.c:1628
+#, c-format
+msgid ""
+"\n"
+"The special names @DEFAULT_SINK@, @DEFAULT_SOURCE@ and @DEFAULT_MONITOR@\n"
+"can be used to specify the default sink, source and monitor.\n"
+msgstr ""
+
+#: src/utils/pactl.c:1631
+#, c-format
+msgid ""
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
+msgstr ""
+"\n"
+"  -h, --help                            Бұл көмекті көрсету\n"
+"      --version                         Нұсқасын көрсету\n"
+"\n"
+"  -s, --server=СЕРВЕР                   Байланысу үшін сервер аты\n"
+"  -n, --client-name=АТЫ                 Бұл клиентті серверде қалай атау "
+"керек\n"
+
+#: src/utils/pactl.c:1672
+#, c-format
+msgid ""
+"pactl %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+
+#: src/utils/pactl.c:1728
+#, c-format
+msgid "Specify nothing, or one of: %s"
+msgstr ""
+
+#: src/utils/pactl.c:1738
+msgid "Please specify a sample file to load"
+msgstr "Жүктеу үшін үлгі файлын көрсетіңіз"
+
+#: src/utils/pactl.c:1751
+msgid "Failed to open sound file."
+msgstr "Дыбыс файлын ашу сәтсіз аяқталды."
+
+#: src/utils/pactl.c:1763
+msgid "Warning: Failed to determine sample specification from file."
+msgstr ""
+
+#: src/utils/pactl.c:1773
+msgid "You have to specify a sample name to play"
+msgstr ""
+
+#: src/utils/pactl.c:1785
+msgid "You have to specify a sample name to remove"
+msgstr ""
+
+#: src/utils/pactl.c:1794
+msgid "You have to specify a sink input index and a sink"
+msgstr ""
+
+#: src/utils/pactl.c:1804
+msgid "You have to specify a source output index and a source"
+msgstr ""
+
+#: src/utils/pactl.c:1819
+msgid "You have to specify a module name and arguments."
+msgstr ""
+
+#: src/utils/pactl.c:1839
+msgid "You have to specify a module index or name"
+msgstr ""
+
+#: src/utils/pactl.c:1852
+msgid ""
+"You may not specify more than one sink. You have to specify a boolean value."
+msgstr ""
+
+#: src/utils/pactl.c:1857 src/utils/pactl.c:1877
+msgid "Invalid suspend specification."
+msgstr ""
+
+#: src/utils/pactl.c:1872
+msgid ""
+"You may not specify more than one source. You have to specify a boolean "
+"value."
+msgstr ""
+
+#: src/utils/pactl.c:1889
+msgid "You have to specify a card name/index and a profile name"
+msgstr ""
+
+#: src/utils/pactl.c:1900
+msgid "You have to specify a sink name/index and a port name"
+msgstr ""
+
+#: src/utils/pactl.c:1911
+msgid "You have to specify a sink name"
+msgstr ""
+
+#: src/utils/pactl.c:1921
+msgid "You have to specify a source name/index and a port name"
+msgstr ""
+
+#: src/utils/pactl.c:1932
+msgid "You have to specify a source name"
+msgstr ""
+
+#: src/utils/pactl.c:1942
+msgid "You have to specify a sink name/index and a volume"
+msgstr ""
+
+#: src/utils/pactl.c:1955
+msgid "You have to specify a source name/index and a volume"
+msgstr ""
+
+#: src/utils/pactl.c:1968
+msgid "You have to specify a sink input index and a volume"
+msgstr ""
+
+#: src/utils/pactl.c:1973
+msgid "Invalid sink input index"
+msgstr ""
+
+#: src/utils/pactl.c:1984
+msgid "You have to specify a source output index and a volume"
+msgstr ""
+
+#: src/utils/pactl.c:1989
+msgid "Invalid source output index"
+msgstr ""
+
+#: src/utils/pactl.c:2000
+msgid ""
+"You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"
+msgstr ""
+
+#: src/utils/pactl.c:2005 src/utils/pactl.c:2020 src/utils/pactl.c:2040
+#: src/utils/pactl.c:2058
+msgid "Invalid mute specification"
+msgstr ""
+
+#: src/utils/pactl.c:2015
+msgid ""
+"You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
+msgstr ""
+
+#: src/utils/pactl.c:2030
+msgid ""
+"You have to specify a sink input index and a mute action (0, 1, or 'toggle')"
+msgstr ""
+
+#: src/utils/pactl.c:2035
+msgid "Invalid sink input index specification"
+msgstr ""
+
+#: src/utils/pactl.c:2048
+msgid ""
+"You have to specify a source output index and a mute action (0, 1, or "
+"'toggle')"
+msgstr ""
+
+#: src/utils/pactl.c:2053
+msgid "Invalid source output index specification"
+msgstr ""
+
+#: src/utils/pactl.c:2070
+msgid ""
+"You have to specify a sink index and a semicolon-separated list of supported "
+"formats"
+msgstr ""
+
+#: src/utils/pactl.c:2082
+msgid "You have to specify a card name/index, a port name and a latency offset"
+msgstr ""
+
+#: src/utils/pactl.c:2089
+msgid "Could not parse latency offset"
+msgstr ""
+
+#: src/utils/pactl.c:2101
+msgid "No valid command specified."
+msgstr "Жарамды команда көрсетілмеген."
+
+#: src/utils/pasuspender.c:79
+#, c-format
+msgid "fork(): %s\n"
+msgstr "fork(): %s\n"
+
+#: src/utils/pasuspender.c:92
+#, c-format
+msgid "execvp(): %s\n"
+msgstr "execvp(): %s\n"
+
+#: src/utils/pasuspender.c:111
+#, c-format
+msgid "Failure to resume: %s\n"
+msgstr ""
+
+#: src/utils/pasuspender.c:145
+#, c-format
+msgid "Failure to suspend: %s\n"
+msgstr ""
+
+#: src/utils/pasuspender.c:170
+#, c-format
+msgid "WARNING: Sound server is not local, not suspending.\n"
+msgstr ""
+
+#: src/utils/pasuspender.c:183
+#, c-format
+msgid "Connection failure: %s\n"
+msgstr "Байланысты орнату қатесі: %s\n"
+
+#: src/utils/pasuspender.c:201
+#, c-format
+msgid "Got SIGINT, exiting.\n"
+msgstr "SIGINT алынды, шығу.\n"
+
+#: src/utils/pasuspender.c:219
+#, c-format
+msgid "WARNING: Child process terminated by signal %u\n"
+msgstr ""
+
+#: src/utils/pasuspender.c:228
+#, c-format
+msgid ""
+"%s [options] -- PROGRAM [ARGUMENTS ...]\n"
+"\n"
+"Temporarily suspend PulseAudio while PROGRAM runs.\n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"\n"
+msgstr ""
+
+#: src/utils/pasuspender.c:267
+#, c-format
+msgid ""
+"pasuspender %s\n"
+"Compiled with libpulse %s\n"
+"Linked with libpulse %s\n"
+msgstr ""
+
+#: src/utils/pasuspender.c:296
+#, c-format
+msgid "pa_mainloop_new() failed.\n"
+msgstr "pa_mainloop_new() сәтсіз аяқталды.\n"
+
+#: src/utils/pasuspender.c:309
+#, c-format
+msgid "pa_context_new() failed.\n"
+msgstr "pa_context_new() сәтсіз аяқталды.\n"
+
+#: src/utils/pasuspender.c:321
+#, c-format
+msgid "pa_mainloop_run() failed.\n"
+msgstr "pa_mainloop_run() сәтсіз аяқталды.\n"
+
+#: src/utils/pax11publish.c:58
+#, c-format
+msgid ""
+"%s [-D display] [-S server] [-O sink] [-I source] [-c file]  [-d|-e|-i|-r]\n"
+"\n"
+" -d    Show current PulseAudio data attached to X11 display (default)\n"
+" -e    Export local PulseAudio data to X11 display\n"
+" -i    Import PulseAudio data from X11 display to local environment "
+"variables and cookie file.\n"
+" -r    Remove PulseAudio data from X11 display\n"
+msgstr ""
+
+#: src/utils/pax11publish.c:91
+#, c-format
+msgid "Failed to parse command line.\n"
+msgstr "Командалық жолды талдау сәтсіз аяқталды.\n"
+
+#: src/utils/pax11publish.c:110
+#, c-format
+msgid "Server: %s\n"
+msgstr "Сервер: %s\n"
+
+#: src/utils/pax11publish.c:112
+#, c-format
+msgid "Source: %s\n"
+msgstr "Қайнар көзі: %s\n"
+
+#: src/utils/pax11publish.c:114
+#, c-format
+msgid "Sink: %s\n"
+msgstr "Аудиоқабылдағыш: %s\n"
+
+#: src/utils/pax11publish.c:116
+#, c-format
+msgid "Cookie: %s\n"
+msgstr "Cookie: %s\n"
+
+#: src/utils/pax11publish.c:134
+#, c-format
+msgid "Failed to parse cookie data\n"
+msgstr "Cookie деректерін талдау сәтсіз аяқталды\n"
+
+#: src/utils/pax11publish.c:139
+#, c-format
+msgid "Failed to save cookie data\n"
+msgstr "Cookie деректерін сақтау сәтсіз аяқталды\n"
+
+#: src/utils/pax11publish.c:168
+#, c-format
+msgid "Failed to get FQDN.\n"
+msgstr "FQDN алу сәтсіз аяқталды.\n"
+
+#: src/utils/pax11publish.c:188
+#, c-format
+msgid "Failed to load cookie data\n"
+msgstr "Cookie деректерін жүктеу сәтсіз аяқталды\n"
+
+#: src/utils/pax11publish.c:206
+#, c-format
+msgid "Not yet implemented.\n"
+msgstr "Әлі іске асырылмаған.\n"
