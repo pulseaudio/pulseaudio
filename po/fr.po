@@ -16,15 +16,16 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-10-06 16:57+0200\n"
+"PO-Revision-Date: 2020-07-06 08:27+0000\n"
+"Last-Translator: Jean-Baptiste Holcroft <jean-baptiste@holcroft.fr>\n"
+"Language-Team: French <https://translate.fedoraproject.org/projects/"
+"pulseaudio/pulseaudio/fr/>\n"
+"Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2017-05-10 04:42-0400\n"
-"Last-Translator: Edouard Duliege <edouard.duliege@gmail.com>\n"
-"Language-Team: French <fedora-trans-fr@redhat.com>\n"
-"Language: fr\n"
-"Plural-Forms: nplurals=2; plural=n>1;\n"
-"X-Generator: Zanata 3.9.6\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 4.1.1\n"
 
 #: ../src/daemon/cmdline.c:111
 #, c-format
@@ -219,17 +220,17 @@ msgid ""
 "Invalid log target: use either 'syslog', 'journal','stderr' or 'auto' or a "
 "valid file name 'file:<path>', 'newfile:<path>'."
 msgstr ""
-"Cible du journal invalide : veuillez utiliser «  syslog », "
-"« journal »,« stderr » ou « auto », ou un nom de fichier valide « file:"
-"<path> », « newfile:<path> »."
+"Cible du journal invalide : veuillez utiliser « syslog », « journal »,« "
+"stderr » ou « auto », ou un nom de fichier valide « file:<path> », « newfile:"
+"<path> »."
 
 #: ../src/daemon/cmdline.c:327
 msgid ""
 "Invalid log target: use either 'syslog', 'stderr' or 'auto' or a valid file "
 "name 'file:<path>', 'newfile:<path>'."
 msgstr ""
-"Cible du journal invalide : veuillez utiliser «  syslog »,« stderr » ou "
-"« auto », ou un nom de fichier valide « file:<path> », « newfile:<path> »."
+"Cible du journal invalide : veuillez utiliser « syslog »,« stderr » ou « "
+"auto », ou un nom de fichier valide « file:<path> », « newfile:<path> »."
 
 #: ../src/daemon/cmdline.c:335
 msgid "--log-time expects boolean argument"
@@ -444,7 +445,7 @@ msgstr "Mode système étendu non pris en charge sur cette plateforme."
 
 #: ../src/daemon/main.c:484
 msgid "Failed to parse command line."
-msgstr "Échec lors de l'analyse de la ligne de commande"
+msgstr "Échec lors de l'analyse de la ligne de commande."
 
 #: ../src/daemon/main.c:523
 msgid ""
@@ -493,23 +494,23 @@ msgstr ""
 #: ../src/daemon/main.c:712
 msgid "Running in system mode, but --disallow-exit not set!"
 msgstr ""
-"Le démon s'exécute en mode système, mais --disallow-exit n'est pas défini."
+"Le démon s'exécute en mode système, mais --disallow-exit n'est pas défini !"
 
 #: ../src/daemon/main.c:715
 msgid "Running in system mode, but --disallow-module-loading not set!"
 msgstr ""
 "Le démon s'exécute en mode système, mais --disallow-module-loading n'est pas "
-"défini."
+"défini !"
 
 #: ../src/daemon/main.c:718
 msgid "Running in system mode, forcibly disabling SHM mode!"
-msgstr "Le démon s'exécute en mode système, désactivation forcée du mode SHM."
+msgstr "Le démon s'exécute en mode système, désactivation forcée du mode SHM !"
 
 #: ../src/daemon/main.c:723
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr ""
 "Le démon s'exécute en mode système, désactivation forcée de la fermeture "
-"après délai d'inactivité."
+"après délai d'inactivité !"
 
 #: ../src/daemon/main.c:756
 msgid "Failed to acquire stdio."
@@ -571,7 +572,7 @@ msgstr "Échec de pa_core_new()."
 
 #: ../src/daemon/main.c:1088
 msgid "Failed to initialize daemon."
-msgstr "Échec lors de l'initialisation du démon"
+msgstr "Échec lors de l'initialisation du démon."
 
 #: ../src/daemon/main.c:1093
 msgid "Daemon startup without any loaded modules, refusing to work."
@@ -991,10 +992,10 @@ msgid ""
 "automatically> use_volume_sharing=<yes or no> "
 msgstr ""
 "source_name=<nom de la source> source_properties=<propriétés de la source> "
-"source_master=<nom de la source à filtrer> sink_name=<nom de la  "
-"destination> sink_properties=<propriétés de la destination> sink_master=<nom "
-"de la destination à filtrer> adjust_time=<fréquence de réajustement des taux "
-"dans s> adjust_threshold=<décalage à réajuster en ms> format=<format des "
+"source_master=<nom de la source à filtrer> sink_name=<nom de la destination> "
+"sink_properties=<propriétés de la destination> sink_master=<nom de la "
+"destination à filtrer> adjust_time=<fréquence de réajustement des taux dans "
+"s> adjust_threshold=<décalage à réajuster en ms> format=<format des "
 "échantillons> rate=<taux d'échantillonnage> channels=<nombre de canaux> "
 "channel_map=<plan des canaux> aec_method=<implémentation à utiliser> "
 "aec_args=<paramètres du moteur AEC> save_aec=<enregistrer les données AEC "
@@ -1026,10 +1027,11 @@ msgid ""
 "this module is being loaded automatically> use_volume_sharing=<yes or no> "
 msgstr ""
 "sink_name=<nom de la destination> sink_properties=<propriétés de la "
-"destination> sink_master=<destination à laquelle se connecter> format="
-"<format de l'échantillon> rate=<taux d'échantillonage> channels=<nombre de "
-"canaux> channel_map=<plan des canaux> autoloaded=<définir si ce module est "
-"chargé automatiquement> use_volume_sharing=<oui ou non>"
+"destination> sink_master=<destination à laquelle se connecter> "
+"format=<format de l'échantillon> rate=<taux d'échantillonage> "
+"channels=<nombre de canaux> channel_map=<plan des canaux> "
+"autoloaded=<définir si ce module est chargé automatiquement> "
+"use_volume_sharing=<oui ou non> "
 
 #: ../src/modules/module-filter-apply.c:46
 msgid "autoclean=<automatically unload unused filters?>"
@@ -1052,9 +1054,9 @@ msgstr ""
 "sink_name=<nom de la destination> sink_properties=<propriétés de la "
 "destination> master=<nom de la destination à filter> format=<format de "
 "l'échantillon> rate=<taux d'échantillonnage> channels=<nombre de canaux> "
-"channel_map=<plan des canaux> plugin=<nom de l'extension ladspa> label="
-"<étiquette de l'extension ladspa> control=<liste des valeurs de contrôle de "
-"l'entrée séparées par des virgules>"
+"channel_map=<plan des canaux> plugin=<nom de l'extension ladspa> "
+"label=<étiquette de l'extension ladspa> control=<liste des valeurs de "
+"contrôle de l'entrée séparées par des virgules> "
 
 #: ../src/modules/module-null-sink.c:47
 msgid "Clocked NULL sink"
@@ -1402,8 +1404,8 @@ msgid ""
 "over the native protocol. Don't do that.)"
 msgstr ""
 "XDG_RUNTIME_DIR (%s) ne nous appartient pas (uid %d), mais appartient à uid "
-"%d! (Ceci peut se produire si par exemple vous tentez de vous connecter à un "
-"PulseAudio non root en tant qu'utilisateur root sur le protocole natif. "
+"%d ! (Ceci peut se produire si par exemple vous tentez de vous connecter à "
+"un PulseAudio non root en tant qu'utilisateur root sur le protocole natif. "
 "Veuillez ne pas faire cela.)"
 
 #: ../src/pulsecore/core-util.h:93
@@ -2289,12 +2291,12 @@ msgid ""
 "Client Index: %u\n"
 "Tile Size: %zu\n"
 msgstr ""
-"Chaîne du serveur : %s\n"
-"Version du protocole de bibliothèque : %u\n"
-"Version du protocole du serveur : %u\n"
-"Local : %s\n"
-"Index client : %u\n"
-"Tile Size: %zu\n"
+"Chaîne du serveur : %s\n"
+"Version du protocole de bibliothèque : %u\n"
+"Version du protocole du serveur : %u\n"
+"Local : %s\n"
+"Index client : %u\n"
+"Tile Size : %zu\n"
 
 #: ../src/utils/pactl.c:206
 #, c-format
@@ -3148,4 +3150,3 @@ msgstr "Échec lors du chargement des données du cookie\n"
 #, c-format
 msgid "Not yet implemented.\n"
 msgstr "Pas encore implémenté.\n"
-
