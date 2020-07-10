@@ -9,13 +9,16 @@ msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-01-30 10:10+0000\n"
-"PO-Revision-Date: 2012-01-30 09:54+0000\n"
-"Last-Translator: Reinout van Schouwen <reinout@gmail.com>\n"
-"Language-Team: Dutch <vertaling@vrijschrift.org>\n"
+"PO-Revision-Date: 2020-07-11 20:27+0000\n"
+"Last-Translator: Geert Warrink <geert.warrink@onsnet.nu>\n"
+"Language-Team: Dutch <https://translate.fedoraproject.org/projects/"
+"pulseaudio/pulseaudio/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding:  \n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.1.1\n"
 
 #: ../src/modules/alsa/alsa-util.c:1136 ../src/modules/alsa/alsa-util.c:1204
 #, c-format
@@ -44,17 +47,17 @@ msgstr ""
 "probleem alstublieft aan de ALSA-ontwikkelaars."
 
 #: ../src/modules/alsa/alsa-util.c:1220
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_avail_delay() returned strange values: delay %lu is less than avail "
 "%lu.\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_avail() gaf een waarde terug die uitzonderlijk groot is: %lu bytes "
-"(%lu ms).\n"
-"Waarschijnlijk is dit een fout in het ALSA-stuurprogramma ‘%s’. Meld dit "
-"probleem alstublieft aan de ALSA-ontwikkelaars."
+"snd_pcm_avail_delay() gaf vreemde waardes terug: vertraging %lu is minder "
+"dan %lu.\n"
+"Waarschijnlijk is dit een fout in het ALSA-stuurprogramma '%s'. Meld dit "
+"probleem aan de ALSA-ontwikkelaars."
 
 #: ../src/modules/alsa/alsa-util.c:1263
 #, c-format
@@ -83,7 +86,6 @@ msgid "Virtual LADSPA sink"
 msgstr "Virtuele LADSPA afvoer"
 
 #: ../src/modules/module-ladspa-sink.c:52
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "master=<name of sink to filter> format=<sample format> rate=<sample rate> "
@@ -95,9 +97,11 @@ msgid ""
 msgstr ""
 "sink_name=<naam voor de afvoer> sink_properties=<eigenschappen van de "
 "afvoer> master=<naam van de te filteren afvoer> format=<sampleformaat> "
-"rate=<sample snelheid> channels=<aantal kanalen> channel_map=<kanaalkaart> "
-"plugin=<ladspa pluginnaam> label=<ladspa pluginlabel> "
-"control=<kommagescheiden lijst van invoercontrolewaarden>"
+"rate=<sample snelheid> channels=<aantal kanalen> "
+"channel_map=<inputkanaalkaart> plugin=<ladspa pluginnaam> label=<ladspa "
+"pluginlabel> control=<kommagescheiden lijst van invoercontrolewaarden> "
+"input_ladspaport_map=<kommagescheiden lijst van input LADSPA poortnamen> "
+"output_ladspaport_map=<kommagescheiden lijst van output LADSPA poortnamen> "
 
 #: ../src/modules/module-null-sink.c:49
 msgid "Clocked NULL sink"
@@ -203,6 +207,8 @@ msgid ""
 "System mode refused for non-root user. Only starting the D-Bus server lookup "
 "service."
 msgstr ""
+"Systeemmodus geweigerd voor niet-rootgebruiker. Alleen starten van de D-Bus-"
+"server zoekservice."
 
 #: ../src/daemon/main.c:611
 msgid "Daemon not running"
@@ -238,12 +244,16 @@ msgstr "--start wordt niet ondersteund voor systeeminstanties"
 #, c-format
 msgid "User-configured server at %s, refusing to start/autospawn."
 msgstr ""
+"Door gebruiker geconfigureerde server op %s, die weigert te starten/"
+"autospawn."
 
 #: ../src/daemon/main.c:713
 #, c-format
 msgid ""
 "User-configured server at %s, which appears to be local. Probing deeper."
 msgstr ""
+"Door gebruiker geconfigureerde server op %s, die lokaal lijkt te zijn. "
+"Dieper onderzoeken."
 
 #: ../src/daemon/main.c:718
 msgid "Running in system mode, but --disallow-exit not set!"
@@ -267,9 +277,9 @@ msgid "Failed to acquire stdio."
 msgstr "Verkrijgen van stdio mislukte."
 
 #: ../src/daemon/main.c:763 ../src/daemon/main.c:828
-#, fuzzy, c-format
+#, c-format
 msgid "pipe() failed: %s"
-msgstr "pipe mislukte: %s"
+msgstr "pipe() mislukte: %s"
 
 #: ../src/daemon/main.c:768 ../src/daemon/main.c:833
 #, c-format
@@ -290,9 +300,9 @@ msgid "Daemon startup successful."
 msgstr "Voorziening met succes opgestart."
 
 #: ../src/daemon/main.c:816
-#, fuzzy, c-format
+#, c-format
 msgid "setsid() failed: %s"
-msgstr "read() mislukte: %s"
+msgstr "setsid() mislukte: %s"
 
 #: ../src/daemon/main.c:901
 #, c-format
@@ -338,9 +348,9 @@ msgid "Running in valgrind mode: %s"
 msgstr "Draaiend in valgrind-modus: %s"
 
 #: ../src/daemon/main.c:921
-#, fuzzy, c-format
+#, c-format
 msgid "Running in VM: %s"
-msgstr "Draaiend op host: %s"
+msgstr "Draaiend in VM: %s"
 
 #: ../src/daemon/main.c:924
 msgid "Optimized build: yes"
@@ -455,7 +465,7 @@ msgid "Daemon terminated."
 msgstr "Voorziening is afgesloten."
 
 #: ../src/daemon/cmdline.c:113
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -547,7 +557,8 @@ msgstr ""
 "      --fail[=BOOL]                     Verlaat als opstarten mislukt\n"
 "      --high-priority[=BOOL]            Probeer een hoog nice nivo in te "
 "stellen\n"
-"                                        (only beschikbaar voor, als SUID of\n"
+"                                        (alleen beschikbaar voor, als SUID "
+"of\n"
 "                                        met verhoogde RLIMIT_NICE)\n"
 "      --realtime[=BOOL]                 Probeer realtime scheduling aan te "
 "zetten \n"
@@ -563,26 +574,24 @@ msgstr ""
 "      --exit-idle-time=SECS             Sluit de daemon af deze niets doet "
 "en deze tijd\n"
 "                                        verstreken is\n"
-"      --module-idle-time=SECS           Verwijder automatisch geladen "
-"modules als deze niets\n"
-"                                        doen en deze tijd verstreken is\n"
-"      --scache-idle-time=SECS           Verwijder automatisch geladen "
-"samples als deze niets\n"
+"     --scache-idle-time=SECS           Verwijder automatisch geladen samples "
+"als deze niets\n"
 "                                        doen en deze tijd verstreken is\n"
 "      --log-level[=LEVEL]               Verhoog of instellen van "
 "breedsprakigheids nivo\n"
-"  -v                                    Verhoog breedsprakigheids nivo\n"
-"      --log-target={auto,syslog,stderr} Specificeer het log doel\n"
+"  -v                                    Verhoog breedsprakigheids-niveau\n"
+"      --log-target={auto,syslog,stderr,file:PAD}\n"
+"                                          Specificeer het log doel\n"
 "      --log-meta[=BOOL]                 Voeg code locatie toe aan log "
 "boodschappen\n"
 "      --log-time[=BOOL]                 Voeg tijdstempels toe aan log "
 "boodschappen\n"
 "      --log-backtrace=FRAMES            Voeg een backtrace toe aan log "
 "boodscvhappen\n"
-"  -p, --dl-search-path=PATH             Stel het zoek pad voor dynamisch "
+"  -p, --dl-search-path=PAD             Stel het zoek pad voor dynamisch "
 "gedeelde\n"
 "                                        objecten in (plugins)\n"
-"      --resample-method=METHOD          Gebruik de opgegeven resampling "
+"      --resample-method=METHODE         Gebruik de opgegeven resampling "
 "methode\n"
 "                                        (Zie --dump-resample-methods voor\n"
 "                                        mogelijke waardes)\n"
@@ -590,14 +599,14 @@ msgstr ""
 "      --no-cpu-limit[=BOOL]             Installeer geen CPU load begrenzer "
 "op\n"
 "                                        platforms die dat ondersteunen.\n"
-"      --disable-shm[=BOOL]              Zet gedeeld heugen ondersteuning "
-"uit.\n"
+"      --disable-shm[=BOOL]              Zet gedeeld heugen ondersteuning uit."
+"\n"
 "\n"
 "OPSTART SCRIPT:\n"
 "  -L, --load=\"MODULE ARGUMENTS\"         Laad de opgegeven plugin module "
 "met\n"
 "                                        de opgegeven argumenten\n"
-"  -F, --file=FILENAME                   Draai het opgegeven script\n"
+"  -F, --file=BESTANSNAAM                   Draai het opgegeven script\n"
 "  -C                                    Open een opdrachtregel op de "
 "draaiende TTY\n"
 "                                        na het opstarten\n"
@@ -642,11 +651,12 @@ msgid "--use-pid-file expects boolean argument"
 msgstr "--use-pid-file verwacht een boolean argument"
 
 #: ../src/daemon/cmdline.c:318
-#, fuzzy
 msgid ""
 "Invalid log target: use either 'syslog', 'stderr' or 'auto' or a valid file "
 "name 'file:<path>'."
-msgstr "Ongeldig log doel: gebruik een van 'syslog', 'stderr', 'auto'."
+msgstr ""
+"Ongeldig log doel: gebruik een van 'syslog', 'stderr' of 'auto' of een "
+"geldige bestandsnaam 'file:<path>'."
 
 #: ../src/daemon/cmdline.c:325
 msgid "--log-time expects boolean argument"
@@ -774,9 +784,9 @@ msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] Ongeldig nice niveau ‘%s’."
 
 #: ../src/daemon/daemon-conf.c:528
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid server type '%s'."
-msgstr "[%s:%u] Ongeldige samlperate ‘%s’."
+msgstr "[%s:%u] Ongeldige servertype '%s'."
 
 #: ../src/daemon/daemon-conf.c:641
 #, c-format
@@ -809,14 +819,12 @@ msgid "Start the PulseAudio Sound System"
 msgstr "Start het PulseAudio geluidssysteem"
 
 #: ../src/daemon/pulseaudio-kde.desktop.in.h:1
-#, fuzzy
 msgid "PulseAudio Sound System KDE Routing Policy"
-msgstr "PulseAudio geluidssysteem"
+msgstr "PulseAudio geluidssysteem KDE-routeringsbeleid"
 
 #: ../src/daemon/pulseaudio-kde.desktop.in.h:2
-#, fuzzy
 msgid "Start the PulseAudio Sound System with KDE Routing Policy"
-msgstr "Start het PulseAudio geluidssysteem"
+msgstr "Start het PulseAudio geluidssysteem met KDE-routeringsbeleid"
 
 #: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:757
 msgid "Mono"
@@ -848,7 +856,7 @@ msgstr "Achter rechts"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Subwoofer"
-msgstr ""
+msgstr "Subwoofer"
 
 #: ../src/pulse/channelmap.c:117
 msgid "Front Left-of-center"
@@ -1187,13 +1195,12 @@ msgid "%u B"
 msgstr "%u B"
 
 #: ../src/pulse/client-conf-x11.c:54 ../src/utils/pax11publish.c:100
-#, fuzzy
 msgid "xcb_connect() failed"
-msgstr "pa_context_connect() mislukte: %s"
+msgstr "xcb_connect() mislukte"
 
 #: ../src/pulse/client-conf-x11.c:59 ../src/utils/pax11publish.c:105
 msgid "xcb_connection_has_error() returned true"
-msgstr ""
+msgstr "xcb_connection_has_error() gaf true terug"
 
 #: ../src/pulse/client-conf-x11.c:97
 msgid "Failed to parse cookie data"
@@ -1331,15 +1338,15 @@ msgstr "Stroom buffer attributen veranderden.%s"
 
 #: ../src/utils/pacat.c:416
 msgid "Cork request stack is empty: corking stream"
-msgstr ""
+msgstr "Cork verzoekstack is leeg: corking stream"
 
 #: ../src/utils/pacat.c:422
 msgid "Cork request stack is empty: uncorking stream"
-msgstr ""
+msgstr "Cork verzoekstack is leeg: uncorking stream"
 
 #: ../src/utils/pacat.c:426
 msgid "Warning: Received more uncork requests than cork requests!"
-msgstr ""
+msgstr "Waarschuwing: meer ontkurkverzoeken ontvangen dan kurkverzoeken!"
 
 #: ../src/utils/pacat.c:451
 #, c-format
