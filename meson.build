@@ -19,7 +19,7 @@ endif
 pa_version_major_minor = pa_version_major + '.' + pa_version_minor
 
 pa_api_version = 12
-pa_protocol_version = 33
+pa_protocol_version = 34
 
 # The stable ABI for client applications, for the version info x:y:z
 # always will hold x=z
