@@ -2262,6 +2262,7 @@ pa_operation* pa_context_send_message_to_object(pa_context *c, const char *objec
 
     PA_CHECK_VALIDITY_RETURN_NULL(c, !pa_detect_fork(), PA_ERR_FORKED);
     PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->version >= 35, PA_ERR_NOTSUPPORTED);
 
     o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
 
