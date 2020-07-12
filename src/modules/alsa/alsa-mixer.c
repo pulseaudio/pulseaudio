@@ -4407,6 +4407,8 @@ static int mapping_verify(pa_alsa_mapping *m, const pa_channel_map *bonus) {
         { "iec958-dts-surround-51", N_("Digital Surround 5.1 (IEC958/DTS)") },
         { "hdmi-stereo",            N_("Digital Stereo (HDMI)") },
         { "hdmi-surround-51",       N_("Digital Surround 5.1 (HDMI)") },
+        { "gaming-headset-chat",    N_("Chat") },
+        { "gaming-headset-game",    N_("Game") },
     };
     const char *description_key = m->description_key ? m->description_key : m->name;
 
