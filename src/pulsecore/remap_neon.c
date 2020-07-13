@@ -52,11 +52,15 @@ static void remap_mono_to_stereo_float32ne_generic_arm(pa_remap_t *m, float *dst
         __asm__ __volatile__ (
             "ldm        %[src]!, {r4,r6}        \n\t"
             "mov        r5, r4                  \n\t"
-            "mov        r7, r6                  \n\t"
-            "stm        %[dst]!, {r4-r7}        \n\t"
+
+            /* We use r12 instead of r7 here, because r7 is reserved for the
+             * frame pointer when using Thumb. */
+            "mov        r12, r6                 \n\t"
+
+            "stm        %[dst]!, {r4-r6,r12}    \n\t"
             : [dst] "+r" (dst), [src] "+r" (src) /* output operands */
             : /* input operands */
-            : "memory", "r4", "r5", "r6", "r7" /* clobber list */
+            : "memory", "r4", "r5", "r6", "r12" /* clobber list */
         );
     }
 
