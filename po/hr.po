@@ -8,17 +8,18 @@ msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2019-11-10 14:12+0100\n"
-"PO-Revision-Date: 2019-11-10 14:21+0100\n"
-"Last-Translator: gogo <trebelnik2@gmail.com>\n"
-"Language-Team: Croatian <hr@li.org>\n"
+"PO-Revision-Date: 2020-07-15 19:29+0000\n"
+"Last-Translator: Milo Ivir <mail@milotype.de>\n"
+"Language-Team: Croatian <https://translate.fedoraproject.org/projects/"
+"pulseaudio/pulseaudio/hr/>\n"
 "Language: hr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Weblate 4.1.1\n"
 "X-Launchpad-Export-Date: 2017-04-20 21:04+0000\n"
-"X-Generator: Poedit 2.2.1\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
 
 #: ../src/daemon/cmdline.c:113
 #, c-format
@@ -186,9 +187,8 @@ msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of debug, info, notice, warn, error)."
 msgstr ""
-"--log-level očekuje argument na razini zapisa (ili brojeve u rasponu 0..4 "
-"ili jedan od zapisa uklanjanja grešaka,informacija,bilješka,upozorenje,"
-"greška)"
+"--log-level očekuje argument na razini zapisa (numerički u rasponu od 0 do 4 "
+"ili jedan od sljedećih: debug, info, notice, warn, error)."
 
 #: ../src/daemon/cmdline.c:277
 msgid "--high-priority expects boolean argument"
@@ -449,8 +449,8 @@ msgid ""
 "System mode refused for non-root user. Only starting the D-Bus server lookup "
 "service."
 msgstr ""
-"Način rada sustava  je nedostupan za nekorijenske korinike. Samo pokreni D-"
-"Bus poslužitelja usluge pretraživanja."
+"Način rada sustava nedostupan je za neadministratorske korisnike. Pokreće se "
+"samo usluga pretraživanja D-Bus poslužitelja."
 
 #: ../src/daemon/main.c:633
 #, c-format
@@ -462,8 +462,8 @@ msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
 msgstr ""
-"Ovaj program nije namijenjen za korijensko pokretanje (osim -- ako je "
-"određeno sustavom)"
+"Ovaj program nije namijenjen za pokretanje kao administrator (osim ako je "
+"određen --system)."
 
 #: ../src/daemon/main.c:665
 msgid "Root privileges required."
@@ -706,7 +706,7 @@ msgstr "Zvučnici"
 
 #: ../src/modules/alsa/alsa-mixer.c:2541
 msgid "HDMI / DisplayPort"
-msgstr "HDMI / DisplayPort"
+msgstr "HDMI / Ekranski priključak"
 
 #: ../src/modules/alsa/alsa-mixer.c:2542
 msgid "Digital Output (S/PDIF)"
@@ -2205,7 +2205,7 @@ msgstr "NAZIV SLIVNIKA|#N"
 
 #: ../src/utils/pacmd.c:64 ../src/utils/pacmd.c:65
 msgid "NAME FILENAME"
-msgstr "NAZIV NAZIV DATOTEKE"
+msgstr "NAZIV NAZIV-DATOTEKE"
 
 #: ../src/utils/pacmd.c:66
 msgid "PATHNAME"
@@ -2385,7 +2385,7 @@ msgstr ""
 "Zadane specifikacije uzorka: %s\n"
 "Zadano mapiranje kanala: %s\n"
 "Zadani slivnik: %s\n"
-"Zadani  izvor: %s\n"
+"Zadani izvor: %s\n"
 "Kolačić: %04x:%04x\n"
 
 #: ../src/utils/pactl.c:261 ../src/utils/pactl.c:908 ../src/utils/pactl.c:986
