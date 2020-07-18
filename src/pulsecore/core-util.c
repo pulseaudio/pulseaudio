@@ -2206,9 +2206,29 @@ enum numtype {
 };
 
 /* A helper function for pa_atou() and friends. This does some common checks,
- * because our number parsing is more strict than the strtoX functions. */
-static int prepare_number_string(const char *s, enum numtype type) {
-    /* The strtoX functions ignore leading spaces, we don't. */
+ * because our number parsing is more strict than the strtoX functions.
+ *
+ * Leading zeros are stripped from integers so that they don't get parsed as
+ * octal (but "0x" is preserved for hexadecimal numbers). For NUMTYPE_INT the
+ * zero stripping may involve allocating a new string, in which case it's
+ * stored in tmp. Otherwise tmp is set to NULL. The caller needs to free tmp
+ * after they're done with ret. When parsing other types than NUMTYPE_INT the
+ * caller can pass NULL as tmp.
+ *
+ * The final string to parse is returned in ret. ret will point either inside
+ * s or to tmp. */
+static int prepare_number_string(const char *s, enum numtype type, char **tmp, const char **ret) {
+    const char *original = s;
+    bool negative = false;
+
+    pa_assert(s);
+    pa_assert(type != NUMTYPE_INT || tmp);
+    pa_assert(ret);
+
+    if (tmp)
+        *tmp = NULL;
+
+    /* The strtoX functions accept leading spaces, we don't. */
     if (isspace((unsigned char) s[0]))
         return -1;
 
@@ -2222,6 +2242,44 @@ static int prepare_number_string(const char *s, enum numtype type) {
     if (type == NUMTYPE_UINT && s[0] == '-')
         return -1;
 
+    /* The strtoX functions interpret the number as octal if it starts with
+     * a zero. We prefer to use base 10, so we strip all leading zeros (if the
+     * string starts with "0x", strtoul() interprets it as hexadecimal, which
+     * is fine, because it's unambiguous unlike octal).
+     *
+     * While stripping the leading zeros, we have to remember to also handle
+     * the case where the number is negative, which makes the zero skipping
+     * code somewhat complex. */
+
+    /* Doubles don't need zero stripping, we can finish now. */
+    if (type == NUMTYPE_DOUBLE)
+        goto finish;
+
+    if (s[0] == '-') {
+        negative = true;
+        s++; /* Skip the minus sign. */
+    }
+
+    /* Don't skip zeros if the string starts with "0x". */
+    if (s[0] == '0' && s[1] != 'x') {
+        while (s[0] == '0' && s[1])
+            s++; /* Skip zeros. */
+    }
+
+    if (negative) {
+        s--; /* Go back one step, we need the minus sign back. */
+
+        /* If s != original, then we have skipped some zeros and we need to replace
+         * the last skipped zero with a minus sign. */
+        if (s != original) {
+            *tmp = pa_xstrdup(s);
+            *tmp[0] = '-';
+            s = *tmp;
+        }
+    }
+
+finish:
+    *ret = s;
     return 0;
 }
 
@@ -2233,7 +2291,7 @@ int pa_atou(const char *s, uint32_t *ret_u) {
     pa_assert(s);
     pa_assert(ret_u);
 
-    if (prepare_number_string(s, NUMTYPE_UINT) < 0) {
+    if (prepare_number_string(s, NUMTYPE_UINT, NULL, &s) < 0) {
         errno = EINVAL;
         return -1;
     }
@@ -2267,7 +2325,7 @@ int pa_atou64(const char *s, uint64_t *ret_u) {
     pa_assert(s);
     pa_assert(ret_u);
 
-    if (prepare_number_string(s, NUMTYPE_UINT) < 0) {
+    if (prepare_number_string(s, NUMTYPE_UINT, NULL, &s) < 0) {
         errno = EINVAL;
         return -1;
     }
@@ -2295,13 +2353,14 @@ int pa_atou64(const char *s, uint64_t *ret_u) {
 
 /* Convert the string s to a signed long integer in *ret_l. */
 int pa_atol(const char *s, long *ret_l) {
+    char *tmp;
     char *x = NULL;
     long l;
 
     pa_assert(s);
     pa_assert(ret_l);
 
-    if (prepare_number_string(s, NUMTYPE_INT) < 0) {
+    if (prepare_number_string(s, NUMTYPE_INT, &tmp, &s) < 0) {
         errno = EINVAL;
         return -1;
     }
@@ -2315,8 +2374,11 @@ int pa_atol(const char *s, long *ret_l) {
     if (!x || *x || x == s || errno) {
         if (!errno)
             errno = EINVAL;
+        pa_xfree(tmp);
         return -1;
     }
+
+    pa_xfree(tmp);
 
     *ret_l = l;
 
@@ -2325,13 +2387,14 @@ int pa_atol(const char *s, long *ret_l) {
 
 /* Convert the string s to a signed 64 bit integer in *ret_l. */
 int pa_atoi64(const char *s, int64_t *ret_l) {
+    char *tmp;
     char *x = NULL;
     long long l;
 
     pa_assert(s);
     pa_assert(ret_l);
 
-    if (prepare_number_string(s, NUMTYPE_INT) < 0) {
+    if (prepare_number_string(s, NUMTYPE_INT, &tmp, &s) < 0) {
         errno = EINVAL;
         return -1;
     }
@@ -2345,8 +2408,11 @@ int pa_atoi64(const char *s, int64_t *ret_l) {
     if (!x || *x || x == s || errno) {
         if (!errno)
             errno = EINVAL;
+        pa_xfree(tmp);
         return -1;
     }
+
+    pa_xfree(tmp);
 
     *ret_l = l;
 
@@ -2373,7 +2439,7 @@ int pa_atod(const char *s, double *ret_d) {
     pa_assert(s);
     pa_assert(ret_d);
 
-    if (prepare_number_string(s, NUMTYPE_DOUBLE) < 0) {
+    if (prepare_number_string(s, NUMTYPE_DOUBLE, NULL, &s) < 0) {
         errno = EINVAL;
         return -1;
     }
