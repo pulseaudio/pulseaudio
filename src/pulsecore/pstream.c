@@ -244,8 +244,16 @@ static void do_pstream_read_write(pa_pstream *p) {
     p->mainloop->defer_enable(p->defer_event, 0);
 
     if (!p->dead && p->srb) {
-         do_write(p);
-         while (!p->dead && do_read(p, &p->readsrb) == 0);
+        int r = 0;
+
+        if(do_write(p) < 0)
+            goto fail;
+
+        while (!p->dead && r == 0) {
+            r = do_read(p, &p->readsrb);
+            if (r < 0)
+                goto fail;
+        }
     }
 
     if (!p->dead && pa_iochannel_is_readable(p->io)) {
