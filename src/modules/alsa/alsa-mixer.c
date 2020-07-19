@@ -2728,8 +2728,8 @@ static int path_verify(pa_alsa_path *p) {
         { "iec958-passthrough-output",        N_("Digital Passthrough (S/PDIF)"), PA_DEVICE_PORT_TYPE_SPDIF },
         { "multichannel-input",               N_("Multichannel Input"),           PA_DEVICE_PORT_TYPE_LINE },
         { "multichannel-output",              N_("Multichannel Output"),          PA_DEVICE_PORT_TYPE_LINE },
-        { "steelseries-arctis-5-output-game", N_("Game Output"),                  PA_DEVICE_PORT_TYPE_HEADSET },
-        { "steelseries-arctis-5-output-chat", N_("Chat Output"),                  PA_DEVICE_PORT_TYPE_HEADSET },
+        { "steelseries-arctis-output-game-common", N_("Game Output"),             PA_DEVICE_PORT_TYPE_HEADSET },
+        { "steelseries-arctis-output-chat-common", N_("Chat Output"),             PA_DEVICE_PORT_TYPE_HEADSET },
     };
 
     pa_alsa_element *e;
