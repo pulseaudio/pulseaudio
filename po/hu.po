@@ -8,20 +8,22 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PulseAudio master\n"
-"Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/issues/new\n"
+"Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
+"issues/new\n"
 "POT-Creation-Date: 2016-08-23 02:28+0000\n"
-"PO-Revision-Date: 2016-08-23 12:10+0200\n"
-"Last-Translator: Balázs Úr <urbalazs@gmail.com>\n"
-"Language-Team: Hungarian <openscope at googlegroups dot com>\n"
+"PO-Revision-Date: 2020-07-21 15:29+0000\n"
+"Last-Translator: Balázs Meskó <meskobalazs@mailbox.org>\n"
+"Language-Team: Hungarian <https://translate.fedoraproject.org/projects/"
+"pulseaudio/pulseaudio/hu/>\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.1.1\n"
 "X-Poedit-Language: Hungarian\n"
 "X-Poedit-Country: HUNGARY\n"
 "X-Poedit-SourceCharset: utf-8\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 1.2\n"
 
 #: ../src/daemon/cmdline.c:113
 #, c-format
@@ -567,7 +569,7 @@ msgstr "A „pa_pid_file_create()” függvényhívás meghiúsult."
 
 #: ../src/daemon/main.c:1022
 msgid "pa_core_new() failed."
-msgstr "A „pa_core_new()” függvényhívás meghiúsult: %s"
+msgstr "A pa_core_new() sikertelen."
 
 #: ../src/daemon/main.c:1090
 msgid "Failed to initialize daemon."
@@ -1091,7 +1093,7 @@ msgstr ""
 "sink_master=<csatlakozás ezen nyelőhöz> format=<mintaformátum> "
 "rate=<mintavételezési gyakoriság> channels=<csatornák száma> "
 "channel_map=<csatornaleképzés> autoloaded=<beállítva, ha ez a modul "
-"automatikusan betöltődik> use_volume_sharing=<igen vagy nem>"
+"automatikusan betöltődik> use_volume_sharing=<igen vagy nem> "
 
 #: ../src/modules/module-filter-apply.c:47
 msgid "autoclean=<automatically unload unused filters?>"
@@ -1115,10 +1117,10 @@ msgstr ""
 "master=<szűrendő nyelő neve> format=<mintaformátum> rate=<mintavételezési "
 "gyakoriság> channels=<csatornák száma> channel_map=<csatornaleképzés> "
 "plugin=<ladspa bővítmény neve> label=<ladspa bővítmény címkéje> "
-"control=<bemenetszabályzó értékek vesszővel elválasztott listája>  "
+"control=<bemenetszabályzó értékek vesszővel elválasztott listája> "
 "input_ladspaport_map=<bemeneti LADSPA portnevek vesszővel elválasztott "
 "listája> output_ladspaport_map=<kimeneti LADSPA portnevek vesszővel "
-"elválasztott listája>"
+"elválasztott listája> "
 
 #: ../src/modules/module-null-sink.c:47
 msgid "Clocked NULL sink"
@@ -1554,7 +1556,7 @@ msgstr "Belső hiba"
 
 #: ../src/pulse/error.c:49
 msgid "Connection terminated"
-msgstr "A kapcsolat megszakadt."
+msgstr "A kapcsolat megszakadt"
 
 #: ../src/pulse/error.c:50
 msgid "Entity killed"
@@ -1566,7 +1568,7 @@ msgstr "Érvénytelen kiszolgáló"
 
 #: ../src/pulse/error.c:52
 msgid "Module initialization failed"
-msgstr "A modul előkészítése meghiúsult."
+msgstr "A modul előkészítése sikertelen"
 
 #: ../src/pulse/error.c:53
 msgid "Bad state"
@@ -1744,7 +1746,7 @@ msgstr ""
 
 #: ../src/utils/pacat.c:409
 msgid "not "
-msgstr "nem"
+msgstr "nem "
 
 #: ../src/utils/pacat.c:416
 #, c-format
@@ -2852,6 +2854,7 @@ msgstr ""
 "\n"
 "  -h, --help                            Ezen súgó megjelenítése\n"
 "      --version                         Verziószám megjelenítése\n"
+"\n"
 "  -s, --server=KISZOLGÁLÓ               Csatlakozás ehhez a kiszolgálóhoz\n"
 "  -n, --client-name=NÉV                 A kliens neve a kiszolgálón\n"
 
