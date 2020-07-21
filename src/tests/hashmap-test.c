@@ -108,6 +108,8 @@ START_TEST(remove_all_test)
         if ((size = pa_hashmap_size(map)) != 0) {
             ck_abort_msg("Hashmap has wrong size; got %u, want 0", size);
         }
+
+        pa_hashmap_free(map);
     }
 END_TEST
 
