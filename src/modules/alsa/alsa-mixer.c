@@ -4291,14 +4291,14 @@ static void mapping_group_available(pa_hashmap *paths)
            if (!j->has_control || j->state_plugged == PA_AVAILABLE_NO)
                continue;
            has_control = true;
-           j->state_plugged = PA_AVAILABLE_UNKNOWN;
            PA_HASHMAP_FOREACH(p2, paths, state2) {
                if (p2 == p)
                    break;
-               PA_LLIST_FOREACH(j2, p->jacks) {
-                   if (!j2->has_control || j->state_plugged == PA_AVAILABLE_NO)
+                PA_LLIST_FOREACH(j2, p2->jacks) {
+                    if (!j2->has_control || j2->state_plugged == PA_AVAILABLE_NO)
                        continue;
                    if (pa_streq(j->name, j2->name)) {
+                        j->state_plugged = PA_AVAILABLE_UNKNOWN;
                        j2->state_plugged = PA_AVAILABLE_UNKNOWN;
                        found = p2->available_group;
                        break;
