@@ -26,6 +26,7 @@
 #include <pulsecore/random.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/remap.h>
+#include <pulse/xmalloc.h>
 
 #include "runtime-test-util.h"
 
@@ -290,7 +291,7 @@ static void remap_init2_test_channels(
         bool rearrange) {
 
     pa_cpu_info cpu_info = { PA_CPU_UNDEFINED, {}, false };
-    pa_remap_t remap_orig, remap_func;
+    pa_remap_t remap_orig, remap_func = {0};
 
     cpu_info.force_generic_code = true;
     pa_remap_func_init(&cpu_info);
@@ -303,6 +304,8 @@ static void remap_init2_test_channels(
     pa_init_remap_func(&remap_func);
 
     remap_test_channels(&remap_func, &remap_orig);
+
+    pa_xfree(remap_func.state);
 }
 
 START_TEST (remap_special_test) {
