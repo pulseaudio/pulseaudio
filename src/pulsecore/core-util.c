@@ -2199,6 +2199,32 @@ int pa_atoi(const char *s, int32_t *ret_i) {
     return 0;
 }
 
+enum numtype {
+    NUMTYPE_UINT,
+    NUMTYPE_INT,
+    NUMTYPE_DOUBLE,
+};
+
+/* A helper function for pa_atou() and friends. This does some common checks,
+ * because our number parsing is more strict than the strtoX functions. */
+static int prepare_number_string(const char *s, enum numtype type) {
+    /* The strtoX functions ignore leading spaces, we don't. */
+    if (isspace((unsigned char) s[0]))
+        return -1;
+
+    /* The strtoX functions accept a plus sign, we don't. */
+    if (s[0] == '+')
+        return -1;
+
+    /* The strtoul and strtoull functions allow a minus sign even though they
+     * parse an unsigned number. In case of a minus sign the original negative
+     * number gets negated. We don't want that kind of behviour. */
+    if (type == NUMTYPE_UINT && s[0] == '-')
+        return -1;
+
+    return 0;
+}
+
 /* Convert the string s to an unsigned integer in *ret_u */
 int pa_atou(const char *s, uint32_t *ret_u) {
     char *x = NULL;
@@ -2207,17 +2233,7 @@ int pa_atou(const char *s, uint32_t *ret_u) {
     pa_assert(s);
     pa_assert(ret_u);
 
-    /* strtoul() ignores leading spaces. We don't. */
-    if (isspace((unsigned char)*s)) {
-        errno = EINVAL;
-        return -1;
-    }
-
-    /* strtoul() accepts strings that start with a minus sign. In that case the
-     * original negative number gets negated, and strtoul() returns the negated
-     * result. We don't want that kind of behaviour. strtoul() also allows a
-     * leading plus sign, which is also a thing that we don't want. */
-    if (*s == '-' || *s == '+') {
+    if (prepare_number_string(s, NUMTYPE_UINT) < 0) {
         errno = EINVAL;
         return -1;
     }
@@ -2251,17 +2267,7 @@ int pa_atou64(const char *s, uint64_t *ret_u) {
     pa_assert(s);
     pa_assert(ret_u);
 
-    /* strtoull() ignores leading spaces. We don't. */
-    if (isspace((unsigned char)*s)) {
-        errno = EINVAL;
-        return -1;
-    }
-
-    /* strtoull() accepts strings that start with a minus sign. In that case the
-     * original negative number gets negated, and strtoull() returns the negated
-     * result. We don't want that kind of behaviour. strtoull() also allows a
-     * leading plus sign, which is also a thing that we don't want. */
-    if (*s == '-' || *s == '+') {
+    if (prepare_number_string(s, NUMTYPE_UINT) < 0) {
         errno = EINVAL;
         return -1;
     }
@@ -2295,15 +2301,7 @@ int pa_atol(const char *s, long *ret_l) {
     pa_assert(s);
     pa_assert(ret_l);
 
-    /* strtol() ignores leading spaces. We don't. */
-    if (isspace((unsigned char)*s)) {
-        errno = EINVAL;
-        return -1;
-    }
-
-    /* strtol() accepts leading plus signs, but that's ugly, so we don't allow
-     * that. */
-    if (*s == '+') {
+    if (prepare_number_string(s, NUMTYPE_INT) < 0) {
         errno = EINVAL;
         return -1;
     }
@@ -2333,15 +2331,7 @@ int pa_atoi64(const char *s, int64_t *ret_l) {
     pa_assert(s);
     pa_assert(ret_l);
 
-    /* strtoll() ignores leading spaces. We don't. */
-    if (isspace((unsigned char)*s)) {
-        errno = EINVAL;
-        return -1;
-    }
-
-    /* strtoll() accepts leading plus signs, but that's ugly, so we don't allow
-     * that. */
-    if (*s == '+') {
+    if (prepare_number_string(s, NUMTYPE_INT) < 0) {
         errno = EINVAL;
         return -1;
     }
@@ -2383,15 +2373,7 @@ int pa_atod(const char *s, double *ret_d) {
     pa_assert(s);
     pa_assert(ret_d);
 
-    /* strtod() ignores leading spaces. We don't. */
-    if (isspace((unsigned char)*s)) {
-        errno = EINVAL;
-        return -1;
-    }
-
-    /* strtod() accepts leading plus signs, but that's ugly, so we don't allow
-     * that. */
-    if (*s == '+') {
+    if (prepare_number_string(s, NUMTYPE_DOUBLE) < 0) {
         errno = EINVAL;
         return -1;
     }
