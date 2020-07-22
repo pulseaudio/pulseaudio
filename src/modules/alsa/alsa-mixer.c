@@ -3714,6 +3714,7 @@ static void mapping_free(pa_alsa_mapping *m) {
 
     pa_xfree(m->name);
     pa_xfree(m->description);
+    pa_xfree(m->description_key);
 
     pa_proplist_free(m->proplist);
 
@@ -3740,6 +3741,7 @@ static void profile_free(pa_alsa_profile *p) {
 
     pa_xfree(p->name);
     pa_xfree(p->description);
+    pa_xfree(p->description_key);
     pa_xfree(p->input_name);
     pa_xfree(p->output_name);
 
@@ -4013,6 +4015,30 @@ static int mapping_parse_description(pa_config_parser_state *state) {
 
     return 0;
 }
+
+static int mapping_parse_description_key(pa_config_parser_state *state) {
+    pa_alsa_profile_set *ps;
+    pa_alsa_profile *p;
+    pa_alsa_mapping *m;
+
+    pa_assert(state);
+
+    ps = state->userdata;
+
+    if ((m = pa_alsa_mapping_get(ps, state->section))) {
+        pa_xfree(m->description_key);
+        m->description_key = pa_xstrdup(state->rvalue);
+    } else if ((p = profile_get(ps, state->section))) {
+        pa_xfree(p->description_key);
+        p->description_key = pa_xstrdup(state->rvalue);
+    } else {
+        pa_log("[%s:%u] Section name %s invalid.", state->filename, state->lineno, state->section);
+        return -1;
+    }
+
+    return 0;
+}
+
 
 static int mapping_parse_priority(pa_config_parser_state *state) {
     pa_alsa_profile_set *ps;
@@ -4382,6 +4408,7 @@ static int mapping_verify(pa_alsa_mapping *m, const pa_channel_map *bonus) {
         { "hdmi-stereo",            N_("Digital Stereo (HDMI)") },
         { "hdmi-surround-51",       N_("Digital Surround 5.1 (HDMI)") },
     };
+    const char *description_key = m->description_key ? m->description_key : m->name;
 
     pa_assert(m);
 
@@ -4402,7 +4429,7 @@ static int mapping_verify(pa_alsa_mapping *m, const pa_channel_map *bonus) {
     }
 
     if (!m->description)
-        m->description = pa_xstrdup(lookup_description(m->name,
+        m->description = pa_xstrdup(lookup_description(description_key,
                                                        well_known_descriptions,
                                                        PA_ELEMENTSOF(well_known_descriptions)));
 
@@ -4520,6 +4547,7 @@ static int profile_verify(pa_alsa_profile *p) {
         { "output:unknown-stereo+input:unknown-stereo", N_("Stereo Duplex") },
         { "off",                                      N_("Off") }
     };
+    const char *description_key = p->description_key ? p->description_key : p->name;
 
     pa_assert(p);
 
@@ -4601,7 +4629,7 @@ static int profile_verify(pa_alsa_profile *p) {
     }
 
     if (!p->description)
-        p->description = pa_xstrdup(lookup_description(p->name,
+        p->description = pa_xstrdup(lookup_description(description_key,
                                                        well_known_descriptions,
                                                        PA_ELEMENTSOF(well_known_descriptions)));
 
@@ -4725,6 +4753,7 @@ pa_alsa_profile_set* pa_alsa_profile_set_new(const char *fname, const pa_channel
 
         /* Shared by [Mapping ...] and [Profile ...] */
         { "description",            mapping_parse_description,    NULL, NULL },
+        { "description-key",        mapping_parse_description_key,NULL, NULL },
         { "priority",               mapping_parse_priority,       NULL, NULL },
         { "fallback",               mapping_parse_fallback,       NULL, NULL },
 
