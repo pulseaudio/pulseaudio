@@ -100,6 +100,10 @@ START_TEST (modargs_test_atoi) {
     ck_assert_int_eq(value, 100000);
     ck_assert_int_eq(pa_atoi("-100000", &value), 0);
     ck_assert_int_eq(value, -100000);
+    ck_assert_int_eq(pa_atoi("010", &value), 0);
+    ck_assert_int_eq(value, 10);
+    ck_assert_int_eq(pa_atoi("-010", &value), 0);
+    ck_assert_int_eq(value, -10);
 
     // hexadecimal
     ck_assert_int_eq(pa_atoi("0x100000", &value), 0);
@@ -120,6 +124,8 @@ START_TEST (modargs_test_atou) {
     // decimal
     ck_assert_int_eq(pa_atou("100000", &value), 0);
     ck_assert_int_eq(value, 100000);
+    ck_assert_int_eq(pa_atou("010", &value), 0);
+    ck_assert_int_eq(value, 10);
 
     // hexadecimal
     ck_assert_int_eq(pa_atou("0x100000", &value), 0);
@@ -142,6 +148,10 @@ START_TEST (modargs_test_atol) {
     ck_assert_int_eq(value, 100000l);
     ck_assert_int_eq(pa_atol("-100000", &value), 0);
     ck_assert_int_eq(value, -100000l);
+    ck_assert_int_eq(pa_atol("010", &value), 0);
+    ck_assert_int_eq(value, 10);
+    ck_assert_int_eq(pa_atol("-010", &value), 0);
+    ck_assert_int_eq(value, -10);
 
     // hexadecimal
     ck_assert_int_eq(pa_atol("0x100000", &value), 0);
