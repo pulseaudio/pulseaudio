@@ -1029,6 +1029,8 @@ static struct entry *legacy_entry_read(struct userdata *u, const char *name) {
     pa_datum data;
     struct legacy_entry *le;
     struct entry *e;
+    pa_channel_map channel_map;
+    pa_cvolume volume;
 
     pa_assert(u);
     pa_assert(name);
@@ -1073,12 +1075,17 @@ static struct entry *legacy_entry_read(struct userdata *u, const char *name) {
         goto fail;
     }
 
-    if (le->volume_valid && !pa_channel_map_valid(&le->channel_map)) {
+    /* Read these out before accessing contents via pointers as struct legacy_entry may not be adequately aligned for these
+     * members to be accessed directly */
+    channel_map = le->channel_map;
+    volume = le->volume;
+
+    if (le->volume_valid && !pa_channel_map_valid(&channel_map)) {
         pa_log_warn("Invalid channel map stored in database for legacy stream");
         goto fail;
     }
 
-    if (le->volume_valid && (!pa_cvolume_valid(&le->volume) || !pa_cvolume_compatible_with_channel_map(&le->volume, &le->channel_map))) {
+    if (le->volume_valid && (!pa_cvolume_valid(&volume) || !pa_cvolume_compatible_with_channel_map(&volume, &channel_map))) {
         pa_log_warn("Invalid volume stored in database for legacy stream");
         goto fail;
     }
