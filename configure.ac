@@ -894,7 +894,7 @@ AC_ARG_ENABLE([glib2],
     AS_HELP_STRING([--disable-glib2],[Disable optional GLib 2 support]))
 
 AS_IF([test "x$enable_glib2" != "xno"],
-    [PKG_CHECK_MODULES(GLIB20, [ glib-2.0 >= 2.4.0 ], HAVE_GLIB20=1, HAVE_GLIB20=0)],
+    [PKG_CHECK_MODULES(GLIB20, [ glib-2.0 >= 2.28.0 ], HAVE_GLIB20=1, HAVE_GLIB20=0)],
     HAVE_GLIB20=0)
 
 AS_IF([test "x$enable_glib2" = "xyes" && test "x$HAVE_GLIB20" = "x0"],

@@ -482,16 +482,15 @@ static gboolean prepare_func(GSource *source, gint *timeout) {
         return TRUE;
     } else if (g->n_enabled_time_events) {
         pa_time_event *t;
-        GTimeVal now;
+        gint64 now;
         struct timeval tvnow;
         pa_usec_t usec;
 
         t = find_next_time_event(g);
         g_assert(t);
 
-        g_get_current_time(&now);
-        tvnow.tv_sec = now.tv_sec;
-        tvnow.tv_usec = now.tv_usec;
+        now = g_get_real_time();
+        pa_timeval_store(&tvnow, now);
 
         if (pa_timeval_cmp(&t->timeval, &tvnow) <= 0) {
             *timeout = 0;
@@ -514,15 +513,14 @@ static gboolean check_func(GSource *source) {
         return TRUE;
     else if (g->n_enabled_time_events) {
         pa_time_event *t;
-        GTimeVal now;
+        gint64 now;
         struct timeval tvnow;
 
         t = find_next_time_event(g);
         g_assert(t);
 
-        g_get_current_time(&now);
-        tvnow.tv_sec = now.tv_sec;
-        tvnow.tv_usec = now.tv_usec;
+        now = g_get_real_time();
+        pa_timeval_store(&tvnow, now);
 
         if (pa_timeval_cmp(&t->timeval, &tvnow) <= 0)
             return TRUE;
@@ -558,16 +556,15 @@ static gboolean dispatch_func(GSource *source, GSourceFunc callback, gpointer us
     }
 
     if (g->n_enabled_time_events) {
-        GTimeVal now;
+        gint64 now;
         struct timeval tvnow;
         pa_time_event *t;
 
         t = find_next_time_event(g);
         g_assert(t);
 
-        g_get_current_time(&now);
-        tvnow.tv_sec = now.tv_sec;
-        tvnow.tv_usec = now.tv_usec;
+        now = g_get_real_time();
+        pa_timeval_store(&tvnow, now);
 
         if (pa_timeval_cmp(&t->timeval, &tvnow) <= 0) {
 

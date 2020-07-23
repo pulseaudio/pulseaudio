@@ -556,7 +556,7 @@ if gio_dep.found()
   cdata.set('HAVE_GSETTINGS', 1)
 endif
 
-glib_dep = dependency('glib-2.0', version : '>= 2.4.0', required: get_option('glib'))
+glib_dep = dependency('glib-2.0', version : '>= 2.28.0', required: get_option('glib'))
 if glib_dep.found()
   cdata.set('HAVE_GLIB', 1)
 endif
