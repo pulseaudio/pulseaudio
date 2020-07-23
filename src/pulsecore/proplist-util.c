@@ -45,14 +45,14 @@ extern char **environ;
 
 #if defined(HAVE_GLIB) && defined(PA_GCC_WEAKREF)
 #include <glib.h>
-static G_CONST_RETURN gchar* _g_get_application_name(void) PA_GCC_WEAKREF(g_get_application_name);
+static const gchar* _g_get_application_name(void) PA_GCC_WEAKREF(g_get_application_name);
 #endif
 
 #if defined(HAVE_GTK) && defined(PA_GCC_WEAKREF)
 #pragma GCC diagnostic ignored "-Wstrict-prototypes"
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
-static G_CONST_RETURN gchar* _gtk_window_get_default_icon_name(void) PA_GCC_WEAKREF(gtk_window_get_default_icon_name);
+static const gchar* _gtk_window_get_default_icon_name(void) PA_GCC_WEAKREF(gtk_window_get_default_icon_name);
 static Display *_gdk_display PA_GCC_WEAKREF(gdk_display);
 #endif
 
