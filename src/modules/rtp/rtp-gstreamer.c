@@ -32,6 +32,7 @@
 #include <gst/gst.h>
 #include <gst/app/gstappsrc.h>
 #include <gst/app/gstappsink.h>
+#include <gst/base/gstadapter.h>
 #include <gst/rtp/gstrtpbuffer.h>
 
 #define MAKE_ELEMENT_NAMED(v, e, n)                     \
@@ -438,36 +439,73 @@ fail:
 /* Called from I/O thread context */
 int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool, uint32_t *rtp_tstamp, struct timeval *tstamp) {
     GstSample *sample = NULL;
+    GstBufferList *buf_list;
+    GstAdapter *adapter;
     GstBuffer *buf;
     GstMapInfo info;
-    void *data;
+    uint8_t *data;
+    uint64_t data_len = 0;
 
     if (!process_bus_messages(c))
         goto fail;
 
-    sample = gst_app_sink_pull_sample(GST_APP_SINK(c->appsink));
-    if (!sample) {
-        pa_log_warn("Could not get any more data");
-        goto fail;
+    adapter = gst_adapter_new();
+    pa_assert(adapter);
+
+    while (true) {
+        sample = gst_app_sink_try_pull_sample(GST_APP_SINK(c->appsink), 0);
+        if (!sample)
+            break;
+
+        buf = gst_sample_get_buffer(sample);
+
+        if (GST_BUFFER_IS_DISCONT(buf))
+            pa_log_info("Discontinuity detected, possibly lost some packets");
+
+        if (!gst_buffer_map(buf, &info, GST_MAP_READ)) {
+            pa_log_info("Failed to map buffer");
+            gst_sample_unref(sample);
+            goto fail;
+        }
+
+        data_len += info.size;
+        /* We need the buffer to be valid longer than the sample, which will
+         * be valid only for the duration of this loop.
+         *
+         * To do this, increase the ref count. Ownership is transferred to the
+         * adapter in gst_adapter_push.
+         */
+        gst_buffer_ref(buf);
+        gst_adapter_push(adapter, buf);
+        gst_buffer_unmap(buf, &info);
+
+        gst_sample_unref(sample);
     }
 
-    buf = gst_sample_get_buffer(sample);
+    buf_list = gst_adapter_take_buffer_list(adapter, data_len);
+    pa_assert(buf_list);
 
-    if (GST_BUFFER_IS_DISCONT(buf))
-        pa_log_info("Discontinuity detected, possibly lost some packets");
+    pa_assert(pa_mempool_block_size_max(pool) >= data_len);
 
-    if (!gst_buffer_map(buf, &info, GST_MAP_READ))
-        goto fail;
-
-    pa_assert(pa_mempool_block_size_max(pool) >= info.size);
-
-    chunk->memblock = pa_memblock_new(pool, info.size);
+    chunk->memblock = pa_memblock_new(pool, data_len);
     chunk->index = 0;
-    chunk->length = info.size;
+    chunk->length = data_len;
 
-    data = pa_memblock_acquire_chunk(chunk);
-    /* TODO: we could probably just provide an allocator and avoid a memcpy */
-    memcpy(data, info.data, info.size);
+    data = (uint8_t *) pa_memblock_acquire_chunk(chunk);
+
+    for (int i = 0; i < gst_buffer_list_length(buf_list); i++) {
+        buf = gst_buffer_list_get(buf_list, i);
+
+        if (!gst_buffer_map(buf, &info, GST_MAP_READ)) {
+            gst_buffer_list_unref(buf_list);
+            goto fail;
+        }
+
+        memcpy(data, info.data, info.size);
+        data += info.size;
+        gst_buffer_unmap(buf, &info);
+    }
+
     pa_memblock_release(chunk->memblock);
 
     /* When buffer-mode = none, the buffer PTS is the RTP timestamp, converted
@@ -475,17 +513,17 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool, uint32_
      * wraparound-corrected, and the DTS is the pipeline clock timestamp from
      * when the buffer was acquired at the source (this is actually the running
      * time which is why we need to add base time). */
-    *rtp_tstamp = gst_util_uint64_scale_int(GST_BUFFER_PTS(buf), c->ss.rate, GST_SECOND) & 0xFFFFFFFFU;
-    pa_timeval_rtstore(tstamp, (GST_BUFFER_DTS(buf) + gst_element_get_base_time(c->pipeline)) / GST_USECOND, false);
+    *rtp_tstamp = gst_util_uint64_scale_int(GST_BUFFER_PTS(gst_buffer_list_get(buf_list, 0)), c->ss.rate, GST_SECOND) & 0xFFFFFFFFU;
+    pa_timeval_rtstore(tstamp, (GST_BUFFER_DTS(gst_buffer_list_get(buf_list, 0)) + gst_element_get_base_time(c->pipeline)) / GST_USECOND, false);
 
-    gst_buffer_unmap(buf, &info);
-    gst_sample_unref(sample);
+    gst_buffer_list_unref(buf_list);
+    gst_object_unref(adapter);
 
     return 0;
 
 fail:
-    if (sample)
-        gst_sample_unref(sample);
+    if (adapter)
+        gst_object_unref(adapter);
 
     if (chunk->memblock)
         pa_memblock_unref(chunk->memblock);
