@@ -1512,6 +1512,13 @@ AC_SUBST(modlibexecdir)
 AX_DEFINE_DIR(PA_DLSEARCHPATH, modlibexecdir, [Modules dir])
 
 AC_ARG_WITH(
+        [alsa-data-dir],
+        AS_HELP_STRING([--with-alsa-data-dir],[Directory for ALSA card profiles (defaults to ${datadir}/pulseaudio/alsa-mixer)]),
+        [alsadatadir=$withval], [alsadatadir="${datadir}/pulseaudio/alsa-mixer"])
+
+AC_SUBST(alsadatadir)
+
+AC_ARG_WITH(
         [udev-rules-dir],
         AS_HELP_STRING([--with-udev-rules-dir],[Directory where to install udev rules to (defaults to /lib/udev/rules.d)]),
         [udevrulesdir=$withval], [udevrulesdir="/lib/udev/rules.d"])
@@ -1656,6 +1663,7 @@ echo "
     sysconfdir:                    ${sysconfdir}
     localstatedir:                 ${localstatedir}
     modlibexecdir:                 ${modlibexecdir}
+    alsadatadir:                   ${alsadatadir}
     System Runtime Path:           ${PA_SYSTEM_RUNTIME_PATH}
     System State Path:             ${PA_SYSTEM_STATE_PATH}
     System Config Path:            ${PA_SYSTEM_CONFIG_PATH}

@@ -28,8 +28,8 @@ if HAVE_X11
 xdgautostartdir=$(sysconfdir)/xdg/autostart
 endif
 if HAVE_ALSA
-alsaprofilesetsdir=$(datadir)/pulseaudio/alsa-mixer/profile-sets
-alsapathsdir=$(datadir)/pulseaudio/alsa-mixer/paths
+alsaprofilesetsdir=$(alsadatadir)/profile-sets
+alsapathsdir=$(alsadatadir)/paths
 endif
 if HAVE_DBUS
 dbuspolicydir=$(sysconfdir)/dbus-1/system.d

@@ -66,7 +66,11 @@ localedir = join_paths(prefix, get_option('localedir'))
 localstatedir = join_paths(prefix, get_option('localstatedir'))
 sysconfdir = join_paths(prefix, get_option('sysconfdir'))
 privlibdir = join_paths(libdir, 'pulseaudio')
-alsadatadir = join_paths(datadir, 'pulseaudio', 'alsa-mixer')
+
+alsadatadir = get_option('alsadatadir')
+if alsadatadir == ''
+  alsadatadir = join_paths(datadir, 'pulseaudio', 'alsa-mixer')
+endif
 
 pkgconfigdir = join_paths(libdir, 'pkgconfig')
 pulselibexecdir = join_paths(libexecdir, 'pulse')
@@ -788,6 +792,7 @@ summary = [
   'sysconfdir:                    @0@'.format(sysconfdir),
   'localstatedir:                 @0@'.format(localstatedir),
   'modlibexecdir:                 @0@'.format(modlibexecdir),
+  'alsadatadir:                   @0@'.format(alsadatadir),
   'System Runtime Path:           @0@'.format(cdata.get_unquoted('PA_SYSTEM_RUNTIME_PATH')),
   'System State Path:             @0@'.format(cdata.get_unquoted('PA_SYSTEM_STATE_PATH')),
   'System Config Path:            @0@'.format(cdata.get_unquoted('PA_SYSTEM_CONFIG_PATH')),

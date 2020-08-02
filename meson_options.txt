@@ -51,6 +51,9 @@ option('pulsedsp-location',
 option('modlibexecdir',
        type : 'string',
        description : 'Specify location where modules will be installed')
+option('alsadatadir',
+       type : 'string',
+       description : 'Directory for ALSA card profiles (defaults to ${datadir}/pulseaudio/alsa-mixer)')
 option('systemduserunitdir',
        type : 'string',
        description : 'Directory for systemd user service files')
