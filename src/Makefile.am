@@ -296,8 +296,7 @@ TESTS_norun = \
 		sig2str-test \
 		stripnul \
 		echo-cancel-test \
-		lo-latency-test \
-		atomic-test
+		lo-latency-test
 
 # These tests need a running pulseaudio daemon
 TESTS_daemon = \
@@ -314,6 +313,11 @@ if !OS_IS_WIN32
 TESTS_default += \
 		sigbus-test \
 		usergroup-test
+endif
+
+if HAVE_PTHREAD_SETAFFINITY_NP
+TESTS_norun += \
+		atomic-test
 endif
 
 if HAVE_SYS_EVENTFD_H
