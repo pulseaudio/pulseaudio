@@ -160,6 +160,13 @@ if cc.has_header_symbol('signal.h', 'SIGXCPU')
   ]
 endif
 
+if cc.has_function('pthread_setaffinity_np', dependencies : thread_dep)
+  norun_tests += [
+    [ 'atomic-test', 'atomic-test.c',
+      [ check_dep, libpulsecommon_dep ] ]
+  ]
+endif
+
 if alsa_dep.found()
   norun_tests += [
     [ 'alsa-time-test', 'alsa-time-test.c', [ alsa_dep ] ]
