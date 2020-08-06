@@ -144,7 +144,7 @@ static void add_profiles(struct userdata *u, pa_hashmap *h, pa_hashmap *ports) {
         uint32_t idx;
 
         cp = pa_card_profile_new(ap->name, ap->description, sizeof(struct profile_data));
-        cp->priority = ap->priority;
+        cp->priority = ap->priority ? ap->priority : 1;
         cp->input_name = pa_xstrdup(ap->input_name);
         cp->output_name = pa_xstrdup(ap->output_name);
 
