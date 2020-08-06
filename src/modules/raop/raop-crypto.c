@@ -30,6 +30,7 @@
 #include <openssl/err.h>
 #include <openssl/aes.h>
 #include <openssl/rsa.h>
+#include <openssl/bn.h>
 
 #include <pulse/xmalloc.h>
 
