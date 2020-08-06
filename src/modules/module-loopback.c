@@ -401,7 +401,7 @@ static void adjust_rates(struct userdata *u) {
 
     /* Drop or insert samples if fast_adjust_threshold_msec was specified and the latency difference is too large. */
     if (u->fast_adjust_threshold > 0 && abs(latency_difference) > u->fast_adjust_threshold) {
-        pa_log_debug ("Latency difference larger than %lu msec, skipping or inserting samples.", u->fast_adjust_threshold / PA_USEC_PER_MSEC);
+        pa_log_debug ("Latency difference larger than %" PRIu64 " msec, skipping or inserting samples.", u->fast_adjust_threshold / PA_USEC_PER_MSEC);
 
         pa_asyncmsgq_send(u->sink_input->sink->asyncmsgq, PA_MSGOBJECT(u->sink_input), SINK_INPUT_MESSAGE_FAST_ADJUST, NULL, current_source_sink_latency, NULL);
 
@@ -539,13 +539,13 @@ static void memblockq_adjust(struct userdata *u, int64_t latency_offset_usec, bo
     if (current_memblockq_length > requested_memblockq_length) {
         /* Drop audio from queue */
         buffer_correction = current_memblockq_length - requested_memblockq_length;
-        pa_log_info("Dropping %lu usec of audio from queue", pa_bytes_to_usec(buffer_correction, &u->sink_input->sample_spec));
+        pa_log_info("Dropping %" PRIu64 " usec of audio from queue", pa_bytes_to_usec(buffer_correction, &u->sink_input->sample_spec));
         pa_memblockq_drop(u->memblockq, buffer_correction);
 
     } else if (current_memblockq_length < requested_memblockq_length && allow_push) {
         /* Add silence to queue */
         buffer_correction = requested_memblockq_length - current_memblockq_length;
-        pa_log_info("Adding %lu usec of silence to queue", pa_bytes_to_usec(buffer_correction, &u->sink_input->sample_spec));
+        pa_log_info("Adding %" PRIu64 " usec of silence to queue", pa_bytes_to_usec(buffer_correction, &u->sink_input->sample_spec));
         pa_memblockq_seek(u->memblockq, (int64_t)buffer_correction, PA_SEEK_RELATIVE, true);
     }
 }
