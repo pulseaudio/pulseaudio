@@ -49,6 +49,7 @@ flist-test
 format-test
 get-binary-name-test
 gtk-test
+hashmap-test
 hook-list-test
 interpol-test
 ipacl-test
