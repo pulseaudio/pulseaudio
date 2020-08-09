@@ -163,7 +163,7 @@ endif
 if cc.has_function('pthread_setaffinity_np', dependencies : thread_dep)
   norun_tests += [
     [ 'atomic-test', 'atomic-test.c',
-      [ check_dep, libpulsecommon_dep ] ]
+      [ check_dep, libpulsecommon_dep, thread_dep ] ]
   ]
 endif
 
