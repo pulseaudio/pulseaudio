@@ -151,6 +151,7 @@ cdata.set_quoted('DESKTOPFILEDIR', join_paths(datadir, 'applications'))
 cdata.set_quoted('PULSE_LOCALEDIR', localedir)
 cdata.set_quoted('GETTEXT_PACKAGE', 'pulseaudio')
 cdata.set('ENABLE_NLS', 1)
+cdata.set('top_srcdir', meson.source_root())
 
 # Platform specifics
 # First some defaults to keep config file generation happy
@@ -699,6 +700,7 @@ check_dep = dependency('check', version : '>= 0.9.10', required : get_option('te
 
 # Subdirs
 
+subdir('doxygen')
 subdir('po')
 if get_option('man')
   subdir('man')
