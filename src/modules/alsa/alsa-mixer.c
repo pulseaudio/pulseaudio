@@ -4288,34 +4288,34 @@ static void mapping_group_available(pa_hashmap *paths)
         const char *found = NULL;
         bool has_control = false;
         PA_LLIST_FOREACH(j, p->jacks) {
-           if (!j->has_control || j->state_plugged == PA_AVAILABLE_NO)
-               continue;
-           has_control = true;
-           PA_HASHMAP_FOREACH(p2, paths, state2) {
-               if (p2 == p)
+            if (!j->has_control || j->state_plugged == PA_AVAILABLE_NO)
+                continue;
+            has_control = true;
+            PA_HASHMAP_FOREACH(p2, paths, state2) {
+                if (p2 == p)
                    break;
                 PA_LLIST_FOREACH(j2, p2->jacks) {
                     if (!j2->has_control || j2->state_plugged == PA_AVAILABLE_NO)
-                       continue;
-                   if (pa_streq(j->name, j2->name)) {
+                        continue;
+                    if (pa_streq(j->name, j2->name)) {
                         j->state_plugged = PA_AVAILABLE_UNKNOWN;
-                       j2->state_plugged = PA_AVAILABLE_UNKNOWN;
-                       found = p2->availability_group;
-                       break;
-                   }
-               }
-           }
-           if (found)
-               break;
-       }
-       if (!has_control)
-           continue;
-       if (!found) {
-           p->availability_group = pa_sprintf_malloc("Legacy %d", num);
-       } else {
-           p->availability_group = pa_xstrdup(found);
-       }
-       if (!found)
+                        j2->state_plugged = PA_AVAILABLE_UNKNOWN;
+                        found = p2->availability_group;
+                        break;
+                    }
+                }
+            }
+            if (found)
+                break;
+        }
+        if (!has_control)
+            continue;
+        if (!found) {
+            p->availability_group = pa_sprintf_malloc("Legacy %d", num);
+        } else {
+            p->availability_group = pa_xstrdup(found);
+        }
+        if (!found)
             num++;
     }
 }
