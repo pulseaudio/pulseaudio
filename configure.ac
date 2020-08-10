@@ -1552,6 +1552,13 @@ fi
 
 AM_CONDITIONAL([FORCE_PREOPEN], [test "x$FORCE_PREOPEN" = "xyes"])
 
+# Substitute the variable with an empty string. This makes the output go to the
+# directory where doxygen is run (which is the doxygen directory under the
+# build directory). Substituting a variable with a constant value wouldn't
+# otherwise make sense, but the substitution variable needs to exist, because
+# we substitute a different value when using Meson.
+AC_SUBST([DOXYGEN_OUTPUT_DIRECTORY], [])
+
 AC_CONFIG_FILES([
 Makefile
 src/Makefile

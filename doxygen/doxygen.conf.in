@@ -52,7 +52,7 @@ PROJECT_LOGO           =
 # If a relative path is entered, it will be relative to the location
 # where doxygen was started. If left blank the current directory will be used.
 
-OUTPUT_DIRECTORY       =
+OUTPUT_DIRECTORY       = @DOXYGEN_OUTPUT_DIRECTORY@
 
 # If the CREATE_SUBDIRS tag is set to YES, then doxygen will create
 # 4096 sub-directories (in 2 levels) under the output directory of each output
@@ -668,37 +668,37 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = @srcdir@/../src/pulse/channelmap.h \
-                         @srcdir@/../src/pulse/context.h \
-                         @srcdir@/../src/pulse/def.h \
-                         @srcdir@/../src/pulse/direction.h \
-                         @srcdir@/../src/pulse/error.h \
-                         @srcdir@/../src/pulse/ext-stream-restore.h \
-                         @srcdir@/../src/pulse/ext-device-manager.h \
-                         @srcdir@/../src/pulse/ext-device-restore.h \
-                         @srcdir@/../src/pulse/format.h \
-                         @srcdir@/../src/pulse/gccmacro.h \
-                         @srcdir@/../src/pulse/glib-mainloop.h \
-                         @srcdir@/../src/pulse/introspect.h \
-                         @srcdir@/../src/pulse/mainloop-api.h \
-                         @srcdir@/../src/pulse/mainloop-signal.h \
-                         @srcdir@/../src/pulse/mainloop.h \
-                         @srcdir@/../src/pulse/operation.h \
-                         @srcdir@/../src/pulse/proplist.h \
-                         @srcdir@/../src/pulse/pulseaudio.h \
-                         @srcdir@/../src/pulse/rtclock.h \
-                         @srcdir@/../src/pulse/sample.h \
-                         @srcdir@/../src/pulse/scache.h \
-                         @srcdir@/../src/pulse/simple.h \
-                         @srcdir@/../src/pulse/stream.h \
-                         @srcdir@/../src/pulse/subscribe.h \
-                         @srcdir@/../src/pulse/thread-mainloop.h \
-                         @srcdir@/../src/pulse/timeval.h \
-                         @srcdir@/../src/pulse/utf8.h \
-                         @srcdir@/../src/pulse/util.h \
-                         @srcdir@/../src/pulse/version.h \
-                         @srcdir@/../src/pulse/volume.h \
-                         @srcdir@/../src/pulse/xmalloc.h
+INPUT                  = @top_srcdir@/src/pulse/channelmap.h \
+                         @top_srcdir@/src/pulse/context.h \
+                         @top_srcdir@/src/pulse/def.h \
+                         @top_srcdir@/src/pulse/direction.h \
+                         @top_srcdir@/src/pulse/error.h \
+                         @top_srcdir@/src/pulse/ext-stream-restore.h \
+                         @top_srcdir@/src/pulse/ext-device-manager.h \
+                         @top_srcdir@/src/pulse/ext-device-restore.h \
+                         @top_srcdir@/src/pulse/format.h \
+                         @top_srcdir@/src/pulse/gccmacro.h \
+                         @top_srcdir@/src/pulse/glib-mainloop.h \
+                         @top_srcdir@/src/pulse/introspect.h \
+                         @top_srcdir@/src/pulse/mainloop-api.h \
+                         @top_srcdir@/src/pulse/mainloop-signal.h \
+                         @top_srcdir@/src/pulse/mainloop.h \
+                         @top_srcdir@/src/pulse/operation.h \
+                         @top_srcdir@/src/pulse/proplist.h \
+                         @top_srcdir@/src/pulse/pulseaudio.h \
+                         @top_srcdir@/src/pulse/rtclock.h \
+                         @top_srcdir@/src/pulse/sample.h \
+                         @top_srcdir@/src/pulse/scache.h \
+                         @top_srcdir@/src/pulse/simple.h \
+                         @top_srcdir@/src/pulse/stream.h \
+                         @top_srcdir@/src/pulse/subscribe.h \
+                         @top_srcdir@/src/pulse/thread-mainloop.h \
+                         @top_srcdir@/src/pulse/timeval.h \
+                         @top_srcdir@/src/pulse/utf8.h \
+                         @top_srcdir@/src/pulse/util.h \
+                         @top_srcdir@/src/pulse/version.h \
+                         @top_srcdir@/src/pulse/volume.h \
+                         @top_srcdir@/src/pulse/xmalloc.h
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is
