@@ -1353,6 +1353,7 @@ dist_alsaprofilesets_DATA = \
 		modules/alsa/mixer/profile-sets/default.conf \
 		modules/alsa/mixer/profile-sets/force-speaker.conf \
 		modules/alsa/mixer/profile-sets/force-speaker-and-int-mic.conf \
+		modules/alsa/mixer/profile-sets/audigy.conf \
 		modules/alsa/mixer/profile-sets/maudio-fasttrack-pro.conf \
 		modules/alsa/mixer/profile-sets/native-instruments-audio4dj.conf \
 		modules/alsa/mixer/profile-sets/native-instruments-audio8dj.conf \
