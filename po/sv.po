@@ -20,15 +20,16 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues\n"
 "POT-Creation-Date: 2018-12-11 15:29+0000\n"
-"PO-Revision-Date: 2019-01-08 23:44+0100\n"
-"Last-Translator: Josef Andersson <l10nl18nsweja@gmail.com>\n"
-"Language-Team: Svenska <tp-sv@listor.tp-sv.se>\n"
+"PO-Revision-Date: 2020-08-14 19:29+0000\n"
+"Last-Translator: Göran Uddeborg <goeran@uddeborg.se>\n"
+"Language-Team: Swedish <https://translate.fedoraproject.org/projects/"
+"pulseaudio/pulseaudio/sv/>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.1.1\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.1.1\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -1289,131 +1290,131 @@ msgstr "Höger sida"
 
 #: src/pulse/channelmap.c:121
 msgid "Auxiliary 0"
-msgstr "Auxiliary 0"
+msgstr "Extra 0"
 
 #: src/pulse/channelmap.c:122
 msgid "Auxiliary 1"
-msgstr "Auxiliary 1"
+msgstr "Extra 1"
 
 #: src/pulse/channelmap.c:123
 msgid "Auxiliary 2"
-msgstr "Auxiliary 2"
+msgstr "Extra 2"
 
 #: src/pulse/channelmap.c:124
 msgid "Auxiliary 3"
-msgstr "Auxiliary 3"
+msgstr "Extra 3"
 
 #: src/pulse/channelmap.c:125
 msgid "Auxiliary 4"
-msgstr "Auxiliary 4"
+msgstr "Extra 4"
 
 #: src/pulse/channelmap.c:126
 msgid "Auxiliary 5"
-msgstr "Auxiliary 5"
+msgstr "Extra 5"
 
 #: src/pulse/channelmap.c:127
 msgid "Auxiliary 6"
-msgstr "Auxiliary 6"
+msgstr "Extra 6"
 
 #: src/pulse/channelmap.c:128
 msgid "Auxiliary 7"
-msgstr "Auxiliary 7"
+msgstr "Extra 7"
 
 #: src/pulse/channelmap.c:129
 msgid "Auxiliary 8"
-msgstr "Auxiliary 8"
+msgstr "Extra 8"
 
 #: src/pulse/channelmap.c:130
 msgid "Auxiliary 9"
-msgstr "Auxiliary 9"
+msgstr "Extra 9"
 
 #: src/pulse/channelmap.c:131
 msgid "Auxiliary 10"
-msgstr "Auxiliary 10"
+msgstr "Extra 10"
 
 #: src/pulse/channelmap.c:132
 msgid "Auxiliary 11"
-msgstr "Auxiliary 11"
+msgstr "Extra 11"
 
 #: src/pulse/channelmap.c:133
 msgid "Auxiliary 12"
-msgstr "Auxiliary 12"
+msgstr "Extra 12"
 
 #: src/pulse/channelmap.c:134
 msgid "Auxiliary 13"
-msgstr "Auxiliary 13"
+msgstr "Extra 13"
 
 #: src/pulse/channelmap.c:135
 msgid "Auxiliary 14"
-msgstr "Auxiliary 14"
+msgstr "Extra 14"
 
 #: src/pulse/channelmap.c:136
 msgid "Auxiliary 15"
-msgstr "Auxiliary 15"
+msgstr "Extra 15"
 
 #: src/pulse/channelmap.c:137
 msgid "Auxiliary 16"
-msgstr "Auxiliary 16"
+msgstr "Extra 16"
 
 #: src/pulse/channelmap.c:138
 msgid "Auxiliary 17"
-msgstr "Auxiliary 17"
+msgstr "Extra 17"
 
 #: src/pulse/channelmap.c:139
 msgid "Auxiliary 18"
-msgstr "Auxiliary 18"
+msgstr "Extra 18"
 
 #: src/pulse/channelmap.c:140
 msgid "Auxiliary 19"
-msgstr "Auxiliary 19"
+msgstr "Extra 19"
 
 #: src/pulse/channelmap.c:141
 msgid "Auxiliary 20"
-msgstr "Auxiliary 20"
+msgstr "Extra 20"
 
 #: src/pulse/channelmap.c:142
 msgid "Auxiliary 21"
-msgstr "Auxiliary 21"
+msgstr "Extra 21"
 
 #: src/pulse/channelmap.c:143
 msgid "Auxiliary 22"
-msgstr "Auxiliary 22"
+msgstr "Extra 22"
 
 #: src/pulse/channelmap.c:144
 msgid "Auxiliary 23"
-msgstr "Auxiliary 23"
+msgstr "Extra 23"
 
 #: src/pulse/channelmap.c:145
 msgid "Auxiliary 24"
-msgstr "Auxiliary 24"
+msgstr "Extra 24"
 
 #: src/pulse/channelmap.c:146
 msgid "Auxiliary 25"
-msgstr "Auxiliary 25"
+msgstr "Extra 25"
 
 #: src/pulse/channelmap.c:147
 msgid "Auxiliary 26"
-msgstr "Auxiliary 26"
+msgstr "Extra 26"
 
 #: src/pulse/channelmap.c:148
 msgid "Auxiliary 27"
-msgstr "Auxiliary 27"
+msgstr "Extra 27"
 
 #: src/pulse/channelmap.c:149
 msgid "Auxiliary 28"
-msgstr "Auxiliary 28"
+msgstr "Extra 28"
 
 #: src/pulse/channelmap.c:150
 msgid "Auxiliary 29"
-msgstr "Auxiliary 29"
+msgstr "Extra 29"
 
 #: src/pulse/channelmap.c:151
 msgid "Auxiliary 30"
-msgstr "Auxiliary 30"
+msgstr "Extra 30"
 
 #: src/pulse/channelmap.c:152
 msgid "Auxiliary 31"
-msgstr "Auxiliary 31"
+msgstr "Extra 31"
 
 #: src/pulse/channelmap.c:154
 msgid "Top Center"
