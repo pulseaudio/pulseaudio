@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/issues/new\n"
-"POT-Creation-Date: 2020-07-10 13:43+0300\n"
+"POT-Creation-Date: 2020-08-13 22:00+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -598,26 +598,22 @@ msgid "Digital Input (S/PDIF)"
 msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:2728
-msgid "Digital Passthrough (S/PDIF)"
-msgstr ""
-
-#: src/modules/alsa/alsa-mixer.c:2729
 msgid "Multichannel Input"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2730
+#: src/modules/alsa/alsa-mixer.c:2729
 msgid "Multichannel Output"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2731
+#: src/modules/alsa/alsa-mixer.c:2730
 msgid "Game Output"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2732
+#: src/modules/alsa/alsa-mixer.c:2731
 msgid "Chat Output"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4355
+#: src/modules/alsa/alsa-mixer.c:4380
 msgid "Analog Mono"
 msgstr ""
 
@@ -626,127 +622,131 @@ msgstr ""
 #. * here would lead to the source name to become "Analog Stereo Input
 #. * Input". The same logic applies to analog-stereo-output,
 #. * multichannel-input and multichannel-output.
-#: src/modules/alsa/alsa-mixer.c:4356 src/modules/alsa/alsa-mixer.c:4364
-#: src/modules/alsa/alsa-mixer.c:4365
+#: src/modules/alsa/alsa-mixer.c:4381 src/modules/alsa/alsa-mixer.c:4389
+#: src/modules/alsa/alsa-mixer.c:4390
 msgid "Analog Stereo"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4357 src/pulse/channelmap.c:103
+#: src/modules/alsa/alsa-mixer.c:4382 src/pulse/channelmap.c:103
 #: src/pulse/channelmap.c:771
 msgid "Mono"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4358 src/pulse/channelmap.c:775
+#: src/modules/alsa/alsa-mixer.c:4383 src/pulse/channelmap.c:775
 msgid "Stereo"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4366 src/modules/alsa/alsa-mixer.c:4367
+#: src/modules/alsa/alsa-mixer.c:4391 src/modules/alsa/alsa-mixer.c:4392
 msgid "Multichannel"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4368
+#: src/modules/alsa/alsa-mixer.c:4393
 msgid "Analog Surround 2.1"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4369
+#: src/modules/alsa/alsa-mixer.c:4394
 msgid "Analog Surround 3.0"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4370
+#: src/modules/alsa/alsa-mixer.c:4395
 msgid "Analog Surround 3.1"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4371
+#: src/modules/alsa/alsa-mixer.c:4396
 msgid "Analog Surround 4.0"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4372
+#: src/modules/alsa/alsa-mixer.c:4397
 msgid "Analog Surround 4.1"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4373
+#: src/modules/alsa/alsa-mixer.c:4398
 msgid "Analog Surround 5.0"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4374
+#: src/modules/alsa/alsa-mixer.c:4399
 msgid "Analog Surround 5.1"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4375
+#: src/modules/alsa/alsa-mixer.c:4400
 msgid "Analog Surround 6.0"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4376
+#: src/modules/alsa/alsa-mixer.c:4401
 msgid "Analog Surround 6.1"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4377
+#: src/modules/alsa/alsa-mixer.c:4402
 msgid "Analog Surround 7.0"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4378
+#: src/modules/alsa/alsa-mixer.c:4403
 msgid "Analog Surround 7.1"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4379
+#: src/modules/alsa/alsa-mixer.c:4404
 msgid "Digital Stereo (IEC958)"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4380
-msgid "Digital Passthrough (IEC958)"
-msgstr ""
-
-#: src/modules/alsa/alsa-mixer.c:4381
+#: src/modules/alsa/alsa-mixer.c:4405
 msgid "Digital Surround 4.0 (IEC958/AC3)"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4382
+#: src/modules/alsa/alsa-mixer.c:4406
 msgid "Digital Surround 5.1 (IEC958/AC3)"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4383
+#: src/modules/alsa/alsa-mixer.c:4407
 msgid "Digital Surround 5.1 (IEC958/DTS)"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4384
+#: src/modules/alsa/alsa-mixer.c:4408
 msgid "Digital Stereo (HDMI)"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4385
+#: src/modules/alsa/alsa-mixer.c:4409
 msgid "Digital Surround 5.1 (HDMI)"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4518
+#: src/modules/alsa/alsa-mixer.c:4410
+msgid "Chat"
+msgstr ""
+
+#: src/modules/alsa/alsa-mixer.c:4411
+msgid "Game"
+msgstr ""
+
+#: src/modules/alsa/alsa-mixer.c:4545
 msgid "Analog Mono Duplex"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4519
+#: src/modules/alsa/alsa-mixer.c:4546
 msgid "Analog Stereo Duplex"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4520
+#: src/modules/alsa/alsa-mixer.c:4547
 msgid "Digital Stereo Duplex (IEC958)"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4521
+#: src/modules/alsa/alsa-mixer.c:4548
 msgid "Multichannel Duplex"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4522
+#: src/modules/alsa/alsa-mixer.c:4549
 msgid "Stereo Duplex"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4523 src/modules/alsa/module-alsa-card.c:188
+#: src/modules/alsa/alsa-mixer.c:4550 src/modules/alsa/module-alsa-card.c:188
 #: src/modules/bluetooth/module-bluez5-device.c:2053
 msgid "Off"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4622
+#: src/modules/alsa/alsa-mixer.c:4650
 #, c-format
 msgid "%s Output"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4630
+#: src/modules/alsa/alsa-mixer.c:4658
 #, c-format
 msgid "%s Input"
 msgstr ""
@@ -2132,7 +2132,7 @@ msgid "\t\t%s: %s (type: %s, priority: %u%s%s%s)\n"
 msgstr ""
 
 #: src/utils/pactl.c:366 src/utils/pactl.c:474 src/utils/pactl.c:638
-msgid ", available group: "
+msgid ", availability group: "
 msgstr ""
 
 #: src/utils/pactl.c:371 src/utils/pactl.c:479
