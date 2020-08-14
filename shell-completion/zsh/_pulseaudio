@@ -668,7 +668,7 @@ _pacat_completion() {
         '--process-time-msec=[request the specified process time in msec]:msec' \
         '--property=[set the specified property]:property' \
         '--raw[record/play raw PCM data]' \
-        '--passthrough[passtrough data]' \
+        '--passthrough[passthrough data]' \
         '--file-format=[record/play formatted PCM data]:format:_pacat_file_formats' \
         '--list-file-formats[list available formats]' \
         '::files:_files' \
