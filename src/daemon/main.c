@@ -1067,6 +1067,10 @@ int main(int argc, char *argv[]) {
     c->server_type = conf->local_server_type;
 #endif
 
+    pa_core_check_idle(c);
+
+    c->state = PA_CORE_RUNNING;
+
     pa_cpu_init(&c->cpu_info);
 
     pa_assert_se(pa_signal_init(pa_mainloop_get_api(mainloop)) == 0);

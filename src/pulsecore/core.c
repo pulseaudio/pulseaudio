@@ -159,10 +159,6 @@ pa_core* pa_core_new(pa_mainloop_api *m, bool shared, bool enable_memfd, size_t 
     pa_check_signal_is_blocked(SIGPIPE);
 #endif
 
-    pa_core_check_idle(c);
-
-    c->state = PA_CORE_RUNNING;
-
     return c;
 }
 
