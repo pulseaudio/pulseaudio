@@ -326,7 +326,8 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
       session, then any positive value will be reset to 0 so that PulseAudio
       will terminate immediately on logout. A positive value therefore has
       effect only in environments where there's no support for login session
-      tracking. A negative value can still be used to disable any automatic
+      tracking (or if the user is logged in without a session spawned, a.k.a.
+      lingering). A negative value can still be used to disable any automatic
       exit.</p>
 
       <p>When PulseAudio runs in the system mode, automatic exit is always
