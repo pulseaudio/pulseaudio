@@ -71,6 +71,9 @@ static bool profile_good_for_output(pa_card_profile *profile, pa_device_port *po
 
     card = profile->card;
 
+    if (pa_safe_streq(card->active_profile->name, "off"))
+        return true;
+
     if (!pa_safe_streq(card->active_profile->input_name, profile->input_name))
         return false;
 
@@ -102,6 +105,9 @@ static bool profile_good_for_input(pa_card_profile *profile, pa_device_port *por
     pa_assert(profile);
 
     card = profile->card;
+
+    if (pa_safe_streq(card->active_profile->name, "off"))
+        return true;
 
     if (!pa_safe_streq(card->active_profile->output_name, profile->output_name))
         return false;
