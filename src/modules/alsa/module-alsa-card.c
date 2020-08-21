@@ -106,6 +106,13 @@ static const char* const valid_modargs[] = {
 
 #define PULSE_MODARGS "PULSE_MODARGS"
 
+/* dynamic profile priority bonus, for all alsa profiles, the original priority
+   needs to be less than 0x7fff (32767), then could apply the rule of priority
+   bonus. So far there are 2 kinds of alsa profiles, one is from alsa ucm, the
+   other is from mixer profile-sets, their priorities are all far less than 0x7fff
+*/
+#define PROFILE_PRIO_BONUS 0x8000
+
 struct userdata {
     pa_core *core;
     pa_module *module;
@@ -461,9 +468,19 @@ static int report_jack_state(snd_mixer_elem_t *melem, unsigned int mask) {
      * as available (well, "unknown" to be precise, but there's little
      * practical difference).
      *
-     * When all output ports are unavailable, we know that all sinks are
-     * unavailable, and therefore the profile is marked unavailable as well.
-     * The same applies to input ports as well, of course.
+     * A profile will be marked unavailable:
+     * only contains output ports and all ports are unavailable
+     * only contains input ports and all ports are unavailable
+     * contains both input and output ports and all ports are unavailable
+     *
+     * A profile will be awarded priority bonus:
+     * only contains output ports and at least one port is available
+     * only contains input ports and at least one port is available
+     * contains both output and input ports and at least one output port
+     * and one input port are available
+     *
+     * The rest profiles will not be marked unavailable and will not be
+     * awarded priority bonus
      *
      * If there are no output ports at all, but the profile contains at least
      * one sink, then the output is considered to be available. */
@@ -478,6 +495,7 @@ static int report_jack_state(snd_mixer_elem_t *melem, unsigned int mask) {
         bool found_available_output_port = false;
         pa_available_t available = PA_AVAILABLE_UNKNOWN;
 
+        profile->priority &= ~PROFILE_PRIO_BONUS;
         PA_HASHMAP_FOREACH(port, u->card->ports, state2) {
             if (!pa_hashmap_get(port->profiles, profile->name))
                 continue;
@@ -495,8 +513,15 @@ static int report_jack_state(snd_mixer_elem_t *melem, unsigned int mask) {
             }
         }
 
-        if ((has_input_port && !found_available_input_port) || (has_output_port && !found_available_output_port))
-            available = PA_AVAILABLE_NO;
+        if ((has_input_port && found_available_input_port && !has_output_port) ||
+            (has_output_port && found_available_output_port && !has_input_port) ||
+            (has_input_port && found_available_input_port && has_output_port && found_available_output_port))
+                profile->priority |= PROFILE_PRIO_BONUS;
+
+        if ((has_input_port && !found_available_input_port && has_output_port && !found_available_output_port) ||
+            (has_input_port && !found_available_input_port && !has_output_port) ||
+            (has_output_port && !found_available_output_port && !has_input_port))
+                available = PA_AVAILABLE_NO;
 
         /* We want to update the active profile's status last, so logic that
          * may change the active profile based on profile availability status
