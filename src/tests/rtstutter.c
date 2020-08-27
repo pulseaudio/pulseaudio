@@ -29,10 +29,8 @@
 #ifdef HAVE_PTHREAD
 #include <pthread.h>
 #ifdef HAVE_PTHREAD_SETAFFINITY_NP
-#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
 #ifdef __FreeBSD__
 #include <pthread_np.h>
-#endif
 #include <sys/param.h>
 #include <sys/cpuset.h>
 #endif
@@ -61,7 +59,7 @@ static void work(void *p) {
 
 #ifdef HAVE_PTHREAD_SETAFFINITY_NP
 {
-#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
+#ifdef __FreeBSD__
     cpuset_t mask;
 #else
     cpu_set_t mask;
