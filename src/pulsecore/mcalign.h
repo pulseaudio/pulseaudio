@@ -28,7 +28,7 @@
 
 /* Method of operation: the user creates a new mcalign object by
  * calling pa_mcalign_new() with the appropriate aligning
- * granularity. After that he may call pa_mcalign_push() for an input
+ * granularity. After that they may call pa_mcalign_push() for an input
  * memchunk. After exactly one memchunk the user has to call
  * pa_mcalign_pop() until it returns -1. If pa_mcalign_pop() returns
  * 0, the memchunk *c is valid and aligned to the granularity. Some

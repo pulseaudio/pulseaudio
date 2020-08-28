@@ -704,8 +704,8 @@ void pa_sink_put(pa_sink* s) {
         pa_cvolume_remap(&s->real_volume, &root_sink->channel_map, &s->channel_map);
     } else
         /* We assume that if the sink implementor changed the default
-         * volume he did so in real_volume, because that is the usual
-         * place where he is supposed to place his changes.  */
+         * volume they did so in real_volume, because that is the usual
+         * place where they are supposed to place their changes.  */
         s->reference_volume = s->real_volume;
 
     s->thread_info.soft_volume = s->soft_volume;

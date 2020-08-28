@@ -99,7 +99,7 @@ void pa_memblock_unref(pa_memblock*b);
 pa_memblock* pa_memblock_ref(pa_memblock*b);
 
 /* This special unref function has to be called by the owner of the
-memory of a static memory block when he wants to release all
+memory of a static memory block when they want to release all
 references to the memory. This causes the memory to be copied and
 converted into a pool of malloc'ed memory block. Please note that this
 function is not multiple caller safe, i.e. needs to be locked

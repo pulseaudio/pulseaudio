@@ -29,7 +29,7 @@
 
 /* Every connection to the server should have a pa_client
  * attached. That way the user may generate a listing of all connected
- * clients easily and kill them if he wants.*/
+ * clients easily and kill them if they want.*/
 
 struct pa_client {
     uint32_t index;
