@@ -1367,7 +1367,9 @@ dist_alsaprofilesets_DATA = \
 		modules/alsa/mixer/profile-sets/steelseries-arctis-common-usb-audio.conf \
 		modules/alsa/mixer/profile-sets/usb-gaming-headset.conf \
 		modules/alsa/mixer/profile-sets/dell-dock-tb16-usb-audio.conf \
-		modules/alsa/mixer/profile-sets/cmedia-high-speed-true-hdaudio.conf
+		modules/alsa/mixer/profile-sets/cmedia-high-speed-true-hdaudio.conf \
+		modules/alsa/mixer/profile-sets/hp-tbt-dock-120w-g2.conf \
+		modules/alsa/mixer/profile-sets/hp-tbt-dock-audio-module.conf
 
 if HAVE_UDEV
 dist_udevrules_DATA = \
