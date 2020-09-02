@@ -1394,6 +1394,7 @@ AC_DEFINE(PA_SOEXT, [".so"], [Shared object extension])
 
 AC_SUBST(pulseconfdir, ["${sysconfdir}/pulse"])
 AX_DEFINE_DIR(PA_DEFAULT_CONFIG_DIR, pulseconfdir, [Location of configuration files])
+AX_DEFINE_DIR(PA_DEFAULT_CONFIG_DIR_UNQUOTED, pulseconfdir, [Location of configuration files])
 
 #### Mac OSX specific stuff #####
 

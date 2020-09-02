@@ -60,3 +60,8 @@ load-module module-suspend-on-idle
 
 ### Enable positioned event sounds
 load-module module-position-event-sounds
+
+### Allow including a system.pa.d directory, which if present, can be used
+### for additional configuration snippets.
+.nofail
+.include @PA_DEFAULT_CONFIG_DIR_UNQUOTED@/system.pa.d
