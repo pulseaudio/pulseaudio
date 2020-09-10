@@ -27,6 +27,7 @@
 #include <config.h>
 #endif
 
+#include <pulse/util.h>
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/sink.h>
