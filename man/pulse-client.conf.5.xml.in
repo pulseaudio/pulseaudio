@@ -77,8 +77,17 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     </option>
 
     <option>
-      <p><opt>autospawn=</opt> Autospawn a PulseAudio daemon when
-      needed. Takes a boolean value, defaults to <opt>yes</opt>.</p>
+      <p><opt>autospawn=</opt> Autospawn a PulseAudio daemon when needed. Takes
+      a boolean value, defaults to <opt>yes</opt>. Note that setting this to
+      "no" doesn't disable the systemd service. The autospawn option is only
+      meant to be used on systems without systemd. If you use systemd to start
+      PulseAudio, use "systemctl --user stop pulseaudio.service
+      pulseaudio.socket" to stop the daemon temporarily, or "systemctl --user
+      mask pulseaudio.service pulseaudio.socket" to permanently disable the
+      units (the "disable" command of systemctl probably won't work, because
+      the pulseaudio.socket unit is often installed to
+      /usr/lib/systemd/user/sockets.target.wants/, which makes it impossible to
+      disable the unit with the "disable" command).</p>
     </option>
 
     <option>
