@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/issues\n"
-"POT-Creation-Date: 2020-06-17 15:28+0000\n"
-"PO-Revision-Date: 2020-07-18 12:08-0300\n"
+"POT-Creation-Date: 2020-09-12 03:32+0000\n"
+"PO-Revision-Date: 2020-09-12 12:12-0300\n"
 "Last-Translator: Rafael Fontenelle <rafaelff@gnome.org>\n"
 "Language-Team: Brazilian Portuguese <gnome-pt_br-list@gnome.org>\n"
 "Language: pt_BR\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1)\n"
-"X-Generator: Gtranslator 3.36.0\n"
+"X-Generator: Gtranslator 3.38.0\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -501,16 +501,16 @@ msgstr "pa_pid_file_create() falhou."
 msgid "pa_core_new() failed."
 msgstr "pa_core_new() falhou."
 
-#: src/daemon/main.c:1110
+#: src/daemon/main.c:1114
 msgid "command line arguments"
 msgstr "argumentos de linha de comando"
 
-#: src/daemon/main.c:1117
+#: src/daemon/main.c:1121
 #, c-format
 msgid "Failed to initialize daemon due to errors while executing startup commands. Source of commands: %s"
 msgstr "Falha ao inicializar o daemon devido a erros ao executar comandos de inicialização. Fonte dos comandos: %s"
 
-#: src/daemon/main.c:1122
+#: src/daemon/main.c:1126
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr "O Daemon iniciou sem qualquer módulo carregado, recusando-se a trabalhar."
 
@@ -666,26 +666,22 @@ msgid "Digital Input (S/PDIF)"
 msgstr "Entrada digital (S/PDIF)"
 
 #: src/modules/alsa/alsa-mixer.c:2728
-msgid "Digital Passthrough (S/PDIF)"
-msgstr "Conversor digital (S/PDIF)"
-
-#: src/modules/alsa/alsa-mixer.c:2729
 msgid "Multichannel Input"
 msgstr "Entrada multicanal"
 
-#: src/modules/alsa/alsa-mixer.c:2730
+#: src/modules/alsa/alsa-mixer.c:2729
 msgid "Multichannel Output"
 msgstr "Saída multicanal"
 
-#: src/modules/alsa/alsa-mixer.c:2731
+#: src/modules/alsa/alsa-mixer.c:2730
 msgid "Game Output"
 msgstr "Saída de jogo"
 
-#: src/modules/alsa/alsa-mixer.c:2732
+#: src/modules/alsa/alsa-mixer.c:2731
 msgid "Chat Output"
 msgstr "Saída de bate-papo"
 
-#: src/modules/alsa/alsa-mixer.c:4355
+#: src/modules/alsa/alsa-mixer.c:4380
 msgid "Analog Mono"
 msgstr "Monofônico analógico"
 
@@ -694,127 +690,131 @@ msgstr "Monofônico analógico"
 #. * here would lead to the source name to become "Analog Stereo Input
 #. * Input". The same logic applies to analog-stereo-output,
 #. * multichannel-input and multichannel-output.
-#: src/modules/alsa/alsa-mixer.c:4356 src/modules/alsa/alsa-mixer.c:4364
-#: src/modules/alsa/alsa-mixer.c:4365
+#: src/modules/alsa/alsa-mixer.c:4381 src/modules/alsa/alsa-mixer.c:4389
+#: src/modules/alsa/alsa-mixer.c:4390
 msgid "Analog Stereo"
 msgstr "Estéreo analógico"
 
-#: src/modules/alsa/alsa-mixer.c:4357 src/pulse/channelmap.c:103
+#: src/modules/alsa/alsa-mixer.c:4382 src/pulse/channelmap.c:103
 #: src/pulse/channelmap.c:771
 msgid "Mono"
 msgstr "Mono"
 
-#: src/modules/alsa/alsa-mixer.c:4358 src/pulse/channelmap.c:775
+#: src/modules/alsa/alsa-mixer.c:4383 src/pulse/channelmap.c:775
 msgid "Stereo"
 msgstr "Estéreo"
 
-#: src/modules/alsa/alsa-mixer.c:4366 src/modules/alsa/alsa-mixer.c:4367
+#: src/modules/alsa/alsa-mixer.c:4391 src/modules/alsa/alsa-mixer.c:4392
 msgid "Multichannel"
 msgstr "Multicanal"
 
-#: src/modules/alsa/alsa-mixer.c:4368
+#: src/modules/alsa/alsa-mixer.c:4393
 msgid "Analog Surround 2.1"
 msgstr "Surround analógico 2.1"
 
-#: src/modules/alsa/alsa-mixer.c:4369
+#: src/modules/alsa/alsa-mixer.c:4394
 msgid "Analog Surround 3.0"
 msgstr "Surround analógico 3.0"
 
-#: src/modules/alsa/alsa-mixer.c:4370
+#: src/modules/alsa/alsa-mixer.c:4395
 msgid "Analog Surround 3.1"
 msgstr "Surround analógico 3.1"
 
-#: src/modules/alsa/alsa-mixer.c:4371
+#: src/modules/alsa/alsa-mixer.c:4396
 msgid "Analog Surround 4.0"
 msgstr "Surround analógico 4.0"
 
-#: src/modules/alsa/alsa-mixer.c:4372
+#: src/modules/alsa/alsa-mixer.c:4397
 msgid "Analog Surround 4.1"
 msgstr "Surround analógico 4.1"
 
-#: src/modules/alsa/alsa-mixer.c:4373
+#: src/modules/alsa/alsa-mixer.c:4398
 msgid "Analog Surround 5.0"
 msgstr "Surround analógico 5.0"
 
-#: src/modules/alsa/alsa-mixer.c:4374
+#: src/modules/alsa/alsa-mixer.c:4399
 msgid "Analog Surround 5.1"
 msgstr "Surround analógico 5.1"
 
-#: src/modules/alsa/alsa-mixer.c:4375
+#: src/modules/alsa/alsa-mixer.c:4400
 msgid "Analog Surround 6.0"
 msgstr "Surround analógico 6.0"
 
-#: src/modules/alsa/alsa-mixer.c:4376
+#: src/modules/alsa/alsa-mixer.c:4401
 msgid "Analog Surround 6.1"
 msgstr "Surround analógico 6.1"
 
-#: src/modules/alsa/alsa-mixer.c:4377
+#: src/modules/alsa/alsa-mixer.c:4402
 msgid "Analog Surround 7.0"
 msgstr "Surround analógico 7.0"
 
-#: src/modules/alsa/alsa-mixer.c:4378
+#: src/modules/alsa/alsa-mixer.c:4403
 msgid "Analog Surround 7.1"
 msgstr "Surround analógico 7.1"
 
-#: src/modules/alsa/alsa-mixer.c:4379
+#: src/modules/alsa/alsa-mixer.c:4404
 msgid "Digital Stereo (IEC958)"
 msgstr "Estéreo digital (IEC958)"
 
-#: src/modules/alsa/alsa-mixer.c:4380
-msgid "Digital Passthrough (IEC958)"
-msgstr "Conversor digital (IEC958)"
-
-#: src/modules/alsa/alsa-mixer.c:4381
+#: src/modules/alsa/alsa-mixer.c:4405
 msgid "Digital Surround 4.0 (IEC958/AC3)"
 msgstr "Surround digital 4.0 (IEC958/AC3)"
 
-#: src/modules/alsa/alsa-mixer.c:4382
+#: src/modules/alsa/alsa-mixer.c:4406
 msgid "Digital Surround 5.1 (IEC958/AC3)"
 msgstr "Surround digital 5.1 (IEC958/AC3)"
 
-#: src/modules/alsa/alsa-mixer.c:4383
+#: src/modules/alsa/alsa-mixer.c:4407
 msgid "Digital Surround 5.1 (IEC958/DTS)"
 msgstr "Surround digital 5.1 (IEC958/DTS)"
 
-#: src/modules/alsa/alsa-mixer.c:4384
+#: src/modules/alsa/alsa-mixer.c:4408
 msgid "Digital Stereo (HDMI)"
 msgstr "Estéreo digital (HDMI)"
 
-#: src/modules/alsa/alsa-mixer.c:4385
+#: src/modules/alsa/alsa-mixer.c:4409
 msgid "Digital Surround 5.1 (HDMI)"
 msgstr "Surround digital 5.1 (HDMI)"
 
-#: src/modules/alsa/alsa-mixer.c:4518
+#: src/modules/alsa/alsa-mixer.c:4410
+msgid "Chat"
+msgstr "Bate-papo"
+
+#: src/modules/alsa/alsa-mixer.c:4411
+msgid "Game"
+msgstr "Jogo"
+
+#: src/modules/alsa/alsa-mixer.c:4545
 msgid "Analog Mono Duplex"
 msgstr "Duplex monofônico analógico"
 
-#: src/modules/alsa/alsa-mixer.c:4519
+#: src/modules/alsa/alsa-mixer.c:4546
 msgid "Analog Stereo Duplex"
 msgstr "Duplex estéreo analógico"
 
-#: src/modules/alsa/alsa-mixer.c:4520
+#: src/modules/alsa/alsa-mixer.c:4547
 msgid "Digital Stereo Duplex (IEC958)"
 msgstr "Duplex estéreo digital (IEC958)"
 
-#: src/modules/alsa/alsa-mixer.c:4521
+#: src/modules/alsa/alsa-mixer.c:4548
 msgid "Multichannel Duplex"
 msgstr "Duplex multicanal"
 
-#: src/modules/alsa/alsa-mixer.c:4522
+#: src/modules/alsa/alsa-mixer.c:4549
 msgid "Stereo Duplex"
 msgstr "Duplex estéreo"
 
-#: src/modules/alsa/alsa-mixer.c:4523 src/modules/alsa/module-alsa-card.c:188
+#: src/modules/alsa/alsa-mixer.c:4550 src/modules/alsa/module-alsa-card.c:188
 #: src/modules/bluetooth/module-bluez5-device.c:2053
 msgid "Off"
 msgstr "Desligado"
 
-#: src/modules/alsa/alsa-mixer.c:4622
+#: src/modules/alsa/alsa-mixer.c:4650
 #, c-format
 msgid "%s Output"
 msgstr "Saída %s"
 
-#: src/modules/alsa/alsa-mixer.c:4630
+#: src/modules/alsa/alsa-mixer.c:4658
 #, c-format
 msgid "%s Input"
 msgstr "Entrada %s"
@@ -1363,11 +1363,11 @@ msgstr "Tentado abrir arquivo alvo “%s”, “%s.1”, “%s.2” ... “%s.%d
 msgid "Invalid log target."
 msgstr "Alvo do log inválido."
 
-#: src/pulsecore/sink.c:3524
+#: src/pulsecore/sink.c:3534
 msgid "Built-in Audio"
 msgstr "Áudio interno"
 
-#: src/pulsecore/sink.c:3529
+#: src/pulsecore/sink.c:3539
 msgid "Modem"
 msgstr "Modem"
 
@@ -2268,8 +2268,8 @@ msgid "\t\t%s: %s (type: %s, priority: %u%s%s%s)\n"
 msgstr "\t\t%s: %s (tipo: %s, prioridade: %u%s%s%s)\n"
 
 #: src/utils/pactl.c:366 src/utils/pactl.c:474 src/utils/pactl.c:638
-msgid ", available group: "
-msgstr ", grupo disponível: "
+msgid ", availability group: "
+msgstr ", grupo de disponibilidade: "
 
 #: src/utils/pactl.c:371 src/utils/pactl.c:479
 #, c-format
@@ -3033,6 +3033,12 @@ msgstr "Falha ao carregar os dados do cookie\n"
 #, c-format
 msgid "Not yet implemented.\n"
 msgstr "Não implementado ainda.\n"
+
+#~ msgid "Digital Passthrough (S/PDIF)"
+#~ msgstr "Conversor digital (S/PDIF)"
+
+#~ msgid "Digital Passthrough (IEC958)"
+#~ msgstr "Conversor digital (IEC958)"
 
 #~ msgid "LFE on Separate Mono Output"
 #~ msgstr "Saída monofônica separada em LFE"
