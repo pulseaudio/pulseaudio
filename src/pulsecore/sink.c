@@ -3577,6 +3577,14 @@ unsigned pa_device_init_priority(pa_proplist *p) {
 
     pa_assert(p);
 
+    /* JACK sinks and sources get very high priority so that we'll switch the
+     * default devices automatically when jackd starts and
+     * module-jackdbus-detect creates the jack sink and source. */
+    if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_API))) {
+        if (pa_streq(s, "jack"))
+            priority += 10000;
+    }
+
     if ((s = pa_proplist_gets(p, PA_PROP_DEVICE_CLASS))) {
 
         if (pa_streq(s, "sound"))
