@@ -2712,7 +2712,7 @@ static int path_verify(pa_alsa_path *p) {
         { "analog-input-microphone-rear",     N_("Rear Microphone"),              PA_DEVICE_PORT_TYPE_MIC },
         { "analog-input-microphone-dock",     N_("Dock Microphone"),              PA_DEVICE_PORT_TYPE_MIC },
         { "analog-input-microphone-internal", N_("Internal Microphone"),          PA_DEVICE_PORT_TYPE_MIC },
-        { "analog-input-microphone-headset",  N_("Headset Microphone"),           PA_DEVICE_PORT_TYPE_MIC },
+        { "analog-input-microphone-headset",  N_("Headset Microphone"),           PA_DEVICE_PORT_TYPE_HEADSET },
         { "analog-input-linein",              N_("Line In"),                      PA_DEVICE_PORT_TYPE_LINE },
         { "analog-input-radio",               N_("Radio"),                        PA_DEVICE_PORT_TYPE_RADIO },
         { "analog-input-video",               N_("Video"),                        PA_DEVICE_PORT_TYPE_VIDEO },
