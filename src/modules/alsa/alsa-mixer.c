@@ -2781,8 +2781,8 @@ pa_alsa_path* pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa
         { "priority",            pa_config_parse_unsigned,          NULL, "General" },
         { "description-key",     pa_config_parse_string,            NULL, "General" },
         { "description",         pa_config_parse_string,            NULL, "General" },
-        { "type",                parse_type,                        NULL, "General" },
         { "mute-during-activation", pa_config_parse_bool,           NULL, "General" },
+        { "type",                parse_type,                        NULL, "General" },
         { "eld-device",          parse_eld_device,                  NULL, "General" },
 
         /* [Option ...] */
