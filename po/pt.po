@@ -1,20 +1,25 @@
 #
 # Rui Gouveia <rui.gouveia@globaltek.pt>, 2012.
+# Rui Gouveia <rui.gouveia@globaltek.pt>, 2012, 2015.
+# Pedro Albuquerque <palbuquerque73@openmailbox.com>, 2015.
+# Juliano de Souza Camargo <julianosc@pm.me>, 2020.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-01-30 10:10+0000\n"
-"PO-Revision-Date: 2012-01-30 09:55+0000\n"
-"Last-Translator: Rui Gouveia <rui.gouveia@globaltek.pt>\n"
-"Language-Team: pt <fedora-trans-pt@redhat.com>\n"
-"Language: \n"
+"PO-Revision-Date: 2020-09-19 04:27+0100\n"
+"Last-Translator: Juliano de Souza Camargo <julianosc@pm.me>\n"
+"Language-Team: Portuguese <>\n"
+"Language: pt\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-Language: Portuguese\n"
 "X-Poedit-Country: PORTUGAL\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"X-Generator: Gtranslator 3.36.0\n"
 
 #: ../src/modules/alsa/alsa-util.c:1136 ../src/modules/alsa/alsa-util.c:1204
 #, c-format
@@ -24,10 +29,10 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_avail() retornou um valor excepcionalmente elevado: %lu bytes (%lu "
+"snd_pcm_avail() retornou um valor excecionalmente elevado: %lu bytes (%lu "
 "ms).\n"
-"Provavelmente isto é um erro no driver ALSA '%s'. Por favor, reporte este "
-"problema aos programadores do ALSA."
+"Provavelmente isto é um erro no controlador ALSA \"%s\". Por favor, reporte "
+"este problema aos programadores do ALSA."
 
 #: ../src/modules/alsa/alsa-util.c:1179
 #, c-format
@@ -37,23 +42,23 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_delay() retornou um valor excepcionalmente elevado: %li bytes (%s%lu "
+"snd_pcm_delay() retornou um valor excecionalmente elevado: %li bytes (%s%lu "
 "ms).\n"
 "Provavelmente isto é um erro no driver ALSA '%s'. Por favor, reporte este "
 "problema aos programadores do ALSA."
 
 #: ../src/modules/alsa/alsa-util.c:1220
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_avail_delay() returned strange values: delay %lu is less than avail "
 "%lu.\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_avail() retornou um valor excepcionalmente elevado: %lu bytes (%lu "
-"ms).\n"
-"Provavelmente isto é um erro no driver ALSA '%s'. Por favor, reporte este "
-"problema aos programadores do ALSA."
+"snd_pcm_avail_delay() retornou um valor excecionalmente elevado: %lu bytes "
+"(%lu ms).\n"
+"Provavelmente isto é um erro no controlador ALSA \"%s\". Por favor, reporte "
+"este problema aos programadores do ALSA."
 
 #: ../src/modules/alsa/alsa-util.c:1263
 #, c-format
@@ -63,7 +68,7 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_mmap_begin() retornou um valor excepcionalmente elevado: %lu bytes "
+"snd_pcm_mmap_begin() retornou um valor excecionalmente elevado: %lu bytes "
 "(%lu ms).\n"
 "Provavelmente isto é um erro no driver ALSA '%s'. Por favor, reporte este "
 "problema aos programadores do ALSA."
@@ -81,7 +86,6 @@ msgid "Virtual LADSPA sink"
 msgstr "Depósito virtual LADSPA"
 
 #: ../src/modules/module-ladspa-sink.c:52
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "master=<name of sink to filter> format=<sample format> rate=<sample rate> "
@@ -91,16 +95,16 @@ msgid ""
 "LADSPA port names> output_ladspaport_map=<comma separated list of output "
 "LADSPA port names> "
 msgstr ""
-"sink_name=<nome do depósito> sink_properties=<propriedades do depósito> "
-"master=<nome do depósito a filtrar> format=<formato exemplo> "
-"rate=<frequência de amostragem> channels=<número de canais> "
-"channel_map=<mapa de canais> plugin=<nome do plugin ladspa> label=<etiqueta "
-"do plugin ladspa> control=<Lista de valores de controlo de entrada separados "
-"por vírgulas>"
+"sink_name=<nome do deposito> sink_properties=<propriedades do deposito> "
+"master=<nome do deposito a filtrar> format=<formato exemplo> "
+"rate=<frequência de amostragem> channels=<numero de canais> "
+"channel_map=<mapa de canais> plugin=<nome da extensao ladspa> "
+"label=<etiqueta do plugin ladspa> control=<Lista de valores de controlo de "
+"entrada separados por virgulas>"
 
 #: ../src/modules/module-null-sink.c:49
 msgid "Clocked NULL sink"
-msgstr ""
+msgstr "Depósito de relógio NULL"
 
 #: ../src/modules/module-null-sink.c:284
 msgid "Null Output"
@@ -202,6 +206,8 @@ msgid ""
 "System mode refused for non-root user. Only starting the D-Bus server lookup "
 "service."
 msgstr ""
+"Modo de sistema recusado por utilizador não raiz. A iniciar só serviço de "
+"procura do servidor D-Bus."
 
 #: ../src/daemon/main.c:611
 msgid "Daemon not running"
@@ -237,12 +243,15 @@ msgstr "--start não é suportado para instâncias do sistema."
 #, c-format
 msgid "User-configured server at %s, refusing to start/autospawn."
 msgstr ""
+"Servidor configurado pelo utilizador em %s, a recusar iniciar/autogerar."
 
 #: ../src/daemon/main.c:713
 #, c-format
 msgid ""
 "User-configured server at %s, which appears to be local. Probing deeper."
 msgstr ""
+"Servidor configurado pelo utilizador em %s, que aparenta ser local. A testar "
+"mais."
 
 #: ../src/daemon/main.c:718
 msgid "Running in system mode, but --disallow-exit not set!"
@@ -269,9 +278,9 @@ msgid "Failed to acquire stdio."
 msgstr "Não foi possível adquirir o stdio."
 
 #: ../src/daemon/main.c:763 ../src/daemon/main.c:828
-#, fuzzy, c-format
+#, c-format
 msgid "pipe() failed: %s"
-msgstr "pipe falhou: %s"
+msgstr "pipe() falhou: %s"
 
 #: ../src/daemon/main.c:768 ../src/daemon/main.c:833
 #, c-format
@@ -292,9 +301,9 @@ msgid "Daemon startup successful."
 msgstr "Arranque do serviço sucedeu."
 
 #: ../src/daemon/main.c:816
-#, fuzzy, c-format
+#, c-format
 msgid "setsid() failed: %s"
-msgstr "read() falhou: %s"
+msgstr "setsid() falhou: %s"
 
 #: ../src/daemon/main.c:901
 #, c-format
@@ -340,9 +349,9 @@ msgid "Running in valgrind mode: %s"
 msgstr "A executar em modo \"valgrind\": %s"
 
 #: ../src/daemon/main.c:921
-#, fuzzy, c-format
+#, c-format
 msgid "Running in VM: %s"
-msgstr "A executar na máquina: %s"
+msgstr "A executar em MV: %s"
 
 #: ../src/daemon/main.c:924
 msgid "Optimized build: yes"
@@ -457,7 +466,7 @@ msgid "Daemon terminated."
 msgstr "Serviço terminado."
 
 #: ../src/daemon/cmdline.c:113
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -531,34 +540,34 @@ msgstr ""
 "\n"
 "COMANDOS:\n"
 "  -h, --help                            Mostra esta ajuda\n"
-"      --version                         Mostra versão\n"
-"      --dump-conf                       Despeja configuração por omissão\n"
-"      --dump-modules                    Despeja lista de módulos "
+"      --version                         Mostra a versão\n"
+"      --dump-conf                       Despeja configuração predefinida\n"
+"      --dump-modules                    Despeja a lista de módulos "
 "disponíveis\n"
-"      --dump-resample-methods           Despeja métodos \"resample\" "
+"      --dump-resample-methods           Despeja oa métodos de reamostragem "
 "disponíveis\n"
-"      --cleanup-shm                     Limpar segmentos de memória "
+"      --cleanup-shm                     Limpa segmentos de memória "
 "partilhados encravados\n"
 "      --start                           Inicia o serviço, se ainda não "
 "estiver a executar\n"
 "  -k  --kill                            Termina o serviço, se estiver a "
 "executar \n"
 "      --check                           Verifica se o serviço está a "
-"executar (apenas retorna um código de saída)\n"
+"executar (só retorna um código de saída)\n"
 "\n"
-"OPTIONS:\n"
+"OPÇÕES:\n"
 "      --system[=BOOL]                   Executa em modo de sistema\n"
 "  -D, --daemonize[=BOOL]                Passa a serviço depois de executar\n"
 "      --fail[=BOOL]                     Termina quando o arranque falha\n"
 "      --high-priority[=BOOL]            Tenta definir um alto nível de "
 "execução\n"
-"                                        (apenas disponível como root, quando "
-"é SUID ou\n"
+"                                        (só disponível como root, quando é "
+"SUID ou\n"
 "                                        com níveis elevados de RLIMIT_NICE)\n"
-"      --realtime[=BOOL]                 Tenta activar escalonamento em tempo "
+"      --realtime[=BOOL]                 Tenta ativar escalonamento em tempo "
 "real\n"
-"                                        (apenas disponível como root, quando "
-"é SUID ou\n"
+"                                        (só disponível como root, quando é "
+"SUID ou\n"
 "                                        com níveis elevados de "
 "RLIMIT_RTPRIO)\n"
 "      --disallow-module-loading[=BOOL]  Desautoriza o carregamento/"
@@ -567,14 +576,11 @@ msgstr ""
 "do arranque\n"
 "      --disallow-exit[=BOOL]            Desautoriza pedidos de saída do "
 "utilizador\n"
-"      --exit-idle-time=SECS             Termina o serviço quando inactivo e "
+"      --exit-idle-time=SECS             Termina o serviço quando inativo e "
 "já passou\n"
 "                                        este tempo\n"
-"      --module-idle-time=SECS           Descarregar módulos de carregamento "
-"automático quando inactivo e\n"
-"                                        passou este tempo\n"
-"      --scache-idle-time=SECS           Descarregar amostras de carregamento "
-"automático quando inactivas e\n"
+"      --scache-idle-time=SECS           Descarrega amostras de carregamento "
+"automático quando inativas e\n"
 "                                        passou este tempo\n"
 "      --log-level[=LEVEL]               Aumenta ou define o nível de "
 "verbosidade\n"
@@ -583,11 +589,11 @@ msgstr ""
 "      --log-meta[=BOOL]                 Inclui código de localização na "
 "mensagem de registo\n"
 "      --log-time[=BOOL]                 Inclui tempo na mensagem de registo\n"
-"      --log-backtrace=FRAMES            Inclui informação de tracagem na "
+"      --log-backtrace=FRAMES            Inclui informação de rastreio na "
 "mensagem de registo\n"
 "  -p, --dl-search-path=PATH             Define o caminho de procura para os "
 "plugins partilhados dinâmicos\n"
-"      --resample-method=METHOD          Utilizar o método de \"resampling\" "
+"      --resample-method=METHOD          Utilizar o método de reamostragem "
 "especificado\n"
 "                                        (Ver --dump-resample-methods para\n"
 "                                        possíveis valores)\n"
@@ -595,18 +601,18 @@ msgstr ""
 "      --no-cpu-limit[=BOOL]             Não instala limitadores de load no "
 "CPU em\n"
 "                                        plataformas que o suportam.\n"
-"      --disable-shm[=BOOL]              Desactivar suporte para memória "
+"      --disable-shm[=BOOL]              Desativa suporte para memória "
 "partilhada.\n"
 "\n"
-"STARTUP SCRIPT:\n"
+"SCRIPT DE ARRANQUE:\n"
 "  -L, --load=\"MODULE ARGUMENTS\"         Carrega o módulo especificado com\n"
 "                                        o argumento especificado\n"
 "  -F, --file=FILENAME                   Executa o script especificado\n"
 "  -C                                    Abre uma linha de comando no TTY "
-"(consola) em execução\n"
+"(terminal) em execução\n"
 "                                        depois do arranque\n"
 "\n"
-"  -n                                    Não carrega o script por omissão\n"
+"  -n                                    Não carrega o predefinido script\n"
 
 #: ../src/daemon/cmdline.c:244
 msgid "--daemonize expects boolean argument"
@@ -645,13 +651,12 @@ msgid "--use-pid-file expects boolean argument"
 msgstr "--use-pid-file espera argumento booleano"
 
 #: ../src/daemon/cmdline.c:318
-#, fuzzy
 msgid ""
 "Invalid log target: use either 'syslog', 'stderr' or 'auto' or a valid file "
 "name 'file:<path>'."
 msgstr ""
-"Destino de ficheiro de registo inválido: utilize 'syslog', 'stderr' ou "
-"'auto'."
+"Destino de ficheiro de registo inválido: utilize 'syslog', 'stderr', 'auto' "
+"ou um nome de ficheiro válido 'file:<path>'."
 
 #: ../src/daemon/cmdline.c:325
 msgid "--log-time expects boolean argument"
@@ -779,9 +784,9 @@ msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] nível nice inválido '%s'."
 
 #: ../src/daemon/daemon-conf.c:528
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid server type '%s'."
-msgstr "[%s:%u] Taxa de amostragem '%s' inválida."
+msgstr "[%s:%u] Tipo de servidor \"%s\" inválido."
 
 #: ../src/daemon/daemon-conf.c:641
 #, c-format
@@ -814,14 +819,12 @@ msgid "Start the PulseAudio Sound System"
 msgstr "Inciar o Sistema de Som PulseAudio"
 
 #: ../src/daemon/pulseaudio-kde.desktop.in.h:1
-#, fuzzy
 msgid "PulseAudio Sound System KDE Routing Policy"
-msgstr "Sistema de Som PulseAudio"
+msgstr "Sistema de Som PulseAudio Políticas de Roteamento KDE"
 
 #: ../src/daemon/pulseaudio-kde.desktop.in.h:2
-#, fuzzy
 msgid "Start the PulseAudio Sound System with KDE Routing Policy"
-msgstr "Inciar o Sistema de Som PulseAudio"
+msgstr "Inciar o Sistema de Som PulseAudio com Políticas de Roteamento KDE"
 
 #: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:757
 msgid "Mono"
@@ -853,7 +856,7 @@ msgstr "Traseira Direita"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Subwoofer"
-msgstr ""
+msgstr "Subwoofer"
 
 #: ../src/pulse/channelmap.c:117
 msgid "Front Left-of-center"
@@ -1192,13 +1195,12 @@ msgid "%u B"
 msgstr "%u B"
 
 #: ../src/pulse/client-conf-x11.c:54 ../src/utils/pax11publish.c:100
-#, fuzzy
 msgid "xcb_connect() failed"
-msgstr "pa_context_connect() falhou: %s"
+msgstr "xcb_connect() falhou"
 
 #: ../src/pulse/client-conf-x11.c:59 ../src/utils/pax11publish.c:105
 msgid "xcb_connection_has_error() returned true"
-msgstr ""
+msgstr "xcb_connection_has_error() devolveu verdadeiro"
 
 #: ../src/pulse/client-conf-x11.c:97
 msgid "Failed to parse cookie data"
@@ -1336,15 +1338,15 @@ msgstr "Atributos do buffer de fluxo alterados.%s"
 
 #: ../src/utils/pacat.c:416
 msgid "Cork request stack is empty: corking stream"
-msgstr ""
+msgstr "Pilha de pedidos de rolha vazia: a rolhar o fluxo"
 
 #: ../src/utils/pacat.c:422
 msgid "Cork request stack is empty: uncorking stream"
-msgstr ""
+msgstr "Pilha de pedidos de rolha vazia: a remover rolha do fluxo"
 
 #: ../src/utils/pacat.c:426
 msgid "Warning: Received more uncork requests than cork requests!"
-msgstr ""
+msgstr "Aviso: recebidos mais pedidos de remover rolha do que de rolhar!"
 
 #: ../src/utils/pacat.c:451
 #, c-format
@@ -1400,7 +1402,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() falhou: %s"
 
 #: ../src/utils/pacat.c:653
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -1471,51 +1473,53 @@ msgstr ""
 "  -r, --record                          Cria uma ligação para gravar\n"
 "  -p, --playback                        Cria uma ligação para lêr\n"
 "\n"
-"  -v, --verbose                         Activa operações verbose\n"
+"  -v, --verbose                         Ativa operações verbosas\n"
 "\n"
-"  -s, --server=SERVER                   Nome do servidor a qual ligar\n"
-"  -d, --device=DEVICE                   Nome do depósito/fonte a qual ligar\n"
+"  -s, --server=SERVER                   Nome do servidor a que ligar\n"
+"  -d, --device=DEVICE                   Nome do depósito/fonte a que ligar\n"
 "  -n, --client-name=NAME                Como chamar este cliente no "
 "servidor\n"
 "      --stream-name=NAME                Como chamar este fluxo no servidor\n"
 "      --volume=VOLUME                   Especificar o volume (linear) "
 "inicial na gama 0...65536\n"
-"      --rate=SAMPLERATE                 A mesma taxa em Hz (por omissão "
-"44100)\n"
-"      --format=SAMPLEFORMAT             Tipo de amostragem, uma de s16le, "
-"s16be, u8, float32le,\n"
+"      --rate=SAMPLERATE                 A frequência da amostra em Hz "
+"(predefinida 44100)\n"
+"      --format=SAMPLEFORMAT             Tipo de amostra, um de s16le, s16be, "
+"u8, float32le,\n"
 "                                        float32be, ulaw, alaw, s32le, s32be, "
 "s24le, s24be,\n"
-"                                        s24-32le, s24-32be (por omissão "
+"                                        s24-32le, s24-32be (predefinido "
 "s16ne)\n"
 "      --channels=CHANNELS               Número de canais, 1 para mono, 2 "
 "para estéreo\n"
-"                                        (por omissão 2)\n"
+"                                        (predefinido 2)\n"
 "      --channel-map=CHANNELMAP          Mapa de canais a usar em vez do mapa "
-"por omissão\n"
-"      --fix-format                      Usa o formato de amostragem do "
-"depósito para\n"
-"                                        onde o fluxo está a ligado.\n"
-"      --fix-rate                        Usa a taxa de amostragem do depósito "
-"para\n"
-"                                        onde o fluxo está ligado.\n"
-"      --fix-channels                    Pega no número de canais e no mapa "
-"de canais\n"
-"                                        do depósito para onde o fluxo está "
-"ligado.\n"
+"predefinido\n"
+"      --fix-format                      Usa o formato de amostra do depósito/"
+"origem ao qual\n"
+"                                        o fluxo está a ser ligado.\n"
+"      --fix-rate                        Usa a frequência de amostra do "
+"depósito/origem ao qual\n"
+"                                        o fluxo está a ser ligado.\n"
+"      --fix-channels                    Usa o número de canais e o mapa de "
+"canais do depósito/origem\n"
+"                                        ao qual o fluxo está a ser ligado.\n"
 "      --no-remix                        Não misturar os canais em cima nem "
 "em baixo.\n"
 "      --no-remap                        Mapeia os canais por índice em vez "
 "do nome.\n"
-"      --latency=BYTES                   Pede a cadência especificada em "
+"      --latency=BYTES                   Pede a latência especificada em "
 "bytes.\n"
 "      --process-time=BYTES              Pede o tempo de processo por pedido "
 "em bytes.\n"
+"      --latency-msec=MSEC               Pede a latência especificada em "
+"mseg.\n"
 "      --property=PROPERTY=VALUE         Coloca a propriedade específica com "
 "o valor especificado.\n"
 "      --raw                             Grava/Lê dados raw em PCM.\n"
-"      --file-format=FFORMAT             Grava/Lê dados formatados em PCM.\n"
-"      --list-file-formats               Lista o formato de ficheiros "
+"      --passthrough                     Dados de passagem.\n"
+"      --file-format[=FFORMAT]             Grava/Lê dados formatados em PCM.\n"
+"      --list-file-formats               Lista formatos de ficheiro "
 "disponíveis.\n"
 
 #: ../src/utils/pacat.c:786
@@ -1630,9 +1634,8 @@ msgid "playback"
 msgstr "reprodução"
 
 #: ../src/utils/pacat.c:1110
-#, fuzzy
 msgid "Failed to set media name."
-msgstr "Não foi possível processar linha de comando."
+msgstr "Impossível definir nome do suporte."
 
 #: ../src/utils/pacat.c:1117 ../src/utils/pactl.c:1777
 msgid "pa_mainloop_new() failed."
@@ -1779,9 +1782,15 @@ msgid ""
 "Client Index: %u\n"
 "Tile Size: %zu\n"
 msgstr ""
+"Cadeia de servidor: %s\n"
+"Versão do protocolo da bilbioteca: %u\n"
+"Versão do protocolo do servidor: %u\n"
+"É local: %s\n"
+"Índice do cliente: %u\n"
+"Tamanho do mosaico: %zu\n"
 
 #: ../src/utils/pactl.c:192
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "User Name: %s\n"
 "Host Name: %s\n"
@@ -1797,11 +1806,11 @@ msgstr ""
 "Nome da máquina: %s\n"
 "Nome do servidor: %s\n"
 "Versão do servidor: %s\n"
-"Especificação da amostra por omissão: %s\n"
-"Mapa de canais por omissão: %s\n"
-"Depósito por omissão: %s\n"
-"Fonte por omissão: %s\n"
-"Cookie: %08x\n"
+"Especificação da amostra predefinida: %s\n"
+"Mapa de canais predefinido: %s\n"
+"Depósito predefinido: %s\n"
+"Origem predefinida: %s\n"
+"Cookie: %04x:%04x\n"
 
 #: ../src/utils/pactl.c:244 ../src/utils/pactl.c:830
 #, c-format
@@ -1809,7 +1818,7 @@ msgid "Failed to get sink information: %s"
 msgstr "Falha ao obter informações do depósito: %s"
 
 #: ../src/utils/pactl.c:270
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Sink #%u\n"
 "\tState: %s\n"
@@ -1833,17 +1842,17 @@ msgstr ""
 "\tEstado: %s\n"
 "\tNome: %s\n"
 "\tDescrição: %s\n"
-"\tDriver: %s\n"
-"\tEspecificação da Amostra: %s\n"
-"\tMapa de Canais: %s\n"
-"\tMódulo Dono: %u\n"
+"\tControlador: %s\n"
+"\tEspecificação da amostra: %s\n"
+"\tMapa de canais: %s\n"
+"\tMódulo proprietário: %u\n"
 "\tMudo: %s\n"
 "\tVolume: %s%s%s\n"
 "\t        balanço %0.2f\n"
-"\tVolume Base: %s%s%s\n"
-"\tMonitor de Fonte: %s\n"
-"\tCadência: %0.0f usec, configurado %0.0f usec\n"
-"\tBandeiras: %s%s%s%s%s%s\n"
+"\tVolume base: %s%s%s\n"
+"\tMonitor de origem: %s\n"
+"\tLatência: %0.0f usec, configurado %0.0f usec\n"
+"\tParâmetros: %s%s%s%s%s%s%s\n"
 "\tPropriedades:\n"
 "\t\t%s\n"
 
@@ -1858,9 +1867,9 @@ msgid "\tActive Port: %s\n"
 msgstr "\tPorto Activo: %s\n"
 
 #: ../src/utils/pactl.c:331 ../src/utils/pactl.c:443
-#, fuzzy, c-format
+#, c-format
 msgid "\tFormats:\n"
-msgstr "\tPorto:\n"
+msgstr "\tFormatos:\n"
 
 #: ../src/utils/pactl.c:357 ../src/utils/pactl.c:849
 #, c-format
@@ -1994,7 +2003,7 @@ msgid "Failed to get sink input information: %s"
 msgstr "Falha ao obter informação de entrada do depósito: %s"
 
 #: ../src/utils/pactl.c:622
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Sink Input #%u\n"
 "\tDriver: %s\n"
@@ -2014,19 +2023,20 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Entrada de Depósito #%u\n"
-"\tDriver: %s\n"
-"\tMódulo Dono: %s\n"
+"Entrada de depósito #%u\n"
+"\tControlador: %s\n"
+"\tMódulo proprietário: %s\n"
 "\tCliente: %s\n"
 "\tDepósito: %u\n"
 "\tEspecificação da amostra: %s\n"
 "\tMapa de canais: %s\n"
+"\tFormato: %s\n"
 "\tMudo: %s\n"
 "\tVolume: %s\n"
-"\t        %s\n"
+"\t\t%s\n"
 "\t        balanço %0.2f\n"
-"\tCadência do Buffer: %0.0f usec\n"
-"\tCadência do Depósito: %0.0f usec\n"
+"\tLatência do buffer: %0.0f usec\n"
+"\tLatência do Depósito: %0.0f usec\n"
 "\tMétodo de reamostragem: %s\n"
 "\tPropriedades:\n"
 "\t\t%s\n"
@@ -2037,7 +2047,7 @@ msgid "Failed to get source output information: %s"
 msgstr "Falha ao obter informações da fonte: %s"
 
 #: ../src/utils/pactl.c:693
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Source Output #%u\n"
 "\tDriver: %s\n"
@@ -2057,19 +2067,20 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Entrada de Depósito #%u\n"
-"\tDriver: %s\n"
-"\tMódulo Dono: %s\n"
+"Saída da origem #%u\n"
+"\tControlador: %s\n"
+"\tMódulo proprietário: %s\n"
 "\tCliente: %s\n"
-"\tDepósito: %u\n"
+"\tOrigem: %u\n"
 "\tEspecificação da amostra: %s\n"
 "\tMapa de canais: %s\n"
+"\tFormato: %s\n"
 "\tMudo: %s\n"
 "\tVolume: %s\n"
-"\t        %s\n"
+"\t\t%s\n"
 "\t        balanço %0.2f\n"
-"\tCadência do Buffer: %0.0f usec\n"
-"\tCadência do Depósito: %0.0f usec\n"
+"\tLatência do buffer: %0.0f usec\n"
+"\tLatência da origem: %0.0f usec\n"
 "\tMétodo de reamostragem: %s\n"
 "\tPropriedades:\n"
 "\t\t%s\n"
@@ -2116,9 +2127,9 @@ msgid "Failure: %s"
 msgstr "Falha: %s"
 
 #: ../src/utils/pactl.c:915
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to set format: invalid format string %s"
-msgstr "Falha ao obter informações da fonte: %s"
+msgstr "Falha ao definir formato: cadeia %s com formato inválido"
 
 #: ../src/utils/pactl.c:954
 #, c-format
@@ -2131,57 +2142,56 @@ msgstr "Fim prematuro do ficheiro"
 
 #: ../src/utils/pactl.c:991
 msgid "new"
-msgstr ""
+msgstr "novo"
 
 #: ../src/utils/pactl.c:994
 msgid "change"
-msgstr ""
+msgstr "alterar"
 
 #: ../src/utils/pactl.c:997
 msgid "remove"
-msgstr ""
+msgstr "remover"
 
 #: ../src/utils/pactl.c:1000 ../src/utils/pactl.c:1035
 msgid "unknown"
-msgstr ""
+msgstr "desconhecido"
 
 #: ../src/utils/pactl.c:1008
 msgid "sink"
-msgstr ""
+msgstr "depósito"
 
 #: ../src/utils/pactl.c:1011
 msgid "source"
-msgstr ""
+msgstr "origem"
 
 #: ../src/utils/pactl.c:1014
 msgid "sink-input"
-msgstr ""
+msgstr "sink-input"
 
 #: ../src/utils/pactl.c:1017
 msgid "source-output"
-msgstr ""
+msgstr "origem-saída"
 
 #: ../src/utils/pactl.c:1020
 msgid "module"
-msgstr ""
+msgstr "módulo"
 
 #: ../src/utils/pactl.c:1023
 msgid "client"
-msgstr ""
+msgstr "cliente"
 
 #: ../src/utils/pactl.c:1026
 msgid "sample-cache"
-msgstr ""
+msgstr "amostra-cache"
 
 #: ../src/utils/pactl.c:1029 ../src/utils/pactl.c:1032
-#, fuzzy
 msgid "server"
-msgstr "Servidor Inválido"
+msgstr "servidor"
 
 #: ../src/utils/pactl.c:1041
 #, c-format
 msgid "Event '%s' on %s #%u\n"
-msgstr ""
+msgstr "Evento '%s' em %s #%u\n"
 
 #: ../src/utils/pactl.c:1258
 msgid "Got SIGINT, exiting."
@@ -2193,7 +2203,7 @@ msgstr "Especificação de volume inválida"
 
 #: ../src/utils/pactl.c:1308
 msgid "Volume outside permissible range.\n"
-msgstr ""
+msgstr "Volume fora do intervalo permitido.\n"
 
 #: ../src/utils/pactl.c:1319 ../src/utils/pactl.c:1320
 #: ../src/utils/pactl.c:1321 ../src/utils/pactl.c:1322
@@ -2206,66 +2216,66 @@ msgstr ""
 #: ../src/utils/pactl.c:1335 ../src/utils/pactl.c:1336
 #: ../src/utils/pactl.c:1337
 msgid "[options]"
-msgstr ""
+msgstr "[opções]"
 
 #: ../src/utils/pactl.c:1321
 msgid "[TYPE]"
-msgstr ""
+msgstr "[TIPO]"
 
 #: ../src/utils/pactl.c:1323
 msgid "FILENAME [NAME]"
-msgstr ""
+msgstr "NOMEFICHEIRO [NOME]"
 
 #: ../src/utils/pactl.c:1324
 msgid "NAME [SINK]"
-msgstr ""
+msgstr "NOME [DEPÓSITO]"
 
 #: ../src/utils/pactl.c:1325
 msgid "NAME"
-msgstr ""
+msgstr "NOME"
 
 #: ../src/utils/pactl.c:1326
 msgid "NAME [ARGS ...]"
-msgstr ""
+msgstr "NOME [ARGS ...]"
 
 #: ../src/utils/pactl.c:1327
 msgid "#N"
-msgstr ""
+msgstr "#N"
 
 #: ../src/utils/pactl.c:1328
 msgid "#N SINK|SOURCE"
-msgstr ""
+msgstr "#N DEPÓSITO|ORIGEM"
 
 #: ../src/utils/pactl.c:1329 ../src/utils/pactl.c:1334
 msgid "NAME|#N 1|0"
-msgstr ""
+msgstr "NOME|#N 1|0"
 
 #: ../src/utils/pactl.c:1330
 msgid "CARD PROFILE"
-msgstr ""
+msgstr "PERFIL CARTÃO"
 
 #: ../src/utils/pactl.c:1331
 msgid "NAME|#N PORT"
-msgstr ""
+msgstr "NOME|#N PORTA"
 
 #: ../src/utils/pactl.c:1332
 msgid "NAME|#N VOLUME"
-msgstr ""
+msgstr "NOME|#N VOLUME"
 
 #: ../src/utils/pactl.c:1333
 msgid "#N VOLUME"
-msgstr ""
+msgstr "#N VOLUME"
 
 #: ../src/utils/pactl.c:1335
 msgid "#N 1|0"
-msgstr ""
+msgstr "#N 1|0"
 
 #: ../src/utils/pactl.c:1336
 msgid "#N FORMATS"
-msgstr ""
+msgstr "#N FORMATOS"
 
 #: ../src/utils/pactl.c:1339
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "  -h, --help                            Show this help\n"
@@ -2276,11 +2286,13 @@ msgid ""
 "  -n, --client-name=NAME                How to call this client on the "
 "server\n"
 msgstr ""
-"%s [opções] ... \n"
 "\n"
 "  -h, --help                            Mostra esta ajuda\n"
 "      --version                         Mostra a versão\n"
+"\n"
 "  -s, --server=SERVER                   Nome do servidor ao qual ligar\n"
+"  -n, --client-name=NAME                Como chamar este cliente no "
+"servidor\n"
 "\n"
 
 #: ../src/utils/pactl.c:1380
@@ -2297,7 +2309,7 @@ msgstr ""
 #: ../src/utils/pactl.c:1439
 #, c-format
 msgid "Specify nothing, or one of: %s"
-msgstr ""
+msgstr "Não especifique nada ou um de: %s"
 
 #: ../src/utils/pactl.c:1449
 msgid "Please specify a sample file to load"
@@ -2379,14 +2391,12 @@ msgid "Invalid sink input index"
 msgstr "Índice de depósito de entrada inválido"
 
 #: ../src/utils/pactl.c:1660
-#, fuzzy
 msgid "You have to specify a source output index and a volume"
-msgstr "Tem de especificar um índice de saída de fonte e uma fonte"
+msgstr "Tem de especificar um índice de saída de origem e um volume"
 
 #: ../src/utils/pactl.c:1665
-#, fuzzy
 msgid "Invalid source output index"
-msgstr "Índice de depósito de entrada inválido"
+msgstr "Índice de saída de origem inválido"
 
 #: ../src/utils/pactl.c:1677
 msgid "You have to specify a sink name/index and a mute boolean"
@@ -2394,9 +2404,8 @@ msgstr "Tem de especificar um nome/índice de depósito e um booleano mudo"
 
 #: ../src/utils/pactl.c:1682 ../src/utils/pactl.c:1699
 #: ../src/utils/pactl.c:1721 ../src/utils/pactl.c:1742
-#, fuzzy
 msgid "Invalid mute specification"
-msgstr "Especificação de amostra inválida"
+msgstr "Especificação de silêncio inválida"
 
 #: ../src/utils/pactl.c:1694
 msgid "You have to specify a source name/index and a mute boolean"
@@ -2411,21 +2420,20 @@ msgid "Invalid sink input index specification"
 msgstr "Índice de entrada de depósito inválida"
 
 #: ../src/utils/pactl.c:1732
-#, fuzzy
 msgid "You have to specify a source output index and a mute boolean"
-msgstr "Tem de especificar um nome/índice de fonte e um booleano mudo"
+msgstr "Tem de especificar um nome/índice de origem e um lógico mudo"
 
 #: ../src/utils/pactl.c:1737
-#, fuzzy
 msgid "Invalid source output index specification"
-msgstr "Índice de entrada de depósito inválida"
+msgstr "Especificação de índice de saída de origem inválida"
 
 #: ../src/utils/pactl.c:1756
-#, fuzzy
 msgid ""
 "You have to specify a sink index and a semicolon-separated list of supported "
 "formats"
-msgstr "Tem de especificar um nome/índice de depósito e um booleano mudo"
+msgstr ""
+"Tem de especificar um nome/índice de depósito e uma lista de formatos "
+"suportados separados por ponto e vírgula"
 
 #: ../src/utils/pactl.c:1772
 msgid "No valid command specified."
@@ -2608,7 +2616,7 @@ msgstr "Telefonia Duplex (HSP/HFP)"
 
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2781
 msgid "Handsfree Gateway"
-msgstr ""
+msgstr "Mãos livres Gateway"
 
 #: ../src/modules/reserve-wrap.c:151
 msgid "PulseAudio Sound Server"
@@ -2618,158 +2626,145 @@ msgstr "Servidor de Som PulseAudio"
 #: ../src/modules/module-rygel-media-server.c:548
 #: ../src/modules/module-rygel-media-server.c:903
 msgid "Output Devices"
-msgstr ""
+msgstr "Dispositivos de saída"
 
 #: ../src/modules/module-rygel-media-server.c:511
 #: ../src/modules/module-rygel-media-server.c:549
 #: ../src/modules/module-rygel-media-server.c:904
-#, fuzzy
 msgid "Input Devices"
-msgstr "Entrada %s"
+msgstr "Dispositivos de entrada"
 
 #: ../src/modules/module-rygel-media-server.c:1056
 msgid "Audio on @HOSTNAME@"
-msgstr ""
+msgstr "Áudio no @HOSTNAME@"
 
 #: ../src/modules/alsa/alsa-mixer.c:2219
-#, fuzzy
 msgid "Input"
-msgstr "Entrada %s"
+msgstr "Entrada"
 
 #: ../src/modules/alsa/alsa-mixer.c:2220
 msgid "Docking Station Input"
-msgstr ""
+msgstr "Entrada da estação de ancoragem"
 
 #: ../src/modules/alsa/alsa-mixer.c:2221
-#, fuzzy
 msgid "Docking Station Microphone"
-msgstr "Áudio Interno"
+msgstr "Microfone da estação de ancoração"
 
 #: ../src/modules/alsa/alsa-mixer.c:2222
 msgid "Docking Station Line In"
-msgstr ""
+msgstr "Linha de entrada da estação de ancoração"
 
 #: ../src/modules/alsa/alsa-mixer.c:2223 ../src/modules/alsa/alsa-mixer.c:2307
 msgid "Line In"
-msgstr ""
+msgstr "Linha de entrada"
 
 #: ../src/modules/alsa/alsa-mixer.c:2224 ../src/modules/alsa/alsa-mixer.c:2302
 msgid "Microphone"
-msgstr ""
+msgstr "Microfone"
 
 #: ../src/modules/alsa/alsa-mixer.c:2225 ../src/modules/alsa/alsa-mixer.c:2303
-#, fuzzy
 msgid "Front Microphone"
-msgstr "Áudio Interno"
+msgstr "Microfone frontal"
 
 #: ../src/modules/alsa/alsa-mixer.c:2226 ../src/modules/alsa/alsa-mixer.c:2304
-#, fuzzy
 msgid "Rear Microphone"
-msgstr "Áudio Interno"
+msgstr "Microfone externo"
 
 #: ../src/modules/alsa/alsa-mixer.c:2227
 msgid "External Microphone"
-msgstr ""
+msgstr "Microfone externo"
 
 #: ../src/modules/alsa/alsa-mixer.c:2228 ../src/modules/alsa/alsa-mixer.c:2306
-#, fuzzy
 msgid "Internal Microphone"
-msgstr "Áudio Interno"
+msgstr "Microfone interno"
 
 #: ../src/modules/alsa/alsa-mixer.c:2229 ../src/modules/alsa/alsa-mixer.c:2308
 msgid "Radio"
-msgstr ""
+msgstr "Rádio"
 
 #: ../src/modules/alsa/alsa-mixer.c:2230 ../src/modules/alsa/alsa-mixer.c:2309
 msgid "Video"
-msgstr ""
+msgstr "Vídeo"
 
 #: ../src/modules/alsa/alsa-mixer.c:2231
 msgid "Automatic Gain Control"
-msgstr ""
+msgstr "Controlo automático de ganho"
 
 #: ../src/modules/alsa/alsa-mixer.c:2232
 msgid "No Automatic Gain Control"
-msgstr ""
+msgstr "Sem controlo automático de ganho"
 
 #: ../src/modules/alsa/alsa-mixer.c:2233
 msgid "Boost"
-msgstr ""
+msgstr "Aumentar"
 
 #: ../src/modules/alsa/alsa-mixer.c:2234
 msgid "No Boost"
-msgstr ""
+msgstr "Não aumentar"
 
 #: ../src/modules/alsa/alsa-mixer.c:2235
 msgid "Amplifier"
-msgstr ""
+msgstr "Amplificador"
 
 #: ../src/modules/alsa/alsa-mixer.c:2236
 msgid "No Amplifier"
-msgstr ""
+msgstr "Sem amplificador"
 
 #: ../src/modules/alsa/alsa-mixer.c:2237
 msgid "Bass Boost"
-msgstr ""
+msgstr "Aumentar graves"
 
 #: ../src/modules/alsa/alsa-mixer.c:2238
 msgid "No Bass Boost"
-msgstr ""
+msgstr "Não aumentar graves"
 
 #: ../src/modules/alsa/alsa-mixer.c:2239
 msgid "Speaker"
-msgstr ""
+msgstr "Coluna"
 
 #: ../src/modules/alsa/alsa-mixer.c:2240 ../src/modules/alsa/alsa-mixer.c:2311
-#, fuzzy
 msgid "Headphones"
-msgstr "Mono Analógico"
+msgstr "Auscultadores"
 
 #: ../src/modules/alsa/alsa-mixer.c:2301
-#, fuzzy
 msgid "Analog Input"
-msgstr "Mono Analógico"
+msgstr "Entrada analógica"
 
 #: ../src/modules/alsa/alsa-mixer.c:2305
 msgid "Dock Microphone"
-msgstr ""
+msgstr "Microfone da âncora"
 
 #: ../src/modules/alsa/alsa-mixer.c:2310
-#, fuzzy
 msgid "Analog Output"
-msgstr "Saída nula"
+msgstr "Saída analógica"
 
 #: ../src/modules/alsa/alsa-mixer.c:2312
 msgid "LFE on Separate Mono Output"
-msgstr ""
+msgstr "LFE na saída separada mono"
 
 #: ../src/modules/alsa/alsa-mixer.c:2313
 msgid "Line Out"
-msgstr ""
+msgstr "Linha de saída"
 
 #: ../src/modules/alsa/alsa-mixer.c:2314
-#, fuzzy
 msgid "Analog Mono Output"
-msgstr "Mono Analógico"
+msgstr "Saída mono analógica"
 
 #: ../src/modules/alsa/alsa-mixer.c:2315
-#, fuzzy
 msgid "Speakers"
-msgstr "Estéreo Analógico"
+msgstr "Colunas"
 
 #: ../src/modules/alsa/alsa-mixer.c:2316
 msgid "HDMI / DisplayPort"
-msgstr ""
+msgstr "HDMI/DisplayPort"
 
 #: ../src/modules/alsa/alsa-mixer.c:2317
-#, fuzzy
 msgid "Digital Output (S/PDIF)"
-msgstr "Estéreo Digital (HDMI)"
+msgstr "Saída digital (S/PDIF)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2318
-#, fuzzy
 msgid "Digital Passthrough (S/PDIF)"
-msgstr "Estéreo Digital (HDMI)"
+msgstr "Passagem digital (S/PDIF)"
 
 #: ../src/modules/alsa/alsa-mixer.c:3756
 msgid "Analog Mono"
@@ -2780,63 +2775,56 @@ msgid "Analog Stereo"
 msgstr "Estéreo Analógico"
 
 #: ../src/modules/alsa/alsa-mixer.c:3758
-#, fuzzy
 msgid "Analog Surround 2.1"
-msgstr "Analog Surround 4.1"
+msgstr "Surround 2.1 analógico"
 
 #: ../src/modules/alsa/alsa-mixer.c:3759
-#, fuzzy
 msgid "Analog Surround 3.0"
-msgstr "Analog Surround 4.0"
+msgstr "Surround 3.0 analógico"
 
 #: ../src/modules/alsa/alsa-mixer.c:3760
-#, fuzzy
 msgid "Analog Surround 3.1"
-msgstr "Analog Surround 4.1"
+msgstr "Surround 3.1 analógico"
 
 #: ../src/modules/alsa/alsa-mixer.c:3761
 msgid "Analog Surround 4.0"
-msgstr "Analog Surround 4.0"
+msgstr "Surround 4.0 analógico"
 
 #: ../src/modules/alsa/alsa-mixer.c:3762
 msgid "Analog Surround 4.1"
-msgstr "Analog Surround 4.1"
+msgstr "Surround 4.1 analógico"
 
 #: ../src/modules/alsa/alsa-mixer.c:3763
 msgid "Analog Surround 5.0"
-msgstr "Analog Surround 5.0"
+msgstr "Surround 5.0 analógico"
 
 #: ../src/modules/alsa/alsa-mixer.c:3764
 msgid "Analog Surround 5.1"
-msgstr "Analog Surround 5.1"
+msgstr "Surround 5.1 analógico"
 
 #: ../src/modules/alsa/alsa-mixer.c:3765
-#, fuzzy
 msgid "Analog Surround 6.0"
-msgstr "Analog Surround 4.0"
+msgstr "Surround 6.0 analógico"
 
 #: ../src/modules/alsa/alsa-mixer.c:3766
-#, fuzzy
 msgid "Analog Surround 6.1"
-msgstr "Analog Surround 4.1"
+msgstr "Surround 6.1 analógico"
 
 #: ../src/modules/alsa/alsa-mixer.c:3767
-#, fuzzy
 msgid "Analog Surround 7.0"
-msgstr "Analog Surround 4.0"
+msgstr "Surround 7.0 analógico"
 
 #: ../src/modules/alsa/alsa-mixer.c:3768
 msgid "Analog Surround 7.1"
-msgstr "Analog Surround 7.1"
+msgstr "Surround 7.1 analógico"
 
 #: ../src/modules/alsa/alsa-mixer.c:3769
 msgid "Digital Stereo (IEC958)"
 msgstr "Estéreo Digital (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:3770
-#, fuzzy
 msgid "Digital Passthrough  (IEC958)"
-msgstr "Estéreo Digital (IEC958)"
+msgstr "Pasagem digital (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:3771
 msgid "Digital Surround 4.0 (IEC958/AC3)"
@@ -2851,32 +2839,28 @@ msgid "Digital Stereo (HDMI)"
 msgstr "Estéreo Digital (HDMI)"
 
 #: ../src/modules/alsa/alsa-mixer.c:3774
-#, fuzzy
 msgid "Digital Surround 5.1 (HDMI)"
-msgstr "Surround Digital 5.1 (IEC958/AC3)"
+msgstr "Surround 5.1 (IEC958/AC3) digital"
 
 #: ../src/modules/alsa/alsa-mixer.c:3895
-#, fuzzy
 msgid "Analog Mono Duplex"
-msgstr "Mono Analógico"
+msgstr "Mono duplex analógico"
 
 #: ../src/modules/alsa/alsa-mixer.c:3896
-#, fuzzy
 msgid "Analog Stereo Duplex"
-msgstr "Estéreo Analógico"
+msgstr "Estéreo duplex analógico"
 
 #: ../src/modules/alsa/alsa-mixer.c:3897
-#, fuzzy
 msgid "Digital Stereo Duplex (IEC958)"
-msgstr "Estéreo Digital (IEC958)"
+msgstr "Estéreo duplex digital (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:3997
-#, fuzzy, c-format
+#, c-format
 msgid "%s Output"
-msgstr "Saída nula"
+msgstr "Saída %s"
 
 #: ../src/modules/alsa/alsa-mixer.c:4005
-#, fuzzy, c-format
+#, c-format
 msgid "%s Input"
 msgstr "Entrada %s"
 
@@ -2892,29 +2876,38 @@ msgid ""
 "save_aec=<save AEC data in /tmp> autoloaded=<set if this module is being "
 "loaded automatically> use_volume_sharing=<yes or no> "
 msgstr ""
+"source_name=<nome da origem> source_properties=<propriedades da origem> "
+"source_master=<nome da origem a filtrar> sink_name=<nome do deposito> "
+"sink_properties=<propriedades do deposito> sink_master=<nome do deposito a "
+"filtrar> adjust_time=<quantas vezes ajustar taxas em s> "
+"adjust_threshold=<quanto desvio reajustar a seguir em ms> format=<formato da "
+"amostra> rate=<frequência da amostra> channels=<número de canais> "
+"channel_map=<mapa de canais> aec_method=<implementacao a usar> "
+"aec_args=<parametros para o motor AEC> save_aec=<gravar dados AEC em /tmp> "
+"autoloaded=<marcar se este modulo for carregado automaticamente> "
+"use_volume_sharing=<sim ou nao> "
 
 #: ../src/modules/module-equalizer-sink.c:72
 msgid "General Purpose Equalizer"
-msgstr ""
+msgstr "Equalizador de uso geral"
 
 #: ../src/modules/module-equalizer-sink.c:76
-#, fuzzy
 msgid ""
 "sink_name=<name of the sink> sink_properties=<properties for the sink> "
 "sink_master=<sink to connect to> format=<sample format> rate=<sample rate> "
 "channels=<number of channels> channel_map=<channel map> autoloaded=<set if "
 "this module is being loaded automatically> use_volume_sharing=<yes or no> "
 msgstr ""
-"sink_name=<nome do depósito> sink_properties=<propriedades do depósito> "
-"master=<nome do depósito a filtrar> format=<formato exemplo> "
-"rate=<frequência de amostragem> channels=<número de canais> "
-"channel_map=<mapa de canais> plugin=<nome do plugin ladspa> label=<etiqueta "
-"do plugin ladspa> control=<Lista de valores de controlo de entrada separados "
-"por vírgulas>"
+"sink_name=<nome do deposito> sink_properties=<propriedades do deposito> "
+"sink_master=<nome do deposito a ligar> format=<formato da amostra> "
+"rate=<frequencia de amostragem> channels=<numero de canais> "
+"channel_map=<mapa de canais> autoloaded=<define se este módulo há de ser "
+"cargado automaticamente> use_volume_sharing=<sim ou nao> "
+"force_flat_volume=<sim ou nao> "
 
 #: ../src/modules/module-filter-apply.c:48
 msgid "autoclean=<automatically unload unused filters?>"
-msgstr ""
+msgstr "autoclean=<descarregar automaticamente filtros nao usados?>"
 
 #: ../src/tests/resampler-test.c:257
 #, c-format
@@ -2945,16 +2938,46 @@ msgid ""
 "\n"
 "See --dump-resample-methods for possible values of resample methods.\n"
 msgstr ""
+"%s [opções]\n"
+"\n"
+"-h, --help                            Mostra esta ajuda\n"
+"-v, --verbose                         Imprime mensagens de depuração\n"
+"      --from-rate=SAMPLERATE          Frequência de amostra A partir em Hz "
+"(predefinida 44100)\n"
+"      --from-format=SAMPLEFORMAT      Tipo de amostra A partir (predefinido "
+"s16le)\n"
+"      --from-channels=CHANNELS        Número de canais A partir (predefinida "
+"1)\n"
+"      --to-rate=SAMPLERATE            Frequência de amostra Para em Hz "
+"(predefinida 44100)\n"
+"      --to-format=SAMPLEFORMAT        Tipo de amostra Para (predefinida "
+"s16le)\n"
+"      --to-channels=CHANNELS          Número de canais Para (predefinido 1)\n"
+"      --resample-method=METHOD        Método de reamostragem (predefinido "
+"auto)\n"
+"      --seconds=SECONDS               Duração do fluxo A partir (predefinida "
+"60)\n"
+"\n"
+"Se os formatos não forem especificados, o teste faz todas as combinações de "
+"formatos,\n"
+"para trás e para a frente.\n"
+"\n"
+"O tipo de amostra tem de ser s16le, s16be, u8, float32le, float32be, ulaw, "
+"alaw,\n"
+"s24le, s24be, s24-32le, s24-32be, s32le, s32be (predefinido s16ne)\n"
+"\n"
+"Veja --dump-resample-methods para valores possíveis de métodos de "
+"reamostragem.\n"
 
 #: ../src/tests/resampler-test.c:356
-#, fuzzy, c-format
+#, c-format
 msgid "%s %s\n"
-msgstr "%s %s"
+msgstr "%s %s\n"
 
 #: ../src/tests/resampler-test.c:419
 #, c-format
 msgid "=== %d seconds: %d Hz %d ch (%s) -> %d Hz %d ch (%s)"
-msgstr ""
+msgstr "=== %d segundos: %d Hz %d ch (%s) -> %d Hz %d ch (%s)"
 
 #~ msgid "[%s:%u] rlimit not supported on this platform."
 #~ msgstr "[%s:%u] rlimit não é suportado nesta plataforma."
