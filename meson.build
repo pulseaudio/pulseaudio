@@ -23,7 +23,7 @@ pa_protocol_version = 34
 
 # The stable ABI for client applications, for the version info x:y:z
 # always will hold x=z
-libpulse_version_info = [21, 2, 21]
+libpulse_version_info = [22, 0, 22]
 
 # A simplified, synchronous, ABI-stable interface for client
 # applications, for the version info x:y:z always will hold x=z
@@ -31,7 +31,7 @@ libpulse_simple_version_info = [1, 1, 1]
 
 # The ABI-stable GLib adapter for client applications, for the version
 # info x:y:z always will hold x=z
-libpulse_mainloop_glib_version_info = [0, 5, 0]
+libpulse_mainloop_glib_version_info = [0, 6, 0]
 
 libpulse_version = '@0@.@1@.@2@'.format(
   libpulse_version_info[0] - libpulse_version_info[2],
