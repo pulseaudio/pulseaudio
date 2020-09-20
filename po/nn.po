@@ -7,15 +7,16 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-08-04 23:38+0200\n"
-"PO-Revision-Date: 2017-08-06 17:58+0100\n"
+"PO-Revision-Date: 2020-09-21 13:29+0000\n"
 "Last-Translator: Karl Ove Hufthammer <karl@huftis.org>\n"
-"Language-Team: Norwegian Nynorsk <i18n-nn@lister.ping.uio.no>\n"
+"Language-Team: Norwegian Nynorsk <https://translate.fedoraproject.org/"
+"projects/pulseaudio/pulseaudio/nn/>\n"
 "Language: nn\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Lokalize 2.0\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.2.2\n"
 
 #: ../src/daemon/cmdline.c:113
 #, c-format
@@ -247,10 +248,8 @@ msgstr "[%s:%u] Ugyldig kanaldefinisjon «%s»."
 
 #: ../src/daemon/daemon-conf.c:425
 #, c-format
-#| msgctxt "syntax error in KWin script"
-#| msgid "Invalid number of arguments"
 msgid "[%s:%u] Invalid number of fragments '%s'."
-msgstr "[%s:%u] Ugyldig tal på fragmentar «%s»."
+msgstr "[%s:%u] Ugyldig tal på fragment «%s»."
 
 #: ../src/daemon/daemon-conf.c:442
 #, c-format
