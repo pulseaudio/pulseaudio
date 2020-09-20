@@ -46,6 +46,7 @@ EXTRA_DIST = \
 	src/pulse/.gitignore \
 	meson.build \
 	meson_options.txt \
+	doxygen/meson.build \
 	man/meson.build \
 	po/meson.build \
 	shell-completion/bash/meson.build \
