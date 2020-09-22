@@ -480,7 +480,13 @@ int main(int argc, char *argv[]) {
     pa_unblock_sigs(-1);
     pa_reset_priority();
 
+    /* Load locale from the environment. */
     setlocale(LC_ALL, "");
+
+    /* Set LC_NUMERIC to C so that floating point strings are consistently
+     * formatted and parsed across locales. */
+    setlocale(LC_NUMERIC, "C");
+
     pa_init_i18n();
 
     conf = pa_daemon_conf_new();
