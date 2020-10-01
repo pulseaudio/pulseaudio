@@ -158,6 +158,10 @@ cdata.set('top_srcdir', meson.source_root())
 # First some defaults to keep config file generation happy
 cdata.set('HAVE_COREAUDIO', 0)
 cdata.set('HAVE_WAVEOUT', 0)
+
+platform_socket_dep = []
+platform_dep = []
+
 # FIXME: This was not tested. Maybe some flags should better be CFLAGS,
 # rather than ending up in the config.h file?
 if host_machine.system() == 'darwin'
@@ -165,7 +169,20 @@ if host_machine.system() == 'darwin'
   cdata.set('_DARWIN_C_SOURCE', '200112L') # Needed to get NSIG on Mac OS
 elif host_machine.system() == 'windows'
   cdata.set('OS_IS_WIN32', 1)
+  cdata.set('HAVE_WINDOWS_H', 1)
+  cdata.set('HAVE_WAVEOUT', 1)
+  cdata.set('HAVE_WINSOCK2_H', 1)
+  cdata.set('HAVE_WS2TCPIP_H', 1)
   cdata.set('WIN32_LEAN_AND_MEAN', 1) # Needed to avoid including unnecessary headers on Windows
+  cdata.set('gid_t', 'int')
+  cdata.set('uid_t', 'int')
+  ws2_32_dep = meson.get_compiler('c').find_library('ws2_32')
+  winsock_dep = meson.get_compiler('c').find_library('wsock32')
+  ole32_dep = meson.get_compiler('c').find_library('ole32')
+  ssp_dep = meson.get_compiler('c').find_library('ssp')
+  pcreposix_dep = meson.get_compiler('c').find_library('pcreposix')
+  platform_socket_dep = [ws2_32_dep, winsock_dep]
+  platform_dep = [ole32_dep, ssp_dep, pcreposix_dep]
 #elif host_machine.system() == 'solaris'
 #  # Apparently meson has no solaris support?
 #  # Needed to get declarations for msg_control and msg_controllen on Solaris
@@ -236,8 +253,10 @@ if cc.has_header('valgrind/memcheck.h', required: get_option('valgrind'))
 endif
 
 # FIXME: move this to the above set
-if cc.has_header('pthread.h')
-  cdata.set('HAVE_PTHREAD', 1)
+if host_machine.system() != 'windows'
+  if cc.has_header('pthread.h')
+    cdata.set('HAVE_PTHREAD', 1)
+  endif
 endif
 
 if cc.has_header_symbol('pthread.h', 'PTHREAD_PRIO_INHERIT')
@@ -297,7 +316,16 @@ check_functions = [
 foreach f : check_functions
   if cc.has_function(f)
     define = 'HAVE_' + f.underscorify().to_upper()
-    cdata.set(define, 1)
+
+    if f == 'posix_memalign' and host_machine.system() == 'windows'
+      message('Win32/mingw32 does not properly define posix_memalign.')
+    elif f == 'fork' and host_machine.system() == 'windows'
+      # __builtin_fork is defined and compiles properly, but calling __builtin_fork() does not.
+      # This causes Meson to think that Windows has a fork() which causes a link error...
+      message('Win32/mingw32 does not properly define fork.')
+    else
+      cdata.set(define, 1)
+    endif
   endif
 endforeach
 
@@ -306,7 +334,11 @@ if cc.has_header_symbol('sys/syscall.h', 'SYS_memfd_create')
 endif
 
 if cc.has_function('dgettext')
-  libintl_dep = []
+  if host_machine.system() != 'windows'
+    libintl_dep = []
+  else
+    libintl_dep = cc.find_library('intl')
+  endif
 else
   libintl_dep = cc.find_library('intl')
 endif
@@ -357,7 +389,12 @@ cdata.set('MESON_BUILD', 1)
 # On ELF systems we don't want the libraries to be unloaded since we don't clean them up properly,
 # so we request the nodelete flag to be enabled.
 # On other systems, we don't really know how to do that, but it's welcome if somebody can tell.
-nodelete_link_args = ['-Wl,-z,nodelete']
+# Windows doesn't support this flag.
+if host_machine.system() != 'windows'
+  nodelete_link_args = ['-Wl,-z,nodelete']
+else
+  nodelete_link_args = []
+endif
 
 # Code coverage
 

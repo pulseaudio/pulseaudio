@@ -182,11 +182,13 @@ libpulsecore_simd = simd.check('libpulsecore_simd',
 libpulsecore_simd_lib = libpulsecore_simd[0]
 cdata.merge_from(libpulsecore_simd[1])
 
-# FIXME: Implement Windows support
-#'mutex-win32.c',
-#'poll-win32.c',
-#'semaphore-win32.c',
-#'thread-win32.c',
+if host_machine.system() == 'windows'
+  libpulsecore_sources += ['mutex-win32.c',
+    'poll-win32.c',
+    'semaphore-win32.c',
+    'thread-win32.c',
+  ]
+endif
 
 libpulsecore = shared_library('pulsecore-' + pa_version_major_minor,
   libpulsecore_sources, libpulsecore_headers,
@@ -198,7 +200,7 @@ libpulsecore = shared_library('pulsecore-' + pa_version_major_minor,
   install_rpath : privlibdir,
   install_dir : privlibdir,
   link_with : libpulsecore_simd_lib,
-  dependencies : [libm_dep, libpulsecommon_dep, ltdl_dep, shm_dep, sndfile_dep, database_dep, dbus_dep, libatomic_ops_dep, orc_dep, samplerate_dep, soxr_dep, speex_dep, x11_dep, libintl_dep],
+  dependencies : [libm_dep, libpulsecommon_dep, ltdl_dep, shm_dep, sndfile_dep, database_dep, dbus_dep, libatomic_ops_dep, orc_dep, samplerate_dep, soxr_dep, speex_dep, x11_dep, libintl_dep, platform_dep, platform_socket_dep,],
   implicit_include_directories : false)
 
 libpulsecore_dep = declare_dependency(link_with: libpulsecore)

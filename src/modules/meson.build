@@ -1,4 +1,6 @@
-subdir('rtp')
+if host_machine.system() != 'windows'
+  subdir('rtp')
+endif
 
 # module name, sources, [headers, extra flags, extra deps, extra libs]
 all_modules = [
@@ -44,8 +46,6 @@ all_modules = [
   [ 'module-rescue-streams', 'module-rescue-streams.c' ],
   [ 'module-role-cork', ['module-role-cork.c', 'stream-interaction.c'], 'stream-interaction.h' ],
   [ 'module-role-ducking', ['module-role-ducking.c', 'stream-interaction.c'], 'stream-interaction.h' ],
-  [ 'module-rtp-recv', 'rtp/module-rtp-recv.c', [], [], [], librtp ],
-  [ 'module-rtp-send', 'rtp/module-rtp-send.c' , [], [], [], librtp ],
   [ 'module-simple-protocol-tcp', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_SIMPLE', '-DUSE_TCP_SOCKETS'], [], libprotocol_simple ],
   [ 'module-simple-protocol-unix', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_SIMPLE', '-DUSE_UNIX_SOCKETS'], [], libprotocol_simple ],
   [ 'module-sine', 'module-sine.c' ],
@@ -62,8 +62,22 @@ all_modules = [
   [ 'module-virtual-sink', 'module-virtual-sink.c' ],
   [ 'module-virtual-source', 'module-virtual-source.c' ],
   [ 'module-volume-restore', 'module-volume-restore.c' ],
-#  [ 'module-waveout', 'module-waveout.c' ],
 ]
+
+if host_machine.system() == 'windows'
+  winmm_dep = meson.get_compiler('c').find_library('winmm')
+  ksuser_dep = meson.get_compiler('c').find_library('ksuser')
+  all_modules += [
+    [ 'module-waveout', 'module-waveout.c', [], [], [winmm_dep, ksuser_dep] ],
+  ]
+endif
+
+if host_machine.system() != 'windows'
+  all_modules += [
+    [ 'module-rtp-recv', 'rtp/module-rtp-recv.c', [], [], [], librtp ],
+    [ 'module-rtp-send', 'rtp/module-rtp-send.c' , [], [], [], librtp ],
+  ]
+endif
 
 # Modules enabled by headers
 
@@ -176,10 +190,13 @@ if lirc_dep.found()
 endif
 
 if openssl_dep.found()
-  subdir('raop')
-  all_modules += [
-    [ 'module-raop-sink', 'raop/module-raop-sink.c', [], [], [], libraop ],
-  ]
+  if host_machine.system() != 'windows'
+    subdir('raop')
+    all_modules += [
+      [ 'module-raop-sink', 'raop/module-raop-sink.c', [], [], [], libraop ],
+    ]
+  endif
+
   if avahi_dep.found()
     all_modules += [
       [ 'module-raop-discover', 'raop/module-raop-discover.c', [], [], [avahi_dep], libavahi_wrap ],
@@ -289,7 +306,7 @@ foreach m : all_modules
     install : true,
     install_rpath : rpath_dirs,
     install_dir : modlibexecdir,
-    dependencies : [thread_dep, libpulse_dep, libpulsecommon_dep, libpulsecore_dep, libintl_dep] + extra_deps,
+    dependencies : [thread_dep, libpulse_dep, libpulsecommon_dep, libpulsecore_dep, libintl_dep, platform_dep, platform_socket_dep] + extra_deps,
     link_args : [nodelete_link_args, '-Wl,--no-undefined' ],
     link_with : extra_libs,
     name_prefix : '',
