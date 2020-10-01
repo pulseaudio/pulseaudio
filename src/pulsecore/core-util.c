@@ -407,6 +407,8 @@ ssize_t pa_read(int fd, void *buf, size_t count, int *type) {
 
         if (WSAGetLastError() != WSAENOTSOCK) {
             errno = WSAGetLastError();
+            if (errno == WSAEWOULDBLOCK)
+                errno = EAGAIN;
             return r;
         }
 
@@ -448,6 +450,8 @@ ssize_t pa_write(int fd, const void *buf, size_t count, int *type) {
 #ifdef OS_IS_WIN32
         if (WSAGetLastError() != WSAENOTSOCK) {
             errno = WSAGetLastError();
+            if (errno == WSAEWOULDBLOCK)
+                errno = EAGAIN;
             return r;
         }
 #else
