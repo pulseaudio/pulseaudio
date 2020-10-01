@@ -300,7 +300,9 @@ int pa__init(pa_module*m) {
 
 #  if defined(USE_PROTOCOL_ESOUND)
 
-#    if defined(USE_PER_USER_ESOUND_SOCKET)
+    /* Windows doesn't support getuid(), so we ignore the per-user Esound socket compile flag.
+     * Moreover, Esound Unix sockets haven't been supported on Windows historically. */
+#    if defined(USE_PER_USER_ESOUND_SOCKET) && !defined(OS_IS_WIN32)
     u->socket_path = pa_sprintf_malloc("/tmp/.esd-%lu/socket", (unsigned long) getuid());
 #    else
     u->socket_path = pa_xstrdup("/tmp/.esd/socket");
