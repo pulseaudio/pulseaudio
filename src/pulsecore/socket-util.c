@@ -239,8 +239,13 @@ int pa_unix_socket_is_stale(const char *fn) {
     sa.sun_path[sizeof(sa.sun_path) - 1] = 0;
 
     if (connect(fd, (struct sockaddr*) &sa, sizeof(sa)) < 0) {
+#if !defined(OS_IS_WIN32)
         if (errno == ECONNREFUSED)
             ret = 1;
+#else
+        if (WSAGetLastError() == WSAECONNREFUSED)
+            ret = 1;
+#endif
     } else
         ret = 0;
 
