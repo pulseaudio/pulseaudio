@@ -101,7 +101,7 @@
 #ifdef DISABLE_LIBTOOL_PRELOAD
 /* FIXME: work around a libtool bug by making sure we have 2 elements. Bug has
  * been reported: https://debbugs.gnu.org/cgi/bugreport.cgi?bug=29576 */
-const lt_dlsymlist lt_preloaded_symbols[] = {
+LT_DLSYM_CONST lt_dlsymlist lt_preloaded_symbols[] = {
     { "@PROGRAM@", NULL },
     { NULL, NULL }
 };
