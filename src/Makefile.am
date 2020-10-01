@@ -206,7 +206,10 @@ bin_PROGRAMS += pasuspender
 endif
 
 if HAVE_AF_UNIX
+if !OS_IS_WIN32
+# pacmd relies on Unix signals, which are not present on Windows.
 bin_PROGRAMS += pacmd
+endif
 endif
 
 if HAVE_X11

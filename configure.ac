@@ -434,6 +434,9 @@ AC_CHECK_HEADERS([netinet/ip.h], [], [],
 AC_CHECK_HEADERS([sys/resource.h], [HAVE_SYS_RESOURCE_H=1], [HAVE_SYS_RESOURCE_H=0])
 AC_SUBST(HAVE_SYS_RESOURCE_H)
 AC_CHECK_HEADERS([sys/un.h], [HAVE_AF_UNIX=1], [HAVE_AF_UNIX=0])
+# In principle we would test for <afunix.h>, but that doesn't ship (yet) with the
+# MinGW headers.
+AC_CHECK_HEADERS([winsock2.h], [HAVE_AF_UNIX=1], [])
 AM_CONDITIONAL(HAVE_AF_UNIX, test "x$HAVE_AF_UNIX" = "x1")
 AC_SUBST(HAVE_AF_UNIX)
 
