@@ -4311,7 +4311,7 @@ static void profile_set_set_availability_groups(pa_alsa_profile_set *ps) {
                 PA_LLIST_FOREACH(j2, p2->jacks) {
                     if (!j2->has_control || j2->state_plugged == PA_AVAILABLE_NO)
                         continue;
-                    if (pa_streq(j->name, j2->name)) {
+                    if (pa_streq(j->alsa_name, j2->alsa_name)) {
                         j->state_plugged = PA_AVAILABLE_UNKNOWN;
                         j2->state_plugged = PA_AVAILABLE_UNKNOWN;
                         found = p2->availability_group;
