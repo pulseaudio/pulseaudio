@@ -4276,24 +4276,38 @@ fail:
 }
 
 /* the logic is simple: if we see the jack in multiple paths */
-/* assign all those jacks to one availability_group */
-static void mapping_group_available(pa_hashmap *paths)
-{
-    void *state, *state2;
-    pa_alsa_path *p, *p2;
-    pa_alsa_jack *j, *j2;
+/* assign all those paths to one availability_group */
+static void profile_set_set_availability_groups(pa_alsa_profile_set *ps) {
+    pa_dynarray *paths;
+    pa_alsa_path *p;
+    void *state;
+    unsigned idx1;
     uint32_t num = 1;
 
-    PA_HASHMAP_FOREACH(p, paths, state) {
+    /* Merge ps->input_paths and ps->output_paths into one dynarray. */
+    paths = pa_dynarray_new(NULL);
+    PA_HASHMAP_FOREACH(p, ps->input_paths, state)
+        pa_dynarray_append(paths, p);
+    PA_HASHMAP_FOREACH(p, ps->output_paths, state)
+        pa_dynarray_append(paths, p);
+
+    PA_DYNARRAY_FOREACH(p, paths, idx1) {
+        pa_alsa_jack *j;
         const char *found = NULL;
         bool has_control = false;
+
         PA_LLIST_FOREACH(j, p->jacks) {
+            pa_alsa_path *p2;
+            unsigned idx2;
+
             if (!j->has_control || j->state_plugged == PA_AVAILABLE_NO)
                 continue;
             has_control = true;
-            PA_HASHMAP_FOREACH(p2, paths, state2) {
+            PA_DYNARRAY_FOREACH(p2, paths, idx2) {
+                pa_alsa_jack *j2;
+
                 if (p2 == p)
-                   break;
+                    break;
                 PA_LLIST_FOREACH(j2, p2->jacks) {
                     if (!j2->has_control || j2->state_plugged == PA_AVAILABLE_NO)
                         continue;
@@ -4318,6 +4332,8 @@ static void mapping_group_available(pa_hashmap *paths)
         if (!found)
             num++;
     }
+
+    pa_dynarray_free(paths);
 }
 
 static void mapping_paths_probe(pa_alsa_mapping *m, pa_alsa_profile *profile,
@@ -4367,8 +4383,6 @@ static void mapping_paths_probe(pa_alsa_mapping *m, pa_alsa_profile *profile,
 
     PA_HASHMAP_FOREACH(p, ps->paths, state)
         pa_hashmap_put(used_paths, p, p);
-
-    mapping_group_available(ps->paths);
 
     pa_log_debug("Available mixer paths (after tidying):");
     pa_alsa_path_set_dump(ps);
@@ -5102,6 +5116,8 @@ void pa_alsa_profile_set_probe(
     pa_hashmap_free(broken_outputs);
     pa_hashmap_free(used_paths);
     pa_xfree(probe_order);
+
+    profile_set_set_availability_groups(ps);
 
     ps->probed = true;
 }
