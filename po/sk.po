@@ -6,17 +6,19 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PulseAudio master\n"
-"Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/issues/new\n"
+"Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
+"issues/new\n"
 "POT-Creation-Date: 2016-06-22 13:54+0000\n"
-"PO-Revision-Date: 2016-07-06 17:20+0200\n"
-"Last-Translator: Dušan Kazik <prescott66@gmail.com>\n"
-"Language-Team: Slovak <gnome-sk-list@gnome.org>\n"
+"PO-Revision-Date: 2020-10-07 02:48+0000\n"
+"Last-Translator: Dusan Kazik <prescott66@gmail.com>\n"
+"Language-Team: Slovak <https://translate.fedoraproject.org/projects/"
+"pulseaudio/pulseaudio/sk/>\n"
 "Language: sk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 1 : (n>=2 && n<=4) ? 2 : 0;\n"
-"X-Generator: Poedit 1.8.7.1\n"
+"X-Generator: Weblate 4.2.2\n"
 
 #: ../src/daemon/cmdline.c:113
 #, c-format
@@ -373,7 +375,7 @@ msgstr ""
 
 #: ../src/daemon/main.c:654
 msgid "Root privileges required."
-msgstr "Vyžadujú sa privilégiá správcu"
+msgstr "Vyžadujú sa právomoci správcu."
 
 #: ../src/daemon/main.c:661
 msgid "--start not supported for system instances."
@@ -2206,7 +2208,7 @@ msgstr ""
 #: ../src/utils/pactl.c:586
 #, c-format
 msgid "\tActive Profile: %s\n"
-msgstr "\\Aktívny profil: %s\n"
+msgstr "\tAktívny profil: %s\n"
 
 #: ../src/utils/pactl.c:600
 #, c-format
@@ -2214,7 +2216,7 @@ msgid ""
 "\t\t\tProperties:\n"
 "\t\t\t\t%s\n"
 msgstr ""
-"\t\t\\Vlastnosti:\n"
+"\t\t\tVlastnosti:\n"
 "\t\t\t\t%s\n"
 
 #: ../src/utils/pactl.c:605
