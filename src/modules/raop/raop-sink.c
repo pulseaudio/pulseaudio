@@ -826,7 +826,6 @@ pa_sink* pa_raop_sink_new(pa_module *m, pa_modargs *ma, const char *driver) {
     pa_sink_new_data_set_channel_map(&data, &map);
 
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, server);
-    pa_proplist_sets(data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "music");
     pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "RAOP sink '%s'", server);
 
     if (pa_modargs_get_proplist(ma, "sink_properties", data.proplist, PA_UPDATE_REPLACE) < 0) {
