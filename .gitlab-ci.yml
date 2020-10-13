@@ -16,8 +16,9 @@ stages:
 
 variables:
   # Update this tag when you want to trigger a rebuild the container in which
-  # CI runs, for example when adding new packages to UBUNTU_DEBS. The tag is
-  # an arbitrary string that identifies the exact container contents.
+  # CI runs, for example when adding new packages to FDO_DISTRIBUTION_PACKAGES.
+  # The tag is an arbitrary string that identifies the exact container
+  # contents.
   FDO_DISTRIBUTION_TAG: '2020-03-07-01'
   FDO_DISTRIBUTION_VERSION: '18.04'
   FDO_UPSTREAM_REPO: 'pulseaudio/pulseaudio'
