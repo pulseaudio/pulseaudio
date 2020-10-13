@@ -1441,8 +1441,11 @@ static void subscribe_callback(pa_core *c, pa_subscription_event_type_t t, uint3
 
     pa_log_info("Storing volume/mute/device for stream %s.", name);
 
-    if (entry_write(u, name, entry, true))
+    if (entry_write(u, name, entry, true)) {
         trigger_save(u);
+    } else {
+        pa_log_error("Could not store volume/mute/device for stream %s.", name);
+    }
 
 #ifdef HAVE_DBUS
     if (created_new_entry) {
