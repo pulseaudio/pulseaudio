@@ -1794,16 +1794,16 @@ static bool element_probe_volume(pa_alsa_element *e, snd_mixer_elem_t *me) {
         alsa_id_str(buf, sizeof(buf), &e->alsa_id);
         pa_log_warn("Volume element %s with no channels?", buf);
         return false;
-    } else if (e->n_channels > 8) {
+    } else if (e->n_channels > 2) {
         /* FIXME: In some places code like this is used:
          *
          *     e->masks[alsa_channel_ids[p]][e->n_channels-1]
          *
          * The definition of e->masks is
          *
-         *     pa_channel_position_mask_t masks[SND_MIXER_SCHN_LAST + 1][8];
+         *     pa_channel_position_mask_t masks[SND_MIXER_SCHN_LAST + 1][2];
          *
-         * Since the array size is fixed at 8, we obviously
+         * Since the array size is fixed at 2, we obviously
          * don't support elements with more than two
          * channels... */
         alsa_id_str(buf, sizeof(buf), &e->alsa_id);
@@ -2463,7 +2463,7 @@ static pa_channel_position_mask_t parse_mask(const char *m) {
 static int element_parse_override_map(pa_config_parser_state *state) {
     pa_alsa_path *p;
     pa_alsa_element *e;
-    const char *split_state = NULL, *s;
+    const char *split_state = NULL;
     unsigned i = 0;
     char *n;
 
@@ -2489,18 +2489,12 @@ static int element_parse_override_map(pa_config_parser_state *state) {
             }
         }
 
-        s = strstr(state->lvalue, ".");
-        if (s) {
-            int idx;
-            pa_atoi(s + 1, &idx);
-            if (idx >= 1 && idx <= 8) {
-                e->masks[i++][idx-1] = m;
-            } else {
-                pa_log("[%s:%u] Override map index '%s' invalid in '%s'", state->filename, state->lineno, state->lvalue, state->section);                
-            }
-        }
+        if (pa_streq(state->lvalue, "override-map.1"))
+            e->masks[i++][0] = m;
+        else
+            e->masks[i++][1] = m;
 
-        /* Later on we might add override-map.9 and so on here ... */
+        /* Later on we might add override-map.3 and so on here ... */
 
         pa_xfree(n);
     }
