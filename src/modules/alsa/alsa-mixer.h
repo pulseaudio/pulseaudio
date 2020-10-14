@@ -50,6 +50,8 @@ typedef struct pa_alsa_port_data pa_alsa_port_data;
 #include "alsa-util.h"
 #include "alsa-ucm.h"
 
+#define POSITION_MASK_CHANNELS 8
+
 typedef enum pa_alsa_switch_use {
     PA_ALSA_SWITCH_IGNORE,
     PA_ALSA_SWITCH_MUTE,   /* make this switch follow mute status */
@@ -152,7 +154,7 @@ struct pa_alsa_element {
 
     long constant_volume;
 
-    bool override_map:1;
+    unsigned int override_map;
     bool direction_try_other:1;
 
     bool has_dB:1;
@@ -160,7 +162,7 @@ struct pa_alsa_element {
     long volume_limit; /* -1 for no configured limit */
     double min_dB, max_dB;
 
-    pa_channel_position_mask_t masks[SND_MIXER_SCHN_LAST + 1][2];
+    pa_channel_position_mask_t masks[SND_MIXER_SCHN_LAST + 1][POSITION_MASK_CHANNELS];
     unsigned n_channels;
 
     pa_channel_position_mask_t merged_mask;
