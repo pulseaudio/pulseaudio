@@ -689,6 +689,20 @@ static const snd_mixer_selem_channel_id_t alsa_channel_ids[PA_CHANNEL_POSITION_M
     [PA_CHANNEL_POSITION_TOP_REAR_RIGHT] = SND_MIXER_SCHN_UNKNOWN
 };
 
+static snd_mixer_selem_channel_id_t alsa_channel_positions[POSITION_MASK_CHANNELS] = {
+    SND_MIXER_SCHN_FRONT_LEFT,
+    SND_MIXER_SCHN_FRONT_RIGHT,
+    SND_MIXER_SCHN_REAR_LEFT,
+    SND_MIXER_SCHN_REAR_RIGHT,
+    SND_MIXER_SCHN_FRONT_CENTER,
+    SND_MIXER_SCHN_WOOFER,
+    SND_MIXER_SCHN_SIDE_LEFT,
+    SND_MIXER_SCHN_SIDE_RIGHT,
+#if POSITION_MASK_CHANNELS > 8
+#error "Extend alsa_channel_positions[] array (9+)"
+#endif
+};
+
 static void setting_free(pa_alsa_setting *s) {
     pa_assert(s);
 
@@ -1767,7 +1781,11 @@ static bool element_probe_volume(pa_alsa_element *e, snd_mixer_elem_t *me) {
     if (is_mono) {
         e->n_channels = 1;
 
-        if (!e->override_map) {
+        if ((e->override_map & (1 << (e->n_channels-1))) && e->masks[SND_MIXER_SCHN_MONO][e->n_channels-1] == 0) {
+            pa_log_warn("Override map for mono element %s is invalid, ignoring override map", e->path->name);
+            e->override_map &= ~(1 << (e->n_channels-1));
+        }
+        if (!(e->override_map & (1 << (e->n_channels-1)))) {
             for (p = PA_CHANNEL_POSITION_FRONT_LEFT; p < PA_CHANNEL_POSITION_MAX; p++) {
                 if (alsa_channel_ids[p] == SND_MIXER_SCHN_UNKNOWN)
                     continue;
@@ -1794,24 +1812,25 @@ static bool element_probe_volume(pa_alsa_element *e, snd_mixer_elem_t *me) {
         alsa_id_str(buf, sizeof(buf), &e->alsa_id);
         pa_log_warn("Volume element %s with no channels?", buf);
         return false;
-    } else if (e->n_channels > 2) {
+    } else if (e->n_channels > POSITION_MASK_CHANNELS) {
         /* FIXME: In some places code like this is used:
          *
          *     e->masks[alsa_channel_ids[p]][e->n_channels-1]
          *
          * The definition of e->masks is
          *
-         *     pa_channel_position_mask_t masks[SND_MIXER_SCHN_LAST + 1][2];
+         *     pa_channel_position_mask_t masks[SND_MIXER_SCHN_LAST + 1][POSITION_MASK_CHANNELS];
          *
-         * Since the array size is fixed at 2, we obviously
-         * don't support elements with more than two
+         * Since the array size is fixed at POSITION_MASK_CHANNELS, we obviously
+         * don't support elements with more than POSITION_MASK_CHANNELS
          * channels... */
         alsa_id_str(buf, sizeof(buf), &e->alsa_id);
         pa_log_warn("Volume element %s has %u channels. That's too much! I can't handle that!", buf, e->n_channels);
         return false;
     }
 
-    if (!e->override_map) {
+retry:
+    if (!(e->override_map & (1 << (e->n_channels-1)))) {
         for (p = PA_CHANNEL_POSITION_FRONT_LEFT; p < PA_CHANNEL_POSITION_MAX; p++) {
             bool has_channel;
 
@@ -1834,6 +1853,17 @@ static bool element_probe_volume(pa_alsa_element *e, snd_mixer_elem_t *me) {
 
         e->merged_mask |= e->masks[alsa_channel_ids[p]][e->n_channels-1];
     }
+
+    if (e->merged_mask == 0) {
+        if (!(e->override_map & (1 << (e->n_channels-1)))) {
+            pa_log_warn("Channel map for element %s is invalid", e->path->name);
+            return false;
+        }
+        pa_log_warn("Override map for element %s has empty result, ignoring override map", e->path->name);
+        e->override_map &= ~(1 << (e->n_channels-1));
+        goto retry;
+    }
+
     return true;
 }
 
@@ -2427,6 +2457,16 @@ static int element_parse_volume_limit(pa_config_parser_state *state) {
     return 0;
 }
 
+static unsigned int parse_channel_position(const char *m)
+{
+    pa_channel_position_t p;
+
+    if ((p = pa_channel_position_from_string(m)) == PA_CHANNEL_POSITION_INVALID)
+        return SND_MIXER_SCHN_UNKNOWN;
+
+    return alsa_channel_ids[p];
+}
+
 static pa_channel_position_mask_t parse_mask(const char *m) {
     pa_channel_position_mask_t v;
 
@@ -2464,7 +2504,9 @@ static int element_parse_override_map(pa_config_parser_state *state) {
     pa_alsa_path *p;
     pa_alsa_element *e;
     const char *split_state = NULL;
+    char *s;
     unsigned i = 0;
+    int channel_count = 0;
     char *n;
 
     pa_assert(state);
@@ -2476,30 +2518,59 @@ static int element_parse_override_map(pa_config_parser_state *state) {
         return -1;
     }
 
+    s = strstr(state->lvalue, ".");
+    if (s) {
+        pa_atoi(s + 1, &channel_count);
+        if (channel_count < 1 || channel_count > POSITION_MASK_CHANNELS) {
+            pa_log("[%s:%u] Override map index '%s' invalid in '%s'", state->filename, state->lineno, state->lvalue, state->section);
+            return 0;
+        }
+    } else {
+        pa_log("[%s:%u] Invalid override map syntax '%s' in '%s'", state->filename, state->lineno, state->lvalue, state->section);
+        return -1;
+    }
+
     while ((n = pa_split(state->rvalue, ",", &split_state))) {
         pa_channel_position_mask_t m;
+        snd_mixer_selem_channel_id_t channel_position;
+
+        if (i >= (unsigned)channel_count) {
+            pa_log("[%s:%u] Invalid override map size (>%d) in '%s'", state->filename, state->lineno, channel_count, state->section);
+            return -1;
+        }
+        channel_position = alsa_channel_positions[i];
 
         if (!*n)
             m = 0;
         else {
-            if ((m = parse_mask(n)) == 0) {
-                pa_log("[%s:%u] Override map '%s' invalid in '%s'", state->filename, state->lineno, n, state->section);
+            s = strstr(n, ":");
+            if (s) {
+                *s = '\0';
+                s++;
+                channel_position = parse_channel_position(n);
+                if (channel_position == SND_MIXER_SCHN_UNKNOWN) {
+                    pa_log("[%s:%u] Override map position '%s' invalid in '%s'", state->filename, state->lineno, n, state->section);
+                    pa_xfree(n);
+                    return -1;
+                }
+            }
+            if ((m = parse_mask(s ? s : n)) == 0) {
+                pa_log("[%s:%u] Override map '%s' invalid in '%s'", state->filename, state->lineno, s ? s : n, state->section);
                 pa_xfree(n);
                 return -1;
             }
         }
 
-        if (pa_streq(state->lvalue, "override-map.1"))
-            e->masks[i++][0] = m;
-        else
-            e->masks[i++][1] = m;
-
-        /* Later on we might add override-map.3 and so on here ... */
-
+        if (e->masks[channel_position][channel_count-1]) {
+            pa_log("[%s:%u] Override map '%s' duplicate position '%s' in '%s'", state->filename, state->lineno, s ? s : n, snd_mixer_selem_channel_name(channel_position), state->section);
+            pa_xfree(n);
+            return -1;
+        }
+        e->override_map |= (1 << (channel_count - 1));
+        e->masks[channel_position][channel_count-1] = m;
         pa_xfree(n);
+        i++;
     }
-
-    e->override_map = true;
 
     return 0;
 }
@@ -2856,6 +2927,15 @@ pa_alsa_path* pa_alsa_path_new(const char *paths_dir, const char *fname, pa_alsa
         { "enumeration",         element_parse_enumeration,         NULL, NULL },
         { "override-map.1",      element_parse_override_map,        NULL, NULL },
         { "override-map.2",      element_parse_override_map,        NULL, NULL },
+        { "override-map.3",      element_parse_override_map,        NULL, NULL },
+        { "override-map.4",      element_parse_override_map,        NULL, NULL },
+        { "override-map.5",      element_parse_override_map,        NULL, NULL },
+        { "override-map.6",      element_parse_override_map,        NULL, NULL },
+        { "override-map.7",      element_parse_override_map,        NULL, NULL },
+        { "override-map.8",      element_parse_override_map,        NULL, NULL },
+#if POSITION_MASK_CHANNELS > 8
+#error "Add override-map.9+ definitions"
+#endif
         /* ... later on we might add override-map.3 and so on here ... */
         { "required",            element_parse_required,            NULL, NULL },
         { "required-any",        element_parse_required,            NULL, NULL },
@@ -3227,7 +3307,7 @@ void pa_alsa_element_dump(pa_alsa_element *e) {
     pa_assert(e);
 
     alsa_id_str(buf, sizeof(buf), &e->alsa_id);
-    pa_log_debug("Element %s, direction=%i, switch=%i, volume=%i, volume_limit=%li, enumeration=%i, required=%i, required_any=%i, required_absent=%i, mask=0x%llx, n_channels=%u, override_map=%s",
+    pa_log_debug("Element %s, direction=%i, switch=%i, volume=%i, volume_limit=%li, enumeration=%i, required=%i, required_any=%i, required_absent=%i, mask=0x%llx, n_channels=%u, override_map=%02x",
                  buf,
                  e->direction,
                  e->switch_use,
@@ -3239,7 +3319,7 @@ void pa_alsa_element_dump(pa_alsa_element *e) {
                  e->required_absent,
                  (long long unsigned) e->merged_mask,
                  e->n_channels,
-                 pa_yes_no(e->override_map));
+                 e->override_map);
 
     PA_LLIST_FOREACH(o, e->options)
         pa_alsa_option_dump(o);
