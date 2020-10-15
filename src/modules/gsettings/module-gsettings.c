@@ -52,7 +52,11 @@ int pa__init(pa_module*m) {
 
     if ((u->fd = pa_start_child_for_read(
 #if defined(__linux__) && defined(HAVE_RUNNING_FROM_BUILD_TREE)
+#ifdef MESON_BUILD
+                              pa_run_from_build_tree() ? PA_BUILDDIR PA_PATH_SEP "src" PA_PATH_SEP "modules" PA_PATH_SEP "gsettings" PA_PATH_SEP "gsettings-helper" :
+#else
                               pa_run_from_build_tree() ? PA_BUILDDIR "/gsettings-helper" :
+#endif
 #endif
                  PA_GSETTINGS_HELPER, NULL, &u->pid)) < 0)
         goto fail;
