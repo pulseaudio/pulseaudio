@@ -1432,7 +1432,7 @@ AS_IF([test "x$enable_webrtc_aec" = "xyes" && test "$HAVE_CXX11" = "0"],
     [AC_MSG_ERROR([*** webrtc-audio-processing needs C++11 support])])
 
 AS_IF([test "x$enable_webrtc_aec" != "xno"],
-    [PKG_CHECK_MODULES(WEBRTC, [ webrtc-audio-processing >= 0.2 ], [HAVE_WEBRTC=1], [HAVE_WEBRTC=0])],
+    [PKG_CHECK_MODULES(WEBRTC, [ webrtc-audio-processing-1 >= 1.0 ], [HAVE_WEBRTC=1], [HAVE_WEBRTC=0])],
     [HAVE_WEBRTC=0])
 
 AS_IF([test "x$enable_webrtc_aec" = "xyes" && test "x$HAVE_WEBRTC" = "x0"],
