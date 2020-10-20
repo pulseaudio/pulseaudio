@@ -26,6 +26,7 @@ cscope.in.out
 cscope.po.out
 pulse-daemon.log
 depcomp
+install/
 install-sh
 libltdl
 libtool
