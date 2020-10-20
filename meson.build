@@ -728,7 +728,7 @@ if get_option('daemon')
     cdata.set('HAVE_SOXR', 1)
   endif
 
-  webrtc_dep = dependency('webrtc-audio-processing', version : '>= 0.2', required : get_option('webrtc-aec'))
+  webrtc_dep = dependency('webrtc-audio-processing-1', version : '>= 1.0', required : get_option('webrtc-aec'))
   if webrtc_dep.found()
     cdata.set('HAVE_WEBRTC', 1)
   endif
