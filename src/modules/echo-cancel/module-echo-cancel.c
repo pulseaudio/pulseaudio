@@ -2358,8 +2358,6 @@ int main(int argc, char* argv[]) {
     }
 
     u.ec->done(u.ec);
-    u.ec->msg->dead = true;
-    pa_echo_canceller_msg_unref(u.ec->msg);
 
 out:
     if (u.captured_file)
