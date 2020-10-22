@@ -54,6 +54,7 @@ struct pa_rtp_context {
     GstElement *appsink;
     GstCaps *meta_reference;
 
+    bool first_buffer;
     uint32_t last_timestamp;
 
     uint8_t *send_buf;
@@ -482,6 +483,7 @@ pa_rtp_context* pa_rtp_context_new_recv(int fd, uint8_t payload, const pa_sample
     c->fdsem = pa_fdsem_new();
     c->ss = *ss;
     c->send_buf = NULL;
+    c->first_buffer = true;
 
     if (!gst_init_check(NULL, NULL, &error)) {
         pa_log_error("Could not initialise GStreamer: %s", error->message);
@@ -597,6 +599,21 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool, uint32_
     *rtp_tstamp = gst_util_uint64_scale_int(GST_BUFFER_PTS(gst_buffer_list_get(buf_list, 0)), c->ss.rate, GST_SECOND) & 0xFFFFFFFFU;
     if (timestamp != GST_CLOCK_TIME_NONE)
         pa_timeval_rtstore(tstamp, timestamp / PA_NSEC_PER_USEC, false);
+
+    if (c->first_buffer) {
+        c->first_buffer = false;
+        c->last_timestamp = *rtp_tstamp;
+    } else {
+        /* The RTP clock -> time domain -> RTP clock transformation above might
+         * add a ±1 rounding error, so let's get rid of that */
+        uint32_t expected = c->last_timestamp + (uint32_t) (data_len / pa_rtp_context_get_frame_size(c));
+        int delta = *rtp_tstamp - expected;
+
+        if (delta == 1 || delta == -1)
+            *rtp_tstamp -= delta;
+
+        c->last_timestamp = *rtp_tstamp;
+    }
 
     gst_buffer_list_unref(buf_list);
     gst_object_unref(adapter);
