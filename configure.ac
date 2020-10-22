@@ -1318,7 +1318,7 @@ AC_ARG_ENABLE([gstreamer],
     AS_HELP_STRING([--disable-gstreamer],[Disable optional GStreamer-based RTP support]))
 
 AS_IF([test "x$enable_gstreamer" != "xno"],
-    [PKG_CHECK_MODULES(GSTREAMER, [ gstreamer-1.0 gstreamer-app-1.0 gstreamer-rtp-1.0 gio-2.0 ],
+    [PKG_CHECK_MODULES(GSTREAMER, [ gstreamer-1.0 >= 1.14 gstreamer-app-1.0 gstreamer-rtp-1.0 gio-2.0 ],
                        HAVE_GSTREAMER=1, HAVE_GSTREAMER=0)],
     HAVE_GSTREAMER=0)
 

@@ -52,6 +52,7 @@ struct pa_rtp_context {
     GstElement *pipeline;
     GstElement *appsrc;
     GstElement *appsink;
+    GstCaps *meta_reference;
 
     uint32_t last_timestamp;
 
@@ -70,6 +71,7 @@ static GstCaps* caps_from_sample_spec(const pa_sample_spec *ss) {
             "layout", G_TYPE_STRING, "interleaved",
             NULL);
 }
+
 static bool init_send_pipeline(pa_rtp_context *c, int fd, uint8_t payload, size_t mtu, const pa_sample_spec *ss) {
     GstElement *appsrc = NULL, *pay = NULL, *capsf = NULL, *rtpbin = NULL, *sink = NULL;
     GstCaps *caps;
@@ -354,9 +356,26 @@ static void on_pad_added(GstElement *element, GstPad *pad, gpointer userdata) {
     gst_object_unref(depay);
 }
 
+static GstPadProbeReturn udpsrc_buffer_probe(GstPad *pad, GstPadProbeInfo *info, gpointer userdata) {
+    struct timeval tv;
+    pa_usec_t timestamp;
+    pa_rtp_context *c = (pa_rtp_context *) userdata;
+
+    pa_assert(info->type & GST_PAD_PROBE_TYPE_BUFFER);
+
+    pa_gettimeofday(&tv);
+    timestamp = pa_timeval_load(&tv);
+
+    gst_buffer_add_reference_timestamp_meta(GST_BUFFER(info->data), c->meta_reference, timestamp * GST_USECOND,
+            GST_CLOCK_TIME_NONE);
+
+    return GST_PAD_PROBE_OK;
+}
+
 static bool init_receive_pipeline(pa_rtp_context *c, int fd, const pa_sample_spec *ss) {
     GstElement *udpsrc = NULL, *rtpbin = NULL, *depay = NULL, *appsink = NULL;
     GstCaps *caps;
+    GstPad *pad;
     GSocket *socket;
     GError *error = NULL;
 
@@ -397,6 +416,14 @@ static bool init_receive_pipeline(pa_rtp_context *c, int fd, const pa_sample_spe
     }
 
     g_signal_connect(G_OBJECT(rtpbin), "pad-added", G_CALLBACK(on_pad_added), c);
+
+    /* This logic should go into udpsrc, and we should be populating the
+     * receive timestamp using SCM_TIMESTAMP, but until we have that ... */
+    c->meta_reference = gst_caps_new_empty_simple("timestamp/x-pulseaudio-wallclock");
+
+    pad = gst_element_get_static_pad(udpsrc, "src");
+    gst_pad_add_probe(pad, GST_PAD_PROBE_TYPE_BUFFER, udpsrc_buffer_probe, c, NULL);
+    gst_object_unref(pad);
 
     if (gst_element_set_state(c->pipeline, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
         pa_log("Could not start pipeline");
@@ -483,6 +510,7 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool, uint32_
     GstAdapter *adapter;
     GstBuffer *buf;
     GstMapInfo info;
+    GstClockTime timestamp = GST_CLOCK_TIME_NONE;
     uint8_t *data;
     uint64_t data_len = 0;
 
@@ -498,6 +526,21 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool, uint32_
             break;
 
         buf = gst_sample_get_buffer(sample);
+
+        /* Get the timestamp from the first buffer */
+        if (timestamp == GST_CLOCK_TIME_NONE) {
+            GstReferenceTimestampMeta *meta = gst_buffer_get_reference_timestamp_meta(buf, c->meta_reference);
+
+            /* Use the meta if we were able to insert it and it came through,
+             * else try to fallback to the DTS, which is only available in
+             * GStreamer 1.16 and earlier. */
+            if (meta)
+                timestamp = meta->timestamp;
+            else if (GST_BUFFER_DTS(buf) != GST_CLOCK_TIME_NONE)
+                timestamp = GST_BUFFER_DTS(buf);
+            else
+                timestamp = 0;
+        }
 
         if (GST_BUFFER_IS_DISCONT(buf))
             pa_log_info("Discontinuity detected, possibly lost some packets");
@@ -550,11 +593,10 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool, uint32_
 
     /* When buffer-mode = none, the buffer PTS is the RTP timestamp, converted
      * to time units (instead of clock-rate units as is in the header) and
-     * wraparound-corrected, and the DTS is the pipeline clock timestamp from
-     * when the buffer was acquired at the source (this is actually the running
-     * time which is why we need to add base time). */
+     * wraparound-corrected. */
     *rtp_tstamp = gst_util_uint64_scale_int(GST_BUFFER_PTS(gst_buffer_list_get(buf_list, 0)), c->ss.rate, GST_SECOND) & 0xFFFFFFFFU;
-    pa_timeval_rtstore(tstamp, (GST_BUFFER_DTS(gst_buffer_list_get(buf_list, 0)) + gst_element_get_base_time(c->pipeline)) / GST_USECOND, false);
+    if (timestamp != GST_CLOCK_TIME_NONE)
+        pa_timeval_rtstore(tstamp, timestamp / PA_NSEC_PER_USEC, false);
 
     gst_buffer_list_unref(buf_list);
     gst_object_unref(adapter);
@@ -573,6 +615,9 @@ fail:
 
 void pa_rtp_context_free(pa_rtp_context *c) {
     pa_assert(c);
+
+    if (c->meta_reference)
+        gst_caps_unref(c->meta_reference);
 
     if (c->appsrc) {
         gst_app_src_end_of_stream(GST_APP_SRC(c->appsrc));

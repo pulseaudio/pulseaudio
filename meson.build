@@ -678,7 +678,7 @@ if webrtc_dep.found()
   cdata.set('HAVE_WEBRTC', 1)
 endif
 
-gst_dep = dependency('gstreamer-1.0', required : get_option('gstreamer'))
+gst_dep = dependency('gstreamer-1.0', version : '>= 1.14', required : get_option('gstreamer'))
 gstapp_dep = dependency('gstreamer-app-1.0', required : get_option('gstreamer'))
 gstrtp_dep = dependency('gstreamer-rtp-1.0', required : get_option('gstreamer'))
 
