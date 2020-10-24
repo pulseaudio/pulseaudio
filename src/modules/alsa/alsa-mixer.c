@@ -3072,6 +3072,7 @@ int pa_alsa_path_probe(pa_alsa_path *p, pa_alsa_mapping *mapping, snd_mixer_t *m
     double min_dB[PA_CHANNEL_POSITION_MAX], max_dB[PA_CHANNEL_POSITION_MAX];
     pa_channel_position_t t;
     pa_channel_position_mask_t path_volume_channels = 0;
+    bool min_dB_set, max_dB_set;
     char buf[64];
 
     pa_assert(p);
@@ -3102,7 +3103,7 @@ int pa_alsa_path_probe(pa_alsa_path *p, pa_alsa_mapping *mapping, snd_mixer_t *m
             pa_log_debug("Probe of element %s failed.", buf);
             return -1;
         }
-        pa_log_debug("Probe of element %s succeeded (volume=%d, switch=%d, enumeration=%d).", buf, e->volume_use, e->switch_use, e->enumeration_use);
+        pa_log_debug("Probe of element %s succeeded (volume=%d, switch=%d, enumeration=%d, has_dB=%d).", buf, e->volume_use, e->switch_use, e->enumeration_use, e->has_dB);
 
         if (ignore_dB)
             e->has_dB = false;
@@ -3166,17 +3167,29 @@ int pa_alsa_path_probe(pa_alsa_path *p, pa_alsa_mapping *mapping, snd_mixer_t *m
     p->supported = true;
 
     p->min_dB = INFINITY;
+    min_dB_set = false;
     p->max_dB = -INFINITY;
+    max_dB_set = false;
 
     for (t = 0; t < PA_CHANNEL_POSITION_MAX; t++) {
         if (path_volume_channels & PA_CHANNEL_POSITION_MASK(t)) {
-            if (p->min_dB > min_dB[t])
+            if (p->min_dB > min_dB[t]) {
                 p->min_dB = min_dB[t];
+                min_dB_set = true;
+            }
 
-            if (p->max_dB < max_dB[t])
+            if (p->max_dB < max_dB[t]) {
                 p->max_dB = max_dB[t];
+                max_dB_set = true;
+            }
         }
     }
+
+    /* this is probably a wrong prediction, but it should be safe */
+    if (!min_dB_set)
+        p->min_dB = -INFINITY;
+    if (!max_dB_set)
+        p->max_dB = 0;
 
     return 0;
 }
