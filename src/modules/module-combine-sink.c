@@ -998,6 +998,7 @@ static int output_create_sink_input(struct output *o) {
     data.module = u->module;
     data.resample_method = u->resample_method;
     data.flags = PA_SINK_INPUT_VARIABLE_RATE|PA_SINK_INPUT_DONT_MOVE|PA_SINK_INPUT_NO_CREATE_ON_SUSPEND;
+    data.origin_sink = u->sink;
 
     pa_sink_input_new(&o->sink_input, u->core, &data);
 
