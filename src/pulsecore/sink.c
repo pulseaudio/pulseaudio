@@ -3973,6 +3973,10 @@ void pa_sink_move_streams_to_default_sink(pa_core *core, pa_sink *old_sink, bool
         if (!i->sink)
             continue;
 
+        /* Don't move sink-inputs which connect filter sinks to their target sinks */
+        if (i->origin_sink)
+            continue;
+
         /* If default_sink_changed is false, the old sink became unavailable, so all streams must be moved. */
         if (pa_safe_streq(old_sink->name, i->preferred_sink) && default_sink_changed)
             continue;

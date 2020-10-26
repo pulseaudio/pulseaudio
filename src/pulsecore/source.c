@@ -3029,6 +3029,10 @@ void pa_source_move_streams_to_default_source(pa_core *core, pa_source *old_sour
         if (!o->source)
             continue;
 
+        /* Don't move source-outputs which connect sources to filter sources */
+        if (o->destination_source)
+            continue;
+
         /* If default_source_changed is false, the old source became unavailable, so all streams must be moved. */
         if (pa_safe_streq(old_source->name, o->preferred_source) && default_source_changed)
             continue;
