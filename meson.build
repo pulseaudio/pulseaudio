@@ -742,6 +742,13 @@ if gst_dep.found() and gstapp_dep.found() and gstrtp_dep.found()
   have_gstreamer = true
 endif
 
+bluez5_gst_dep = dependency('gstreamer-1.0', version : '>= 1.14', required : get_option('bluez5-gstreamer'))
+bluez5_gstapp_dep = dependency('gstreamer-app-1.0', required : get_option('bluez5-gstreamer'))
+have_bluez5_gstreamer = false
+if bluez5_gst_dep.found() and bluez5_gstapp_dep.found()
+  have_bluez5_gstreamer = true
+endif
+
 # These are required for the CMake file generation
 cdata.set('PA_LIBDIR', libdir)
 cdata.set('PA_INCDIR', includedir)
@@ -882,6 +889,7 @@ summary = [
   '  Enable BlueZ 5:              @0@'.format(get_option('bluez5')),
   '    Enable native headsets:    @0@'.format(get_option('bluez5-native-headset')),
   '    Enable  ofono headsets:    @0@'.format(get_option('bluez5-ofono-headset')),
+  '    Enable GStreamer based codecs: @0@'.format(have_bluez5_gstreamer),
   'Enable udev:                   @0@'.format(udev_dep.found()),
   '  Enable HAL->udev compat:     @0@'.format(get_option('hal-compat')),
   'Enable systemd:                @0@'.format(libsystemd_dep.found()),

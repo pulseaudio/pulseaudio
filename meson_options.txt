@@ -81,6 +81,9 @@ option('avahi',
 option('bluez5',
        type : 'boolean', value : 'true',
        description : 'Optional BlueZ 5 support')
+option('bluez5-gstreamer',
+       type : 'feature', value: 'auto',
+       description : 'Optional BlueZ 5 GStreamer support')
 option('bluez5-native-headset',
        type : 'boolean',
        description : 'Optional native headset backend support (BlueZ 5)')
