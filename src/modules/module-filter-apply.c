@@ -146,15 +146,20 @@ static const char* get_filter_name(pa_object *o, bool is_sink_input) {
 static const char* get_filter_parameters(pa_object *o, const char *want, bool is_sink_input) {
     const char *parameters;
     char *prop_parameters;
-    pa_proplist *pl;
+    pa_proplist *pl, *device_pl;
 
-    if (is_sink_input)
+    if (is_sink_input) {
         pl = PA_SINK_INPUT(o)->proplist;
-    else
+        device_pl = PA_SINK_INPUT(o)->sink->proplist;
+    } else {
         pl = PA_SOURCE_OUTPUT(o)->proplist;
+        device_pl = PA_SOURCE_OUTPUT(o)->source->proplist;
+    }
 
     prop_parameters = pa_sprintf_malloc(PA_PROP_FILTER_APPLY_PARAMETERS, want);
     parameters = pa_proplist_gets(pl, prop_parameters);
+    if (!parameters)
+        parameters = pa_proplist_gets(device_pl, prop_parameters);
     pa_xfree(prop_parameters);
 
     return parameters;
