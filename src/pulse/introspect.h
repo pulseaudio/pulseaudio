@@ -240,8 +240,7 @@ typedef struct pa_sink_port_info {
                                          * input from the user to determine which device was plugged in. The application should
                                          * then activate the user-chosen port.
                                          *
-                                         * May be NULL, in which case the port is not part of any availability group (which is
-                                         * the same as having a group with only one member).
+                                         * May be NULL, in which case the port is not part of any availability group.
                                          *
                                          * The group identifier must be treated as an opaque identifier. The string may look
                                          * like an ALSA control name, but applications must not assume any such relationship.

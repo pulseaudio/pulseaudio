@@ -675,6 +675,40 @@ static void init_jacks(struct userdata *u) {
     }
 }
 
+static void prune_singleton_availability_groups(pa_hashmap *ports) {
+    pa_device_port *p;
+    pa_hashmap *group_counts;
+    void *state, *count;
+    const char *group;
+
+    /* Collect groups and erase those that don't have more than 1 path */
+    group_counts = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
+
+    PA_HASHMAP_FOREACH(p, ports, state) {
+        if (p->availability_group) {
+            count = pa_hashmap_get(group_counts, p->availability_group);
+            pa_hashmap_remove(group_counts, p->availability_group);
+            pa_hashmap_put(group_counts, p->availability_group, count + 1);
+        }
+    }
+
+    /* Now we have an availability_group -> count map, let's drop all groups
+     * that have only one member */
+    PA_HASHMAP_FOREACH_KV(group, count, group_counts, state) {
+        if (count == PA_UINT_TO_PTR(1))
+            pa_hashmap_remove(group_counts, group);
+    }
+
+    PA_HASHMAP_FOREACH(p, ports, state) {
+        if (p->availability_group && !pa_hashmap_get(group_counts, p->availability_group)) {
+            pa_xfree(p->availability_group);
+            p->availability_group = NULL;
+        }
+    }
+
+    pa_hashmap_free(group_counts);
+}
+
 static void set_card_name(pa_card_new_data *data, pa_modargs *ma, const char *device_id) {
     char *t;
     const char *n;
@@ -924,6 +958,7 @@ int pa__init(pa_module *m) {
     }
 
     add_disabled_profile(data.profiles);
+    prune_singleton_availability_groups(data.ports);
 
     if (pa_modargs_get_proplist(u->modargs, "card_properties", data.proplist, PA_UPDATE_REPLACE) < 0) {
         pa_log("Invalid properties");
