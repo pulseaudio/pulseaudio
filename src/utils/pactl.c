@@ -232,12 +232,14 @@ static void get_server_info_callback(pa_context *c, const pa_server_info *i, voi
     complete_action();
 }
 
-static const char* get_available_str_ynonly(int available) {
+static const char* get_available_str(int available) {
     switch (available) {
-        case PA_PORT_AVAILABLE_YES: return _(", available");
-        case PA_PORT_AVAILABLE_NO: return _(", not available");
+        case PA_PORT_AVAILABLE_UNKNOWN: return _("availability unknown");
+        case PA_PORT_AVAILABLE_YES: return _("available");
+        case PA_PORT_AVAILABLE_NO: return _("not available");
     }
-    return "";
+
+    pa_assert_not_reached();
 }
 
 static const char* get_device_port_type(unsigned int type) {
@@ -361,10 +363,10 @@ static void get_sink_info_callback(pa_context *c, const pa_sink_info *i, int is_
 
         printf(_("\tPorts:\n"));
         for (p = i->ports; *p; p++)
-            printf(_("\t\t%s: %s (type: %s, priority: %u%s%s%s)\n"),
+            printf(_("\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"),
                     (*p)->name, (*p)->description, get_device_port_type((*p)->type),
                     (*p)->priority, (*p)->availability_group ? _(", availability group: ") : "",
-                    (*p)->availability_group ?: "", get_available_str_ynonly((*p)->available));
+                    (*p)->availability_group ?: "", get_available_str((*p)->available));
     }
 
     if (i->active_port)
@@ -469,10 +471,10 @@ static void get_source_info_callback(pa_context *c, const pa_source_info *i, int
 
         printf(_("\tPorts:\n"));
         for (p = i->ports; *p; p++)
-            printf(_("\t\t%s: %s (type: %s, priority: %u%s%s%s)\n"),
+            printf(_("\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"),
                     (*p)->name, (*p)->description, get_device_port_type((*p)->type),
                     (*p)->priority, (*p)->availability_group ? _(", availability group: ") : "",
-                    (*p)->availability_group ?: "", get_available_str_ynonly((*p)->available));
+                    (*p)->availability_group ?: "", get_available_str((*p)->available));
     }
 
     if (i->active_port)
@@ -633,10 +635,10 @@ static void get_card_info_callback(pa_context *c, const pa_card_info *i, int is_
         printf(_("\tPorts:\n"));
         for (p = i->ports; *p; p++) {
             pa_card_profile_info **pr = (*p)->profiles;
-            printf(_("\t\t%s: %s (type: %s, priority: %u, latency offset: %" PRId64 " usec%s%s%s)\n"), (*p)->name,
+            printf(_("\t\t%s: %s (type: %s, priority: %u, latency offset: %" PRId64 " usec%s%s, %s)\n"), (*p)->name,
                 (*p)->description, get_device_port_type((*p)->type), (*p)->priority, (*p)->latency_offset,
                 (*p)->availability_group ? _(", availability group: ") : "", (*p)->availability_group ?: "",
-                get_available_str_ynonly((*p)->available));
+                get_available_str((*p)->available));
 
             if (!pa_proplist_isempty((*p)->proplist)) {
                 printf(_("\t\t\tProperties:\n\t\t\t\t%s\n"), pl = pa_proplist_to_string_sep((*p)->proplist, "\n\t\t\t\t"));
