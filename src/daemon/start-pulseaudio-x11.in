@@ -17,6 +17,25 @@
 
 set -e
 
+if [ -n "$1" ] ; then
+    case $1 in
+    stop)
+      @PACTL_BINARY@ unload-module module-x11-publish > /dev/null
+      @PACTL_BINARY@ unload-module module-x11-cork-request > /dev/null
+      @PACTL_BINARY@ unload-module module-device-manager > /dev/null
+      @PACTL_BINARY@ unload-module module-x11-xsmp > /dev/null
+      exit 0
+      ;;
+    start)
+      # Let it continue further down
+      ;;
+    *)
+      echo "Unknown argument $1"
+      exit 1
+      ;;
+    esac
+fi
+
 if [ x"$DISPLAY" != x ] ; then
 
     @PACTL_BINARY@ load-module module-x11-publish "display=$DISPLAY xauthority=$XAUTHORITY" > /dev/null
