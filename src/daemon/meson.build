@@ -152,10 +152,20 @@ endif
 if systemd_dep.found()
   sd_user_service_conf = configuration_data()
   sd_user_service_conf.set('PA_BINARY', cdata.get_unquoted('PA_BINARY'))
+  sd_user_service_conf.set('PACTL_BINARY', join_paths(bindir, 'pactl'))
+  sd_user_service_conf.set('PA_X11_BINARY', join_paths(bindir, 'start-pulseaudio-x11'))
 
   sd_user_service_file = configure_file(
     input : 'systemd/user/pulseaudio.service.in',
     output : 'pulseaudio.service',
+    configuration : sd_user_service_conf,
+    install : true,
+    install_dir : systemduserunitdir,
+  )
+
+  sd_user_x11_service_file = configure_file(
+    input : 'systemd/user/pulseaudio-x11.service.in',
+    output : 'pulseaudio-x11.service',
     configuration : sd_user_service_conf,
     install : true,
     install_dir : systemduserunitdir,

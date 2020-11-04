@@ -1,0 +1,18 @@
+[Unit]
+Description=Sound Service (X11 Plugins)
+Requires=pulseaudio.service
+After=pulseaudio.service
+ConditionUser=!root
+PartOf=gnome-session-x11.target
+
+[Service]
+ExecStart=@PA_X11_BINARY@
+ExecStop=@PA_X11_BINARY@ stop
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+NoNewPrivileges=yes
+RestrictNamespaces=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+Type=simple
+UMask=0077
