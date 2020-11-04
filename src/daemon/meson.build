@@ -47,6 +47,14 @@ if x11_dep.found()
     install_dir : bindir,
   )
 
+  configure_file(
+    input : 'start-pulseaudio-x11.in',
+    output : '00-pulseaudio-x11',
+    configuration : conf,
+    install : true,
+    install_dir : join_paths(sysconfdir, 'xdg', 'Xwayland-session.d'),
+  )
+
   desktop_file = i18n.merge_file(
     input : 'pulseaudio.desktop.in',
     output : 'pulseaudio.desktop',
