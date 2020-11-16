@@ -52,6 +52,7 @@ PA_MODULE_USAGE(
         "rate=<sample rate> "
         "source_name=<name of source> "
         "channel_map=<channel map> "
+        "max_latency_msec=<maximum latency in ms> "
         "description=<description for the source> ");
 
 #define DEFAULT_SOURCE_NAME "source.null"
@@ -79,6 +80,7 @@ static const char* const valid_modargs[] = {
     "channels",
     "source_name",
     "channel_map",
+    "max_latency_msec",
     "description",
     NULL
 };
@@ -123,6 +125,7 @@ static void source_update_requested_latency_cb(pa_source *s) {
     pa_assert(u);
 
     u->block_usec = pa_source_get_requested_latency_within_thread(s);
+
     if (u->block_usec == (pa_usec_t)-1)
         u->block_usec = u->source->thread_info.max_latency;
 }
@@ -197,6 +200,8 @@ int pa__init(pa_module*m) {
     pa_channel_map map;
     pa_modargs *ma = NULL;
     pa_source_new_data data;
+    pa_usec_t max_latency = MAX_LATENCY_USEC;
+    uint32_t max_latency_msec;
 
     pa_assert(m);
 
@@ -247,7 +252,11 @@ int pa__init(pa_module*m) {
     pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
     pa_source_set_rtpoll(u->source, u->rtpoll);
 
-    pa_source_set_latency_range(u->source, MIN_LATENCY_USEC, MAX_LATENCY_USEC);
+    if (pa_modargs_get_value_u32(ma, "max_latency_msec", &max_latency_msec))
+        max_latency = max_latency_msec * PA_USEC_PER_MSEC;
+
+    pa_source_set_latency_range(u->source, MIN_LATENCY_USEC, max_latency);
+
     u->block_usec = u->source->thread_info.max_latency;
 
     u->source->thread_info.max_rewind =
