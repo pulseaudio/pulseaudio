@@ -248,12 +248,16 @@ static void switch_to_port(pa_device_port *port) {
      */
     if (port->available == PA_AVAILABLE_UNKNOWN) {
         /* Not part of a group of ports, so likely not a combination port */
-        if (!port->availability_group)
+        if (!port->availability_group) {
+            pa_log_debug("Not switching to port %s, its availability is unknown and it's not in any availability group.", port->name);
             return;
+        }
 
         /* For no we only switch the headphone port */
-        if (port->direction != PA_DIRECTION_OUTPUT)
+        if (port->direction != PA_DIRECTION_OUTPUT) {
+            pa_log_debug("Not switching to input port %s, its availability is unknown.", port->name);
             return;
+        }
     }
 
     pa_log_debug("Trying to switch to port %s", port->name);
