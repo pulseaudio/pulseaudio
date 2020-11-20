@@ -701,6 +701,8 @@ static void prune_singleton_availability_groups(pa_hashmap *ports) {
 
     PA_HASHMAP_FOREACH(p, ports, state) {
         if (p->availability_group && !pa_hashmap_get(group_counts, p->availability_group)) {
+            pa_log_debug("Pruned singleton availability group %s from port %s", p->availability_group, p->name);
+
             pa_xfree(p->availability_group);
             p->availability_group = NULL;
         }
