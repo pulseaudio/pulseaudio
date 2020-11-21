@@ -688,7 +688,7 @@ static void prune_singleton_availability_groups(pa_hashmap *ports) {
         if (p->availability_group) {
             count = pa_hashmap_get(group_counts, p->availability_group);
             pa_hashmap_remove(group_counts, p->availability_group);
-            pa_hashmap_put(group_counts, p->availability_group, count + 1);
+            pa_hashmap_put(group_counts, p->availability_group, PA_UINT_TO_PTR(PA_PTR_TO_UINT(count) + 1));
         }
     }
 

@@ -2267,7 +2267,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
     bool volume_is_set;
     bool mute_is_set;
     pa_alsa_profile_set *profile_set = NULL;
-    void *state = NULL;
+    void *state;
 
     pa_assert(m);
     pa_assert(ma);
@@ -2563,6 +2563,7 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
         pa_proplist_sets(data.proplist, PA_PROP_DEVICE_PROFILE_NAME, mapping->name);
         pa_proplist_sets(data.proplist, PA_PROP_DEVICE_PROFILE_DESCRIPTION, mapping->description);
 
+        state = NULL;
         while ((key = pa_proplist_iterate(mapping->proplist, &state)))
             pa_proplist_sets(data.proplist, key, pa_proplist_gets(mapping->proplist, key));
     }
@@ -2600,7 +2601,6 @@ pa_sink *pa_alsa_sink_new(pa_module *m, pa_modargs *ma, const char*driver, pa_ca
 
     if (u->ucm_context) {
         pa_device_port *port;
-        void *state;
         unsigned h_prio = 0;
         PA_HASHMAP_FOREACH(port, u->sink->ports, state) {
             if (!h_prio || port->priority > h_prio)
