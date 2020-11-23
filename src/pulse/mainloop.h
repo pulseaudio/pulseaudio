@@ -85,7 +85,7 @@ void pa_mainloop_free(pa_mainloop* m);
 
 /** Prepare for a single iteration of the main loop. Returns a negative value
 on error or exit request. timeout specifies a maximum timeout for the subsequent
-poll, or -1 for blocking behaviour. .*/
+poll, or -1 for blocking behaviour. The timeout is specified in microseconds. */
 int pa_mainloop_prepare(pa_mainloop *m, int timeout);
 
 /** Execute the previously prepared poll. Returns a negative value on error.*/

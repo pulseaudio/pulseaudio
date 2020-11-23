@@ -799,10 +799,8 @@ int pa_mainloop_prepare(pa_mainloop *m, int timeout) {
 
         m->prepared_timeout = calc_next_timeout(m);
         if (timeout >= 0) {
-            uint64_t u = (uint64_t) timeout * PA_USEC_PER_MSEC;
-
-            if (u < m->prepared_timeout || m->prepared_timeout == PA_USEC_INVALID)
-                m->prepared_timeout = u;
+            if (timeout < m->prepared_timeout || m->prepared_timeout == PA_USEC_INVALID)
+                m->prepared_timeout = timeout;
         }
     }
 
