@@ -109,7 +109,7 @@ void pa_mutex_unlock(pa_mutex *m) {
 
     pa_assert(m);
 
-    if ((err = pthread_mutex_unlock(&m->mutex) != 0)) {
+    if ((err = pthread_mutex_unlock(&m->mutex)) != 0) {
         pa_log("pthread_mutex_unlock() failed: %s", pa_cstrerror(err));
         pa_assert_not_reached();
     }
