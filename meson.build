@@ -23,7 +23,7 @@ pa_protocol_version = 34
 
 # The stable ABI for client applications, for the version info x:y:z
 # always will hold x=z
-libpulse_version_info = [22, 0, 22]
+libpulse_version_info = [23, 0, 23]
 
 # A simplified, synchronous, ABI-stable interface for client
 # applications, for the version info x:y:z always will hold x=z
