@@ -228,9 +228,7 @@ static struct port_pointers find_port_pointers(pa_device_port *port) {
 }
 
 /* Switches to a port, switching profiles if necessary or preferred */
-static void switch_to_port(pa_device_port *port) {
-    struct port_pointers pp = find_port_pointers(port);
-
+static void switch_to_port(pa_device_port *port, struct port_pointers pp) {
     if (pp.is_port_active)
         return; /* Already selected */
 
@@ -252,8 +250,7 @@ static void switch_to_port(pa_device_port *port) {
 }
 
 /* Switches away from a port, switching profiles if necessary or preferred */
-static void switch_from_port(pa_device_port *port) {
-    struct port_pointers pp = find_port_pointers(port);
+static void switch_from_port(pa_device_port *port, struct port_pointers pp) {
     pa_device_port *p, *best_port = NULL;
     void *state;
 
@@ -282,12 +279,12 @@ static void switch_from_port(pa_device_port *port) {
      * PA_CORE_HOOK_CARD_PROFILE_AVAILABLE_CHANGED callback, as at this point
      * the profile availability hasn't been updated yet. */
     if (best_port)
-        switch_to_port(best_port);
+        switch_to_port(best_port, pp);
 }
 
 
 static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port *port, void* userdata) {
-    pa_assert(port);
+    struct port_pointers pp = find_port_pointers(port);
 
     if (!port->card) {
         pa_log_warn("Port %s does not have a card", port->name);
@@ -314,6 +311,15 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
          * functionality for setups that can't trigger this kind of
          * interaction.
          *
+         * For headset or microphone, if they are part of some availability group
+         * and they become unknown from off, it needs to check if their source is
+         * unlinked or not, if their source is unlinked, let switch_to_port()
+         * process them, then with the running of pa_card_set_profile(), their
+         * source will be created, otherwise the headset or microphone can't be used
+         * to record sound since there is no source for these 2 ports. This issue
+         * is observed on Dell machines which have multi-function audio jack but no
+         * internal mic.
+         *
          * We should make this configurable so that users can optionally
          * override the default to a headset or mic. */
 
@@ -323,20 +329,22 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
             break;
         }
 
-        /* For no we only switch the headphone port */
-        if (port->direction != PA_DIRECTION_OUTPUT) {
+        /* Switch the headphone port, the input ports without source and the
+         * input ports their source->active_port is part of a group of ports.
+         */
+        if (port->direction == PA_DIRECTION_INPUT && pp.source && !pp.source->active_port->availability_group) {
             pa_log_debug("Not switching to input port %s, its availability is unknown.", port->name);
             break;
         }
 
-        switch_to_port(port);
+        switch_to_port(port, pp);
         break;
 
     case PA_AVAILABLE_YES:
-        switch_to_port(port);
+        switch_to_port(port, pp);
         break;
     case PA_AVAILABLE_NO:
-        switch_from_port(port);
+        switch_from_port(port, pp);
         break;
     default:
         break;
