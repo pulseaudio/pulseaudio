@@ -147,6 +147,9 @@ ATTRS{idVendor}=="0951", ATTRS{idProduct}=="16ff", ENV{ID_ID}="usb-HyperX_Cloud_
 ATTRS{idVendor}=="0951", ATTRS{idProduct}=="1702", ENV{ID_ID}="usb-HyperX_Cloud_Orbit_S_Hi-Res_2Ch-$env{ID_USB_INTERFACE_NUM}"
 ATTRS{idVendor}=="0951", ATTRS{idProduct}=="1703", ENV{ID_ID}="usb-HyperX_Cloud_Orbit_S_3D_8Ch-$env{ID_USB_INTERFACE_NUM}"
 
+# OnePlus Type-C Bullets (ED117)
+ATTRS{idVendor}=="2a70", ATTRS{idProduct}=="1881", ENV{PULSE_PROFILE_SET}="simple-headphones-mic.conf"
+
 GOTO="pulseaudio_end"
 
 LABEL="pulseaudio_check_pci"
