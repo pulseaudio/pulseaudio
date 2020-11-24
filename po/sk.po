@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2016-06-22 13:54+0000\n"
-"PO-Revision-Date: 2020-10-07 02:48+0000\n"
+"PO-Revision-Date: 2020-11-25 08:35+0000\n"
 "Last-Translator: Dusan Kazik <prescott66@gmail.com>\n"
 "Language-Team: Slovak <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/sk/>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 1 : (n>=2 && n<=4) ? 2 : 0;\n"
-"X-Generator: Weblate 4.2.2\n"
+"X-Generator: Weblate 4.3.2\n"
 
 #: ../src/daemon/cmdline.c:113
 #, c-format
@@ -95,11 +95,11 @@ msgstr ""
 
 #: ../src/daemon/cmdline.c:246
 msgid "--daemonize expects boolean argument"
-msgstr ""
+msgstr "Voľba --daemonize očakáva booleovský parameter"
 
 #: ../src/daemon/cmdline.c:254
 msgid "--fail expects boolean argument"
-msgstr ""
+msgstr "Voľba --fail očakáva booleovský parameter"
 
 #: ../src/daemon/cmdline.c:265
 msgid ""
@@ -109,23 +109,23 @@ msgstr ""
 
 #: ../src/daemon/cmdline.c:277
 msgid "--high-priority expects boolean argument"
-msgstr ""
+msgstr "Voľba --high-priority očakáva booleovský parameter"
 
 #: ../src/daemon/cmdline.c:285
 msgid "--realtime expects boolean argument"
-msgstr ""
+msgstr "Voľba --realtime očakáva booleovský parameter"
 
 #: ../src/daemon/cmdline.c:293
 msgid "--disallow-module-loading expects boolean argument"
-msgstr ""
+msgstr "Voľba --disallow-module-loading očakáva booleovský parameter"
 
 #: ../src/daemon/cmdline.c:301
 msgid "--disallow-exit expects boolean argument"
-msgstr ""
+msgstr "Voľba --disallow-exit očakáva booleovský parameter"
 
 #: ../src/daemon/cmdline.c:309
 msgid "--use-pid-file expects boolean argument"
-msgstr ""
+msgstr "Voľba --use-pid-file očakáva booleovský parameter"
 
 #: ../src/daemon/cmdline.c:328
 msgid ""
@@ -141,11 +141,11 @@ msgstr ""
 
 #: ../src/daemon/cmdline.c:338
 msgid "--log-time expects boolean argument"
-msgstr ""
+msgstr "Voľba --log-time očakáva booleovský parameter"
 
 #: ../src/daemon/cmdline.c:346
 msgid "--log-meta expects boolean argument"
-msgstr ""
+msgstr "Voľba --log-meta očakáva booleovský parameter"
 
 #: ../src/daemon/cmdline.c:366
 #, c-format
@@ -158,11 +158,11 @@ msgstr "Voľba --system očakáva booleovský parameter"
 
 #: ../src/daemon/cmdline.c:381
 msgid "--no-cpu-limit expects boolean argument"
-msgstr ""
+msgstr "Voľba --no-cpu-limit očakáva booleovský parameter"
 
 #: ../src/daemon/cmdline.c:389
 msgid "--disable-shm expects boolean argument"
-msgstr ""
+msgstr "Voľba --disable-shm očakáva booleovský parameter"
 
 #: ../src/daemon/cmdline.c:397
 msgid "--enable-memfd expects boolean argument"
@@ -350,7 +350,7 @@ msgstr "Zlyhalo zmenenie UID: %s"
 
 #: ../src/daemon/main.c:255
 msgid "System wide mode unsupported on this platform."
-msgstr ""
+msgstr "Systémový režim nie je podporovaný na tejto platforme."
 
 #: ../src/daemon/main.c:484
 msgid "Failed to parse command line."
@@ -395,10 +395,12 @@ msgstr ""
 #: ../src/daemon/main.c:712
 msgid "Running in system mode, but --disallow-exit not set."
 msgstr ""
+"Spustené v systémovom režime, ale voľba --disallow-exit nie je nastavená."
 
 #: ../src/daemon/main.c:715
 msgid "Running in system mode, but --disallow-module-loading not set."
 msgstr ""
+"Spustené v systémovom režime, ale voľba --disallow-exit nie je nastavená."
 
 #: ../src/daemon/main.c:718
 msgid "Running in system mode, forcibly disabling SHM mode."
@@ -407,10 +409,11 @@ msgstr ""
 #: ../src/daemon/main.c:723
 msgid "Running in system mode, forcibly disabling exit idle time."
 msgstr ""
+"Spustené v systémovom režime. Ukončenie pri nečinnosti je vynútene zakázané."
 
 #: ../src/daemon/main.c:756
 msgid "Failed to acquire stdio."
-msgstr ""
+msgstr "Zlyhalo získanie štandardného vstupu/výstupu."
 
 #: ../src/daemon/main.c:762 ../src/daemon/main.c:833
 #, c-format
@@ -866,11 +869,11 @@ msgstr "Vstup cez Bluetooth"
 
 #: ../src/modules/bluetooth/module-bluez5-device.c:1786
 msgid "High Fidelity Playback (A2DP Sink)"
-msgstr ""
+msgstr "HiFi prehrávanie (cieľ A2DP)"
 
 #: ../src/modules/bluetooth/module-bluez5-device.c:1797
 msgid "High Fidelity Capture (A2DP Source)"
-msgstr ""
+msgstr "HiFi zaznamenávanie (zdroj A2DP)"
 
 #: ../src/modules/bluetooth/module-bluez5-device.c:1808
 msgid "Headset Head Unit (HSP/HFP)"
@@ -926,7 +929,7 @@ msgstr ""
 
 #: ../src/modules/module-ladspa-sink.c:51
 msgid "Virtual LADSPA sink"
-msgstr ""
+msgstr "Virtuálny cieľ LADSPA"
 
 #: ../src/modules/module-ladspa-sink.c:55
 msgid ""
@@ -979,7 +982,7 @@ msgstr "Tunel do %s/%s"
 
 #: ../src/modules/module-virtual-surround-sink.c:47
 msgid "Virtual surround sink"
-msgstr ""
+msgstr "Virtuálny priestorový cieľ"
 
 #: ../src/modules/module-virtual-surround-sink.c:51
 msgid ""
@@ -1028,11 +1031,11 @@ msgstr "Basový reproduktor"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Front Left-of-center"
-msgstr ""
+msgstr "Predný ľavý stredový"
 
 #: ../src/pulse/channelmap.c:116
 msgid "Front Right-of-center"
-msgstr ""
+msgstr "Predný pravý stredový"
 
 #: ../src/pulse/channelmap.c:118
 msgid "Side Left"
@@ -1553,7 +1556,7 @@ msgstr ""
 #: ../src/utils/pacat.c:416
 #, c-format
 msgid "Stream buffer attributes changed.%s"
-msgstr ""
+msgstr "Atribúty zásobníka prúdu boli zmenené. %s"
 
 #: ../src/utils/pacat.c:431
 msgid "Cork request stack is empty: corking stream"
@@ -1759,7 +1762,7 @@ msgstr "Neznámy formát súboru %s."
 
 #: ../src/utils/pacat.c:995
 msgid "Failed to parse the argument for --monitor-stream"
-msgstr "Zlyhala analyzovanie argumentu pre --monitor-stream"
+msgstr "Zlyhala analyzovanie parametra pre voľbu --monitor-stream"
 
 #: ../src/utils/pacat.c:1006
 msgid "Invalid sample specification"
@@ -1856,7 +1859,7 @@ msgstr ""
 
 #: ../src/utils/pacmd.c:51 ../src/utils/pactl.c:1570
 msgid "NAME [ARGS ...]"
-msgstr "NÁZOV [ARGUMENTY ...]"
+msgstr "NÁZOV [PARAMETRE ...]"
 
 #: ../src/utils/pacmd.c:52 ../src/utils/pacmd.c:60 ../src/utils/pactl.c:1571
 msgid "NAME|#N"
@@ -1897,15 +1900,15 @@ msgstr "Č."
 
 #: ../src/utils/pacmd.c:62
 msgid "NAME SINK|#N"
-msgstr ""
+msgstr "NÁZOV CIEĽA|Č."
 
 #: ../src/utils/pacmd.c:64 ../src/utils/pacmd.c:65
 msgid "NAME FILENAME"
-msgstr "NÁZOV NÁZOV-SÚBORU"
+msgstr "NÁZOV NÁZOV_SÚBORU"
 
 #: ../src/utils/pacmd.c:66
 msgid "PATHNAME"
-msgstr "NÁZOV-CESTY"
+msgstr "NÁZOV_CESTY"
 
 #: ../src/utils/pacmd.c:67
 msgid "FILENAME SINK|#N"
@@ -1913,7 +1916,7 @@ msgstr ""
 
 #: ../src/utils/pacmd.c:69 ../src/utils/pactl.c:1572
 msgid "#N SINK|SOURCE"
-msgstr ""
+msgstr "Č. CIEĽU|ZDROJ"
 
 #: ../src/utils/pacmd.c:71 ../src/utils/pacmd.c:77 ../src/utils/pacmd.c:78
 msgid "1|0"
@@ -1929,7 +1932,7 @@ msgstr "NÁZOV|Č. PORTU"
 
 #: ../src/utils/pacmd.c:74 ../src/utils/pactl.c:1582
 msgid "CARD-NAME|CARD-#N PORT OFFSET"
-msgstr "NÁZOV-KARTY|KARTA-Č. PORT POSUNUTIE"
+msgstr "NÁZOV_KARTY|KARTA-Č. PORT POSUNUTIE"
 
 #: ../src/utils/pacmd.c:75
 msgid "TARGET"
@@ -2053,11 +2056,20 @@ msgid ""
 "Default Source: %s\n"
 "Cookie: %04x:%04x\n"
 msgstr ""
+"Používateľské meno: %s\n"
+"Názov hostiteľa: %s\n"
+"Názov servera: %s\n"
+"Verzia servera: %s\n"
+"Predvolená špecifikácia snímky: %s\n"
+"Predvolená mapa kanálov: %s\n"
+"Predvolený cieľ: %s\n"
+"Predvolený zdroj: %s\n"
+"Cookie: %04x:%04x\n"
 
 #: ../src/utils/pactl.c:255 ../src/utils/pactl.c:900 ../src/utils/pactl.c:978
 #, c-format
 msgid "Failed to get sink information: %s"
-msgstr ""
+msgstr "Zlyhalo získanie informácií o cieli: %s"
 
 #: ../src/utils/pactl.c:281
 #, c-format
@@ -2148,7 +2160,7 @@ msgid ""
 msgstr ""
 "Modul #%u\n"
 "\tNázov: %s\n"
-"\tArgument: %s\n"
+"\tParameter: %s\n"
 "\tPočítadlo použití: %s\n"
 "\tVlastnosti:\n"
 "\t\t%s\n"
@@ -2203,7 +2215,7 @@ msgstr "\tProfily:\n"
 #: ../src/utils/pactl.c:581
 #, c-format
 msgid "\t\t%s: %s (sinks: %u, sources: %u, priority: %u, available: %s)\n"
-msgstr ""
+msgstr "\t\t%s: %s (ciele: %u, zdroje: %u, priorita: %u, dostupné: %s)\n"
 
 #: ../src/utils/pactl.c:586
 #, c-format
@@ -2250,6 +2262,23 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Vstup cieľa č. %u\n"
+"\tOvládač: %s\n"
+"\tModul vlastníka: %s\n"
+"\tKlient: %s\n"
+"\tCieľ: %u\n"
+"\tŠpecifikácia snímky: %s\n"
+"\tMapa kanálov: %s\n"
+"\tFormát: %s\n"
+"\tBlokovanie: %s\n"
+"\tStlmenie: %s\n"
+"\tHlasitosť: %s\n"
+"\t        vyváženie %0.2f\n"
+"\tOneskorenie zásobníka: %0.0f usek\n"
+"\tOneskorenie cieľa: %0.0f usek\n"
+"\tMetóda presnímkovania: %s\n"
+"\tVlastnosti:\n"
+"\t\t%s\n"
 
 #: ../src/utils/pactl.c:692 ../src/utils/pactl.c:960 ../src/utils/pactl.c:1023
 #, c-format
@@ -2308,7 +2337,7 @@ msgstr "Zlyhanie: %s"
 #: ../src/utils/pactl.c:866
 #, c-format
 msgid "Failed to unload module: Module %s not loaded"
-msgstr ""
+msgstr "Zlyhalo uvoľnenie modulu: Modul %s nie je načítaný"
 
 #: ../src/utils/pactl.c:884
 #, c-format
@@ -2351,7 +2380,7 @@ msgstr "neznámy"
 
 #: ../src/utils/pactl.c:1147
 msgid "sink"
-msgstr ""
+msgstr "cieľ"
 
 #: ../src/utils/pactl.c:1150
 msgid "source"
@@ -2430,11 +2459,11 @@ msgstr "[TYP]"
 
 #: ../src/utils/pactl.c:1567
 msgid "FILENAME [NAME]"
-msgstr "NÁZOV-SÚBORU [NÁZOV]"
+msgstr "NÁZOV_SÚBORU [NÁZOV]"
 
 #: ../src/utils/pactl.c:1568
 msgid "NAME [SINK]"
-msgstr ""
+msgstr "NÁZOV [CIEĽ]"
 
 #: ../src/utils/pactl.c:1577
 msgid "NAME|#N VOLUME [VOLUME ...]"
@@ -2527,11 +2556,11 @@ msgstr "Musíte určiť číslo výstupu zdroja a zdroj"
 
 #: ../src/utils/pactl.c:1775
 msgid "You have to specify a module name and arguments."
-msgstr "Musíte určiť názov modulu a argumenty."
+msgstr "Musíte určiť názov modulu a parametre."
 
 #: ../src/utils/pactl.c:1795
 msgid "You have to specify a module index or name"
-msgstr ""
+msgstr "Musíte určiť číslo modulu alebo názov"
 
 #: ../src/utils/pactl.c:1808
 msgid ""
@@ -2558,7 +2587,7 @@ msgstr ""
 
 #: ../src/utils/pactl.c:1867
 msgid "You have to specify a sink name"
-msgstr ""
+msgstr "Musíte určiť názov cieľa"
 
 #: ../src/utils/pactl.c:1877
 msgid "You have to specify a source name/index and a port name"
@@ -2631,6 +2660,8 @@ msgid ""
 "You have to specify a sink index and a semicolon-separated list of supported "
 "formats"
 msgstr ""
+"Musíte určiť číslo cieľa a bodkočiarkami oddelený zoznam podporovaných "
+"formátov"
 
 #: ../src/utils/pactl.c:2038
 msgid "You have to specify a card name/index, a port name and a latency offset"
@@ -2755,7 +2786,7 @@ msgstr "Zdroj: %s\n"
 #: ../src/utils/pax11publish.c:114
 #, c-format
 msgid "Sink: %s\n"
-msgstr ""
+msgstr "Cieľ: %s\n"
 
 #: ../src/utils/pax11publish.c:116
 #, c-format
