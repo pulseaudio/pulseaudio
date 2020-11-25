@@ -40,6 +40,7 @@ function jacks_do {
 function alsa_info_do {
 	alsa_info=$(which alsa-info.sh)
 	[ $alsa_info ] || alsa_info=$(which alsa-info)
+	[ $alsa_info ] || alsa_info='/usr/sbin/alsa-info.sh'
 	[ $alsa_info ] || alsa_info='/usr/share/alsa-base/alsa-info.sh'
 	[ -f $alsa_info ] && {
 		$alsa_info --stdout
