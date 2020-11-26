@@ -1309,12 +1309,16 @@ void pa_alsa_ucm_add_ports(
     uint32_t idx;
     char *merged_roles;
     const char *role_name = is_sink ? PA_ALSA_PROP_UCM_PLAYBACK_ROLES : PA_ALSA_PROP_UCM_CAPTURE_ROLES;
+    pa_alsa_ucm_config *ucm;
     pa_alsa_ucm_device *dev;
     pa_alsa_ucm_modifier *mod;
     char *tmp;
 
     pa_assert(p);
     pa_assert(*p);
+
+    ucm = context->ucm;
+    pa_assert(ucm->ucm_mgr);
 
     /* add ports first */
     pa_alsa_ucm_add_ports_combination(*p, context, is_sink, card->ports, NULL, card->core);
@@ -1329,6 +1333,16 @@ void pa_alsa_ucm_add_ports(
         tmp = merge_roles(merged_roles, roles);
         pa_xfree(merged_roles);
         merged_roles = tmp;
+    }
+
+    /* reset ucm devices */
+    PA_IDXSET_FOREACH(dev, context->ucm_devices, idx) {
+        const char *dev_name = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME);
+
+        pa_log_debug("Reset ucm device %s", dev_name);
+        if (snd_use_case_set(ucm->ucm_mgr, "_enadev", dev_name) ||
+            snd_use_case_set(ucm->ucm_mgr, "_disdev", dev_name))
+                pa_log_warn("Failed to reset ucm device %s", dev_name);
     }
 
     if (context->ucm_modifiers)
