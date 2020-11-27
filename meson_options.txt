@@ -123,6 +123,9 @@ option('openssl',
 option('orc',
        type : 'feature', value : 'auto',
        description : 'Optimized Inner Loop Runtime Compiler')
+option('oss-output',
+       type : 'boolean',
+       description : 'Optional OSS output support')
 option('samplerate',
        type : 'feature', value : 'disabled',
        description : 'Optional libsamplerate support (DEPRECATED)')

@@ -73,7 +73,7 @@ if cc.has_header('linux/input.h')
   ]
 endif
 
-if cc.has_header('sys/soundcard.h')
+if get_option('oss-output')
   subdir('oss')
   all_modules += [
     [ 'module-oss', 'oss/module-oss.c', [], [], [], liboss_util ],

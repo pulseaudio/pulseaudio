@@ -84,7 +84,7 @@ if x11_dep.found()
   )
 endif
 
-if cc.has_header('sys/soundcard.h')
+if get_option('oss-output')
   libpulsecommon_sources = [
     'padsp.c',
   ]
