@@ -57,7 +57,7 @@ AC_SUBST(LIBPULSE_SIMPLE_VERSION_INFO, [1:1:1])
 AC_SUBST(LIBPULSE_MAINLOOP_GLIB_VERSION_INFO, [0:6:0])
 
 AC_CANONICAL_HOST
-AC_DEFINE_UNQUOTED([CANONICAL_HOST], "$host", [Canonical host string.])
+AC_DEFINE_UNQUOTED([CANONICAL_HOST], "$host_cpu", [Canonical host system architecture string.])
 
 AC_CHECK_PROG([STOW], [stow], [yes], [no])
 

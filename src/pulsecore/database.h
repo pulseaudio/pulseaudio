@@ -43,7 +43,8 @@ const char* pa_database_get_arch_suffix(void);
 /* Database implementation; returns non-empty database filename extension string */
 const char* pa_database_get_filename_suffix(void);
 
-/* This will attempt opening database file matching compiled CANONICAL_HOST identifier.
+/* This will attempt opening database file matching compiled CANONICAL_HOST implementation architecture name prefix,
+ * or new database file will be created and opened with implementation architecture name suffix if required.
  * If prependmid is true, file name is augmented with machine id prefix. */
 pa_database* pa_database_open(const char *path, const char *fn, bool prependmid, bool for_write);
 
