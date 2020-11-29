@@ -946,7 +946,7 @@ static void save_state(struct userdata *u) {
     float *H;
     pa_datum key, data;
     pa_database *database;
-    char *dbname;
+    char *state_path;
     char *packed;
     size_t packed_length;
 
@@ -969,9 +969,9 @@ static void save_state(struct userdata *u) {
     data.data = state;
     data.size = filter_state_size + packed_length;
     //thread safety for 0.9.17?
-    pa_assert_se(dbname = pa_state_path(EQ_STATE_DB, false));
-    pa_assert_se(database = pa_database_open(dbname, true));
-    pa_xfree(dbname);
+    pa_assert_se(state_path = pa_state_path(NULL, false));
+    pa_assert_se(database = pa_database_open(state_path, EQ_STATE_DB, false, true));
+    pa_xfree(state_path);
 
     pa_database_set(database, &key, &data, true);
     pa_database_sync(database);
@@ -1020,10 +1020,10 @@ static void load_state(struct userdata *u) {
     float *H;
     pa_datum key, value;
     pa_database *database;
-    char *dbname;
-    pa_assert_se(dbname = pa_state_path(EQ_STATE_DB, false));
-    database = pa_database_open(dbname, false);
-    pa_xfree(dbname);
+    char *state_path;
+    pa_assert_se(state_path = pa_state_path(NULL, false));
+    database = pa_database_open(state_path, EQ_STATE_DB, false, false);
+    pa_xfree(state_path);
     if (!database) {
         pa_log("No resume state");
         return;
@@ -1626,12 +1626,12 @@ void dbus_init(struct userdata *u) {
     sink_list = pa_shared_get(u->sink->core, SINKLIST);
     u->database = pa_shared_get(u->sink->core, EQDB);
     if (sink_list == NULL) {
-        char *dbname;
+        char *state_path;
         sink_list=pa_idxset_new(&pa_idxset_trivial_hash_func, &pa_idxset_trivial_compare_func);
         pa_shared_set(u->sink->core, SINKLIST, sink_list);
-        pa_assert_se(dbname = pa_state_path("equalizer-presets", false));
-        pa_assert_se(u->database = pa_database_open(dbname, true));
-        pa_xfree(dbname);
+        pa_assert_se(state_path = pa_state_path(NULL, false));
+        pa_assert_se(u->database = pa_database_open(state_path, "equalizer-presets", false, true));
+        pa_xfree(state_path);
         pa_shared_set(u->sink->core, EQDB, u->database);
         pa_dbus_protocol_add_interface(u->dbus_protocol, MANAGER_PATH, &manager_info, u->sink->core);
         pa_dbus_protocol_register_extension(u->dbus_protocol, EXTNAME);

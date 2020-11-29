@@ -1195,7 +1195,7 @@ static pa_hook_result_t connection_unlink_hook_cb(pa_native_protocol *p, pa_nati
 int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
-    char *fname;
+    char *state_path;
     pa_sink *sink;
     pa_source *source;
     uint32_t idx;
@@ -1252,17 +1252,15 @@ int pa__init(pa_module*m) {
     if (restore_formats)
         pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_PUT], PA_HOOK_EARLY, (pa_hook_cb_t) sink_put_hook_callback, u);
 
-    if (!(fname = pa_state_path("device-volumes", true)))
+    if (!(state_path = pa_state_path(NULL, true)))
         goto fail;
 
-    if (!(u->database = pa_database_open(fname, true))) {
-        pa_log("Failed to open volume database '%s': %s", fname, pa_cstrerror(errno));
-        pa_xfree(fname);
+    if (!(u->database = pa_database_open(state_path, "device-volumes", true, true))) {
+        pa_xfree(state_path);
         goto fail;
     }
 
-    pa_log_info("Successfully opened database file '%s'.", fname);
-    pa_xfree(fname);
+    pa_xfree(state_path);
 
     PA_IDXSET_FOREACH(sink, m->core->sinks, idx)
         subscribe_callback(m->core, PA_SUBSCRIPTION_EVENT_SINK|PA_SUBSCRIPTION_EVENT_NEW, sink->index, u);

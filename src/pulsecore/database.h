@@ -38,8 +38,17 @@ typedef struct pa_datum {
 
 void pa_datum_free(pa_datum *d);
 
-/* This will append a suffix to the filename */
-pa_database* pa_database_open(const char *fn, bool for_write);
+/* Database implementation; returns non-empty system architecture name string if database file format depends on system architecture, or NULL otherwise. */
+const char* pa_database_get_arch_suffix(void);
+/* Database implementation; returns non-empty database filename extension string */
+const char* pa_database_get_filename_suffix(void);
+
+/* This will attempt opening database file matching compiled CANONICAL_HOST identifier.
+ * If prependmid is true, file name is augmented with machine id prefix. */
+pa_database* pa_database_open(const char *path, const char *fn, bool prependmid, bool for_write);
+
+/* Database implementation; opens specified database file using provided path. */
+pa_database* pa_database_open_internal(const char *path, bool for_write);
 void pa_database_close(pa_database *db);
 
 pa_datum* pa_database_get(pa_database *db, const pa_datum *key, pa_datum* data);

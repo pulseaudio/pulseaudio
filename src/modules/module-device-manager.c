@@ -1544,7 +1544,7 @@ struct prioritised_indexes {
 int pa__init(pa_module*m) {
     pa_modargs *ma = NULL;
     struct userdata *u;
-    char *fname;
+    char *state_path;
     pa_sink *sink;
     pa_source *source;
     uint32_t idx;
@@ -1601,17 +1601,15 @@ int pa__init(pa_module*m) {
         u->source_unlink_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_UNLINK], PA_HOOK_LATE+5, (pa_hook_cb_t) source_unlink_hook_callback, u);
     }
 
-    if (!(fname = pa_state_path("device-manager", true)))
+    if (!(state_path = pa_state_path(NULL, true)))
         goto fail;
 
-    if (!(u->database = pa_database_open(fname, true))) {
-        pa_log("Failed to open volume database '%s': %s", fname, pa_cstrerror(errno));
-        pa_xfree(fname);
+    if (!(u->database = pa_database_open(state_path, "device-manager", true, true))) {
+        pa_xfree(state_path);
         goto fail;
     }
 
-    pa_log_info("Successfully opened database file '%s'.", fname);
-    pa_xfree(fname);
+    pa_xfree(state_path);
 
     /* Attempt to inject the devices into the list in priority order */
     total_devices = PA_MAX(pa_idxset_size(m->core->sinks), pa_idxset_size(m->core->sources));

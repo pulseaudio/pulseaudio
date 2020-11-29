@@ -14,6 +14,7 @@ libpulsecore_sources = [
   'cpu-orc.c',
   'cpu-x86.c',
   'device-port.c',
+  'database.c',
   'ffmpeg/resample2.c',
   'filter/biquad.c',
   'filter/crossover.c',

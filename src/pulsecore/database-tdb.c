@@ -97,17 +97,22 @@ finish:
     return c;
 }
 
-pa_database* pa_database_open(const char *fn, bool for_write) {
+const char* pa_database_get_arch_suffix(void) {
+    /* TDB binary file format is not dependent on system architecture */
+    return NULL;
+}
+
+const char* pa_database_get_filename_suffix(void) {
+    return ".tdb";
+}
+
+pa_database* pa_database_open_internal(const char *path, bool for_write) {
     struct tdb_context *c;
-    char *path;
 
-    pa_assert(fn);
+    pa_assert(path);
 
-    path = pa_sprintf_malloc("%s.tdb", fn);
     if ((c = tdb_open_cloexec(path, 0, TDB_NOSYNC|TDB_NOLOCK, (for_write ? O_RDWR|O_CREAT : O_RDONLY), 0644)))
         pa_log_debug("Opened TDB database '%s'", path);
-
-    pa_xfree(path);
 
     if (!c) {
         if (errno == 0)

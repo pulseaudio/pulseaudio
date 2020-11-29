@@ -59,17 +59,24 @@ void pa_datum_free(pa_datum *d) {
     pa_zero(d);
 }
 
-pa_database* pa_database_open(const char *fn, bool for_write) {
-    GDBM_FILE f;
-    int gdbm_cache_size;
-    char *path;
-
-    pa_assert(fn);
-
+const char* pa_database_get_arch_suffix(void) {
     /* We include the host identifier in the file name because gdbm
      * files are CPU dependent, and we don't want things to go wrong
      * if we are on a multiarch system. */
-    path = pa_sprintf_malloc("%s."CANONICAL_HOST".gdbm", fn);
+
+    return CANONICAL_HOST;
+}
+
+const char* pa_database_get_filename_suffix(void) {
+    return ".gdbm";
+}
+
+pa_database* pa_database_open_internal(const char *path, bool for_write) {
+    GDBM_FILE f;
+    int gdbm_cache_size;
+
+    pa_assert(path);
+
     errno = 0;
 
     /* We need to set the block size explicitly here, since otherwise
@@ -79,8 +86,6 @@ pa_database* pa_database_open(const char *fn, bool for_write) {
 
     if (f)
         pa_log_debug("Opened GDBM database '%s'", path);
-
-    pa_xfree(path);
 
     if (!f) {
         if (errno == 0)
