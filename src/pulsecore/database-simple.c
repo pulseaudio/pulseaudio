@@ -222,14 +222,21 @@ static int fill_data(simple_data *db, FILE *f) {
     return pa_hashmap_size(db->map);
 }
 
-pa_database* pa_database_open(const char *fn, bool for_write) {
+const char* pa_database_get_arch_suffix(void) {
+    /* Simple database binary file format is CPU dependent. */
+    return CANONICAL_HOST;
+}
+
+const char* pa_database_get_filename_suffix(void) {
+    return ".simple";
+}
+
+pa_database* pa_database_open_internal(const char *path, bool for_write) {
     FILE *f;
-    char *path;
     simple_data *db;
 
-    pa_assert(fn);
+    pa_assert(path);
 
-    path = pa_sprintf_malloc("%s."CANONICAL_HOST".simple", fn);
     errno = 0;
 
     f = pa_fopen_cloexec(path, "r");
@@ -250,8 +257,6 @@ pa_database* pa_database_open(const char *fn, bool for_write) {
             errno = EIO;
         db = NULL;
     }
-
-    pa_xfree(path);
 
     return (pa_database*) db;
 }
