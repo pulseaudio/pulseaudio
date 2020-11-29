@@ -22,6 +22,7 @@
 #endif
 
 #include <errno.h>
+#include <dirent.h>
 
 #include <pulse/xmalloc.h>
 #include <pulsecore/core-util.h>
@@ -36,6 +37,9 @@ pa_database* pa_database_open(const char *path, const char *fn, bool prependmid,
     const char *filename_suffix = pa_database_get_filename_suffix();
 
     char *machine_id = NULL, *filename_prefix, *full_path;
+
+    DIR *database_dir = NULL;
+    struct dirent *de;
 
     pa_database *f;
 
@@ -52,6 +56,40 @@ pa_database* pa_database_open(const char *path, const char *fn, bool prependmid,
             machine_id?:"", machine_id?"-":"",
             fn,
             arch_suffix?".":"", arch_suffix?:"");
+
+    /* Search for existing database directory entry name matching architecture suffix and filename suffix. */
+    database_dir = opendir(path);
+
+    if (database_dir) {
+        for (;;) {
+            errno = 0;
+            de = readdir(database_dir);
+            if (!de) {
+                if (errno) {
+                    pa_log_warn("Unable to search for compatible database file, readdir() failed: %s", pa_cstrerror(errno));
+                    /* can continue as if there is no matching database file candidate */
+                }
+
+                break;
+            }
+
+            if (pa_startswith(de->d_name, filename_prefix) && pa_endswith(de->d_name + strlen(filename_prefix), filename_suffix)) {
+                /* candidate filename found, replace filename_prefix with this one if match is not exact */
+
+                if (strlen(de->d_name) != strlen(filename_prefix) + strlen(filename_suffix)) {
+                    pa_log_debug("Found compatible database file '%s/%s', using it", path, de->d_name);
+                    pa_xfree(filename_prefix);
+                    filename_prefix = pa_xstrndup(de->d_name, strlen(de->d_name) - strlen(filename_suffix));
+                }
+
+                break;
+            }
+        }
+
+        closedir(database_dir);
+    } else {
+        pa_log_warn("Unable to search for compatible database file, failed to open directory %s: %s", path, pa_cstrerror(errno));
+    }
 
     full_path = pa_sprintf_malloc("%s" PA_PATH_SEP "%s%s", path, filename_prefix, filename_suffix);
 
