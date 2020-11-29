@@ -47,6 +47,9 @@
 #include <pulse/xmalloc.h>
 #include <pulsecore/semaphore.h>
 #include <pthread.h>
+#ifdef __FreeBSD__
+#include <pthread_np.h>
+#endif
 #include <pulsecore/atomic.h>
 
 #define MEMORY_SIZE (8 * 2 * 1024 * 1024)
@@ -55,14 +58,18 @@
 typedef struct io_t {
    pa_atomic_t *flag;
    char* memory;
+#ifdef __FreeBSD__
+   cpuset_t cpuset;
+#else
    cpu_set_t cpuset;
+#endif
 } io_t;
 
 static void read_func(void* data) {
    io_t *io = (io_t *) data;
    size_t expect = 0;
    size_t value = 0;
-   pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &io->cpuset);
+   pthread_setaffinity_np(pthread_self(), sizeof(io->cpuset), &io->cpuset);
    while(1) {
       if(pa_atomic_load(io->flag) == 1) {
          memcpy(&value, io->memory, sizeof(value));
@@ -76,7 +83,7 @@ static void read_func(void* data) {
 static void write_func(void* data) {
    io_t *io = (io_t *) data;
    size_t value = 0;
-   pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &io->cpuset);
+   pthread_setaffinity_np(pthread_self(), sizeof(io->cpuset), &io->cpuset);
    while(1) {
       if(pa_atomic_load(io->flag) == 0) {
          memcpy(io->memory, &value, sizeof(value));
