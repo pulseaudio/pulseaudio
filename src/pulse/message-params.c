@@ -350,12 +350,16 @@ int pa_message_params_read_string_array(char *c, const char ***results, int *len
     uint32_t element_count, i;
     int err;
     const char **values;
+    char *start_pos;
 
     pa_assert(results);
     pa_assert(length);
 
+    if ((err = split_list(c, &start_pos, NULL, state)) != PA_MESSAGE_PARAMS_OK)
+        return err;
+
     /* Count elements, return if no element was found or parse error. */
-    element_count = count_elements(c);
+    element_count = count_elements(start_pos);
     if (element_count < 0) {
         return PA_MESSAGE_PARAMS_PARSE_ERROR;
     } else if (element_count == 0) {
@@ -366,7 +370,8 @@ int pa_message_params_read_string_array(char *c, const char ***results, int *len
     /* Allocate array */
     values = pa_xmalloc0(element_count * sizeof(char *));
 
-    for (i = 0; (err = pa_message_params_read_string(c, &(values[i]), &state)) > 0; i++)
+    state = NULL;
+    for (i = 0; (err = pa_message_params_read_string(start_pos, &(values[i]), &state)) > 0; i++)
         ;
 
     if (err < 0) {
@@ -386,12 +391,16 @@ int pa_message_params_read_double_array(char *c, double **results, int *length) 
     void *state = NULL;
     uint32_t element_count, i;
     int err;
+    char *start_pos;
 
     pa_assert(results);
     pa_assert(length);
 
+    if ((err = split_list(c, &start_pos, NULL, state)) != PA_MESSAGE_PARAMS_OK)
+        return err;
+
     /* Count elements, return if no element was found or parse error. */
-    element_count = count_elements(c);
+    element_count = count_elements(start_pos);
     if (element_count < 0) {
         return PA_MESSAGE_PARAMS_PARSE_ERROR;
     } else if (element_count == 0) {
@@ -402,7 +411,8 @@ int pa_message_params_read_double_array(char *c, double **results, int *length) 
     /* Allocate array */
     values = pa_xmalloc0(element_count * sizeof(double));
 
-    for (i = 0; (err = pa_message_params_read_double(c, &(values[i]), &state)) > 0; i++)
+    state = NULL;
+    for (i = 0; (err = pa_message_params_read_double(start_pos, &(values[i]), &state)) > 0; i++)
         ;
 
     if (err < 0) {
@@ -422,12 +432,16 @@ int pa_message_params_read_int64_array(char *c, int64_t **results, int *length) 
     void *state = NULL;
     uint32_t element_count, i;
     int err;
+    char *start_pos;
 
     pa_assert(results);
     pa_assert(length);
 
+    if ((err = split_list(c, &start_pos, NULL, state)) != PA_MESSAGE_PARAMS_OK)
+        return err;
+
     /* Count elements, return if no element was found or parse error. */
-    element_count = count_elements(c);
+    element_count = count_elements(start_pos);
     if (element_count < 0) {
         return PA_MESSAGE_PARAMS_PARSE_ERROR;
     } else if (element_count == 0) {
@@ -438,7 +452,8 @@ int pa_message_params_read_int64_array(char *c, int64_t **results, int *length) 
     /* Allocate array */
     values = pa_xmalloc0(element_count * sizeof(int64_t));
 
-    for (i = 0; (err = pa_message_params_read_int64(c, &(values[i]), &state)) > 0; i++)
+    state = NULL;
+    for (i = 0; (err = pa_message_params_read_int64(start_pos, &(values[i]), &state)) > 0; i++)
         ;
 
     if (err < 0) {
@@ -458,12 +473,16 @@ int pa_message_params_read_uint64_array(char *c, uint64_t **results, int *length
     void *state = NULL;
     uint32_t element_count, i;
     int err;
+    char *start_pos;
 
     pa_assert(results);
     pa_assert(length);
 
+    if ((err = split_list(c, &start_pos, NULL, state)) != PA_MESSAGE_PARAMS_OK)
+        return err;
+
     /* Count elements, return if no element was found or parse error. */
-    element_count = count_elements(c);
+    element_count = count_elements(start_pos);
     if (element_count < 0) {
         return PA_MESSAGE_PARAMS_PARSE_ERROR;
     } else if (element_count == 0) {
@@ -474,7 +493,8 @@ int pa_message_params_read_uint64_array(char *c, uint64_t **results, int *length
     /* Allocate array */
     values = pa_xmalloc0(element_count * sizeof(uint64_t));
 
-    for (i = 0; (err = pa_message_params_read_uint64(c, &(values[i]), &state)) > 0; i++)
+    state = NULL;
+    for (i = 0; (err = pa_message_params_read_uint64(start_pos, &(values[i]), &state)) > 0; i++)
         ;
 
     if (err < 0) {
