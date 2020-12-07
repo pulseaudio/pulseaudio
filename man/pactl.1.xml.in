@@ -162,6 +162,11 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     </option>
 
     <option>
+      <p><opt>get-default-sink</opt></p>
+      <optdesc><p>Returns the symbolic name of the default sink.</p></optdesc>
+    </option>
+
+    <option>
       <p><opt>set-default-sink</opt> <arg>SINK</arg></p>
       <optdesc><p>Make the specified sink (identified by its symbolic name or numerical index) the default sink.</p></optdesc>
     </option>

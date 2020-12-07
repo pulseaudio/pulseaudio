@@ -121,6 +121,7 @@ static enum {
     SUSPEND_SOURCE,
     SET_CARD_PROFILE,
     SET_SINK_PORT,
+    GET_DEFAULT_SINK,
     SET_DEFAULT_SINK,
     SET_SOURCE_PORT,
     SET_DEFAULT_SOURCE,
@@ -185,6 +186,18 @@ static void stat_callback(pa_context *c, const pa_stat_info *i, void *userdata) 
 
     pa_bytes_snprint(s, sizeof(s), i->scache_size);
     printf(_("Sample cache size: %s\n"), s);
+
+    complete_action();
+}
+
+static void get_default_sink(pa_context *c, const pa_server_info *i, void *userdata) {
+    if (!i) {
+        pa_log(_("Failed to get server information: %s"), pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    printf(_("%s\n"), i->default_sink_name);
 
     complete_action();
 }
@@ -1481,6 +1494,10 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     o = pa_context_set_sink_port_by_name(c, sink_name, port_name, simple_callback, NULL);
                     break;
 
+                case GET_DEFAULT_SINK:
+                    o = pa_context_get_server_info(c, get_default_sink, NULL);
+                    break;
+
                 case SET_DEFAULT_SINK:
                     o = pa_context_set_default_sink(c, sink_name, simple_callback, NULL);
                     break;
@@ -1717,6 +1734,7 @@ static void help(const char *argv0) {
     printf("%s %s %s %s\n", argv0, _("[options]"), "move-(sink-input|source-output)", _("#N SINK|SOURCE"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "suspend-(sink|source)", _("NAME|#N 1|0"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-card-profile ", _("CARD PROFILE"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "get-default-(sink|source)", _("NAME"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-default-(sink|source)", _("NAME"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink|source)-port", _("NAME|#N PORT"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink|source)-volume", _("NAME|#N VOLUME [VOLUME ...]"));
@@ -2016,6 +2034,9 @@ int main(int argc, char *argv[]) {
             }
 
             sink_name = pa_xstrdup(argv[optind+1]);
+
+        } else if (pa_streq(argv[optind], "get-default-sink")) {
+            action = GET_DEFAULT_SINK;
 
         } else if (pa_streq(argv[optind], "set-source-port")) {
             action = SET_SOURCE_PORT;
