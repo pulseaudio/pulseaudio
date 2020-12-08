@@ -200,7 +200,6 @@ int pa__init(pa_module*m) {
     pa_channel_map map;
     pa_modargs *ma = NULL;
     pa_source_new_data data;
-    pa_usec_t max_latency = MAX_LATENCY_USEC;
     uint32_t max_latency_msec;
 
     pa_assert(m);
@@ -252,10 +251,13 @@ int pa__init(pa_module*m) {
     pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
     pa_source_set_rtpoll(u->source, u->rtpoll);
 
-    if (pa_modargs_get_value_u32(ma, "max_latency_msec", &max_latency_msec))
-        max_latency = max_latency_msec * PA_USEC_PER_MSEC;
+    max_latency_msec = MAX_LATENCY_USEC / PA_USEC_PER_MSEC;
+    if (pa_modargs_get_value_u32(ma, "max_latency_msec", &max_latency_msec) < 0) {
+        pa_log("Failed to get max_latency_msec.");
+        goto fail;
+    }
 
-    pa_source_set_latency_range(u->source, MIN_LATENCY_USEC, max_latency);
+    pa_source_set_latency_range(u->source, MIN_LATENCY_USEC, max_latency_msec * PA_USEC_PER_MSEC);
 
     u->block_usec = u->source->thread_info.max_latency;
 
