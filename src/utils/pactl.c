@@ -125,6 +125,7 @@ static enum {
     SET_DEFAULT_SINK,
     SET_SOURCE_PORT,
     SET_DEFAULT_SOURCE,
+    GET_SINK_VOLUME,
     SET_SINK_VOLUME,
     SET_SOURCE_VOLUME,
     SET_SINK_INPUT_VOLUME,
@@ -1046,6 +1047,27 @@ static void fill_volume(pa_cvolume *cv, unsigned supported) {
 }
 
 static void get_sink_volume_callback(pa_context *c, const pa_sink_info *i, int is_last, void *userdata) {
+    if (is_last < 0) {
+        pa_log(_("Failed to get sink information: %s"), pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    if (is_last)
+        return;
+
+    pa_assert(i);
+
+    char cv[PA_CVOLUME_SNPRINT_VERBOSE_MAX];
+    printf(("Volume: %s\n"
+            "        balance %0.2f\n"),
+           pa_cvolume_snprint_verbose(cv, sizeof(cv), &i->volume, &i->channel_map, true),
+           pa_cvolume_get_balance(&i->volume, &i->channel_map));
+
+    complete_action();
+}
+
+static void set_sink_volume_callback(pa_context *c, const pa_sink_info *i, int is_last, void *userdata) {
     pa_cvolume cv;
 
     if (is_last < 0) {
@@ -1538,8 +1560,12 @@ static void context_state_callback(pa_context *c, void *userdata) {
                         o = pa_context_set_source_output_mute(c, source_output_idx, mute, simple_callback, NULL);
                     break;
 
-                case SET_SINK_VOLUME:
+                case GET_SINK_VOLUME:
                     o = pa_context_get_sink_info_by_name(c, sink_name, get_sink_volume_callback, NULL);
+                    break;
+
+                case SET_SINK_VOLUME:
+                    o = pa_context_get_sink_info_by_name(c, sink_name, set_sink_volume_callback, NULL);
                     break;
 
                 case SET_SOURCE_VOLUME:
@@ -1737,6 +1763,7 @@ static void help(const char *argv0) {
     printf("%s %s %s %s\n", argv0, _("[options]"), "get-default-(sink|source)", _("NAME"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-default-(sink|source)", _("NAME"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink|source)-port", _("NAME|#N PORT"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "get-(sink|source)-volume", _("NAME|#N"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink|source)-volume", _("NAME|#N VOLUME [VOLUME ...]"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink-input|source-output)-volume", _("#N VOLUME [VOLUME ...]"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink|source)-mute", _("NAME|#N 1|0|toggle"));
@@ -2058,6 +2085,16 @@ int main(int argc, char *argv[]) {
             }
 
             source_name = pa_xstrdup(argv[optind+1]);
+
+        } else if (pa_streq(argv[optind], "get-sink-volume")) {
+            action = GET_SINK_VOLUME;
+
+            if (argc < optind+2) {
+                pa_log(_("You have to specify a sink name/index"));
+                goto quit;
+            }
+
+            sink_name = pa_xstrdup(argv[optind+1]);
 
         } else if (pa_streq(argv[optind], "set-sink-volume")) {
             action = SET_SINK_VOLUME;
