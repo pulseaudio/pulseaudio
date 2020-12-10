@@ -128,6 +128,7 @@ static enum {
     SET_DEFAULT_SOURCE,
     GET_SINK_VOLUME,
     SET_SINK_VOLUME,
+    GET_SOURCE_VOLUME,
     SET_SOURCE_VOLUME,
     SET_SINK_INPUT_VOLUME,
     SET_SOURCE_OUTPUT_VOLUME,
@@ -1101,6 +1102,27 @@ static void set_sink_volume_callback(pa_context *c, const pa_sink_info *i, int i
 }
 
 static void get_source_volume_callback(pa_context *c, const pa_source_info *i, int is_last, void *userdata) {
+    if (is_last < 0) {
+        pa_log(_("Failed to get source information: %s"), pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    if (is_last)
+        return;
+
+    pa_assert(i);
+
+    char cv[PA_CVOLUME_SNPRINT_VERBOSE_MAX];
+    printf(("Volume: %s\n"
+            "        balance %0.2f\n"),
+           pa_cvolume_snprint_verbose(cv, sizeof(cv), &i->volume, &i->channel_map, true),
+           pa_cvolume_get_balance(&i->volume, &i->channel_map));
+
+    complete_action();
+}
+
+static void set_source_volume_callback(pa_context *c, const pa_source_info *i, int is_last, void *userdata) {
     pa_cvolume cv;
 
     if (is_last < 0) {
@@ -1585,8 +1607,12 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     o = pa_context_get_sink_info_by_name(c, sink_name, set_sink_volume_callback, NULL);
                     break;
 
-                case SET_SOURCE_VOLUME:
+                case GET_SOURCE_VOLUME:
                     o = pa_context_get_source_info_by_name(c, source_name, get_source_volume_callback, NULL);
+                    break;
+
+                case SET_SOURCE_VOLUME:
+                    o = pa_context_get_source_info_by_name(c, source_name, set_source_volume_callback, NULL);
                     break;
 
                 case SET_SINK_INPUT_VOLUME:
@@ -2128,6 +2154,16 @@ int main(int argc, char *argv[]) {
 
             if (parse_volumes(argv+optind+2, argc-(optind+2)) < 0)
                 goto quit;
+
+        } else if (pa_streq(argv[optind], "get-source-volume")) {
+            action = GET_SOURCE_VOLUME;
+
+            if (argc < optind+2) {
+                pa_log(_("You have to specify a source name/index"));
+                goto quit;
+            }
+
+            sink_name = pa_xstrdup(argv[optind+1]);
 
         } else if (pa_streq(argv[optind], "set-source-volume")) {
             action = SET_SOURCE_VOLUME;
