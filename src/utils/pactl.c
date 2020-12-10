@@ -124,6 +124,7 @@ static enum {
     GET_DEFAULT_SINK,
     SET_DEFAULT_SINK,
     SET_SOURCE_PORT,
+    GET_DEFAULT_SOURCE,
     SET_DEFAULT_SOURCE,
     GET_SINK_VOLUME,
     SET_SINK_VOLUME,
@@ -199,6 +200,18 @@ static void get_default_sink(pa_context *c, const pa_server_info *i, void *userd
     }
 
     printf(_("%s\n"), i->default_sink_name);
+
+    complete_action();
+}
+
+static void get_default_source(pa_context *c, const pa_server_info *i, void *userdata) {
+    if (!i) {
+        pa_log(_("Failed to get server information: %s"), pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    printf(_("%s\n"), i->default_source_name);
 
     complete_action();
 }
@@ -1528,6 +1541,10 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     o = pa_context_set_source_port_by_name(c, source_name, port_name, simple_callback, NULL);
                     break;
 
+                case GET_DEFAULT_SOURCE:
+                    o = pa_context_get_server_info(c, get_default_source, NULL);
+                    break;
+
                 case SET_DEFAULT_SOURCE:
                     o = pa_context_set_default_source(c, source_name, simple_callback, NULL);
                     break;
@@ -2085,6 +2102,9 @@ int main(int argc, char *argv[]) {
             }
 
             source_name = pa_xstrdup(argv[optind+1]);
+
+        } else if (pa_streq(argv[optind], "get-default-source")) {
+            action = GET_DEFAULT_SOURCE;
 
         } else if (pa_streq(argv[optind], "get-sink-volume")) {
             action = GET_SINK_VOLUME;

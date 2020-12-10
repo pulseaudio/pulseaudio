@@ -177,6 +177,11 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     </option>
 
     <option>
+      <p><opt>get-default-source</opt></p>
+      <optdesc><p>Returns the symbolic name of the default source.</p></optdesc>
+    </option>
+
+    <option>
       <p><opt>set-default-source</opt> <arg>SOURCE</arg></p>
       <optdesc><p>Make the specified source (identified by its symbolic name or numerical index) the default source.</p></optdesc>
     </option>
