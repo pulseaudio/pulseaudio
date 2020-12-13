@@ -272,6 +272,15 @@ int pa_modargs_append(pa_modargs *ma, const char *args, const char* const* valid
     return parse(ma, args, valid_keys, true);
 }
 
+int pa_modargs_remove_key(pa_modargs *ma, const char *key) {
+    if (pa_hashmap_remove_and_free(ma->unescaped, key) == 0) {
+        pa_hashmap_remove_and_free(ma->raw, key);
+        return 0;
+    }
+
+    return -1;
+}
+
 void pa_modargs_free(pa_modargs*ma) {
     pa_assert(ma);
 
@@ -543,4 +552,21 @@ const char *pa_modargs_iterate(pa_modargs *ma, void **state) {
         return NULL;
 
     return e->key;
+}
+
+int pa_modargs_merge_missing(pa_modargs *dst, pa_modargs *src, const char* const valid_keys[]) {
+    void *state;
+    const char *key, *value;
+    int ret = 0;
+
+    for (state = NULL, key = pa_modargs_iterate(src, &state); key; key = pa_modargs_iterate(src, &state)) {
+        value = pa_modargs_get_value(src, key, NULL);
+        if (value && add_key_value(dst, pa_xstrdup(key), pa_xstrdup(value), valid_keys, true) < 0) {
+            pa_log_warn("Failed to add module argument '%s=%s'", key, value);
+            ret = -1;
+            /* continue to gather all errors */
+        }
+    }
+
+    return ret;
 }

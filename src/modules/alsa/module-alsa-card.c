@@ -104,6 +104,8 @@ static const char* const valid_modargs[] = {
 
 #define DEFAULT_DEVICE_ID "0"
 
+#define PULSE_MODARGS "PULSE_MODARGS"
+
 struct userdata {
     pa_core *core;
     pa_module *module;
@@ -820,6 +822,7 @@ int pa__init(pa_module *m) {
     const char *description;
     const char *profile_str = NULL;
     char *fn = NULL;
+    char *udev_args = NULL;
     bool namereg_fail = false;
     int err = -PA_MODULE_ERR_UNSPECIFIED, rval;
 
@@ -847,6 +850,47 @@ int pa__init(pa_module *m) {
     if ((u->alsa_card_index = snd_card_get_index(u->device_id)) < 0) {
         pa_log("Card '%s' doesn't exist: %s", u->device_id, pa_alsa_strerror(u->alsa_card_index));
         goto fail;
+    }
+
+#ifdef HAVE_UDEV
+    udev_args = pa_udev_get_property(u->alsa_card_index, PULSE_MODARGS);
+#endif
+
+    if (udev_args) {
+        bool udev_modargs_success = true;
+        pa_modargs *temp_ma = pa_modargs_new(udev_args, valid_modargs);
+
+        if (temp_ma) {
+            /* do not try to replace device_id */
+
+            if (pa_modargs_remove_key(temp_ma, "device_id") == 0) {
+                pa_log_warn("Unexpected 'device_id' module argument override ignored from udev " PULSE_MODARGS "='%s'", udev_args);
+            }
+
+            /* Implement modargs override by copying original module arguments
+             * over udev entry arguments ignoring duplicates. */
+
+            if (pa_modargs_merge_missing(temp_ma, u->modargs, valid_modargs) == 0) {
+                /* swap module arguments */
+                pa_modargs *old_ma = u->modargs;
+                u->modargs = temp_ma;
+                temp_ma = old_ma;
+
+                pa_log_info("Applied module arguments override from udev " PULSE_MODARGS "='%s'", udev_args);
+            } else {
+                pa_log("Failed to apply module arguments override from udev " PULSE_MODARGS "='%s'", udev_args);
+                udev_modargs_success = false;
+            }
+
+            pa_modargs_free(temp_ma);
+        } else {
+            pa_log("Failed to parse module arguments from udev " PULSE_MODARGS "='%s'", udev_args);
+            udev_modargs_success = false;
+        }
+        pa_xfree(udev_args);
+
+        if (!udev_modargs_success)
+            goto fail;
     }
 
     if (pa_modargs_get_value_boolean(u->modargs, "ignore_dB", &ignore_dB) < 0) {

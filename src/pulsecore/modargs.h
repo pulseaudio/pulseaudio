@@ -95,4 +95,11 @@ int pa_modargs_get_proplist(pa_modargs *ma, const char *name, pa_proplist *p, pa
  * have any particular order. */
 const char *pa_modargs_iterate(pa_modargs *ma, void **state);
 
+/* Remove entry by key. Returns 0 if successful, -1 otherwise */
+int pa_modargs_remove_key(pa_modargs *ma, const char *key);
+
+/* Add all key/value pairs from src that are is not already present in dst, to dst.
+ * Returns 0 if there were no errors, -1 otherwise. */
+int pa_modargs_merge_missing(pa_modargs *dst, pa_modargs *src, const char* const valid_keys[]);
+
 #endif
