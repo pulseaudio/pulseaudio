@@ -124,7 +124,7 @@ option('orc',
        type : 'feature', value : 'auto',
        description : 'Optimized Inner Loop Runtime Compiler')
 option('oss-output',
-       type : 'boolean',
+       type : 'feature', value : 'auto',
        description : 'Optional OSS output support')
 option('samplerate',
        type : 'feature', value : 'disabled',

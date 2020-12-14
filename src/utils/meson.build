@@ -84,7 +84,7 @@ if x11_dep.found()
   )
 endif
 
-if get_option('oss-output')
+if cdata.has('HAVE_OSS_WRAPPER')
   libpulsecommon_sources = [
     'padsp.c',
   ]

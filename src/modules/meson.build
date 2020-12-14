@@ -73,7 +73,7 @@ if cc.has_header('linux/input.h')
   ]
 endif
 
-if get_option('oss-output')
+if cdata.has('HAVE_OSS_OUTPUT')
   subdir('oss')
   all_modules += [
     [ 'module-oss', 'oss/module-oss.c', [], [], [], liboss_util ],

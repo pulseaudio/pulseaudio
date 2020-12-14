@@ -616,8 +616,7 @@ if x11_dep.found()
 endif
 
 # Module dependencies
-if get_option('oss-output')
-  assert(cc.has_header('sys/soundcard.h'), 'Need header file for OSS support')
+if cc.has_header('sys/soundcard.h', required: get_option('oss-output'))
   cdata.set('HAVE_OSS_OUTPUT', 1)
   cdata.set('HAVE_OSS_WRAPPER', 1)
   cdata.set('PULSEDSP_LOCATION', pulsedsp_location)
@@ -811,8 +810,8 @@ summary = [
   '',
   'Enable memfd shared memory:    @0@'.format(cdata.has('HAVE_MEMFD')),
   'Enable X11:                    @0@'.format(x11_dep.found()),
-  'Enable OSS Output:             @0@'.format(get_option('oss-output')),
-#  'Enable OSS Wrapper:            @0@'.format(${ENABLE_OSS_WRAPPER}),
+  'Enable OSS Output:             @0@'.format(cdata.has('HAVE_OSS_OUTPUT')),
+  'Enable OSS Wrapper:            @0@'.format(cdata.has('HAVE_OSS_WRAPPER')),
 #  'Enable EsounD:                 @0@'.format(${ENABLE_ESOUND}),
   'Enable Alsa:                   @0@'.format(alsa_dep.found()),
 #  'Enable CoreAudio:              @0@'.format(${ENABLE_COREAUDIO}),
