@@ -88,6 +88,13 @@ static enum mute_flags {
     TOGGLE_MUTE = 2
 } mute = INVALID_MUTE;
 
+static enum sticky_flags {
+    INVALID_STICKY = -1,
+    NOT_STICKY = 0,
+    STICKY = 1,
+    TOGGLE_STICKY = 2
+} sticky = INVALID_STICKY;
+
 static pa_proplist *proplist = NULL;
 
 static SNDFILE *sndfile = NULL;
@@ -135,6 +142,7 @@ static enum {
     SET_SINK_FORMATS,
     SET_PORT_LATENCY_OFFSET,
     SEND_MESSAGE,
+    SET_CARD_PROFILE_IS_STICKY,
     SUBSCRIBE
 } action = NONE;
 
@@ -634,6 +642,9 @@ static void get_card_info_callback(pa_context *c, const pa_card_info *i, int is_
         printf(_("\tActive Profile: %s\n"),
                i->active_profile->name);
 
+    printf(_("\tProfile selection: %s\n"),
+            i->profile_is_sticky ? "sticky" : "automatic");
+
     if (i->ports) {
         pa_card_port_info **p;
 
@@ -1127,6 +1138,21 @@ static void sink_toggle_mute_callback(pa_context *c, const pa_sink_info *i, int 
     pa_operation_unref(pa_context_set_sink_mute_by_name(c, i->name, !i->mute, simple_callback, NULL));
 }
 
+static void card_profile_is_sticky_toggle_callback(pa_context *c, const pa_card_info *i, int is_last, void *userdata) {
+    if (is_last < 0) {
+        pa_log(_("Failed to get card information: %s"), pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    if (is_last)
+        return;
+
+    pa_assert(i);
+
+    pa_operation_unref(pa_context_set_card_profile_is_sticky_by_name(c, i->name, !i->profile_is_sticky, simple_callback, NULL));
+}
+
 static void source_toggle_mute_callback(pa_context *c, const pa_source_info *o, int is_last, void *userdata) {
     if (is_last < 0) {
         pa_log(_("Failed to get source information: %s"), pa_strerror(pa_context_errno(c)));
@@ -1477,6 +1503,13 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     o = pa_context_set_card_profile_by_name(c, card_name, profile_name, simple_callback, NULL);
                     break;
 
+                case SET_CARD_PROFILE_IS_STICKY:
+                    if (sticky == TOGGLE_STICKY)
+                        o = pa_context_get_card_info_by_name(c, card_name, card_profile_is_sticky_toggle_callback, NULL);
+                    else
+                        o = pa_context_set_card_profile_is_sticky_by_name(c, card_name, sticky, simple_callback, NULL);
+                    break;
+
                 case SET_SINK_PORT:
                     o = pa_context_set_sink_port_by_name(c, sink_name, port_name, simple_callback, NULL);
                     break;
@@ -1700,6 +1733,25 @@ static enum mute_flags parse_mute(const char *mute_text) {
             return MUTE;
         default:
             return INVALID_MUTE;
+    }
+}
+
+static enum sticky_flags parse_sticky(const char *sticky_text) {
+    int b;
+
+    pa_assert(sticky_text);
+
+    if (pa_streq("toggle", sticky_text))
+        return TOGGLE_STICKY;
+
+    b = pa_parse_boolean(sticky_text);
+    switch (b) {
+        case 0:
+            return NOT_STICKY;
+        case 1:
+            return STICKY;
+        default:
+            return INVALID_STICKY;
     }
 }
 
@@ -1995,6 +2047,21 @@ int main(int argc, char *argv[]) {
 
             card_name = pa_xstrdup(argv[optind+1]);
             profile_name = pa_xstrdup(argv[optind+2]);
+
+        } else if (pa_streq(argv[optind], "set-card-profile-is-sticky")) {
+            action = SET_CARD_PROFILE_IS_STICKY;
+
+            if (argc != optind+3) {
+                pa_log(_("You have to specify a card name/index and a profile sticky flag action (0, 1, or 'toggle')"));
+                goto quit;
+            }
+
+            card_name = pa_xstrdup(argv[optind+1]);
+
+            if ((sticky = parse_sticky(argv[optind+2])) == INVALID_STICKY) {
+                pa_log(_("Invalid sticky flag specification"));
+                goto quit;
+            }
 
         } else if (pa_streq(argv[optind], "set-sink-port")) {
             action = SET_SINK_PORT;

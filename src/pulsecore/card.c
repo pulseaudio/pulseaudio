@@ -220,6 +220,7 @@ void pa_card_choose_initial_profile(pa_card *card) {
 
     card->active_profile = best;
     card->save_profile = false;
+    card->profile_is_sticky = false;
     pa_log_info("%s: active_profile: %s", card->name, card->active_profile->name);
 
     /* Let policy modules override the default. */
@@ -303,6 +304,29 @@ static void update_port_preferred_profile(pa_card *c) {
     PA_IDXSET_FOREACH(source, c->sources, state)
         if (source->active_port)
             pa_device_port_set_preferred_profile(source->active_port, profile_name_for_dir(c->active_profile, PA_DIRECTION_INPUT));
+}
+
+int pa_card_set_profile_is_sticky(pa_card *c, bool profile_is_sticky) {
+    pa_assert(c);
+
+    if (c->profile_is_sticky == profile_is_sticky)
+        return 0;
+
+    pa_log_debug("%s: profile_is_sticky: %s -> %s",
+            c->name, pa_yes_no(c->profile_is_sticky), pa_yes_no(profile_is_sticky));
+
+    c->profile_is_sticky = profile_is_sticky;
+
+    /* TODO: do we still need to call update_port_referred_profile() here? */
+    if (profile_is_sticky)
+        update_port_preferred_profile(c);
+
+    if (c->linked) {
+        pa_hook_fire(&c->core->hooks[PA_CORE_HOOK_CARD_PROFILE_CHANGED], c);
+        pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, c->index);
+    }
+
+    return 0;
 }
 
 int pa_card_set_profile(pa_card *c, pa_card_profile *profile, bool save) {
