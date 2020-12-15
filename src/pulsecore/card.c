@@ -28,13 +28,21 @@
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
 
+#include <pulsecore/json.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/namereg.h>
+#include <pulsecore/message-handler.h>
 #include <pulsecore/device-port.h>
 
 #include "card.h"
+
+static int card_message_handler(const char *object_path, const char *message, const pa_json_object *parameters, char **response, void *userdata);
+
+static char* make_message_handler_path(const char *name) {
+    return pa_sprintf_malloc("/card/%s", name);
+}
 
 const char *pa_available_to_string(pa_available_t available) {
     switch (available) {
@@ -136,7 +144,8 @@ void pa_card_new_data_done(pa_card_new_data *data) {
 
 pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
     pa_card *c;
-    const char *name;
+    const char *name, *tmp;
+    char *object_path, *description;
     void *state;
     pa_card_profile *profile;
     pa_device_port *port;
@@ -186,6 +195,14 @@ pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
     pa_device_init_icon(c->proplist, true);
     pa_device_init_intended_roles(c->proplist);
 
+    object_path = make_message_handler_path(c->name);
+    if (!(tmp = pa_proplist_gets(c->proplist, PA_PROP_DEVICE_DESCRIPTION)))
+        tmp = c->name;
+    description = pa_sprintf_malloc("Message handler for card \"%s\"", tmp);
+    pa_message_handler_register(c->core, object_path, description, card_message_handler, (void *) c);
+    pa_xfree(object_path);
+    pa_xfree(description);
+
     return c;
 }
 
@@ -220,6 +237,7 @@ void pa_card_choose_initial_profile(pa_card *card) {
 
     card->active_profile = best;
     card->save_profile = false;
+    card->profile_is_sticky = false;
     pa_log_info("%s: active_profile: %s", card->name, card->active_profile->name);
 
     /* Let policy modules override the default. */
@@ -239,6 +257,7 @@ void pa_card_put(pa_card *card) {
 
 void pa_card_free(pa_card *c) {
     pa_core *core;
+    char *object_path;
 
     pa_assert(c);
     pa_assert(c->core);
@@ -252,6 +271,10 @@ void pa_card_free(pa_card *c) {
         pa_log_info("Freed %u \"%s\"", c->index, c->name);
         pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_REMOVE, c->index);
     }
+
+    object_path = make_message_handler_path(c->name);
+    pa_message_handler_unregister(core, object_path);
+    pa_xfree(object_path);
 
     pa_namereg_unregister(core, c->name);
 
@@ -303,6 +326,25 @@ static void update_port_preferred_profile(pa_card *c) {
     PA_IDXSET_FOREACH(source, c->sources, state)
         if (source->active_port)
             pa_device_port_set_preferred_profile(source->active_port, profile_name_for_dir(c->active_profile, PA_DIRECTION_INPUT));
+}
+
+static int card_set_profile_is_sticky(pa_card *c, bool profile_is_sticky) {
+    pa_assert(c);
+
+    if (c->profile_is_sticky == profile_is_sticky)
+        return 0;
+
+    pa_log_debug("%s: profile_is_sticky: %s -> %s",
+            c->name, pa_yes_no(c->profile_is_sticky), pa_yes_no(profile_is_sticky));
+
+    c->profile_is_sticky = profile_is_sticky;
+
+    if (c->linked) {
+        pa_hook_fire(&c->core->hooks[PA_CORE_HOOK_CARD_PROFILE_CHANGED], c);
+        pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, c->index);
+    }
+
+    return 0;
 }
 
 int pa_card_set_profile(pa_card *c, pa_card_profile *profile, bool save) {
@@ -422,4 +464,45 @@ int pa_card_suspend(pa_card *c, bool suspend, pa_suspend_cause_t cause) {
     }
 
     return ret;
+}
+
+static int card_message_handler(const char *object_path, const char *message, const pa_json_object *parameters, char **response, void *userdata) {
+    pa_card *c;
+    char *message_handler_path;
+
+    pa_assert(c = (pa_card *) userdata);
+    pa_assert(message);
+    pa_assert(response);
+
+    message_handler_path = make_message_handler_path(c->name);
+
+    if (!object_path || !pa_streq(object_path, message_handler_path)) {
+        pa_xfree(message_handler_path);
+        return -PA_ERR_NOENTITY;
+    }
+
+    pa_xfree(message_handler_path);
+
+    if (pa_streq(message, "get-profile-sticky")) {
+        pa_json_encoder *encoder;
+        encoder = pa_json_encoder_new();
+
+        pa_json_encoder_add_element_bool(encoder, c->profile_is_sticky);
+
+        *response = pa_json_encoder_to_string_free(encoder);
+
+        return PA_OK;
+    } else if (pa_streq(message, "set-profile-sticky")) {
+
+        if (!parameters || pa_json_object_get_type(parameters) != PA_JSON_TYPE_BOOL) {
+            pa_log_info("Card operation set-profile-sticky requires argument: \"true\" or \"false\"");
+            return -PA_ERR_INVALID;
+        }
+
+        card_set_profile_is_sticky(c, pa_json_object_get_bool(parameters));
+
+        return PA_OK;
+    }
+
+    return -PA_ERR_NOTIMPLEMENTED;
 }
