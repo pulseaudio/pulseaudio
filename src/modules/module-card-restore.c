@@ -153,7 +153,7 @@ static struct entry *entry_from_card(pa_card *card) {
     pa_assert(card);
 
     entry = entry_new();
-    if (card->save_profile)
+    if (card->profile_is_sticky)
         entry->profile = pa_xstrdup(card->active_profile->name);
 
     PA_HASHMAP_FOREACH(port, card->ports, state) {
@@ -378,7 +378,7 @@ fail:
 static void show_full_info(pa_card *card) {
     pa_assert(card);
 
-    if (card->save_profile)
+    if (card->profile_is_sticky)
         pa_log_info("Storing profile and port latency offsets for card %s.", card->name);
     else
         pa_log_info("Storing port latency offsets for card %s.", card->name);
@@ -392,7 +392,7 @@ static pa_hook_result_t card_put_hook_callback(pa_core *c, pa_card *card, struct
     entry = entry_from_card(card);
 
     if ((old = entry_read(u, card->name))) {
-        if (!card->save_profile)
+        if (!card->profile_is_sticky)
             entry->profile = pa_xstrdup(old->profile);
         if (entrys_equal(entry, old))
             goto finish;
@@ -437,7 +437,7 @@ static pa_hook_result_t card_profile_changed_callback(pa_core *c, pa_card *card,
 
     pa_assert(card);
 
-    if (!card->save_profile)
+    if (!card->profile_is_sticky)
         return PA_HOOK_OK;
 
     if ((entry = entry_read(u, card->name))) {

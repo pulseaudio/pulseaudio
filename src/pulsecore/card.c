@@ -219,7 +219,7 @@ void pa_card_choose_initial_profile(pa_card *card) {
     pa_assert(best);
 
     card->active_profile = best;
-    card->save_profile = false;
+    card->profile_is_sticky = false;
     pa_log_info("%s: active_profile: %s", card->name, card->active_profile->name);
 
     /* Let policy modules override the default. */
@@ -305,7 +305,7 @@ static void update_port_preferred_profile(pa_card *c) {
             pa_device_port_set_preferred_profile(source->active_port, profile_name_for_dir(c->active_profile, PA_DIRECTION_INPUT));
 }
 
-int pa_card_set_profile(pa_card *c, pa_card_profile *profile, bool save) {
+int pa_card_set_profile(pa_card *c, pa_card_profile *profile, bool profile_is_sticky) {
     int r;
 
     pa_assert(c);
@@ -318,9 +318,9 @@ int pa_card_set_profile(pa_card *c, pa_card_profile *profile, bool save) {
     }
 
     if (c->active_profile == profile) {
-        if (save && !c->save_profile) {
+        if (profile_is_sticky && !c->profile_is_sticky) {
             update_port_preferred_profile(c);
-            c->save_profile = true;
+            c->profile_is_sticky = true;
         }
         return 0;
     }
@@ -337,9 +337,9 @@ int pa_card_set_profile(pa_card *c, pa_card_profile *profile, bool save) {
 
     pa_log_debug("%s: active_profile: %s -> %s", c->name, c->active_profile->name, profile->name);
     c->active_profile = profile;
-    c->save_profile = save;
+    c->profile_is_sticky = profile_is_sticky;
 
-    if (save)
+    if (profile_is_sticky)
         update_port_preferred_profile(c);
 
     if (c->linked) {

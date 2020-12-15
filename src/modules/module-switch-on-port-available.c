@@ -545,7 +545,7 @@ static pa_hook_result_t card_profile_changed_callback(pa_core *core, pa_card *ca
 
     /* This profile change wasn't initiated by the user, so it doesn't signal
      * a change in the user's port preferences. */
-    if (!card->save_profile)
+    if (!card->profile_is_sticky)
         return PA_HOOK_OK;
 
     update_preferred_input_port(card, old_profile, new_profile);
