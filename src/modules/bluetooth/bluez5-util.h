@@ -129,6 +129,7 @@ struct pa_bluetooth_adapter {
     char *address;
 
     bool valid;
+    bool application_registered;
 };
 
 #ifdef HAVE_BLUEZ_5_OFONO_HEADSET
