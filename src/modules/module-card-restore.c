@@ -582,7 +582,7 @@ static pa_hook_result_t card_choose_initial_profile_callback(pa_core *core, pa_c
     card->profile_is_sticky = e->profile_is_sticky;
     pa_log_info("Profile '%s' was previously %s for card %s.",
             e->profile,
-            card->profile_is_sticky ? "set by user" : "automatically selected",
+            card->profile_is_sticky ? "sticky" : "automatically selected",
             card->name);
 
     if (e->profile[0]) {
