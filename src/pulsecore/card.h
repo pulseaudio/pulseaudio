@@ -140,6 +140,8 @@ void pa_card_add_profile(pa_card *c, pa_card_profile *profile);
 
 int pa_card_set_profile(pa_card *c, pa_card_profile *profile, bool profile_is_sticky);
 
+int pa_card_set_profile_is_sticky(pa_card *c, bool profile_is_sticky);
+
 void pa_card_set_preferred_port(pa_card *c, pa_direction_t direction, pa_device_port *port);
 
 int pa_card_suspend(pa_card *c, bool suspend, pa_suspend_cause_t cause);
