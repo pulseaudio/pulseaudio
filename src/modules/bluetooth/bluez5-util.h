@@ -109,6 +109,7 @@ struct pa_bluetooth_device {
     bool tried_to_link_with_adapter;
     bool valid;
     bool autodetect_mtu;
+    bool codec_switching_in_progress;
 
     /* Device information */
     char *path;
@@ -117,6 +118,9 @@ struct pa_bluetooth_device {
     char *address;
     uint32_t class_of_device;
     pa_hashmap *uuids; /* char* -> char* (hashmap-as-a-set) */
+    /* pa_a2dp_codec_id* -> pa_hashmap ( char* (remote endpoint) -> struct a2dp_codec_capabilities* ) */
+    pa_hashmap *a2dp_sink_endpoints;
+    pa_hashmap *a2dp_source_endpoints;
 
     pa_bluetooth_transport *transports[PA_BLUETOOTH_PROFILE_COUNT];
 
@@ -170,6 +174,7 @@ pa_bluetooth_device* pa_bluetooth_discovery_get_device_by_address(pa_bluetooth_d
 pa_hook* pa_bluetooth_discovery_hook(pa_bluetooth_discovery *y, pa_bluetooth_hook_t hook);
 
 const char *pa_bluetooth_profile_to_string(pa_bluetooth_profile_t profile);
+bool pa_bluetooth_switch_codec(pa_bluetooth_device *device, pa_bluetooth_profile_t profile, pa_hashmap *capabilities_hashmap, const pa_a2dp_codec *a2dp_codec, void (*codec_switch_cb)(bool, pa_bluetooth_profile_t profile, void *), void *userdata);
 
 static inline bool pa_bluetooth_uuid_is_hsp_hs(const char *uuid) {
     return pa_streq(uuid, PA_BLUETOOTH_UUID_HSP_HS) || pa_streq(uuid, PA_BLUETOOTH_UUID_HSP_HS_ALT);

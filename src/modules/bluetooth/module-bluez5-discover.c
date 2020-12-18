@@ -62,7 +62,9 @@ static pa_hook_result_t device_connection_changed_cb(pa_bluetooth_discovery *y, 
 
     module_loaded = pa_hashmap_get(u->loaded_device_paths, d->path) ? true : false;
 
-    if (module_loaded && !pa_bluetooth_device_any_transport_connected(d)) {
+    /* When changing A2DP codec there is no transport connected, ensure that no module is unloaded */
+    if (module_loaded && !pa_bluetooth_device_any_transport_connected(d) &&
+            !d->codec_switching_in_progress) {
         /* disconnection, the module unloads itself */
         pa_log_debug("Unregistering module for %s", d->path);
         pa_hashmap_remove(u->loaded_device_paths, d->path);

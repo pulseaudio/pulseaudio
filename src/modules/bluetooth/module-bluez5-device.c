@@ -31,11 +31,13 @@
 #include <pulse/timeval.h>
 #include <pulse/utf8.h>
 #include <pulse/util.h>
+#include <pulse/message-params.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/i18n.h>
+#include <pulsecore/message-handler.h>
 #include <pulsecore/module.h>
 #include <pulsecore/modargs.h>
 #include <pulsecore/poll.h>
@@ -1312,7 +1314,10 @@ static int init_profile(struct userdata *u) {
     pa_assert(u);
     pa_assert(u->profile != PA_BLUETOOTH_PROFILE_OFF);
 
-    if (setup_transport(u) < 0)
+    r = setup_transport(u);
+    if (r == -EINPROGRESS)
+        return 0;
+    else if (r < 0)
         return -1;
 
     pa_assert(u->transport);
@@ -2079,7 +2084,12 @@ static void handle_transport_state_change(struct userdata *u, struct pa_bluetoot
     pa_assert_se(cp = pa_hashmap_get(u->card->profiles, pa_bluetooth_profile_to_string(t->profile)));
 
     oldavail = cp->available;
-    pa_card_profile_set_available(cp, transport_state_to_availability(t->state));
+    /*
+     * If codec switching is in progress, transport state change should not
+     * make profile unavailable.
+     */
+    if (!t->device->codec_switching_in_progress)
+        pa_card_profile_set_available(cp, transport_state_to_availability(t->state));
 
     /* Update port availability */
     pa_assert_se(port = pa_hashmap_get(u->card->ports, u->output_port_name));
@@ -2149,7 +2159,7 @@ static pa_hook_result_t device_connection_changed_cb(pa_bluetooth_discovery *y, 
     pa_assert(d);
     pa_assert(u);
 
-    if (d != u->device || pa_bluetooth_device_any_transport_connected(d))
+    if (d != u->device || pa_bluetooth_device_any_transport_connected(d) || d->codec_switching_in_progress)
         return PA_HOOK_OK;
 
     pa_log_debug("Unloading module for device %s", d->path);
@@ -2227,6 +2237,144 @@ static pa_hook_result_t transport_microphone_gain_changed_cb(pa_bluetooth_discov
     return PA_HOOK_OK;
 }
 
+static char* make_message_handler_path(const char *name) {
+    return pa_sprintf_malloc("/card/%s/bluez", name);
+}
+
+static void switch_codec_cb_handler(bool success, pa_bluetooth_profile_t profile, void *userdata)
+{
+    struct userdata *u = (struct userdata *) userdata;
+
+    if (!success)
+        goto off;
+
+    u->profile = profile;
+
+    if (init_profile(u) < 0) {
+        pa_log_info("Failed to initialise profile after codec switching");
+        goto off;
+    }
+
+    if (u->sink || u->source)
+        if (start_thread(u) < 0) {
+            pa_log_info("Failed to start thread after codec switching");
+            goto off;
+        }
+
+    pa_log_info("Codec successfully switched to %s with profile: %s",
+            u->a2dp_codec->name, pa_bluetooth_profile_to_string(u->profile));
+
+    return;
+
+off:
+    pa_assert_se(pa_card_set_profile(u->card, pa_hashmap_get(u->card->profiles, "off"), false) >= 0);
+}
+
+static int bluez5_device_message_handler(const char *object_path, const char *message, char *message_parameters, char **response, void *userdata) {
+    char *message_handler_path;
+    pa_hashmap *capabilities_hashmap;
+    pa_bluetooth_profile_t profile;
+    const pa_a2dp_codec *codec;
+    const char *codec_name;
+    struct userdata *u;
+    bool is_a2dp_sink;
+    void *state = NULL;
+    int err;
+
+    pa_assert(u = (struct userdata *)userdata);
+    pa_assert(message);
+    pa_assert(response);
+
+    message_handler_path = make_message_handler_path(u->card->name);
+
+    if (!object_path || !pa_streq(object_path, message_handler_path)) {
+        pa_xfree(message_handler_path);
+        return -PA_ERR_NOENTITY;
+    }
+
+    pa_xfree(message_handler_path);
+
+    if (u->device->codec_switching_in_progress) {
+        pa_log_info("Codec switching operation already in progress");
+        return -PA_ERR_INVALID;
+    }
+
+    if (!u->device->adapter->application_registered) {
+        pa_log_info("Old BlueZ version was detected, only SBC codec supported.");
+        return -PA_ERR_NOTIMPLEMENTED;
+    }
+
+    if (u->profile == PA_BLUETOOTH_PROFILE_OFF) {
+        pa_log_info("Bluetooth profile is off. Message cannot be handled.");
+        return -PA_ERR_INVALID;
+    } else if (u->profile != PA_BLUETOOTH_PROFILE_A2DP_SINK &&
+            u->profile != PA_BLUETOOTH_PROFILE_A2DP_SOURCE) {
+        pa_log_info("Codec switching only allowed for A2DP sink or source");
+        return -PA_ERR_INVALID;
+    }
+
+    if (pa_streq(message, "switch-codec")) {
+        err = pa_message_params_read_string(message_parameters, &codec_name, &state);
+        if (err < 0)
+            return err;
+
+        if (u->a2dp_codec && pa_streq(codec_name, u->a2dp_codec->name)) {
+            pa_log_info("Requested codec is currently selected codec");
+            return -PA_ERR_INVALID;
+        }
+
+        codec = pa_bluetooth_get_a2dp_codec(codec_name);
+        if (codec == NULL) {
+            pa_log_info("Invalid codec %s specified for switching", codec_name);
+            return -PA_ERR_INVALID;
+        }
+
+        is_a2dp_sink = u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK;
+
+        /*
+         * We need to check if we have valid sink or source endpoints which
+         * were registered during the negotiation process. If we do, then we
+         * check if the specified codec is present among the codecs supported
+         * by the remote endpoint.
+         */
+        if (pa_hashmap_isempty(is_a2dp_sink ? u->device->a2dp_sink_endpoints : u->device->a2dp_source_endpoints)) {
+            pa_log_info("No device endpoints found. Codec switching not allowed.");
+            return -PA_ERR_INVALID;
+        }
+
+        capabilities_hashmap = pa_hashmap_get(is_a2dp_sink ? u->device->a2dp_sink_endpoints : u->device->a2dp_source_endpoints, &codec->id);
+        if (!capabilities_hashmap) {
+            pa_log_info("No remote endpoint found for %s codec. Codec not supported by remote endpoint.",
+                    codec->name);
+            return -PA_ERR_INVALID;
+        }
+
+        pa_log_info("Initiating codec switching process to %s", codec->name);
+
+        /*
+         * The current profile needs to be saved before we stop the thread and
+         * initiate the switch. u->profile will be changed in other places
+         * depending on the state of transport and port availability.
+         */
+        profile = u->profile;
+
+        stop_thread(u);
+
+        if (!pa_bluetooth_switch_codec(u->device, profile, capabilities_hashmap, codec, switch_codec_cb_handler, userdata)
+                && !u->device->codec_switching_in_progress)
+            goto profile_off;
+
+        return PA_OK;
+    }
+
+    return -PA_ERR_NOTIMPLEMENTED;
+
+profile_off:
+    pa_assert_se(pa_card_set_profile(u->card, pa_hashmap_get(u->card->profiles, "off"), false) >= 0);
+
+    return -PA_ERR_IO;
+}
+
 /* Run from main thread context */
 static int device_process_msg(pa_msgobject *obj, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct bluetooth_msg *m = BLUETOOTH_MSG(obj);
@@ -2264,6 +2412,7 @@ int pa__init(pa_module* m) {
     const char *path;
     pa_modargs *ma;
     bool autodetect_mtu;
+    char *message_handler_path;
 
     pa_assert(m);
 
@@ -2335,6 +2484,12 @@ int pa__init(pa_module* m) {
         if (start_thread(u) < 0)
             goto off;
 
+    message_handler_path = make_message_handler_path(u->card->name);
+    pa_message_handler_register(m->core, message_handler_path, "Bluez5 device message handler",
+            bluez5_device_message_handler, (void *) u);
+    pa_log_info("Bluez5 device message handler registered at path: %s", message_handler_path);
+    pa_xfree(message_handler_path);
+
     return 0;
 
 off:
@@ -2357,12 +2512,17 @@ fail:
 }
 
 void pa__done(pa_module *m) {
+    char *message_handler_path;
     struct userdata *u;
 
     pa_assert(m);
 
     if (!(u = m->userdata))
         return;
+
+    message_handler_path = make_message_handler_path(u->card->name);
+    pa_message_handler_unregister(m->core, message_handler_path);
+    pa_xfree(message_handler_path);
 
     stop_thread(u);
 

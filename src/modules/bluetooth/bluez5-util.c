@@ -287,6 +287,123 @@ static void device_start_waiting_for_profiles(pa_bluetooth_device *device) {
                                                          wait_for_profiles_cb, device);
 }
 
+struct switch_codec_data {
+    char *pa_endpoint;
+    char *device_path;
+    pa_bluetooth_profile_t profile;
+    void (*cb)(bool, pa_bluetooth_profile_t profile, void *);
+    void *userdata;
+};
+
+static void pa_bluetooth_switch_codec_reply(DBusPendingCall *pending, void *userdata) {
+    DBusMessage *r;
+    pa_dbus_pending *p;
+    pa_bluetooth_discovery *y;
+    pa_bluetooth_device *device;
+    struct switch_codec_data *data;
+
+    pa_assert(pending);
+    pa_assert_se(p = userdata);
+    pa_assert_se(y = p->context_data);
+    pa_assert_se(data = p->call_data);
+    pa_assert_se(r = dbus_pending_call_steal_reply(pending));
+
+    PA_LLIST_REMOVE(pa_dbus_pending, y->pending, p);
+    pa_dbus_pending_free(p);
+
+    device = pa_hashmap_get(y->devices, data->device_path);
+    if (!device) {
+        pa_log_error("Changing codec for device %s with profile %s failed. Device is not connected anymore",
+                data->device_path, pa_bluetooth_profile_to_string(data->profile));
+        data->cb(false, data->profile, data->userdata);
+    } else if (dbus_message_get_type(r) != DBUS_MESSAGE_TYPE_ERROR) {
+        pa_log_info("Changing codec for device %s with profile %s succeeded",
+                data->device_path, pa_bluetooth_profile_to_string(data->profile));
+        data->cb(true, data->profile, data->userdata);
+    } else if (dbus_message_get_type(r) == DBUS_MESSAGE_TYPE_ERROR) {
+        pa_log_error("Changing codec for device %s with profile %s failed. Error: %s",
+                data->device_path, pa_bluetooth_profile_to_string(data->profile),
+                dbus_message_get_error_name(r));
+    }
+
+    dbus_message_unref(r);
+
+    pa_xfree(data->pa_endpoint);
+    pa_xfree(data->device_path);
+    pa_xfree(data);
+
+    device->codec_switching_in_progress = false;
+}
+
+bool pa_bluetooth_switch_codec(pa_bluetooth_device *device, pa_bluetooth_profile_t profile,
+        pa_hashmap *capabilities_hashmap, const pa_a2dp_codec *a2dp_codec,
+        void (*codec_switch_cb)(bool, pa_bluetooth_profile_t profile, void *), void *userdata) {
+    DBusMessageIter iter, dict;
+    DBusMessage *m;
+    struct switch_codec_data *data;
+    pa_a2dp_codec_capabilities *capabilities;
+    uint8_t config[MAX_A2DP_CAPS_SIZE];
+    uint8_t config_size;
+    bool is_a2dp_sink;
+    pa_hashmap *all_endpoints;
+    char *pa_endpoint;
+    const char *endpoint;
+
+    pa_assert(device);
+    pa_assert(capabilities_hashmap);
+    pa_assert(a2dp_codec);
+
+    if (device->codec_switching_in_progress) {
+        pa_log_error("Codec switching operation already in progress");
+        return false;
+    }
+
+    is_a2dp_sink = profile == PA_BLUETOOTH_PROFILE_A2DP_SINK;
+
+    all_endpoints = NULL;
+    all_endpoints = pa_hashmap_get(is_a2dp_sink ? device->a2dp_sink_endpoints : device->a2dp_source_endpoints,
+            &a2dp_codec->id);
+    pa_assert(all_endpoints);
+
+    pa_assert_se(endpoint = a2dp_codec->choose_remote_endpoint(capabilities_hashmap, &device->discovery->core->default_sample_spec, is_a2dp_sink));
+    pa_assert_se(capabilities = pa_hashmap_get(all_endpoints, endpoint));
+
+    config_size = a2dp_codec->fill_preferred_configuration(&device->discovery->core->default_sample_spec,
+            capabilities->buffer, capabilities->size, config);
+    if (config_size == 0)
+        return false;
+
+    pa_endpoint = pa_sprintf_malloc("%s/%s", is_a2dp_sink ? A2DP_SOURCE_ENDPOINT : A2DP_SINK_ENDPOINT,
+            a2dp_codec->name);
+
+    pa_assert_se(m = dbus_message_new_method_call(BLUEZ_SERVICE, endpoint,
+                BLUEZ_MEDIA_ENDPOINT_INTERFACE, "SetConfiguration"));
+
+    dbus_message_iter_init_append(m, &iter);
+    pa_assert_se(dbus_message_iter_append_basic(&iter, DBUS_TYPE_OBJECT_PATH, &pa_endpoint));
+    dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY,
+            DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING
+            DBUS_TYPE_STRING_AS_STRING
+            DBUS_TYPE_VARIANT_AS_STRING
+            DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
+            &dict);
+    pa_dbus_append_basic_array_variant_dict_entry(&dict, "Capabilities", DBUS_TYPE_BYTE, &config, config_size);
+    dbus_message_iter_close_container(&iter, &dict);
+
+    device->codec_switching_in_progress = true;
+
+    data = pa_xnew0(struct switch_codec_data, 1);
+    data->pa_endpoint = pa_endpoint;
+    data->device_path = pa_xstrdup(device->path);
+    data->profile = profile;
+    data->cb = codec_switch_cb;
+    data->userdata = userdata;
+
+    send_and_add_to_pending(device->discovery, m, pa_bluetooth_switch_codec_reply, data);
+
+    return true;
+}
+
 void pa_bluetooth_transport_set_state(pa_bluetooth_transport *t, pa_bluetooth_transport_state_t state) {
     bool old_any_connected;
     unsigned n_disconnected_profiles;
@@ -537,6 +654,59 @@ static int parse_transport_properties(pa_bluetooth_transport *t, DBusMessageIter
     return 0;
 }
 
+static unsigned pa_a2dp_codec_id_hash_func(const void *_p) {
+    unsigned hash;
+    const pa_a2dp_codec_id *p = _p;
+
+    hash = p->codec_id;
+    hash = 31 * hash + ((p->vendor_id >>  0) & 0xFF);
+    hash = 31 * hash + ((p->vendor_id >>  8) & 0xFF);
+    hash = 31 * hash + ((p->vendor_id >> 16) & 0xFF);
+    hash = 31 * hash + ((p->vendor_id >> 24) & 0xFF);
+    hash = 31 * hash + ((p->vendor_codec_id >> 0) & 0xFF);
+    hash = 31 * hash + ((p->vendor_codec_id >> 8) & 0xFF);
+    return hash;
+}
+
+static int pa_a2dp_codec_id_compare_func(const void *_a, const void *_b) {
+    const pa_a2dp_codec_id *a = _a;
+    const pa_a2dp_codec_id *b = _b;
+
+    if (a->codec_id < b->codec_id)
+        return -1;
+    if (a->codec_id > b->codec_id)
+        return 1;
+
+    if (a->vendor_id < b->vendor_id)
+        return -1;
+    if (a->vendor_id > b->vendor_id)
+        return 1;
+
+    if (a->vendor_codec_id < b->vendor_codec_id)
+        return -1;
+    if (a->vendor_codec_id > b->vendor_codec_id)
+        return 1;
+
+    return 0;
+}
+
+static void remote_endpoint_remove(pa_bluetooth_discovery *y, const char *path) {
+    pa_bluetooth_device *device;
+    pa_hashmap *endpoints;
+    void *devices_state;
+    void *state;
+
+    PA_HASHMAP_FOREACH(device, y->devices, devices_state) {
+        PA_HASHMAP_FOREACH(endpoints, device->a2dp_sink_endpoints, state)
+            pa_hashmap_remove_and_free(endpoints, path);
+
+        PA_HASHMAP_FOREACH(endpoints, device->a2dp_source_endpoints, state)
+            pa_hashmap_remove_and_free(endpoints, path);
+    }
+
+    pa_log_debug("Remote endpoint %s was removed", path);
+}
+
 static pa_bluetooth_device* device_create(pa_bluetooth_discovery *y, const char *path) {
     pa_bluetooth_device *d;
 
@@ -547,6 +717,8 @@ static pa_bluetooth_device* device_create(pa_bluetooth_discovery *y, const char 
     d->discovery = y;
     d->path = pa_xstrdup(path);
     d->uuids = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, pa_xfree);
+    d->a2dp_sink_endpoints = pa_hashmap_new_full(pa_a2dp_codec_id_hash_func, pa_a2dp_codec_id_compare_func, pa_xfree, (pa_free_cb_t)pa_hashmap_free);
+    d->a2dp_source_endpoints = pa_hashmap_new_full(pa_a2dp_codec_id_hash_func, pa_a2dp_codec_id_compare_func, pa_xfree, (pa_free_cb_t)pa_hashmap_free);
 
     pa_hashmap_put(y->devices, d->path, d);
 
@@ -602,6 +774,10 @@ static void device_free(pa_bluetooth_device *d) {
 
     if (d->uuids)
         pa_hashmap_free(d->uuids);
+    if (d->a2dp_sink_endpoints)
+        pa_hashmap_free(d->a2dp_sink_endpoints);
+    if (d->a2dp_source_endpoints)
+        pa_hashmap_free(d->a2dp_source_endpoints);
 
     pa_xfree(d->path);
     pa_xfree(d->alias);
@@ -996,6 +1172,7 @@ finish:
         register_legacy_sbc_endpoint(y, a2dp_codec_sbc, path, A2DP_SOURCE_ENDPOINT "/sbc",
                 PA_BLUETOOTH_UUID_A2DP_SOURCE);
         pa_log_warn("Only SBC codec is available for A2DP profiles");
+        a->application_registered = false;
     }
 
     pa_xfree(path);
@@ -1027,6 +1204,150 @@ static void register_application(pa_bluetooth_adapter *a) {
     dbus_message_iter_close_container(&i, &d);
 
     send_and_add_to_pending(a->discovery, m, register_application_reply, pa_xstrdup(a->path));
+}
+
+static void parse_remote_endpoint_properties(pa_bluetooth_discovery *y, const char *endpoint, DBusMessageIter *i) {
+    DBusMessageIter element_i;
+    pa_bluetooth_device *device;
+    pa_hashmap *codec_endpoints;
+    pa_hashmap *endpoints;
+    pa_a2dp_codec_id *a2dp_codec_id;
+    pa_a2dp_codec_capabilities *a2dp_codec_capabilities;
+    const char *uuid = NULL;
+    const char *device_path = NULL;
+    uint8_t codec_id = 0;
+    bool have_codec_id = false;
+    const uint8_t *capabilities = NULL;
+    int capabilities_size = 0;
+
+    pa_log_debug("Parsing remote endpoint %s", endpoint);
+
+    dbus_message_iter_recurse(i, &element_i);
+
+    while (dbus_message_iter_get_arg_type(&element_i) == DBUS_TYPE_DICT_ENTRY) {
+        DBusMessageIter dict_i, variant_i;
+        const char *key;
+
+        dbus_message_iter_recurse(&element_i, &dict_i);
+
+        key = check_variant_property(&dict_i);
+        if (key == NULL) {
+            pa_log_error("Received invalid property for remote endpoint %s", endpoint);
+            return;
+        }
+
+        dbus_message_iter_recurse(&dict_i, &variant_i);
+
+        if (pa_streq(key, "UUID")) {
+            if (dbus_message_iter_get_arg_type(&variant_i) != DBUS_TYPE_STRING) {
+                pa_log_warn("Remote endpoint %s property 'UUID' is not string, ignoring", endpoint);
+                return;
+            }
+
+            dbus_message_iter_get_basic(&variant_i, &uuid);
+        } else if (pa_streq(key, "Codec")) {
+            if (dbus_message_iter_get_arg_type(&variant_i) != DBUS_TYPE_BYTE) {
+                pa_log_warn("Remote endpoint %s property 'Codec' is not byte, ignoring", endpoint);
+                return;
+            }
+
+            dbus_message_iter_get_basic(&variant_i, &codec_id);
+            have_codec_id = true;
+        } else if (pa_streq(key, "Capabilities")) {
+            DBusMessageIter array;
+
+            if (dbus_message_iter_get_arg_type(&variant_i) != DBUS_TYPE_ARRAY) {
+                pa_log_warn("Remote endpoint %s property 'Capabilities' is not array, ignoring", endpoint);
+                return;
+            }
+
+            dbus_message_iter_recurse(&variant_i, &array);
+            if (dbus_message_iter_get_arg_type(&array) != DBUS_TYPE_BYTE) {
+                pa_log_warn("Remote endpoint %s property 'Capabilities' is not array of bytes, ignoring", endpoint);
+                return;
+            }
+
+            dbus_message_iter_get_fixed_array(&array, &capabilities, &capabilities_size);
+        } else if (pa_streq(key, "Device")) {
+            if (dbus_message_iter_get_arg_type(&variant_i) != DBUS_TYPE_OBJECT_PATH) {
+                pa_log_warn("Remote endpoint %s property 'Device' is not path, ignoring", endpoint);
+                return;
+            }
+
+            dbus_message_iter_get_basic(&variant_i, &device_path);
+        }
+
+        dbus_message_iter_next(&element_i);
+    }
+
+    if (!uuid) {
+        pa_log_warn("Remote endpoint %s does not have property 'UUID', ignoring", endpoint);
+        return;
+    }
+
+    if (!have_codec_id) {
+        pa_log_warn("Remote endpoint %s does not have property 'Codec', ignoring", endpoint);
+        return;
+    }
+
+    if (!capabilities || !capabilities_size) {
+        pa_log_warn("Remote endpoint %s does not have property 'Capabilities', ignoring", endpoint);
+        return;
+    }
+
+    if (!device_path) {
+        pa_log_warn("Remote endpoint %s does not have property 'Device', ignoring", endpoint);
+        return;
+    }
+
+    device = pa_hashmap_get(y->devices, device_path);
+    if (!device) {
+        pa_log_warn("Device for remote endpoint %s was not found", endpoint);
+        return;
+    }
+
+    if (pa_streq(uuid, PA_BLUETOOTH_UUID_A2DP_SINK)) {
+        codec_endpoints = device->a2dp_sink_endpoints;
+    } else if (pa_streq(uuid, PA_BLUETOOTH_UUID_A2DP_SOURCE)) {
+        codec_endpoints = device->a2dp_source_endpoints;
+    } else {
+        pa_log_warn("Remote endpoint %s does not have valid property 'UUID', ignoring", endpoint);
+        return;
+    }
+
+    if (capabilities_size < 0 || capabilities_size > MAX_A2DP_CAPS_SIZE) {
+        pa_log_warn("Remote endpoint %s does not have valid property 'Capabilities', ignoring", endpoint);
+        return;
+    }
+
+    a2dp_codec_id = pa_xmalloc0(sizeof(*a2dp_codec_id));
+    a2dp_codec_id->codec_id = codec_id;
+    if (codec_id == A2DP_CODEC_VENDOR) {
+        if ((size_t)capabilities_size < sizeof(a2dp_vendor_codec_t)) {
+            pa_log_warn("Remote endpoint %s does not have valid property 'Capabilities', ignoring", endpoint);
+            pa_xfree(a2dp_codec_id);
+            return;
+        }
+        a2dp_codec_id->vendor_id = A2DP_GET_VENDOR_ID(*(a2dp_vendor_codec_t *)capabilities);
+        a2dp_codec_id->vendor_codec_id = A2DP_GET_CODEC_ID(*(a2dp_vendor_codec_t *)capabilities);
+    } else {
+        a2dp_codec_id->vendor_id = 0;
+        a2dp_codec_id->vendor_codec_id = 0;
+    }
+
+    a2dp_codec_capabilities = pa_xmalloc0(sizeof(*a2dp_codec_capabilities) + capabilities_size);
+    a2dp_codec_capabilities->size = capabilities_size;
+    memcpy(a2dp_codec_capabilities->buffer, capabilities, capabilities_size);
+
+    endpoints = pa_hashmap_get(codec_endpoints, a2dp_codec_id);
+    if (!endpoints) {
+        endpoints = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, pa_xfree, pa_xfree);
+        pa_hashmap_put(codec_endpoints, a2dp_codec_id, endpoints);
+    }
+
+    if (pa_hashmap_remove_and_free(endpoints, endpoint) >= 0)
+        pa_log_debug("Replacing existing remote endpoint %s", endpoint);
+    pa_hashmap_put(endpoints, pa_xstrdup(endpoint), a2dp_codec_capabilities);
 }
 
 static void parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessageIter *dict_i) {
@@ -1085,6 +1406,8 @@ static void parse_interfaces_and_properties(pa_bluetooth_discovery *y, DBusMessa
             pa_log_debug("Device %s found", d->path);
 
             parse_device_properties(d, &iface_i);
+        } else if (pa_streq(interface, BLUEZ_MEDIA_ENDPOINT_INTERFACE)) {
+            parse_remote_endpoint_properties(y, path, &iface_i);
         } else
             pa_log_debug("Unknown interface %s found, skipping", interface);
 
@@ -1292,6 +1615,8 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
                 device_remove(y, p);
             else if (pa_streq(iface, BLUEZ_ADAPTER_INTERFACE))
                 adapter_remove(y, p);
+            else if (pa_streq(iface, BLUEZ_MEDIA_ENDPOINT_INTERFACE))
+                remote_endpoint_remove(y, p);
 
             dbus_message_iter_next(&element_i);
         }
@@ -1350,6 +1675,10 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
                 return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 
             parse_transport_properties(t, &arg_i);
+        } else if (pa_streq(iface, BLUEZ_MEDIA_ENDPOINT_INTERFACE)) {
+            pa_log_info("Properties changed in remote endpoint %s", dbus_message_get_path(m));
+
+            parse_remote_endpoint_properties(y, dbus_message_get_path(m), &arg_i);
         }
 
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
