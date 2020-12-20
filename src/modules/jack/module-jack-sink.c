@@ -400,7 +400,7 @@ int pa__init(pa_module*m) {
     pa_proplist_sets(data.proplist, PA_PROP_DEVICE_API, "jack");
     if (server_name)
         pa_proplist_sets(data.proplist, PA_PROP_DEVICE_STRING, server_name);
-    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "Jack sink (%s)", jack_get_client_name(u->client));
+    pa_proplist_setf(data.proplist, PA_PROP_DEVICE_DESCRIPTION, "JACK sink (%s)", jack_get_client_name(u->client));
     pa_proplist_sets(data.proplist, "jack.client_name", jack_get_client_name(u->client));
 
     if (pa_modargs_get_proplist(ma, "sink_properties", data.proplist, PA_UPDATE_REPLACE) < 0) {
