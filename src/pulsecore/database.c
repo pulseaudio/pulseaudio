@@ -50,45 +50,47 @@ pa_database* pa_database_open(const char *path, const char *fn, bool prependmid,
         return NULL;
     }
 
-    /* We include the host identifier in the file name because some database files are
-     * CPU dependent, and we don't want things to go wrong if we are on a multiarch system. */
-    filename_prefix = pa_sprintf_malloc("%s%s%s%s%s",
-            machine_id?:"", machine_id?"-":"",
-            fn,
-            arch_suffix?".":"", arch_suffix?:"");
+    /* Database file name starts with ${machine_id}-${fn} */
+    if (machine_id)
+        filename_prefix = pa_sprintf_malloc("%s-%s", machine_id, fn);
+    else
+        filename_prefix = pa_xstrdup(fn);
 
-    /* Search for existing database directory entry name matching architecture suffix and filename suffix. */
-    database_dir = opendir(path);
+    if (arch_suffix) {
+        /* Search for existing database directory entry name matching architecture suffix and filename suffix. */
+        database_dir = opendir(path);
 
-    if (database_dir) {
-        for (;;) {
-            errno = 0;
-            de = readdir(database_dir);
-            if (!de) {
-                if (errno) {
-                    pa_log_warn("Unable to search for compatible database file, readdir() failed: %s", pa_cstrerror(errno));
-                    /* can continue as if there is no matching database file candidate */
+        if (database_dir) {
+            for (;;) {
+                errno = 0;
+                de = readdir(database_dir);
+                if (!de) {
+                    if (errno) {
+                        pa_log_warn("Unable to search for compatible database file, readdir() failed: %s", pa_cstrerror(errno));
+                        /* can continue as if there is no matching database file candidate */
+                    }
+
+                    break;
                 }
 
-                break;
-            }
+                if (pa_startswith(de->d_name, filename_prefix)
+                    && de->d_name[strlen(filename_prefix)] == '.'
+                    && pa_startswith(de->d_name + strlen(filename_prefix) + 1, arch_suffix)
+                    && pa_endswith(de->d_name + strlen(filename_prefix) + 1 + strlen(arch_suffix), filename_suffix)) {
 
-            if (pa_startswith(de->d_name, filename_prefix) && pa_endswith(de->d_name + strlen(filename_prefix), filename_suffix)) {
-                /* candidate filename found, replace filename_prefix with this one if match is not exact */
+                    /* candidate filename found, replace filename_prefix with this one */
 
-                if (strlen(de->d_name) != strlen(filename_prefix) + strlen(filename_suffix)) {
                     pa_log_debug("Found compatible database file '%s/%s', using it", path, de->d_name);
                     pa_xfree(filename_prefix);
                     filename_prefix = pa_xstrndup(de->d_name, strlen(de->d_name) - strlen(filename_suffix));
+                    break;
                 }
-
-                break;
             }
-        }
 
-        closedir(database_dir);
-    } else {
-        pa_log_warn("Unable to search for compatible database file, failed to open directory %s: %s", path, pa_cstrerror(errno));
+            closedir(database_dir);
+        } else {
+            pa_log_warn("Unable to search for compatible database file, failed to open directory %s: %s", path, pa_cstrerror(errno));
+        }
     }
 
     full_path = pa_sprintf_malloc("%s" PA_PATH_SEP "%s%s", path, filename_prefix, filename_suffix);
