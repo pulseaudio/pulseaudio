@@ -27,6 +27,10 @@
 #include "a2dp-codec-util.h"
 
 extern const pa_a2dp_codec pa_a2dp_codec_sbc;
+#ifdef HAVE_GSTAPTX
+extern const pa_a2dp_codec pa_a2dp_codec_aptx;
+extern const pa_a2dp_codec pa_a2dp_codec_aptx_hd;
+#endif
 #ifdef HAVE_GSTLDAC
 extern const pa_a2dp_codec pa_a2dp_codec_ldac_eqmid_hq;
 extern const pa_a2dp_codec pa_a2dp_codec_ldac_eqmid_sq;
@@ -40,6 +44,10 @@ static const pa_a2dp_codec *pa_a2dp_codecs[] = {
     &pa_a2dp_codec_ldac_eqmid_hq,
     &pa_a2dp_codec_ldac_eqmid_sq,
     &pa_a2dp_codec_ldac_eqmid_mq,
+#endif
+#ifdef HAVE_GSTAPTX
+    &pa_a2dp_codec_aptx_hd,
+    &pa_a2dp_codec_aptx,
 #endif
     &pa_a2dp_codec_sbc,
 };
