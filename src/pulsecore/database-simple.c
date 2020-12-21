@@ -222,11 +222,6 @@ static int fill_data(simple_data *db, FILE *f) {
     return pa_hashmap_size(db->map);
 }
 
-const char* pa_database_get_arch_suffix(void) {
-    /* Simple database binary file format is CPU dependent. */
-    return CANONICAL_HOST;
-}
-
 const char* pa_database_get_filename_suffix(void) {
     return ".simple";
 }

@@ -38,14 +38,25 @@ typedef struct pa_datum {
 
 void pa_datum_free(pa_datum *d);
 
-/* Database implementation; returns non-empty system architecture name string if database file format depends on system architecture, or NULL otherwise. */
-const char* pa_database_get_arch_suffix(void);
 /* Database implementation; returns non-empty database filename extension string */
 const char* pa_database_get_filename_suffix(void);
 
-/* This will attempt opening database file matching compiled CANONICAL_HOST implementation architecture name prefix,
- * or new database file will be created and opened with implementation architecture name suffix if required.
- * If prependmid is true, file name is augmented with machine id prefix. */
+/* Opens a database file. The file is loaded from the directory indicated by
+ * path. The file name is constructed by using fn as the base and then adding
+ * several parts:
+ *   1) If prependmid is true, the machine id is prepended to the file name.
+ *   2) The database implementation specific suffix is added.
+ *   3) Older versions of PulseAudio in some cases added the CPU architecture
+ *      to the file name, which was later deemed unnecessary, but for
+ *      compatibility reasons we still need to look for those files, so we scan
+ *      the directory for files that match the prefix (possible machine id plus
+ *      fn) and the suffix, and if any matches are found, we use the first one.
+ *
+ * When no existing file is found, we create a new file for the database
+ * (without the CPU architecture part in the name).
+ *
+ * For a read-only database, set for_write to false. */
+
 pa_database* pa_database_open(const char *path, const char *fn, bool prependmid, bool for_write);
 
 /* Database implementation; opens specified database file using provided path. */

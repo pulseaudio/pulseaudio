@@ -59,14 +59,6 @@ void pa_datum_free(pa_datum *d) {
     pa_zero(d);
 }
 
-const char* pa_database_get_arch_suffix(void) {
-    /* We include the host identifier in the file name because gdbm
-     * files are CPU dependent, and we don't want things to go wrong
-     * if we are on a multiarch system. */
-
-    return CANONICAL_HOST;
-}
-
 const char* pa_database_get_filename_suffix(void) {
     return ".gdbm";
 }
