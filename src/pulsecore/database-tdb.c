@@ -97,11 +97,6 @@ finish:
     return c;
 }
 
-const char* pa_database_get_arch_suffix(void) {
-    /* TDB binary file format is not dependent on system architecture */
-    return NULL;
-}
-
 const char* pa_database_get_filename_suffix(void) {
     return ".tdb";
 }
