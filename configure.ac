@@ -56,9 +56,6 @@ AC_SUBST(LIBPULSE_SIMPLE_VERSION_INFO, [1:1:1])
 # info x:y:z always will hold x=z
 AC_SUBST(LIBPULSE_MAINLOOP_GLIB_VERSION_INFO, [0:6:0])
 
-AC_CANONICAL_HOST
-AC_DEFINE_UNQUOTED([CANONICAL_HOST], "$host_cpu", [Canonical host system architecture string.])
-
 AC_CHECK_PROG([STOW], [stow], [yes], [no])
 
 AS_IF([test "x$STOW" = "xyes" && test -d /usr/local/stow], [

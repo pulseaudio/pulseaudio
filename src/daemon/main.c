@@ -922,7 +922,6 @@ int main(int argc, char *argv[]) {
     pa_set_env_and_record("PULSE_SYSTEM", conf->system_instance ? "1" : "0");
 
     pa_log_info("This is PulseAudio %s", PACKAGE_VERSION);
-    pa_log_debug("Compilation host: %s", CANONICAL_HOST);
     pa_log_debug("Compilation CFLAGS: %s", PA_CFLAGS);
 
 #ifdef HAVE_LIBSAMPLERATE
