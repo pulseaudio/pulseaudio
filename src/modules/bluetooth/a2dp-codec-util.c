@@ -27,10 +27,20 @@
 #include "a2dp-codec-util.h"
 
 extern const pa_a2dp_codec pa_a2dp_codec_sbc;
+#ifdef HAVE_GSTLDAC
+extern const pa_a2dp_codec pa_a2dp_codec_ldac_eqmid_hq;
+extern const pa_a2dp_codec pa_a2dp_codec_ldac_eqmid_sq;
+extern const pa_a2dp_codec pa_a2dp_codec_ldac_eqmid_mq;
+#endif
 
 /* This is list of supported codecs. Their order is important.
  * Codec with lower index has higher priority. */
-const pa_a2dp_codec *pa_a2dp_codecs[] = {
+static const pa_a2dp_codec *pa_a2dp_codecs[] = {
+#ifdef HAVE_GSTLDAC
+    &pa_a2dp_codec_ldac_eqmid_hq,
+    &pa_a2dp_codec_ldac_eqmid_sq,
+    &pa_a2dp_codec_ldac_eqmid_mq,
+#endif
     &pa_a2dp_codec_sbc,
 };
 
