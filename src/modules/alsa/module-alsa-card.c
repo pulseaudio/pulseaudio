@@ -623,6 +623,7 @@ static void init_jacks(struct userdata *u) {
     void *state;
     pa_alsa_path* path;
     pa_alsa_jack* jack;
+    char buf[64];
 
     u->jacks = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
@@ -665,9 +666,10 @@ static void init_jacks(struct userdata *u) {
             }
         }
         pa_alsa_mixer_set_fdlist(u->mixers, jack->mixer_handle, u->core->mainloop);
-        jack->melem = pa_alsa_mixer_find_card(jack->mixer_handle, jack->alsa_name, 0);
+        jack->melem = pa_alsa_mixer_find_card(jack->mixer_handle, &jack->alsa_id, 0);
         if (!jack->melem) {
-            pa_log_warn("Jack '%s' seems to have disappeared.", jack->alsa_name);
+            pa_alsa_mixer_id_to_string(buf, sizeof(buf), &jack->alsa_id);
+            pa_log_warn("Jack %s seems to have disappeared.", buf);
             pa_alsa_jack_set_has_control(jack, false);
             continue;
         }

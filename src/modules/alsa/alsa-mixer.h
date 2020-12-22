@@ -115,6 +115,8 @@ struct pa_alsa_mixer_id {
     int index;
 };
 
+char *pa_alsa_mixer_id_to_string(char *dst, size_t dst_len, pa_alsa_mixer_id *id);
+
 /* An option belongs to an element and refers to one enumeration item
  * of the element is an enumeration item, or a switch status if the
  * element is a switch item. */
@@ -179,8 +181,8 @@ struct pa_alsa_jack {
     snd_mixer_t *mixer_handle;
     char *mixer_device_name;
 
+    struct pa_alsa_mixer_id alsa_id;
     char *name; /* E g "Headphone" */
-    char *alsa_name; /* E g "Headphone Jack" */
     bool has_control; /* is the jack itself present? */
     bool plugged_in; /* is this jack currently plugged in? */
     snd_mixer_elem_t *melem; /* Jack detection handle */
@@ -196,7 +198,7 @@ struct pa_alsa_jack {
     bool append_pcm_to_name;
 };
 
-pa_alsa_jack *pa_alsa_jack_new(pa_alsa_path *path, const char *mixer_device_name, const char *name);
+pa_alsa_jack *pa_alsa_jack_new(pa_alsa_path *path, const char *mixer_device_name, const char *name, int index);
 void pa_alsa_jack_free(pa_alsa_jack *jack);
 void pa_alsa_jack_set_has_control(pa_alsa_jack *jack, bool has_control);
 void pa_alsa_jack_set_plugged_in(pa_alsa_jack *jack, bool plugged_in);
