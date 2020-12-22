@@ -116,6 +116,8 @@ static void x11_kill_cb(pa_x11_wrapper *w, void *userdata) {
     pa_assert(u);
     pa_assert(u->x11_wrapper == w);
 
+    pa_log_debug("X11 client kill callback called");
+
     if (u->x11_client)
         pa_x11_client_free(u->x11_client);
 

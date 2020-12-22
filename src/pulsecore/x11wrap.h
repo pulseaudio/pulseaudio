@@ -48,8 +48,8 @@ Display *pa_x11_wrapper_get_display(pa_x11_wrapper *w);
 /* Return the XCB connection object for this connection */
 xcb_connection_t *pa_x11_wrapper_get_xcb_connection(pa_x11_wrapper *w);
 
-/* Kill the connection to the X11 display */
-void pa_x11_wrapper_kill(pa_x11_wrapper *w);
+/* Initiate X11 connection teardown. */
+void pa_x11_wrapper_kill_deferred(pa_x11_wrapper *w);
 
 /* Register an X11 client, that is called for each X11 event */
 pa_x11_client* pa_x11_client_new(pa_x11_wrapper *w, pa_x11_event_cb_t event_cb, pa_x11_kill_cb_t kill_cb, void *userdata);

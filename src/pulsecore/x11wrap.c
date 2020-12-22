@@ -33,6 +33,8 @@
 
 #include "x11wrap.h"
 
+#include <X11/Xlib.h>
+
 typedef struct pa_x11_internal pa_x11_internal;
 
 struct pa_x11_internal {
@@ -51,6 +53,7 @@ struct pa_x11_wrapper {
 
     pa_defer_event* defer_event;
     pa_io_event* io_event;
+    pa_defer_event* cleanup_event;
 
     PA_LLIST_HEAD(pa_x11_client, clients);
     PA_LLIST_HEAD(pa_x11_internal, internals);
@@ -63,6 +66,8 @@ struct pa_x11_client {
     pa_x11_kill_cb_t kill_cb;
     void *userdata;
 };
+
+static void x11_wrapper_kill(pa_x11_wrapper *w);
 
 /* Dispatch all pending X11 events */
 static void work(pa_x11_wrapper *w) {
@@ -167,6 +172,38 @@ static void x11_watch(Display *display, XPointer userdata, int fd, Bool opening,
         x11_internal_remove(w, (pa_x11_internal*) *watch_data);
 }
 
+static int x11_error_handler(Display* display, XErrorEvent* error_event) {
+    pa_log_warn("X11 error handler called");
+    return 0;
+}
+
+static int x11_io_error_handler(Display* display) {
+    pa_log_warn("X11 I/O error handler called");
+    return 0;
+}
+
+static void deferred_x11_teardown(pa_mainloop_api *m, pa_defer_event *e, void *userdata) {
+    pa_x11_wrapper *w = userdata;
+
+    m->defer_enable(e, 0);
+
+    pa_log_debug("Start tearing down X11 modules after X11 I/O error");
+
+    x11_wrapper_kill(w);
+
+    pa_log_debug("Done tearing down X11 modules after X11 I/O error");
+}
+
+#ifdef HAVE_XSETIOERROREXITHANDLER
+static void x11_io_error_exit_handler(Display* display, void *userdata) {
+    pa_x11_wrapper *w = userdata;
+
+    pa_log_warn("X11 I/O error exit handler called, preparing to tear down X11 modules");
+
+    pa_x11_wrapper_kill_deferred(w);
+}
+#endif
+
 static pa_x11_wrapper* x11_wrapper_new(pa_core *c, const char *name, const char *t) {
     pa_x11_wrapper*w;
     Display *d;
@@ -187,10 +224,19 @@ static pa_x11_wrapper* x11_wrapper_new(pa_core *c, const char *name, const char 
 
     w->defer_event = c->mainloop->defer_new(c->mainloop, defer_event, w);
     w->io_event = c->mainloop->io_new(c->mainloop, ConnectionNumber(d), PA_IO_EVENT_INPUT, display_io_event, w);
+    w->cleanup_event = c->mainloop->defer_new(c->mainloop, deferred_x11_teardown, w);
+    w->core->mainloop->defer_enable(w->cleanup_event, 0);
 
+    XSetErrorHandler(x11_error_handler);
+    XSetIOErrorHandler(x11_io_error_handler);
+#ifdef HAVE_XSETIOERROREXITHANDLER
+    XSetIOErrorExitHandler(d, x11_io_error_exit_handler, w);
+#endif
     XAddConnectionWatch(d, x11_watch, (XPointer) w);
 
     pa_assert_se(pa_shared_set(c, w->property_name, w) >= 0);
+
+    pa_log_debug("Created X11 connection wrapper '%s'", w->property_name);
 
     return w;
 }
@@ -202,9 +248,12 @@ static void x11_wrapper_free(pa_x11_wrapper*w) {
 
     pa_assert(!w->clients);
 
+    pa_log_debug("Destroying X11 connection wrapper '%s'", w->property_name);
+
     XRemoveConnectionWatch(w->display, x11_watch, (XPointer) w);
     XCloseDisplay(w->display);
 
+    w->core->mainloop->defer_free(w->cleanup_event);
     w->core->mainloop->io_free(w->io_event);
     w->core->mainloop->defer_free(w->defer_event);
 
@@ -261,7 +310,15 @@ xcb_connection_t *pa_x11_wrapper_get_xcb_connection(pa_x11_wrapper *w) {
     return XGetXCBConnection(pa_x11_wrapper_get_display(w));
 }
 
-void pa_x11_wrapper_kill(pa_x11_wrapper *w) {
+void pa_x11_wrapper_kill_deferred(pa_x11_wrapper *w) {
+    pa_assert(w);
+
+    /* schedule X11 display teardown */
+    w->core->mainloop->defer_enable(w->cleanup_event, 1);
+}
+
+/* Kill the connection to the X11 display */
+static void x11_wrapper_kill(pa_x11_wrapper *w) {
     pa_x11_client *c, *n;
 
     pa_assert(w);

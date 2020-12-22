@@ -633,8 +633,14 @@ AC_ARG_ENABLE([x11],
     AS_HELP_STRING([--disable-x11],[Disable optional X11 support]))
 
 AS_IF([test "x$enable_x11" != "xno"],
-    [PKG_CHECK_MODULES(X11, [ x11-xcb xcb >= 1.6 ice sm xtst ], HAVE_X11=1, HAVE_X11=0)],
-    HAVE_X11=0)
+    [
+        PKG_CHECK_MODULES(X11, [ x11-xcb xcb >= 1.6 ice sm xtst ], HAVE_X11=1, HAVE_X11=0)
+        AC_CHECK_LIB(X11, XSetIOErrorExitHandler, [HAVE_XSETIOERROREXITHANDLER=yes], [HAVE_XSETIOERROREXITHANDLER=no])
+    ],
+    [
+        HAVE_X11=0
+        HAVE_XSETIOERROREXITHANDLER=no
+    ])
 
 AS_IF([test "x$enable_x11" = "xyes" && test "x$HAVE_X11" = "x0"],
     [AC_MSG_ERROR([*** X11 not found])])
@@ -642,6 +648,7 @@ AS_IF([test "x$enable_x11" = "xyes" && test "x$HAVE_X11" = "x0"],
 AC_SUBST(HAVE_X11)
 AM_CONDITIONAL([HAVE_X11], [test "x$HAVE_X11" = x1])
 AS_IF([test "x$HAVE_X11" = "x1"], AC_DEFINE([HAVE_X11], 1, [Have X11?]))
+AS_IF([test "x$HAVE_XSETIOERROREXITHANDLER" = "xyes"], AC_DEFINE([HAVE_XSETIOERROREXITHANDLER], 1, [Have XSetIOErrorExitHandler function.]))
 
 #### Capabilities (optional) ####
 
@@ -1687,6 +1694,7 @@ echo "
 
     Enable memfd shared memory:    ${ENABLE_MEMFD}
     Enable X11:                    ${ENABLE_X11}
+      Safe X11 I/O errors:         ${HAVE_XSETIOERROREXITHANDLER}
     Enable OSS Output:             ${ENABLE_OSS_OUTPUT}
     Enable OSS Wrapper:            ${ENABLE_OSS_WRAPPER}
     Enable EsounD:                 ${ENABLE_ESOUND}

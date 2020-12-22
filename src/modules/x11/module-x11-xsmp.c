@@ -64,7 +64,7 @@ static void die_cb(SmcConn connection, SmPointer client_data) {
 
     pa_log_debug("Got die message from XSMP.");
 
-    pa_x11_wrapper_kill(u->x11);
+    pa_x11_wrapper_kill_deferred(u->x11);
 
     pa_x11_wrapper_unref(u->x11);
     u->x11 = NULL;

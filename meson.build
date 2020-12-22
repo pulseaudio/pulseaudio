@@ -650,6 +650,9 @@ if x11_dep.found()
   sm_dep   = dependency('sm',   required : true)
   xtst_dep = dependency('xtst', required : true)
   cdata.set('HAVE_X11', 1)
+  if cc.has_function('XSetIOErrorExitHandler', dependencies: x11_dep)
+    cdata.set('HAVE_XSETIOERROREXITHANDLER', 1)
+  endif
 endif
 
 # Module dependencies
@@ -847,6 +850,7 @@ summary = [
   '',
   'Enable memfd shared memory:    @0@'.format(cdata.has('HAVE_MEMFD')),
   'Enable X11:                    @0@'.format(x11_dep.found()),
+  '  Safe X11 I/O errors:         @0@'.format(cdata.has('HAVE_XSETIOERROREXITHANDLER')),
   'Enable OSS Output:             @0@'.format(cdata.has('HAVE_OSS_OUTPUT')),
   'Enable OSS Wrapper:            @0@'.format(cdata.has('HAVE_OSS_WRAPPER')),
 #  'Enable EsounD:                 @0@'.format(${ENABLE_ESOUND}),
