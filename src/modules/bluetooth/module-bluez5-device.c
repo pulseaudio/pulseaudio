@@ -2270,6 +2270,46 @@ off:
     pa_assert_se(pa_card_set_profile(u->card, pa_hashmap_get(u->card->profiles, "off"), false) >= 0);
 }
 
+static char *list_codecs(struct userdata *u) {
+    const pa_a2dp_codec_capabilities *a2dp_capabilities;
+    const pa_a2dp_codec_id *key;
+    pa_hashmap *a2dp_endpoints;
+    pa_message_params *param;
+    unsigned int i;
+    bool is_a2dp_sink;
+    void *state;
+
+    is_a2dp_sink = u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK;
+
+    a2dp_endpoints = is_a2dp_sink ? u->device->a2dp_sink_endpoints : u->device->a2dp_source_endpoints;
+
+    param = pa_message_params_new();
+
+    pa_message_params_begin_list(param);
+
+    PA_HASHMAP_FOREACH_KV(key, a2dp_capabilities, a2dp_endpoints, state) {
+        for (i = 0; i < pa_bluetooth_a2dp_codec_count(); i++) {
+            const pa_a2dp_codec *a2dp_codec;
+
+            a2dp_codec = pa_bluetooth_a2dp_codec_iter(i);
+
+            if (key->codec_id == a2dp_codec->id.codec_id && key->vendor_id == a2dp_codec->id.vendor_id
+                    && key->vendor_codec_id == a2dp_codec->id.vendor_codec_id) {
+                pa_message_params_begin_list(param);
+
+                pa_message_params_write_string(param, a2dp_codec->name);
+                pa_message_params_write_string(param, a2dp_codec->description);
+
+                pa_message_params_end_list(param);
+            }
+        }
+    }
+
+    pa_message_params_end_list(param);
+
+    return pa_message_params_to_string_free(param);
+}
+
 static int bluez5_device_message_handler(const char *object_path, const char *message, char *message_parameters, char **response, void *userdata) {
     char *message_handler_path;
     pa_hashmap *capabilities_hashmap;
@@ -2309,7 +2349,7 @@ static int bluez5_device_message_handler(const char *object_path, const char *me
         return -PA_ERR_INVALID;
     } else if (u->profile != PA_BLUETOOTH_PROFILE_A2DP_SINK &&
             u->profile != PA_BLUETOOTH_PROFILE_A2DP_SOURCE) {
-        pa_log_info("Codec switching only allowed for A2DP sink or source");
+        pa_log_info("Listing or switching codecs only allowed for A2DP sink or source");
         return -PA_ERR_INVALID;
     }
 
@@ -2365,7 +2405,11 @@ static int bluez5_device_message_handler(const char *object_path, const char *me
             goto profile_off;
 
         return PA_OK;
+    } else if (pa_streq(message, "list-codecs")) {
+        *response = list_codecs(u);
+        return PA_OK;
     }
+
 
     return -PA_ERR_NOTIMPLEMENTED;
 
