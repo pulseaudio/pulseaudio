@@ -627,8 +627,6 @@ static DBusMessage *hf_audio_agent_new_connection(DBusConnection *c, DBusMessage
 
     card = pa_hashmap_get(backend->cards, path);
 
-    card->connecting = false;
-
     if (!card || codec != HFP_AUDIO_CODEC_CVSD || card->fd >= 0) {
         pa_log_warn("New audio connection invalid arguments (path=%s fd=%d, codec=%d)", path, fd, codec);
         pa_assert_se(r = dbus_message_new_error(m, "org.ofono.Error.InvalidArguments", "Invalid arguments in method call"));
@@ -639,6 +637,7 @@ static DBusMessage *hf_audio_agent_new_connection(DBusConnection *c, DBusMessage
 
     pa_log_debug("New audio connection on card %s (fd=%d, codec=%d)", path, fd, codec);
 
+    card->connecting = false;
     card->fd = fd;
     card->transport->codec = codec;
 
