@@ -450,9 +450,6 @@ static pa_hook_result_t card_profile_changed_callback(pa_core *c, pa_card *card,
 
     pa_assert(card);
 
-    if (!card->profile_is_sticky)
-        return PA_HOOK_OK;
-
     if ((entry = entry_read(u, card->name))) {
         pa_xfree(entry->profile);
         entry->profile_is_sticky = card->profile_is_sticky;
@@ -592,7 +589,7 @@ static pa_hook_result_t card_choose_initial_profile_callback(pa_core *core, pa_c
         if (profile) {
             if (profile->available != PA_AVAILABLE_NO) {
                 pa_log_info("Restoring profile '%s' for card %s.", profile->name, card->name);
-                pa_card_set_profile(card, profile, true);
+                pa_card_set_profile(card, profile, card->profile_is_sticky);
             } else
                 pa_log_debug("Not restoring profile %s for card %s, because the profile is currently unavailable.",
                              profile->name, card->name);
