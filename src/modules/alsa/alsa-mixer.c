@@ -2797,6 +2797,7 @@ static int path_verify(pa_alsa_path *p) {
         { "analog-input-video",               N_("Video"),                        PA_DEVICE_PORT_TYPE_VIDEO },
         { "analog-output",                    N_("Analog Output"),                PA_DEVICE_PORT_TYPE_ANALOG },
         { "analog-output-headphones",         N_("Headphones"),                   PA_DEVICE_PORT_TYPE_HEADPHONES },
+        { "analog-output-headphones-2",       N_("Headphones 2"),                 PA_DEVICE_PORT_TYPE_HEADPHONES },
         { "analog-output-headphones-mono",    N_("Headphones Mono Output"),       PA_DEVICE_PORT_TYPE_HEADPHONES },
         { "analog-output-lineout",            N_("Line Out"),                     PA_DEVICE_PORT_TYPE_LINE },
         { "analog-output-mono",               N_("Analog Mono Output"),           PA_DEVICE_PORT_TYPE_ANALOG },
