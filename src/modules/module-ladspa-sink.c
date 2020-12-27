@@ -714,6 +714,9 @@ static void sink_input_suspend_cb(pa_sink_input *i, pa_sink_state_t old_state, p
     pa_sink_input_assert_ref(i);
     pa_assert_se(u = i->userdata);
 
+    if (!PA_SINK_IS_LINKED(u->sink->state))
+        return;
+
     if (i->sink->state != PA_SINK_SUSPENDED || i->sink->suspend_cause == PA_SUSPEND_IDLE)
         pa_sink_suspend(u->sink, false, PA_SUSPEND_UNAVAILABLE);
     else
