@@ -665,9 +665,21 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
     pa_xfree(c->config_file);
     c->config_file = NULL;
 
+    const char *default_config_file = DEFAULT_CONFIG_FILE;
+#ifdef HAVE_RUNNING_FROM_BUILD_TREE
+    if (pa_run_from_build_tree()) {
+        pa_log_notice("Detected that we are run from the build tree, fixing default daemon.conf file path.");
+#ifdef MESON_BUILD
+        default_config_file = PA_BUILDDIR PA_PATH_SEP "src" PA_PATH_SEP "daemon" PA_PATH_SEP "daemon.conf";
+#else
+        default_config_file = PA_BUILDDIR PA_PATH_SEP "daemon.conf";
+#endif // Endof #ifdef MESON_BUILD
+    }
+#endif // Endof #ifdef HAVE_RUNNING_FROM_BUILD_TREE
+
     f = filename ?
         pa_fopen_cloexec(c->config_file = pa_xstrdup(filename), "r") :
-        pa_open_config_file(DEFAULT_CONFIG_FILE, DEFAULT_CONFIG_FILE_USER, ENV_CONFIG_FILE, &c->config_file);
+        pa_open_config_file(default_config_file, DEFAULT_CONFIG_FILE_USER, ENV_CONFIG_FILE, &c->config_file);
 
     if (!f && errno != ENOENT) {
         pa_log_warn(_("Failed to open configuration file: %s"), pa_cstrerror(errno));
