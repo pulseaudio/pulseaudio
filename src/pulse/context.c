@@ -128,6 +128,7 @@ static void reset_callbacks(pa_context *c) {
 pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *name, const pa_proplist *p) {
     pa_context *c;
     pa_mem_type_t type;
+    const char *force_disable_shm_str;
 
     pa_assert(mainloop);
 
@@ -172,6 +173,16 @@ pa_context *pa_context_new_with_proplist(pa_mainloop_api *mainloop, const char *
 
     c->conf = pa_client_conf_new();
     pa_client_conf_load(c->conf, true, true);
+
+    force_disable_shm_str = pa_proplist_gets(c->proplist, PA_PROP_CONTEXT_FORCE_DISABLE_SHM);
+    if (force_disable_shm_str) {
+        int b = pa_parse_boolean(force_disable_shm_str);
+        if (b < 0) {
+            pa_log_warn("Ignored invalid value for '%s' property: %s", PA_PROP_CONTEXT_FORCE_DISABLE_SHM, force_disable_shm_str);
+        } else if (b) {
+            c->conf->disable_shm = true;
+        }
+    }
 
     c->srb_template.readfd = -1;
     c->srb_template.writefd = -1;

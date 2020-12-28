@@ -267,6 +267,9 @@ PA_C_DECL_BEGIN
 /** For PCM formats: the channel map of the stream as returned by pa_channel_map_snprint() \since 1.0 */
 #define PA_PROP_FORMAT_CHANNEL_MAP             "format.channel_map"
 
+/** For context: whether to forcefully disable data transfer via POSIX or memfd shared memory. This property overrides any other client configuration which would otherwise enable SHM communication channels. \since 15.0 */
+#define PA_PROP_CONTEXT_FORCE_DISABLE_SHM      "context.force.disable.shm"
+
 /** A property list object. Basically a dictionary with ASCII strings
  * as keys and arbitrary data as values. \since 0.9.11 */
 typedef struct pa_proplist pa_proplist;
