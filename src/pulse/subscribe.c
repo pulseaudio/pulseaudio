@@ -32,7 +32,6 @@
 void pa_command_subscribe_event(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_context *c = userdata;
     pa_subscription_event_type_t e;
-    uint32_t idx;
 
     pa_assert(pd);
     pa_assert(command == PA_COMMAND_SUBSCRIBE_EVENT);
@@ -42,15 +41,44 @@ void pa_command_subscribe_event(pa_pdispatch *pd, uint32_t command, uint32_t tag
 
     pa_context_ref(c);
 
-    if (pa_tagstruct_getu32(t, &e) < 0 ||
-        pa_tagstruct_getu32(t, &idx) < 0 ||
-        !pa_tagstruct_eof(t)) {
+    if (pa_tagstruct_getu32(t, &e) < 0) {
         pa_context_fail(c, PA_ERR_PROTOCOL);
         goto finish;
     }
 
-    if (c->subscribe_callback)
-        c->subscribe_callback(c, e, idx, c->subscribe_userdata);
+    if (e != PA_SUBSCRIPTION_EVENT_SIGNAL) {
+        uint32_t idx;
+
+        if (pa_tagstruct_getu32(t, &idx) < 0 ||
+            !pa_tagstruct_eof(t)) {
+            pa_context_fail(c, PA_ERR_PROTOCOL);
+            goto finish;
+        }
+
+        if (c->subscribe_callback)
+            c->subscribe_callback(c, e, idx, c->subscribe_userdata);
+
+    } else {
+        const char *object_path;
+        const char *signal;
+        const char *signal_parameters;
+
+        if (pa_tagstruct_gets(t, &object_path) < 0 ||
+            pa_tagstruct_gets(t, &signal) < 0 ||
+            pa_tagstruct_gets(t, &signal_parameters) < 0 ||
+            !pa_tagstruct_eof(t)) {
+            pa_context_fail(c, PA_ERR_PROTOCOL);
+            goto finish;
+        }
+
+        if (c->signal_callback) {
+            char *signal_parameter_copy;
+
+            signal_parameter_copy = pa_xstrdup(signal_parameters);
+            c->signal_callback(c, object_path, signal, signal_parameter_copy, c->signal_userdata);
+            pa_xfree(signal_parameter_copy);
+        }
+    }
 
 finish:
     pa_context_unref(c);
@@ -85,4 +113,35 @@ void pa_context_set_subscribe_callback(pa_context *c, pa_context_subscribe_cb_t 
 
     c->subscribe_callback = cb;
     c->subscribe_userdata = userdata;
+}
+
+void pa_context_set_signal_callback(pa_context *c, pa_context_signal_cb_t cb, void *userdata) {
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
+
+    if (c->state == PA_CONTEXT_TERMINATED || c->state == PA_CONTEXT_FAILED)
+        return;
+
+    c->signal_callback = cb;
+    c->signal_userdata = userdata;
+}
+
+pa_operation* pa_context_subscribe_signals(pa_context *c, uint64_t signal_mask, pa_context_success_cb_t cb, void *userdata) {
+    pa_operation *o;
+    pa_tagstruct *t;
+    uint32_t tag;
+
+    pa_assert(c);
+    pa_assert(PA_REFCNT_VALUE(c) >= 1);
+
+    PA_CHECK_VALIDITY_RETURN_NULL(c, c->state == PA_CONTEXT_READY, PA_ERR_BADSTATE);
+
+    o = pa_operation_new(c, NULL, (pa_operation_cb_t) cb, userdata);
+
+    t = pa_tagstruct_command(c, PA_COMMAND_SUBSCRIBE_SIGNALS, &tag);
+    pa_tagstruct_putu64(t, signal_mask);
+    pa_pstream_send_tagstruct(c->pstream, t);
+    pa_pdispatch_register_reply(c->pdispatch, tag, DEFAULT_TIMEOUT, pa_context_simple_ack_callback, pa_operation_ref(o), (pa_free_cb_t) pa_operation_unref);
+
+    return o;
 }

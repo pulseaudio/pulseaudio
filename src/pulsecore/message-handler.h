@@ -48,4 +48,17 @@ int pa_message_handler_send_message(pa_core *c, const char *object_path, const c
 
 /* Set handler description */
 int pa_message_handler_set_description(pa_core *c, const char *object_path, const char *description);
+
+/* Signals */
+
+/* Structure to pass signal information */
+struct pa_signal_descriptor {
+    const char *object_path;
+    const char *signal;
+    const char *parameters;
+    uint64_t facility;
+};
+
+/* Send a signal */
+void pa_signal_post(pa_core *c, const char *object_path, uint64_t facility, const char *signal, const char *signal_parameters);
 #endif

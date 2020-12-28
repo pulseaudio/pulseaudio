@@ -72,11 +72,20 @@ PA_C_DECL_BEGIN
 /** Subscription event callback prototype */
 typedef void (*pa_context_subscribe_cb_t)(pa_context *c, pa_subscription_event_type_t t, uint32_t idx, void *userdata);
 
+/** Signal event callback prototype, \since 16.0 */
+typedef void (*pa_context_signal_cb_t)(pa_context *c, const char *object_path, const char *signal, char *signal_parameters, void *userdata);
+
 /** Enable event notification */
 pa_operation* pa_context_subscribe(pa_context *c, pa_subscription_mask_t m, pa_context_success_cb_t cb, void *userdata);
 
+/** Enable signal notification, \since 16.0 */
+pa_operation* pa_context_subscribe_signals(pa_context *c, uint64_t signal_mask, pa_context_success_cb_t cb, void *userdata);
+
 /** Set the context specific call back function that is called whenever the state of the daemon changes */
 void pa_context_set_subscribe_callback(pa_context *c, pa_context_subscribe_cb_t cb, void *userdata);
+
+/** Set the context specific call back function that is called whenever pulseaudio sends a signal, \since 16.0 */
+void pa_context_set_signal_callback(pa_context *c, pa_context_signal_cb_t cb, void *userdata);
 
 PA_C_DECL_END
 

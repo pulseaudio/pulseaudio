@@ -615,6 +615,11 @@ typedef enum pa_subscription_event_type {
     PA_SUBSCRIPTION_EVENT_REMOVE = 0x0020U,
     /**< An object was removed */
 
+/** \cond fulldocs */
+    PA_SUBSCRIPTION_EVENT_SIGNAL = 0x0040U,
+    /** A signal was issued. Only used internally. */
+/** \endcond */
+
     PA_SUBSCRIPTION_EVENT_TYPE_MASK = 0x0030U
     /**< A mask to extract the event operation from an event value */
 
@@ -650,6 +655,7 @@ typedef enum pa_subscription_event_type {
 #define PA_SUBSCRIPTION_EVENT_NEW PA_SUBSCRIPTION_EVENT_NEW
 #define PA_SUBSCRIPTION_EVENT_CHANGE PA_SUBSCRIPTION_EVENT_CHANGE
 #define PA_SUBSCRIPTION_EVENT_REMOVE PA_SUBSCRIPTION_EVENT_REMOVE
+#define PA_SUBSCRIPTION_EVENT_SIGNAL PA_SUBSCRIPTION_EVENT_SIGNAL
 #define PA_SUBSCRIPTION_EVENT_TYPE_MASK PA_SUBSCRIPTION_EVENT_TYPE_MASK
 /** \endcond */
 

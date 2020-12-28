@@ -159,3 +159,19 @@ int pa_message_handler_set_description(pa_core *c, const char *object_path, cons
 
     return PA_OK;
 }
+
+/* Send a signal */
+void pa_signal_post(pa_core *c, const char *object_path, uint64_t facility, const char *signal, const char *signal_parameters) {
+    struct pa_signal_descriptor sd;
+
+    pa_assert(object_path);
+    pa_assert(facility);
+    pa_assert(signal);
+
+    sd.object_path = object_path;
+    sd.facility = facility;
+    sd.signal = signal;
+    sd.parameters = signal_parameters;
+
+    pa_hook_fire(&c->hooks[PA_CORE_HOOK_SEND_SIGNAL], &sd);
+}

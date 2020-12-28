@@ -452,6 +452,14 @@ parameters:
 The command returns a string, which may be empty or NULL (NULL should be
 treated the same as an empty string).
 
+## v36, implemented by >= 16.0
+
+Added signal sending capability and command PA_COMMAND_SUBSCRIBE_SIGNALS.
+This command allows clients to subscribe to signals that PulseAudio sends.
+
+parameters:
+    uint64_t facility_mask - subscription mask
+
 #### If you just changed the protocol, read this
 ## module-tunnel depends on the sink/source/sink-input/source-input protocol
 ## internals, so if you changed these, you might have broken module-tunnel.
