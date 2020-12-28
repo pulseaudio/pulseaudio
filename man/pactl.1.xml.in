@@ -293,7 +293,7 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
 
     <option>
       <p><opt>subscribe</opt></p>
-      <optdesc><p>Subscribe to events, pactl does not exit by itself, but keeps waiting for new events.</p></optdesc>
+      <optdesc><p>Subscribe to events and signals, pactl does not exit by itself, but keeps waiting for new events.</p></optdesc>
     </option>
 
   </section>

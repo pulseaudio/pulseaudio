@@ -1431,6 +1431,17 @@ static void context_subscribe_callback(pa_context *c, pa_subscription_event_type
     fflush(stdout);
 }
 
+static void context_signal_callback(pa_context *c, const char *signal_object_path, const char *signal, char *signal_parameters, void *userdata) {
+    pa_assert(c);
+
+    printf(_("Signal '%s' from %s\n"),
+           signal,
+           signal_object_path);
+    if (signal_parameters)
+        printf(_("Signal parameters: '%s'\n"), signal_parameters);
+    fflush(stdout);
+}
+
 static void context_state_callback(pa_context *c, void *userdata) {
     pa_operation *o = NULL;
 
@@ -1696,6 +1707,15 @@ static void context_state_callback(pa_context *c, void *userdata) {
                                              PA_SUBSCRIPTION_MASK_CARD,
                                              NULL,
                                              NULL);
+                    if (o) {
+                        pa_operation_unref(o);
+                        actions++;
+                    }
+
+                    pa_context_set_signal_callback(c, context_signal_callback, NULL);
+
+                    o = pa_context_subscribe_signals(c, (uint64_t) -1, NULL, NULL);
+
                     break;
 
                 default:
