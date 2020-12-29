@@ -1484,7 +1484,7 @@ static void thread_func(void *userdata) {
                         if (bytes_to_send > 2 * u->write_block_size) {
                             uint64_t skip_bytes;
                             pa_memchunk tmp;
-                            size_t mempool_max_block_size = pa_mempool_block_size_max(u->core->mempool);
+                            size_t max_render_size = pa_frame_align(pa_mempool_block_size_max(u->core->mempool), &u->encoder_sample_spec);
                             pa_usec_t skip_usec;
 
                             skip_bytes = bytes_to_send - 2 * u->write_block_size;
@@ -1497,8 +1497,8 @@ static void thread_func(void *userdata) {
                             while (skip_bytes > 0) {
                                 size_t bytes_to_render;
 
-                                if (skip_bytes > mempool_max_block_size)
-                                    bytes_to_render = mempool_max_block_size;
+                                if (skip_bytes > max_render_size)
+                                    bytes_to_render = max_render_size;
                                 else
                                     bytes_to_render = skip_bytes;
 
