@@ -301,6 +301,7 @@ int pa_sink_input_new(
     int r;
     char *pt;
     char *memblockq_name;
+    pa_memchunk silence;
 
     pa_assert(_i);
     pa_assert(core);
@@ -582,6 +583,21 @@ int pa_sink_input_new(
             &i->sink->silence);
     pa_xfree(memblockq_name);
 
+    memblockq_name = pa_sprintf_malloc("sink input history memblockq [%u]", i->index);
+    pa_sink_input_get_silence(i, &silence);
+    i->thread_info.history_memblockq = pa_memblockq_new(
+            memblockq_name,
+            0,
+            MEMBLOCKQ_MAXLENGTH,
+            0,
+            &i->sample_spec,
+            0,
+            1,
+            0,
+            &silence);
+    pa_xfree(memblockq_name);
+    pa_memblock_unref(silence.memblock);
+
     pt = pa_proplist_to_string_sep(i->proplist, "\n    ");
     pa_log_info("Created input %u \"%s\" on %s with sample spec %s and channel map %s\n    %s",
                 i->index,
@@ -765,6 +781,9 @@ static void sink_input_free(pa_object *o) {
     if (i->thread_info.render_memblockq)
         pa_memblockq_free(i->thread_info.render_memblockq);
 
+    if (i->thread_info.history_memblockq)
+        pa_memblockq_free(i->thread_info.history_memblockq);
+
     if (i->thread_info.resampler)
         pa_resampler_free(i->thread_info.resampler);
 
@@ -934,6 +953,7 @@ void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink bytes */, pa
              * data, so let's just hand out silence */
 
             pa_memblockq_seek(i->thread_info.render_memblockq, (int64_t) slength, PA_SEEK_RELATIVE, true);
+            pa_memblockq_seek(i->thread_info.history_memblockq, (int64_t) ilength_full, PA_SEEK_RELATIVE, true);
             i->thread_info.playing_for = 0;
             if (i->thread_info.underrun_for != (uint64_t) -1) {
                 i->thread_info.underrun_for += ilength_full;
@@ -980,6 +1000,9 @@ void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink bytes */, pa
                 } else
                     pa_volume_memchunk(&wchunk, &i->thread_info.sample_spec, &i->thread_info.soft_volume);
             }
+
+            /* Push chunk into history queue to retain some resampler input history. */
+            pa_memblockq_push(i->thread_info.history_memblockq, &wchunk);
 
             if (!i->thread_info.resampler) {
 
@@ -1045,6 +1068,7 @@ void pa_sink_input_peek(pa_sink_input *i, size_t slength /* in sink bytes */, pa
 
 /* Called from thread context */
 void pa_sink_input_drop(pa_sink_input *i, size_t nbytes /* in sink sample spec */) {
+    int64_t rbq, hbq;
 
     pa_sink_input_assert_ref(i);
     pa_sink_input_assert_io_context(i);
@@ -1057,6 +1081,22 @@ void pa_sink_input_drop(pa_sink_input *i, size_t nbytes /* in sink sample spec *
 #endif
 
     pa_memblockq_drop(i->thread_info.render_memblockq, nbytes);
+
+    /* Keep memblockq's in sync. Using pa_resampler_request()
+     * on nbytes will not work here because of rounding. */
+    rbq = pa_memblockq_get_write_index(i->thread_info.render_memblockq);
+    rbq -= pa_memblockq_get_read_index(i->thread_info.render_memblockq);
+    hbq = pa_memblockq_get_write_index(i->thread_info.history_memblockq);
+    hbq -= pa_memblockq_get_read_index(i->thread_info.history_memblockq);
+    if (rbq >= 0)
+        rbq = pa_resampler_request(i->thread_info.resampler, rbq);
+    else
+        rbq = - (int64_t) pa_resampler_request(i->thread_info.resampler, - rbq);
+
+    if (hbq > rbq)
+        pa_memblockq_drop(i->thread_info.history_memblockq, hbq - rbq);
+    else if (rbq > hbq)
+        pa_memblockq_rewind(i->thread_info.history_memblockq, rbq - hbq);
 }
 
 /* Called from thread context */
@@ -1070,6 +1110,7 @@ bool pa_sink_input_process_underrun(pa_sink_input *i) {
     if (i->process_underrun && i->process_underrun(i)) {
         /* All valid data has been played back, so we can empty this queue. */
         pa_memblockq_silence(i->thread_info.render_memblockq);
+        pa_memblockq_silence(i->thread_info.history_memblockq);
         return true;
     }
     return false;
@@ -1079,6 +1120,7 @@ bool pa_sink_input_process_underrun(pa_sink_input *i) {
 void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sample spec */) {
     size_t lbq;
     bool called = false;
+    size_t sink_input_nbytes;
 
     pa_sink_input_assert_ref(i);
     pa_sink_input_assert_io_context(i);
@@ -1090,10 +1132,12 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
 #endif
 
     lbq = pa_memblockq_get_length(i->thread_info.render_memblockq);
+    sink_input_nbytes = pa_resampler_request(i->thread_info.resampler, nbytes);
 
     if (nbytes > 0 && !i->thread_info.dont_rewind_render) {
         pa_log_debug("Have to rewind %lu bytes on render memblockq.", (unsigned long) nbytes);
         pa_memblockq_rewind(i->thread_info.render_memblockq, nbytes);
+        pa_memblockq_rewind(i->thread_info.history_memblockq, sink_input_nbytes);
     }
 
     if (i->thread_info.rewrite_nbytes == (size_t) -1) {
@@ -1102,6 +1146,7 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
          * data from implementor the next time peek() is called */
 
         pa_memblockq_flush_write(i->thread_info.render_memblockq, true);
+        pa_memblockq_flush_write(i->thread_info.history_memblockq, true);
 
     } else if (i->thread_info.rewrite_nbytes > 0) {
         size_t max_rewrite, amount;
@@ -1112,8 +1157,7 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
             max_rewrite += lbq;
 
         /* Transform into local domain */
-        if (i->thread_info.resampler)
-            max_rewrite = pa_resampler_request(i->thread_info.resampler, max_rewrite);
+        max_rewrite = pa_resampler_request(i->thread_info.resampler, max_rewrite);
 
         /* Calculate how much of the rewinded data should actually be rewritten */
         amount = PA_MIN(i->thread_info.rewrite_nbytes, max_rewrite);
@@ -1126,20 +1170,25 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
                 i->process_rewind(i, amount);
             called = true;
 
+            if (amount > 0)
+                /* Update the history write pointer */
+                pa_memblockq_seek(i->thread_info.history_memblockq, - ((int64_t) amount), PA_SEEK_RELATIVE, true);
+
             /* Convert back to sink domain */
-            if (i->thread_info.resampler)
-                amount = pa_resampler_result(i->thread_info.resampler, amount);
+            amount = pa_resampler_result(i->thread_info.resampler, amount);
 
             if (amount > 0)
                 /* Ok, now update the write pointer */
                 pa_memblockq_seek(i->thread_info.render_memblockq, - ((int64_t) amount), PA_SEEK_RELATIVE, true);
 
-            if (i->thread_info.rewrite_flush)
-                pa_memblockq_silence(i->thread_info.render_memblockq);
-
             /* And rewind the resampler */
             if (i->thread_info.resampler)
                 pa_resampler_rewind(i->thread_info.resampler, amount);
+
+            if (i->thread_info.rewrite_flush) {
+                pa_memblockq_silence(i->thread_info.render_memblockq);
+                pa_memblockq_silence(i->thread_info.history_memblockq);
+            }
         }
     }
 
@@ -1157,7 +1206,7 @@ size_t pa_sink_input_get_max_rewind(pa_sink_input *i) {
     pa_sink_input_assert_ref(i);
     pa_sink_input_assert_io_context(i);
 
-    return i->thread_info.resampler ? pa_resampler_request(i->thread_info.resampler, i->sink->thread_info.max_rewind) : i->sink->thread_info.max_rewind;
+    return pa_resampler_request(i->thread_info.resampler, i->sink->thread_info.max_rewind);
 }
 
 /* Called from thread context */
@@ -1168,11 +1217,13 @@ size_t pa_sink_input_get_max_request(pa_sink_input *i) {
     /* We're not verifying the status here, to allow this to be called
      * in the state change handler between _INIT and _RUNNING */
 
-    return i->thread_info.resampler ? pa_resampler_request(i->thread_info.resampler, i->sink->thread_info.max_request) : i->sink->thread_info.max_request;
+    return pa_resampler_request(i->thread_info.resampler, i->sink->thread_info.max_request);
 }
 
 /* Called from thread context */
 void pa_sink_input_update_max_rewind(pa_sink_input *i, size_t nbytes  /* in the sink's sample spec */) {
+    size_t max_rewind;
+
     pa_sink_input_assert_ref(i);
     pa_sink_input_assert_io_context(i);
     pa_assert(PA_SINK_INPUT_IS_LINKED(i->thread_info.state));
@@ -1180,8 +1231,12 @@ void pa_sink_input_update_max_rewind(pa_sink_input *i, size_t nbytes  /* in the 
 
     pa_memblockq_set_maxrewind(i->thread_info.render_memblockq, nbytes);
 
+    max_rewind = pa_resampler_request(i->thread_info.resampler, nbytes);
+
+    pa_memblockq_set_maxrewind(i->thread_info.history_memblockq, max_rewind + PA_RESAMPLER_MAX_HISTORY * pa_frame_size(&i->sample_spec));
+
     if (i->update_max_rewind)
-        i->update_max_rewind(i, i->thread_info.resampler ? pa_resampler_request(i->thread_info.resampler, nbytes) : nbytes);
+        i->update_max_rewind(i, max_rewind);
 }
 
 /* Called from thread context */
@@ -1192,7 +1247,7 @@ void pa_sink_input_update_max_request(pa_sink_input *i, size_t nbytes  /* in the
     pa_assert(pa_frame_aligned(nbytes, &i->sink->sample_spec));
 
     if (i->update_max_request)
-        i->update_max_request(i, i->thread_info.resampler ? pa_resampler_request(i->thread_info.resampler, nbytes) : nbytes);
+        i->update_max_request(i, pa_resampler_request(i->thread_info.resampler, nbytes));
 }
 
 /* Called from thread context */
@@ -2220,8 +2275,7 @@ void pa_sink_input_request_rewind(
         nbytes = i->sink->thread_info.max_rewind + lbq;
 
         /* Transform from sink domain */
-        if (i->thread_info.resampler)
-            nbytes = pa_resampler_request(i->thread_info.resampler, nbytes);
+        nbytes = pa_resampler_request(i->thread_info.resampler, nbytes);
     }
 
     /* Remember how much we actually want to rewrite */
@@ -2247,8 +2301,7 @@ void pa_sink_input_request_rewind(
     if (nbytes != (size_t) -1) {
 
         /* Transform to sink domain */
-        if (i->thread_info.resampler)
-            nbytes = pa_resampler_result(i->thread_info.resampler, nbytes);
+        nbytes = pa_resampler_result(i->thread_info.resampler, nbytes);
 
         if (nbytes > lbq)
             pa_sink_request_rewind(i->sink, nbytes - lbq);
@@ -2354,6 +2407,7 @@ int pa_sink_input_update_resampler(pa_sink_input *i) {
     i->thread_info.resampler = new_resampler;
 
     pa_memblockq_free(i->thread_info.render_memblockq);
+    pa_memblockq_flush_write(i->thread_info.history_memblockq, true);
 
     memblockq_name = pa_sprintf_malloc("sink input render_memblockq [%u]", i->index);
     i->thread_info.render_memblockq = pa_memblockq_new(

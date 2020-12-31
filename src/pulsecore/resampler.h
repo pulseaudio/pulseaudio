@@ -73,6 +73,8 @@ typedef enum pa_resample_flags {
     PA_RESAMPLER_CONSUME_LFE   = 0x0040U,
 } pa_resample_flags_t;
 
+#define PA_RESAMPLER_MAX_HISTORY 64
+
 struct pa_resampler {
     pa_resample_method_t method;
     pa_resample_flags_t flags;
