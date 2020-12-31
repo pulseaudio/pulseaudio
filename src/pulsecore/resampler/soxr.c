@@ -65,9 +65,14 @@ static void resampler_soxr_free(pa_resampler *r) {
 
 static void resampler_soxr_reset(pa_resampler *r) {
 #if SOXR_THIS_VERSION >= SOXR_VERSION(0, 1, 2)
+    double ratio;
+
     pa_assert(r);
 
     soxr_clear(r->impl.data);
+
+    ratio = (double)r->i_ss.rate / (double)r->o_ss.rate;
+    soxr_set_io_ratio(r->impl.data, ratio, 0);
 #else
     /* With libsoxr prior to 0.1.2 soxr_clear() makes soxr_process() crash afterwards,
      * so don't use this function and re-create the context instead. */
@@ -89,23 +94,12 @@ static void resampler_soxr_reset(pa_resampler *r) {
 }
 
 static void resampler_soxr_update_rates(pa_resampler *r) {
-    soxr_t old_state;
+    double ratio;
 
     pa_assert(r);
 
-    /* There is no update method in libsoxr,
-     * so just re-create the resampler context */
-
-    old_state = r->impl.data;
-    r->impl.data = NULL;
-
-    if (pa_resampler_soxr_init(r) == 0) {
-        if (old_state)
-            soxr_delete(old_state);
-    } else {
-        r->impl.data = old_state;
-        pa_log_error("Failed to update libsoxr sample rates");
-    }
+    ratio = (double)r->i_ss.rate / (double)r->o_ss.rate;
+    soxr_set_io_ratio(r->impl.data, ratio, 0);
 }
 
 int pa_resampler_soxr_init(pa_resampler *r) {
@@ -116,6 +110,7 @@ int pa_resampler_soxr_init(pa_resampler *r) {
     unsigned long quality_recipe;
     soxr_quality_spec_t quality;
     soxr_error_t err = NULL;
+    double ratio;
 
     pa_assert(r);
 
@@ -150,13 +145,17 @@ int pa_resampler_soxr_init(pa_resampler *r) {
             pa_assert_not_reached();
     }
 
-    quality = soxr_quality_spec(quality_recipe, 0);
+    quality = soxr_quality_spec(quality_recipe, SOXR_VR);
 
-    state = soxr_create(r->i_ss.rate, r->o_ss.rate, r->work_channels, &err, &io_spec, &quality, &runtime_spec);
+    /* Maximum resample ratio is 100:1 */
+    state = soxr_create(100, 1, r->work_channels, &err, &io_spec, &quality, &runtime_spec);
     if (!state) {
         pa_log_error("Failed to create libsoxr resampler context: %s.", (err ? err : "[unknown error]"));
         return -1;
     }
+
+    ratio = (double)r->i_ss.rate / (double)r->o_ss.rate;
+    soxr_set_io_ratio(state, ratio, 0);
 
     r->impl.free = resampler_soxr_free;
     r->impl.reset = resampler_soxr_reset;

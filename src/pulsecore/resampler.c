@@ -25,6 +25,7 @@
 #include <math.h>
 
 #include <pulse/xmalloc.h>
+#include <pulse/timeval.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/strbuf.h>
@@ -164,9 +165,6 @@ static pa_resample_method_t fix_method(
             }
             /* Else fall through */
         case PA_RESAMPLER_FFMPEG:
-        case PA_RESAMPLER_SOXR_MQ:
-        case PA_RESAMPLER_SOXR_HQ:
-        case PA_RESAMPLER_SOXR_VHQ:
             if (flags & PA_RESAMPLER_VARIABLE_RATE) {
                 pa_log_info("Resampler '%s' cannot do variable rate, reverting to resampler 'auto'.", pa_resample_method_to_string(method));
                 method = PA_RESAMPLER_AUTO;
@@ -350,6 +348,8 @@ pa_resampler* pa_resampler_new(
     r->mempool = pool;
     r->method = method;
     r->flags = flags;
+    r->in_frames = 0;
+    r->out_frames = 0;
 
     /* Fill sample specs */
     r->i_ss = *a;
@@ -480,6 +480,10 @@ void pa_resampler_set_input_rate(pa_resampler *r, uint32_t rate) {
     if (r->i_ss.rate == rate)
         return;
 
+    /* Recalculate delay counters */
+    r->in_frames = pa_resampler_get_delay(r, false);
+    r->out_frames = 0;
+
     r->i_ss.rate = rate;
 
     r->impl.update_rates(r);
@@ -492,6 +496,10 @@ void pa_resampler_set_output_rate(pa_resampler *r, uint32_t rate) {
 
     if (r->o_ss.rate == rate)
         return;
+
+    /* Recalculate delay counters */
+    r->in_frames = pa_resampler_get_delay(r, false);
+    r->out_frames = 0;
 
     r->o_ss.rate = rate;
 
@@ -626,20 +634,89 @@ void pa_resampler_reset(pa_resampler *r) {
         pa_lfe_filter_reset(r->lfe_filter);
 
     *r->have_leftover = false;
+
+    r->in_frames = 0;
+    r->out_frames = 0;
 }
 
-void pa_resampler_rewind(pa_resampler *r, size_t out_frames) {
+/* This function runs amount bytes of data from the history queue through the
+ * resampler and discards the result. The history queue is unchanged after the
+ * call. This is used to preload a resampler after a reset. Returns the number
+ * of frames produced by the resampler. */
+size_t pa_resampler_prepare(pa_resampler *r, pa_memblockq *history_queue, size_t amount) {
+    size_t history_bytes, max_block_size, out_size;
+    int64_t to_run;
+
     pa_assert(r);
 
-    /* For now, we don't have any rewindable resamplers, so we just
-       reset the resampler instead (and hope that nobody hears the difference). */
-    if (r->impl.reset)
+    if (!history_queue || amount == 0)
+        return 0;
+
+    /* Rewind the LFE filter by the amount of history data. */
+    history_bytes = pa_resampler_result(r, amount);
+    if (r->lfe_filter)
+        pa_lfe_filter_rewind(r->lfe_filter, history_bytes);
+
+    pa_memblockq_rewind(history_queue, amount);
+    max_block_size = pa_resampler_max_block_size(r);
+    to_run = amount;
+    out_size = 0;
+
+    while (to_run > 0) {
+        pa_memchunk in_chunk, out_chunk;
+        size_t current;
+
+        current = PA_MIN(to_run, (int64_t) max_block_size);
+
+        /* Get data from memblockq */
+        if (pa_memblockq_peek_fixed_size(history_queue, current, &in_chunk) < 0) {
+            pa_log_warn("Could not read history data for resampler.");
+
+            /* Restore queue to original state and reset resampler */
+            pa_memblockq_drop(history_queue, to_run);
+            pa_resampler_reset(r);
+            return out_size;
+        }
+
+        /* Run the resampler */
+        pa_resampler_run(r, &in_chunk, &out_chunk);
+
+        /* Discard result */
+        if (out_chunk.length != 0) {
+            out_size += out_chunk.length;
+            pa_memblock_unref(out_chunk.memblock);
+        }
+
+        pa_memblock_unref(in_chunk.memblock);
+        pa_memblockq_drop(history_queue, current);
+        to_run -= current;
+    }
+
+    return out_size;
+}
+
+size_t pa_resampler_rewind(pa_resampler *r, size_t out_bytes, pa_memblockq *history_queue, size_t amount) {
+    pa_assert(r);
+
+    /* For now, we don't have any rewindable resamplers, so we just reset
+     * the resampler if we cannot rewind using pa_resampler_prepare(). */
+    if (r->impl.reset && !history_queue)
         r->impl.reset(r);
 
     if (r->lfe_filter)
-        pa_lfe_filter_rewind(r->lfe_filter, out_frames);
+        pa_lfe_filter_rewind(r->lfe_filter, out_bytes);
 
-    *r->have_leftover = false;
+    if (!history_queue) {
+        *r->have_leftover = false;
+
+        r->in_frames = 0;
+        r->out_frames = 0;
+    }
+
+    if (history_queue && amount > 0)
+        return pa_resampler_prepare(r, history_queue, amount);
+
+    return 0;
 }
 
 pa_resample_method_t pa_resampler_get_method(pa_resampler *r) {
@@ -1509,6 +1586,7 @@ void pa_resampler_run(pa_resampler *r, const pa_memchunk *in, pa_memchunk *out) 
     pa_assert(in->length % r->i_fz == 0);
 
     buf = (pa_memchunk*) in;
+    r->in_frames += buf->length / r->i_fz;
     buf = convert_to_work_format(r, buf);
 
     /* Try to save resampling effort: if we have more output channels than
@@ -1527,6 +1605,7 @@ void pa_resampler_run(pa_resampler *r, const pa_memchunk *in, pa_memchunk *out) 
     if (buf->length) {
         buf = convert_from_work_format(r, buf);
         *out = *buf;
+        r->out_frames += buf->length / r->o_fz;
 
         if (buf == in)
             pa_memblock_ref(buf->memblock);
@@ -1534,6 +1613,25 @@ void pa_resampler_run(pa_resampler *r, const pa_memchunk *in, pa_memchunk *out) 
             pa_memchunk_reset(buf);
     } else
         pa_memchunk_reset(out);
+}
+
+/* Get delay in input frames. Some resamplers may have negative delay. */
+double pa_resampler_get_delay(pa_resampler *r, bool allow_negative) {
+    double frames;
+
+    frames = r->out_frames * r->i_ss.rate / r->o_ss.rate;
+    if (frames >= r->in_frames && !allow_negative)
+        return 0;
+    return r->in_frames - frames;
+}
+
+/* Get delay in usec */
+pa_usec_t pa_resampler_get_delay_usec(pa_resampler *r) {
+
+    if (!r)
+        return 0;
+
+    return (pa_usec_t) (pa_resampler_get_delay(r, false) * PA_USEC_PER_SEC / r->i_ss.rate);
 }
 
 /*** copy (noop) implementation ***/
