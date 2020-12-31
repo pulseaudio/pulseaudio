@@ -876,7 +876,7 @@ void pa_source_output_process_rewind(pa_source_output *o, size_t nbytes /* in so
             o->process_rewind(o, nbytes);
 
         if (o->thread_info.resampler)
-            pa_resampler_rewind(o->thread_info.resampler, nbytes);
+            pa_resampler_rewind(o->thread_info.resampler, nbytes, NULL, 0);
 
     } else
         pa_memblockq_seek(o->thread_info.delay_memblockq, - ((int64_t) nbytes), PA_SEEK_RELATIVE, true);
@@ -1701,6 +1701,7 @@ int pa_source_output_process_msg(pa_msgobject *mo, int code, void *userdata, int
             pa_usec_t *r = userdata;
 
             r[0] += pa_bytes_to_usec(pa_memblockq_get_length(o->thread_info.delay_memblockq), &o->source->sample_spec);
+            r[0] += pa_resampler_get_delay_usec(o->thread_info.resampler);
             r[1] += pa_source_get_latency_within_thread(o->source, false);
 
             return 0;

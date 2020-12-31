@@ -1183,7 +1183,7 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
 
             /* And rewind the resampler */
             if (i->thread_info.resampler)
-                pa_resampler_rewind(i->thread_info.resampler, amount);
+                pa_resampler_rewind(i->thread_info.resampler, amount, NULL, 0);
 
             if (i->thread_info.rewrite_flush) {
                 pa_memblockq_silence(i->thread_info.render_memblockq);
@@ -2167,6 +2167,7 @@ int pa_sink_input_process_msg(pa_msgobject *o, int code, void *userdata, int64_t
             pa_usec_t *r = userdata;
 
             r[0] += pa_bytes_to_usec(pa_memblockq_get_length(i->thread_info.render_memblockq), &i->sink->sample_spec);
+            r[0] += pa_resampler_get_delay_usec(i->thread_info.resampler);
             r[1] += pa_sink_get_latency_within_thread(i->sink, false);
 
             return 0;
