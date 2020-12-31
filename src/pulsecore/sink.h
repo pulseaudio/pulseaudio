@@ -299,6 +299,9 @@ struct pa_sink {
         size_t rewind_nbytes;
         bool rewind_requested;
 
+        /* Size of last rewind */
+        size_t last_rewind_nbytes;
+
         /* Both dynamic and fixed latencies will be clamped to this
          * range. */
         pa_usec_t min_latency; /* we won't go below this latency */
@@ -359,6 +362,7 @@ typedef enum pa_sink_message {
     PA_SINK_MESSAGE_SET_MAX_REQUEST,
     PA_SINK_MESSAGE_UPDATE_VOLUME_AND_MUTE,
     PA_SINK_MESSAGE_SET_PORT_LATENCY_OFFSET,
+    PA_SINK_MESSAGE_GET_LAST_REWIND,
     PA_SINK_MESSAGE_MAX
 } pa_sink_message_t;
 
@@ -456,6 +460,7 @@ void pa_sink_get_latency_range(pa_sink *s, pa_usec_t *min_latency, pa_usec_t *ma
 pa_usec_t pa_sink_get_fixed_latency(pa_sink *s);
 
 size_t pa_sink_get_max_rewind(pa_sink *s);
+size_t pa_sink_get_last_rewind(pa_sink *s);
 size_t pa_sink_get_max_request(pa_sink *s);
 
 int pa_sink_update_status(pa_sink*s);
