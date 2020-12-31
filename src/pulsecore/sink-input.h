@@ -252,6 +252,10 @@ struct pa_sink_input {
         /* We maintain a history of resampled audio data here. */
         pa_memblockq *render_memblockq;
 
+        /* This queue keeps the history before resampling and is used
+         * when rewinding the resampler. */
+        pa_memblockq *history_memblockq;
+
         pa_sink_input *sync_prev, *sync_next;
 
         /* The requested latency for the sink */

@@ -22,6 +22,7 @@
 #endif
 
 #include <string.h>
+#include <math.h>
 
 #include <pulse/xmalloc.h>
 #include <pulsecore/log.h>
@@ -500,34 +501,73 @@ void pa_resampler_set_output_rate(pa_resampler *r, uint32_t rate) {
         pa_lfe_filter_update_rate(r->lfe_filter, rate);
 }
 
+/* pa_resampler_request() and pa_resampler_result() should be as exact as
+ * possible to ensure that no samples are lost or duplicated during rewinds.
+ * Ignore the leftover buffer, the value appears to be wrong for ffmpeg
+ * and 0 in all other cases. If the resampler is NULL it means that no
+ * resampling is necessary and the input length equals the output length.
+ * FIXME: These functions are not exact for the soxr resamplers because
+ * soxr uses a different algorithm. */
 size_t pa_resampler_request(pa_resampler *r, size_t out_length) {
-    pa_assert(r);
+    size_t in_length;
 
-    /* Let's round up here to make it more likely that the caller will get at
-     * least out_length amount of data from pa_resampler_run().
-     *
-     * We don't take the leftover into account here. If we did, then it might
-     * be in theory possible that this function would return 0 and
-     * pa_resampler_run() would also return 0. That could lead to infinite
-     * loops. When the leftover is ignored here, such loops would eventually
-     * terminate, because the leftover would grow each round, finally
-     * surpassing the minimum input threshold of the resampler. */
-    return ((((uint64_t) ((out_length + r->o_fz-1) / r->o_fz) * r->i_ss.rate) + r->o_ss.rate-1) / r->o_ss.rate) * r->i_fz;
+    if (!r || out_length == 0)
+        return out_length;
+
+    /* Convert to output frames */
+    out_length = out_length / r->o_fz;
+
+    /* Convert to input frames. The equation matches exactly the
+     * behavior of the used resamplers and will calculate the
+     * minimum number of input frames that are needed to produce
+     * the given number of output frames. */
+    in_length = (out_length - 1) * r->i_ss.rate / r->o_ss.rate + 1;
+
+    /* Convert to input length */
+    return in_length * r->i_fz;
 }
 
 size_t pa_resampler_result(pa_resampler *r, size_t in_length) {
-    size_t frames;
+    size_t out_length;
 
-    pa_assert(r);
+    if (!r)
+        return in_length;
 
-    /* Let's round up here to ensure that the caller will always allocate big
-     * enough output buffer. */
+    /* Convert to intput frames */
+    in_length = in_length / r->i_fz;
 
-    frames = (in_length + r->i_fz - 1) / r->i_fz;
-    if (*r->have_leftover)
-        frames += r->leftover_buf->length / r->w_fz;
+     /* soxr processes samples in blocks, depending on the ratio.
+      * Therefore samples  that do not fit into a block must be
+      * ignored. */
+    if (r->method == PA_RESAMPLER_SOXR_MQ || r->method == PA_RESAMPLER_SOXR_HQ || r->method == PA_RESAMPLER_SOXR_VHQ) {
+        double ratio;
+        size_t block_size;
+        int k;
 
-    return (((uint64_t) frames * r->o_ss.rate + r->i_ss.rate - 1) / r->i_ss.rate) * r->o_fz;
+        ratio = (double)r->i_ss.rate / (double)r->o_ss.rate;
+
+        for (k = 0; k < 7; k++) {
+            if (ratio < pow(2, k + 1))
+                break;
+        }
+        block_size = pow(2, k);
+        in_length = in_length - in_length % block_size;
+    }
+
+    /* Convert to output frames. This matches exactly the algorithm
+     * used by the resamplers except for the soxr resamplers. */
+
+     out_length = in_length * r->o_ss.rate / r->i_ss.rate;
+     if ((double)in_length * (double)r->o_ss.rate / (double)r->i_ss.rate - out_length > 0)
+         out_length++;
+     /* The libsamplerate resamplers return one sample more if the result is integral and the ratio is not integral. */
+     else if (r->method >= PA_RESAMPLER_SRC_SINC_BEST_QUALITY && r->method <= PA_RESAMPLER_SRC_SINC_FASTEST && r->i_ss.rate > r->o_ss.rate && r->i_ss.rate % r->o_ss.rate > 0 && (double)in_length * (double)r->o_ss.rate / (double)r->i_ss.rate - out_length <= 0)
+         out_length++;
+     else if (r->method == PA_RESAMPLER_SRC_ZERO_ORDER_HOLD && r->i_ss.rate > r->o_ss.rate && (double)in_length * (double)r->o_ss.rate / (double)r->i_ss.rate - out_length <= 0)
+         out_length++;
+
+    /* Convert to output length */
+    return out_length * r->o_fz;
 }
 
 size_t pa_resampler_max_block_size(pa_resampler *r) {
