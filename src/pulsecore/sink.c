@@ -2594,6 +2594,40 @@ static void set_shared_volume_within_thread(pa_sink *s) {
     }
 }
 
+/* Called from IO thread. Gets max_rewind limit from sink inputs.
+ * This function is used to communicate the max_rewind value of a
+ * virtual sink to the master sink. The get_max_rewind_limit()
+ * callback is implemented by sink inputs connecting a virtual
+ * sink to its master. */
+static size_t get_max_rewind_limit(pa_sink *s, size_t requested_limit) {
+    pa_sink_input *i;
+    void *state = NULL;
+    size_t rewind_limit;
+
+    pa_assert(s);
+
+    /* Get rewind limit in sink sample spec from sink inputs */
+    rewind_limit = (size_t)(-1);
+    if (PA_SINK_IS_LINKED(s->thread_info.state)) {
+        PA_HASHMAP_FOREACH(i, s->thread_info.inputs, state) {
+
+            if (i->get_max_rewind_limit) {
+                size_t limit;
+
+                limit = i->get_max_rewind_limit(i);
+                if (rewind_limit == (size_t)(-1) || rewind_limit > limit)
+                    rewind_limit = limit;
+            }
+        }
+    }
+
+    /* Set max_rewind */
+    if (rewind_limit != (size_t)(-1))
+        requested_limit = PA_MIN(rewind_limit, requested_limit);
+
+    return requested_limit;
+}
+
 /* Called from IO thread, except when it is not */
 int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offset, pa_memchunk *chunk) {
     pa_sink *s = PA_SINK(o);
@@ -3142,6 +3176,8 @@ void pa_sink_set_max_rewind_within_thread(pa_sink *s, size_t max_rewind) {
 
     pa_sink_assert_ref(s);
     pa_sink_assert_io_context(s);
+
+    max_rewind = get_max_rewind_limit(s, max_rewind);
 
     if (max_rewind == s->thread_info.max_rewind)
         return;
