@@ -1000,6 +1000,8 @@ static int add_source(struct userdata *u) {
     data.name = pa_sprintf_malloc("bluez_source.%s.%s", u->device->address, pa_bluetooth_profile_to_string(u->profile));
     data.namereg_fail = false;
     pa_proplist_sets(data.proplist, "bluetooth.protocol", pa_bluetooth_profile_to_string(u->profile));
+    if (u->a2dp_codec)
+        pa_proplist_sets(data.proplist, PA_PROP_BLUETOOTH_CODEC, u->a2dp_codec->name);
     pa_source_new_data_set_sample_spec(&data, &u->decoder_sample_spec);
     if (u->profile == PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT)
         pa_proplist_sets(data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
@@ -1184,6 +1186,8 @@ static int add_sink(struct userdata *u) {
     data.name = pa_sprintf_malloc("bluez_sink.%s.%s", u->device->address, pa_bluetooth_profile_to_string(u->profile));
     data.namereg_fail = false;
     pa_proplist_sets(data.proplist, "bluetooth.protocol", pa_bluetooth_profile_to_string(u->profile));
+    if (u->a2dp_codec)
+        pa_proplist_sets(data.proplist, PA_PROP_BLUETOOTH_CODEC, u->a2dp_codec->name);
     pa_sink_new_data_set_sample_spec(&data, &u->encoder_sample_spec);
     if (u->profile == PA_BLUETOOTH_PROFILE_HEADSET_HEAD_UNIT)
         pa_proplist_sets(data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
@@ -1643,12 +1647,19 @@ static int start_thread(struct userdata *u) {
             u->source->set_volume(u->source);
     }
 
+    if (u->sink || u->source)
+        if (u->a2dp_codec)
+            pa_proplist_sets(u->card->proplist, PA_PROP_BLUETOOTH_CODEC, u->a2dp_codec->name);
+
     return 0;
 }
 
 /* Run from main thread */
 static void stop_thread(struct userdata *u) {
     pa_assert(u);
+
+    if (u->sink || u->source)
+        pa_proplist_unset(u->card->proplist, PA_PROP_BLUETOOTH_CODEC);
 
     if (u->sink)
         pa_sink_unlink(u->sink);

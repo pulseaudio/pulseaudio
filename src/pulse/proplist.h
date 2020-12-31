@@ -270,6 +270,9 @@ PA_C_DECL_BEGIN
 /** For context: whether to forcefully disable data transfer via POSIX or memfd shared memory. This property overrides any other client configuration which would otherwise enable SHM communication channels. \since 15.0 */
 #define PA_PROP_CONTEXT_FORCE_DISABLE_SHM      "context.force.disable.shm"
 
+/** For a bluez device: the currently selected codec name. \since 15.0 */
+#define PA_PROP_BLUETOOTH_CODEC                "bluetooth.codec"
+
 /** A property list object. Basically a dictionary with ASCII strings
  * as keys and arbitrary data as values. \since 0.9.11 */
 typedef struct pa_proplist pa_proplist;
