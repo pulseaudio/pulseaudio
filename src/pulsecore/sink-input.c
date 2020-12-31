@@ -29,6 +29,7 @@
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
 #include <pulse/internal.h>
+#include <pulse/timeval.h>
 
 #include <pulsecore/core-format.h>
 #include <pulsecore/mix.h>
@@ -52,6 +53,66 @@ struct volume_factor_entry {
     char *key;
     pa_cvolume volume;
 };
+
+/* Calculate number of input samples for the resampler so that either the number
+ * of input samples or the number of output samples matches the defined history
+ * length. */
+static size_t calculate_resampler_history_bytes(pa_sink_input *i, size_t in_rewind_frames) {
+    size_t history_frames, history_max, matching_period, total_frames, remainder;
+    double delay;
+    pa_resampler *r;
+
+    if (!(r = i->thread_info.resampler))
+        return 0;
+
+    /* Initialize some variables, cut off full seconds from the rewind */
+    total_frames = 0;
+    in_rewind_frames = in_rewind_frames % r->i_ss.rate;
+    history_max = pa_resampler_get_max_history(r);
+
+    /* Get the current internal delay of the resampler */
+    delay = pa_resampler_get_delay(r, false);
+
+    /* Calculate the matching period */
+    matching_period = r->i_ss.rate / pa_resampler_get_gcd(r);
+    pa_log_debug("Integral period length is %lu input frames", matching_period);
+
+    /* If the delay is larger than the length of the history queue, we can only
+     * replay as much as we have. */
+    if ((size_t)delay >= history_max) {
+        history_frames = history_max;
+        pa_log_debug("Resampler delay exceeds maximum history");
+        return history_frames * r->i_fz;
+    }
+
+    /* Initially set the history to 3 times the resampler delay. Use at least 2 ms.
+     * We try to find a value between 2 and 3 times the resampler delay to ensure
+     * that the old data has no impact anymore. See also comment to
+     * pa_resampler_get_max_history() in resampler.c. */
+    history_frames = (size_t)(delay * 3.0);
+    history_frames = PA_MAX(history_frames, r->i_ss.rate / 500);
+
+    /* Check how the rewind fits into multiples of the matching period. */
+    remainder = (in_rewind_frames + history_frames) % matching_period;
+
+    /* If possible, use between 2 and 3 times the resampler delay */
+    if (remainder < (size_t)delay && history_frames - remainder <= history_max)
+        total_frames = in_rewind_frames + history_frames - remainder;
+    /* Else, try above 3 times the delay */
+    else if (history_frames + matching_period - remainder <= history_max)
+        total_frames = in_rewind_frames + history_frames + matching_period - remainder;
+
+    if (total_frames != 0)
+        /* We found a perfect match. */
+        history_frames = total_frames - in_rewind_frames;
+    else {
+        /* Try to use 2.5 times the delay. */
+        history_frames = PA_MIN((size_t)(delay * 2.5), history_max);
+        pa_log_debug("No usable integral matching period");
+    }
+
+    return history_frames * r->i_fz;
+}
 
 static struct volume_factor_entry *volume_factor_entry_new(const char *key, const pa_cvolume *volume) {
     struct volume_factor_entry *entry;
@@ -1149,7 +1210,7 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
         pa_memblockq_flush_write(i->thread_info.history_memblockq, true);
 
     } else if (i->thread_info.rewrite_nbytes > 0) {
-        size_t max_rewrite, amount;
+        size_t max_rewrite, sink_amount, sink_input_amount;
 
         /* Calculate how much make sense to rewrite at most */
         max_rewrite = nbytes;
@@ -1157,33 +1218,54 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
             max_rewrite += lbq;
 
         /* Transform into local domain */
-        max_rewrite = pa_resampler_request(i->thread_info.resampler, max_rewrite);
+        sink_input_amount = pa_resampler_request(i->thread_info.resampler, max_rewrite);
 
         /* Calculate how much of the rewinded data should actually be rewritten */
-        amount = PA_MIN(i->thread_info.rewrite_nbytes, max_rewrite);
+        sink_input_amount = PA_MIN(i->thread_info.rewrite_nbytes, sink_input_amount);
 
-        if (amount > 0) {
-            pa_log_debug("Have to rewind %lu bytes on implementor.", (unsigned long) amount);
+        /* Transform to sink domain */
+        sink_amount = pa_resampler_result(i->thread_info.resampler, sink_input_amount);
+
+        if (sink_input_amount > 0) {
+            pa_log_debug("Have to rewind %lu bytes on implementor.", (unsigned long) sink_input_amount);
 
             /* Tell the implementor */
             if (i->process_rewind)
-                i->process_rewind(i, amount);
+                i->process_rewind(i, sink_input_amount);
             called = true;
 
-            if (amount > 0)
-                /* Update the history write pointer */
-                pa_memblockq_seek(i->thread_info.history_memblockq, - ((int64_t) amount), PA_SEEK_RELATIVE, true);
+            /* Update the write pointer. Use pa_resampler_result(r, sink_input_amount) instead
+             * of sink_amount because the two may differ and the actual replay of the samples
+             * will produce pa_resampler_result(r, sink_input_amount) samples. */
+            pa_memblockq_seek(i->thread_info.render_memblockq, - ((int64_t) pa_resampler_result(i->thread_info.resampler, sink_input_amount)),PA_SEEK_RELATIVE, true);
 
-            /* Convert back to sink domain */
-            amount = pa_resampler_result(i->thread_info.resampler, amount);
+            /* Rewind the resampler */
+            if (i->thread_info.resampler) {
+                size_t history_bytes;
+                int64_t history_result;
 
-            if (amount > 0)
-                /* Ok, now update the write pointer */
-                pa_memblockq_seek(i->thread_info.render_memblockq, - ((int64_t) amount), PA_SEEK_RELATIVE, true);
+                history_bytes = calculate_resampler_history_bytes(i, sink_input_amount / pa_frame_size(&i->sample_spec));
 
-            /* And rewind the resampler */
-            if (i->thread_info.resampler)
-                pa_resampler_rewind(i->thread_info.resampler, amount, NULL, 0);
+               if (history_bytes > 0) {
+                    history_result = pa_resampler_rewind(i->thread_info.resampler, sink_amount, i->thread_info.history_memblockq, history_bytes);
+
+                    /* We may have produced one sample too much or or one sample less than expected.
+                     * The replay of the rewound sink input data will then produce a deviation in
+                     * the other direction, so that the total number of produced samples matches
+                     * pa_resampler_result(r, sink_input_amount + history_bytes). Therefore we have
+                     * to correct the write pointer of the render queue accordingly.
+                     * Strictly this is only true, if the history can be replayed from a known
+                     * resampler state, that is if a true matching period exists. In case where
+                     * we are using an approximate matching period, we may still loose or duplicate
+                     * one sample during rewind. */
+                    history_result -= (int64_t) pa_resampler_result(i->thread_info.resampler, history_bytes);
+                    if (history_result != 0)
+                        pa_memblockq_seek(i->thread_info.render_memblockq, history_result, PA_SEEK_RELATIVE, true);
+                }
+            }
+
+            /* Update the history write pointer */
+            pa_memblockq_seek(i->thread_info.history_memblockq, - ((int64_t) sink_input_amount), PA_SEEK_RELATIVE, true);
 
             if (i->thread_info.rewrite_flush) {
                 pa_memblockq_silence(i->thread_info.render_memblockq);
@@ -1223,6 +1305,7 @@ size_t pa_sink_input_get_max_request(pa_sink_input *i) {
 /* Called from thread context */
 void pa_sink_input_update_max_rewind(pa_sink_input *i, size_t nbytes  /* in the sink's sample spec */) {
     size_t max_rewind;
+    size_t resampler_history;
 
     pa_sink_input_assert_ref(i);
     pa_sink_input_assert_io_context(i);
@@ -1232,8 +1315,11 @@ void pa_sink_input_update_max_rewind(pa_sink_input *i, size_t nbytes  /* in the 
     pa_memblockq_set_maxrewind(i->thread_info.render_memblockq, nbytes);
 
     max_rewind = pa_resampler_request(i->thread_info.resampler, nbytes);
+    /* Calculate maximum history needed */
+    resampler_history = pa_resampler_get_max_history(i->thread_info.resampler);
+    resampler_history *= pa_frame_size(&i->sample_spec);
 
-    pa_memblockq_set_maxrewind(i->thread_info.history_memblockq, max_rewind + PA_RESAMPLER_MAX_HISTORY * pa_frame_size(&i->sample_spec));
+    pa_memblockq_set_maxrewind(i->thread_info.history_memblockq, max_rewind + resampler_history);
 
     if (i->update_max_rewind)
         i->update_max_rewind(i, max_rewind);
