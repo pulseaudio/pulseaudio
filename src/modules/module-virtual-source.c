@@ -177,6 +177,9 @@ static int source_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t 
                 /* FIXME, no idea what I am doing here */
                 pa_bytes_to_usec(pa_memblockq_get_length(u->source_output->thread_info.delay_memblockq), &u->source_output->source->sample_spec);
 
+            /* Add resampler delay */
+            *((int64_t*) data) += pa_resampler_get_delay_usec(u->source_output->thread_info.resampler);
+
             return 0;
     }
 
