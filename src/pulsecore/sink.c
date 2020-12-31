@@ -1657,6 +1657,27 @@ bool pa_sink_flat_volume_enabled(pa_sink *s) {
         return false;
 }
 
+/* Check if the sink has a virtual sink attached.
+ * Called from the IO thread. */
+bool pa_sink_has_filter_attached(pa_sink *s) {
+    bool vsink_attached = false;
+    void *state = NULL;
+    pa_sink_input *i;
+
+    pa_assert(s);
+
+    if (PA_SINK_IS_LINKED(s->thread_info.state)) {
+        PA_HASHMAP_FOREACH(i, s->thread_info.inputs, state) {
+            if (!i->origin_sink)
+                continue;
+
+            vsink_attached = true;
+            break;
+        }
+    }
+    return vsink_attached;
+}
+
 /* Called from the main thread (and also from the IO thread while the main
  * thread is waiting). */
 pa_sink *pa_sink_get_master(pa_sink *s) {
@@ -2669,8 +2690,8 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             }
 
             pa_hashmap_remove_and_free(s->thread_info.inputs, PA_UINT32_TO_PTR(i->index));
-            pa_sink_invalidate_requested_latency(s, true);
             pa_sink_request_rewind(s, (size_t) -1);
+            pa_sink_invalidate_requested_latency(s, true);
 
             /* In flat volume mode we need to update the volume as
              * well */
@@ -2709,10 +2730,12 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             /* Let's remove the sink input ...*/
             pa_hashmap_remove_and_free(s->thread_info.inputs, PA_UINT32_TO_PTR(i->index));
 
-            pa_sink_invalidate_requested_latency(s, true);
-
+            /* The rewind must be requested before invalidating the latency, otherwise
+             * the max_rewind value of the sink may change before the rewind. */
             pa_log_debug("Requesting rewind due to started move");
             pa_sink_request_rewind(s, (size_t) -1);
+
+            pa_sink_invalidate_requested_latency(s, true);
 
             /* In flat volume mode we need to update the volume as
              * well */
