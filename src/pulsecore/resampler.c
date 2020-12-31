@@ -122,6 +122,24 @@ static int (* const init_table[])(pa_resampler *r) = {
 #endif
 };
 
+static void calculate_gcd(pa_resampler *r) {
+    unsigned gcd, n;
+
+    pa_assert(r);
+
+    gcd = r->i_ss.rate;
+    n = r->o_ss.rate;
+
+    while (n != 0) {
+        unsigned tmp = gcd;
+
+        gcd = n;
+        n = tmp % n;
+    }
+
+    r->gcd = gcd;
+}
+
 static pa_resample_method_t choose_auto_resampler(pa_resample_flags_t flags) {
     pa_resample_method_t method;
 
@@ -354,6 +372,7 @@ pa_resampler* pa_resampler_new(
     /* Fill sample specs */
     r->i_ss = *a;
     r->o_ss = *b;
+    calculate_gcd(r);
 
     if (am)
         r->i_cm = *am;
@@ -485,6 +504,7 @@ void pa_resampler_set_input_rate(pa_resampler *r, uint32_t rate) {
     r->out_frames = 0;
 
     r->i_ss.rate = rate;
+    calculate_gcd(r);
 
     r->impl.update_rates(r);
 }
@@ -502,6 +522,7 @@ void pa_resampler_set_output_rate(pa_resampler *r, uint32_t rate) {
     r->out_frames = 0;
 
     r->o_ss.rate = rate;
+    calculate_gcd(r);
 
     r->impl.update_rates(r);
 
@@ -1632,6 +1653,28 @@ pa_usec_t pa_resampler_get_delay_usec(pa_resampler *r) {
         return 0;
 
     return (pa_usec_t) (pa_resampler_get_delay(r, false) * PA_USEC_PER_SEC / r->i_ss.rate);
+}
+
+/* Get GCD of input and output rate. */
+unsigned pa_resampler_get_gcd(pa_resampler *r) {
+    pa_assert(r);
+
+    return r->gcd;
+}
+
+/* Get maximum resampler history. The resamplers have finite impulse response, so really old
+ * data (more than 2x the resampler latency) cannot affect the output. This means, that in an
+ * ideal case, we should re-run 2 - 3 times the resampler delay through the resampler when it
+ * is rewound. On the other hand this would mean for high sample rates that more than 25000
+ * samples would need to be used (384k * 33ms). Therefore limit the history to 1.5 times the
+ * maximum resampler delay, which should be fully sufficient in most cases and allows to run
+ * at least more than one delay through the resampler in case of high rates. */
+size_t pa_resampler_get_max_history(pa_resampler *r) {
+
+    if (!r)
+        return 0;
+
+    return (uint64_t) PA_RESAMPLER_MAX_DELAY_USEC * r->i_ss.rate * 3 / PA_USEC_PER_SEC / 2;
 }
 
 /*** copy (noop) implementation ***/
