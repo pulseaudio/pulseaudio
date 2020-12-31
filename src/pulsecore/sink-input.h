@@ -156,6 +156,13 @@ struct pa_sink_input {
      * changes. Called from IO context. */
     void (*update_max_rewind) (pa_sink_input *i, size_t nbytes); /* may be NULL */
 
+    /* Called whenever the maximum rewindable size of the sink
+     * changes. Used by virtual sinks to communicate rewind limits
+     * of the virtual sink to the master sink. Must return size_t (-1)
+     * if there is no limit or if the virtual sink is not opened.
+     * Called from IO context. */
+    size_t (*get_max_rewind_limit) (pa_sink_input *i); /* may be NULL */
+
     /* Called whenever the maximum request size of the sink
      * changes. Called from IO context. */
     void (*update_max_request) (pa_sink_input *i, size_t nbytes); /* may be NULL */

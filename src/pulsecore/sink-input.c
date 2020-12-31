@@ -347,6 +347,7 @@ static void reset_callbacks(pa_sink_input *i) {
     i->send_event = NULL;
     i->volume_changed = NULL;
     i->mute_changed = NULL;
+    i->get_max_rewind_limit = NULL;
 }
 
 /* Called from main context */
