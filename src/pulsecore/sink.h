@@ -470,6 +470,10 @@ int pa_sink_suspend_all(pa_core *c, bool suspend, pa_suspend_cause_t cause);
 /* Use this instead of checking s->flags & PA_SINK_FLAT_VOLUME directly. */
 bool pa_sink_flat_volume_enabled(pa_sink *s);
 
+/* Check if the sink has a virtual sink attached.
+ * Called from the IO thread. */
+bool pa_sink_has_filter_attached(pa_sink *s);
+
 /* Get the master sink when sharing volumes */
 pa_sink *pa_sink_get_master(pa_sink *s);
 
