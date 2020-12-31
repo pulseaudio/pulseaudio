@@ -567,6 +567,7 @@ static void source_output_push_cb(pa_source_output *o, const pa_memchunk *chunk)
     /* Send current source latency and timestamp with the message */
     push_time = pa_rtclock_now();
     current_source_latency = pa_source_get_latency_within_thread(u->source_output->source, true);
+    current_source_latency += pa_resampler_get_delay_usec(u->source_output->thread_info.resampler);
 
     pa_asyncmsgq_post(u->asyncmsgq, PA_MSGOBJECT(u->sink_input), SINK_INPUT_MESSAGE_POST, PA_INT_TO_PTR(current_source_latency), push_time, chunk, NULL);
     u->send_counter += (int64_t) chunk->length;
@@ -599,6 +600,9 @@ static int source_output_process_msg_cb(pa_msgobject *obj, int code, void *data,
             /* Add content of delay memblockq to the source latency */
             u->latency_snapshot.source_latency = pa_source_get_latency_within_thread(u->source_output->source, true) +
                                                  pa_bytes_to_usec(length, &u->source_output->source->sample_spec);
+            /* Add resampler latency */
+            u->latency_snapshot.source_latency += pa_resampler_get_delay_usec(u->source_output->thread_info.resampler);
+
             u->latency_snapshot.source_timestamp = pa_rtclock_now();
 
             return 0;
@@ -894,8 +898,9 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
                 time_delta = PA_PTR_TO_INT(data);
                 /* Add the time between push and post */
                 time_delta += pa_rtclock_now() - (pa_usec_t) offset;
-                /* Add the sink latency */
+                /* Add the sink and resampler latency */
                 time_delta += pa_sink_get_latency_within_thread(u->sink_input->sink, true);
+                time_delta += pa_resampler_get_delay_usec(u->sink_input->thread_info.resampler);
 
                 /* The source latency report includes the audio in the chunk,
                  * but since we already pushed the chunk to the memblockq, we need
@@ -972,6 +977,9 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
             /* Add content of render memblockq to sink latency */
             u->latency_snapshot.sink_latency = pa_sink_get_latency_within_thread(u->sink_input->sink, true) +
                                                pa_bytes_to_usec(length, &u->sink_input->sink->sample_spec);
+            /* Add resampler latency */
+            u->latency_snapshot.sink_latency += pa_resampler_get_delay_usec(u->sink_input->thread_info.resampler);
+
             u->latency_snapshot.sink_timestamp = pa_rtclock_now();
 
             return 0;
