@@ -231,6 +231,9 @@ struct pa_sink_input {
      * mute status changes. Called from main context */
     void (*mute_changed)(pa_sink_input *i); /* may be NULL */
 
+    /* Used to store the rewind amount of the origin sink during a move */
+    size_t origin_rewind_bytes;    /* In sink input sample spec */
+
     struct {
         pa_sink_input_state_t state;
 
@@ -260,6 +263,12 @@ struct pa_sink_input {
 
         /* The requested latency for the sink */
         pa_usec_t requested_sink_latency;
+
+        /* Variables used during move */
+        pa_usec_t move_start_time;
+        pa_usec_t origin_sink_latency;
+        size_t resampler_delay_frames;
+        bool dont_rewrite;
 
         pa_hashmap *direct_outputs;
     } thread_info;
@@ -365,7 +374,7 @@ void pa_sink_input_request_rewind(pa_sink_input *i, size_t nbytes, bool rewrite,
 void pa_sink_input_cork(pa_sink_input *i, bool b);
 
 int pa_sink_input_set_rate(pa_sink_input *i, uint32_t rate);
-int pa_sink_input_update_resampler(pa_sink_input *i);
+int pa_sink_input_update_resampler(pa_sink_input *i, bool flush_history);
 
 /* This returns the sink's fields converted into out sample type */
 size_t pa_sink_input_get_max_rewind(pa_sink_input *i);

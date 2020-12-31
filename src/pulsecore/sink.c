@@ -40,6 +40,7 @@
 #include <pulsecore/namereg.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/sample-util.h>
+#include <pulsecore/stream-util.h>
 #include <pulsecore/mix.h>
 #include <pulsecore/core-subscribe.h>
 #include <pulsecore/log.h>
@@ -338,6 +339,7 @@ pa_sink* pa_sink_new(
     s->thread_info.soft_muted = s->muted;
     s->thread_info.state = s->state;
     s->thread_info.rewind_nbytes = 0;
+    s->thread_info.last_rewind_nbytes = 0;
     s->thread_info.rewind_requested = false;
     s->thread_info.max_rewind = 0;
     s->thread_info.max_request = 0;
@@ -1073,6 +1075,9 @@ void pa_sink_process_rewind(pa_sink *s, size_t nbytes) {
             pa_sink_volume_change_rewind(s, nbytes);
     }
 
+    /* Save rewind value */
+    s->thread_info.last_rewind_nbytes = nbytes;
+
     PA_HASHMAP_FOREACH(i, s->thread_info.inputs, state) {
         pa_sink_input_assert_ref(i);
         pa_sink_input_process_rewind(i, nbytes);
@@ -1557,10 +1562,23 @@ void pa_sink_reconfigure(pa_sink *s, pa_sample_spec *spec, bool passthrough) {
 
     PA_IDXSET_FOREACH(i, s->inputs, idx) {
         if (i->state == PA_SINK_INPUT_CORKED)
-            pa_sink_input_update_resampler(i);
+            pa_sink_input_update_resampler(i, true);
     }
 
     pa_sink_suspend(s, false, PA_SUSPEND_INTERNAL);
+}
+
+/* Called from main thread */
+size_t pa_sink_get_last_rewind(pa_sink *s) {
+    size_t rewind_bytes;
+
+    pa_sink_assert_ref(s);
+    pa_assert_ctl_context();
+    pa_assert(PA_SINK_IS_LINKED(s->state));
+
+    pa_assert_se(pa_asyncmsgq_send(s->asyncmsgq, PA_MSGOBJECT(s), PA_SINK_MESSAGE_GET_LAST_REWIND, &rewind_bytes, 0, NULL) == 0);
+
+    return rewind_bytes;
 }
 
 /* Called from main thread */
@@ -2669,59 +2687,21 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
             pa_assert(!i->thread_info.sync_prev);
 
             if (i->thread_info.state != PA_SINK_INPUT_CORKED) {
-                pa_usec_t usec = 0;
-                size_t sink_nbytes, total_nbytes;
 
                 /* The old sink probably has some audio from this
                  * stream in its buffer. We want to "take it back" as
                  * much as possible and play it to the new sink. We
                  * don't know at this point how much the old sink can
-                 * rewind. We have to pick something, and that
-                 * something is the full latency of the old sink here.
-                 * So we rewind the stream buffer by the sink latency
-                 * amount, which may be more than what we should
-                 * rewind. This can result in a chunk of audio being
-                 * played both to the old sink and the new sink.
-                 *
-                 * FIXME: Fix this code so that we don't have to make
-                 * guesses about how much the sink will actually be
-                 * able to rewind. If someone comes up with a solution
-                 * for this, something to note is that the part of the
-                 * latency that the old sink couldn't rewind should
-                 * ideally be compensated after the stream has moved
-                 * to the new sink by adding silence. The new sink
-                 * most likely can't start playing the moved stream
-                 * immediately, and that gap should be removed from
-                 * the "compensation silence" (at least at the time of
-                 * writing this, the move finish code will actually
-                 * already take care of dropping the new sink's
-                 * unrewindable latency, so taking into account the
-                 * unrewindable latency of the old sink is the only
-                 * problem).
-                 *
-                 * The render_memblockq contents are discarded,
-                 * because when the sink changes, the format of the
-                 * audio stored in the render_memblockq may change
-                 * too, making the stored audio invalid. FIXME:
-                 * However, the read and write indices are moved back
-                 * the same amount, so if they are not the same now,
-                 * they won't be the same after the rewind either. If
-                 * the write index of the render_memblockq is ahead of
-                 * the read index, then the render_memblockq will feed
-                 * the new sink some silence first, which it shouldn't
-                 * do. The write index should be flushed to be the
-                 * same as the read index. */
+                 * rewind, so we just save some values and reconstruct
+                 * the render memblockq in finish_move(). */
 
-                /* Get the latency of the sink */
-                usec = pa_sink_get_latency_within_thread(s, false);
-                sink_nbytes = pa_usec_to_bytes(usec, &s->sample_spec);
-                total_nbytes = sink_nbytes + pa_memblockq_get_length(i->thread_info.render_memblockq);
-
-                if (total_nbytes > 0) {
-                    i->thread_info.rewrite_nbytes = i->thread_info.resampler ? pa_resampler_request(i->thread_info.resampler, total_nbytes) : total_nbytes;
-                    i->thread_info.rewrite_flush = true;
-                    pa_sink_input_process_rewind(i, sink_nbytes);
-                }
+                /* Save some current values for restore_render_memblockq() */
+                i->thread_info.origin_sink_latency = pa_sink_get_latency_within_thread(s, false);
+                i->thread_info.move_start_time = pa_rtclock_now();
+                i->thread_info.resampler_delay_frames = 0;
+                if (i->thread_info.resampler)
+                    /* Round down */
+                    i->thread_info.resampler_delay_frames = pa_resampler_get_delay(i->thread_info.resampler, false);
             }
 
             pa_sink_input_detach(i);
@@ -2754,7 +2734,7 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
 
             if (i->thread_info.state != PA_SINK_INPUT_CORKED) {
                 pa_usec_t usec = 0;
-                size_t nbytes;
+                size_t nbytes, delay_bytes;
 
                 /* In the ideal case the new sink would start playing
                  * the stream immediately. That requires the sink to
@@ -2778,8 +2758,20 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
                 usec = pa_sink_get_latency_within_thread(s, false);
                 nbytes = pa_usec_to_bytes(usec, &s->sample_spec);
 
-                if (nbytes > 0)
-                    pa_sink_input_drop(i, nbytes);
+                /* Calculate number of samples that have been played during the move */
+                delay_bytes = 0;
+                if (i->thread_info.move_start_time > 0) {
+                    usec = pa_rtclock_now() - i->thread_info.move_start_time;
+                    pa_log_debug("Move took %lu usec", usec);
+                    delay_bytes = pa_usec_to_bytes(usec, &s->sample_spec);
+                }
+
+                /* max_rewind must be updated for the sink input because otherwise
+                 * the data in the render memblockq will get lost */
+                pa_sink_input_update_max_rewind(i, nbytes);
+
+                if (nbytes + delay_bytes > 0)
+                    pa_sink_input_drop(i, nbytes + delay_bytes);
 
                 pa_log_debug("Requesting rewind due to finished move");
                 pa_sink_request_rewind(s, nbytes);
@@ -2795,6 +2787,11 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
 
             pa_sink_input_update_max_rewind(i, s->thread_info.max_rewind);
             pa_sink_input_update_max_request(i, s->thread_info.max_request);
+
+            /* Reset move variables */
+            i->thread_info.move_start_time = 0;
+            i->thread_info.resampler_delay_frames = 0;
+            i->thread_info.origin_sink_latency = 0;
 
             return o->process_msg(o, PA_SINK_MESSAGE_SET_SHARED_VOLUME, NULL, 0, NULL);
         }
@@ -2940,6 +2937,11 @@ int pa_sink_process_msg(pa_msgobject *o, int code, void *userdata, int64_t offse
         case PA_SINK_MESSAGE_GET_MAX_REWIND:
 
             *((size_t*) userdata) = s->thread_info.max_rewind;
+            return 0;
+
+        case PA_SINK_MESSAGE_GET_LAST_REWIND:
+
+            *((size_t*) userdata) = s->thread_info.last_rewind_nbytes;
             return 0;
 
         case PA_SINK_MESSAGE_GET_MAX_REQUEST:

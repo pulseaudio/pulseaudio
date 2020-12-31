@@ -624,6 +624,11 @@ int pa_sink_input_new(
     i->thread_info.underrun_for_sink = 0;
     i->thread_info.playing_for = 0;
     i->thread_info.direct_outputs = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+    i->thread_info.move_start_time = 0;
+    i->thread_info.resampler_delay_frames = 0;
+    i->thread_info.origin_sink_latency = 0;
+    i->thread_info.dont_rewrite = false;
+    i->origin_rewind_bytes = 0;
 
     pa_assert_se(pa_idxset_put(core->sink_inputs, i, &i->index) == 0);
     pa_assert_se(pa_idxset_put(i->sink->inputs, pa_sink_input_ref(i), NULL) == 0);
@@ -1201,6 +1206,9 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
         pa_memblockq_rewind(i->thread_info.history_memblockq, sink_input_nbytes);
     }
 
+    if (i->thread_info.dont_rewrite)
+        goto finish;
+
     if (i->thread_info.rewrite_nbytes == (size_t) -1) {
 
         /* We were asked to drop all buffered data, and rerequest new
@@ -1274,10 +1282,12 @@ void pa_sink_input_process_rewind(pa_sink_input *i, size_t nbytes /* in sink sam
         }
     }
 
+finish:
     if (!called)
         if (i->process_rewind)
             i->process_rewind(i, 0);
 
+    i->thread_info.dont_rewrite = false;
     i->thread_info.rewrite_nbytes = 0;
     i->thread_info.rewrite_flush = false;
     i->thread_info.dont_rewind_render = false;
@@ -1895,6 +1905,11 @@ int pa_sink_input_start_move(pa_sink_input *i) {
 
     pa_cvolume_remap(&i->volume_factor_sink, &i->sink->channel_map, &i->channel_map);
 
+    /* Calculate how much of the latency was rewound on the old sink */
+    i->origin_rewind_bytes = pa_sink_get_last_rewind(i->sink) / pa_frame_size(&i->sink->sample_spec);
+    i->origin_rewind_bytes = i->origin_rewind_bytes * i->sample_spec.rate / i->sink->sample_spec.rate;
+    i->origin_rewind_bytes *= pa_frame_size(&i->sample_spec);
+
     i->sink = NULL;
     i->sink_requested_by_application = false;
 
@@ -2045,6 +2060,89 @@ static void set_preferred_sink(pa_sink_input *i, const char *sink_name) {
     pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_PREFERRED_SINK_CHANGED], i);
 }
 
+/* Restores the render memblockq from the history memblockq during a move.
+ * Called from main context while the sink input is detached. */
+static void restore_render_memblockq(pa_sink_input *i) {
+    size_t block_size, to_push;
+    size_t latency_bytes = 0;
+    size_t bytes_on_origin_sink = 0;
+    size_t resampler_delay_bytes = 0;
+
+    /* Calculate how much of the latency was left on the old sink */
+    latency_bytes = pa_usec_to_bytes(i->thread_info.origin_sink_latency, &i->sample_spec);
+    if (latency_bytes > i->origin_rewind_bytes)
+            bytes_on_origin_sink = latency_bytes - i->origin_rewind_bytes;
+
+    /* Get resampler latency of old resampler */
+    resampler_delay_bytes = i->thread_info.resampler_delay_frames * pa_frame_size(&i->sample_spec);
+
+    /* Flush the render memblockq  and reset the resampler */
+    pa_memblockq_flush_write(i->thread_info.render_memblockq, true);
+    if (i->thread_info.resampler)
+        pa_resampler_reset(i->thread_info.resampler);
+
+    /* Rewind the history queue */
+    if (i->origin_rewind_bytes + resampler_delay_bytes > 0)
+        pa_memblockq_rewind(i->thread_info.history_memblockq, i->origin_rewind_bytes + resampler_delay_bytes);
+
+    /* If something is left playing on the origin sink, add silence to the render memblockq */
+    if (bytes_on_origin_sink > 0) {
+        pa_memchunk chunk;;
+
+        chunk.length = pa_resampler_result(i->thread_info.resampler, bytes_on_origin_sink);
+        if (chunk.length > 0) {
+            chunk.memblock = pa_memblock_new(i->core->mempool, chunk.length);
+            chunk.index = 0;
+            pa_silence_memchunk(&chunk, &i->sink->sample_spec);
+            pa_memblockq_push(i->thread_info.render_memblockq, &chunk);
+            pa_memblock_unref(chunk.memblock);
+        }
+    }
+
+    /* Determine maximum block size */
+    if (i->thread_info.resampler)
+        block_size = pa_resampler_max_block_size(i->thread_info.resampler);
+    else
+        block_size = pa_frame_align(pa_mempool_block_size_max(i->core->mempool), &i->sample_spec);
+
+    /* Now push all the data in the history queue into the render memblockq */
+    to_push = pa_memblockq_get_length(i->thread_info.history_memblockq);
+    while (to_push > 0) {
+        pa_memchunk in_chunk, out_chunk;
+        size_t push_bytes;
+
+        push_bytes = block_size;
+        if (to_push < block_size)
+            push_bytes = to_push;
+
+        if (pa_memblockq_peek_fixed_size(i->thread_info.history_memblockq, push_bytes, &in_chunk) < 0) {
+            pa_log_warn("Could not restore memblockq during move");
+            break;
+        }
+
+        if (i->thread_info.resampler) {
+            pa_resampler_run(i->thread_info.resampler, &in_chunk, &out_chunk);
+            pa_memblock_unref(in_chunk.memblock);
+        } else
+            out_chunk = in_chunk;
+
+        if (out_chunk.length > 0) {
+            pa_memblockq_push(i->thread_info.render_memblockq, &out_chunk);
+            pa_memblock_unref(out_chunk.memblock);
+        }
+
+        pa_memblockq_drop(i->thread_info.history_memblockq, push_bytes);
+        to_push -= push_bytes;
+    }
+
+    /* No need to rewind the history queue here, it will be re-synchronized
+     * with the render queue during the next pa_sink_input_drop() call. */
+
+    /* Tell the sink input not to ask the implementer to rewrite during the
+     * the next rewind */
+    i->thread_info.dont_rewrite = true;
+}
+
 /* Called from main context */
 int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, bool save) {
     struct volume_factor_entry *v;
@@ -2103,7 +2201,9 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, bool save) {
     if (i->state == PA_SINK_INPUT_CORKED)
         i->sink->n_corked++;
 
-    pa_sink_input_update_resampler(i);
+    pa_sink_input_update_resampler(i, false);
+
+    restore_render_memblockq(i);
 
     pa_sink_update_status(dest);
 
@@ -2113,6 +2213,9 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, bool save) {
         pa_sink_enter_passthrough(i->sink);
 
     pa_assert_se(pa_asyncmsgq_send(i->sink->asyncmsgq, PA_MSGOBJECT(i->sink), PA_SINK_MESSAGE_FINISH_MOVE, i, 0, NULL) == 0);
+
+    /* Reset move variable */
+    i->origin_rewind_bytes = 0;
 
     pa_log_debug("Successfully moved sink input %i to %s.", i->index, dest->name);
 
@@ -2448,7 +2551,7 @@ finish:
 /* Called from main context */
 /* Updates the sink input's resampler with whatever the current sink requires
  * -- useful when the underlying sink's sample spec might have changed */
-int pa_sink_input_update_resampler(pa_sink_input *i) {
+int pa_sink_input_update_resampler(pa_sink_input *i, bool flush_history) {
     pa_resampler *new_resampler;
     char *memblockq_name;
 
@@ -2485,6 +2588,9 @@ int pa_sink_input_update_resampler(pa_sink_input *i) {
     } else
         new_resampler = NULL;
 
+    if (flush_history)
+        pa_memblockq_flush_write(i->thread_info.history_memblockq, true);
+
     if (new_resampler == i->thread_info.resampler)
         return 0;
 
@@ -2494,7 +2600,6 @@ int pa_sink_input_update_resampler(pa_sink_input *i) {
     i->thread_info.resampler = new_resampler;
 
     pa_memblockq_free(i->thread_info.render_memblockq);
-    pa_memblockq_flush_write(i->thread_info.history_memblockq, true);
 
     memblockq_name = pa_sprintf_malloc("sink input render_memblockq [%u]", i->index);
     i->thread_info.render_memblockq = pa_memblockq_new(
