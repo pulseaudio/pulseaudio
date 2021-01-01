@@ -2419,6 +2419,18 @@ static int bluez5_device_message_handler(const char *object_path, const char *me
     } else if (pa_streq(message, "list-codecs")) {
         *response = list_codecs(u);
         return PA_OK;
+    } else if (pa_streq(message, "get-codec")) {
+        pa_message_params *param;
+        param = pa_message_params_new();
+
+        if (u->a2dp_codec)
+            pa_message_params_write_string(param, u->a2dp_codec->name);
+        else
+            pa_message_params_write_string(param, "none");
+
+        *response = pa_message_params_to_string_free(param);
+
+        return PA_OK;
     }
 
 
