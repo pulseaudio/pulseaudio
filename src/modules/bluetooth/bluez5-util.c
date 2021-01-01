@@ -2101,6 +2101,9 @@ static DBusHandlerResult object_manager_handler(DBusConnection *c, DBusMessage *
             char *endpoint;
 
             a2dp_codec = pa_bluetooth_a2dp_codec_iter(i);
+            if (!a2dp_codec->can_be_supported())
+                continue;
+
             codec_id = a2dp_codec->id.codec_id;
             capabilities_size = a2dp_codec->fill_capabilities(capabilities);
             pa_assert(capabilities_size != 0);
@@ -2208,6 +2211,8 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c, int headset_backe
     count = pa_bluetooth_a2dp_codec_count();
     for (i = 0; i < count; i++) {
         a2dp_codec = pa_bluetooth_a2dp_codec_iter(i);
+        if (!a2dp_codec->can_be_supported())
+            continue;
 
         endpoint = pa_sprintf_malloc("%s/%s", A2DP_SINK_ENDPOINT, a2dp_codec->name);
         endpoint_init(y, endpoint);
@@ -2295,6 +2300,9 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
         count = pa_bluetooth_a2dp_codec_count();
         for (i = 0; i < count; i++) {
             a2dp_codec = pa_bluetooth_a2dp_codec_iter(i);
+
+            if (!a2dp_codec->can_be_supported())
+                continue;
 
             endpoint = pa_sprintf_malloc("%s/%s", A2DP_SINK_ENDPOINT, a2dp_codec->name);
             endpoint_done(y, endpoint);
