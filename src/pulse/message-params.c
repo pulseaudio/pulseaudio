@@ -345,9 +345,9 @@ int pa_message_params_read_bool(char *c, bool *result, void **state) {
 }
 
 /* Converts a parameter list to a string array. */
-int pa_message_params_read_string_array(char *c, const char ***results, int *length) {
-    void *state = NULL;
-    uint32_t element_count, i;
+int pa_message_params_read_string_array(char *c, const char ***results, int *length, void **state) {
+    void *state1 = NULL;
+    int element_count, i;
     int err;
     const char **values;
     char *start_pos;
@@ -370,8 +370,7 @@ int pa_message_params_read_string_array(char *c, const char ***results, int *len
     /* Allocate array */
     values = pa_xmalloc0(element_count * sizeof(char *));
 
-    state = NULL;
-    for (i = 0; (err = pa_message_params_read_string(start_pos, &(values[i]), &state)) > 0; i++)
+    for (i = 0; (err = pa_message_params_read_string(start_pos, &(values[i]), &state1)) > 0; i++)
         ;
 
     if (err < 0) {
@@ -386,10 +385,10 @@ int pa_message_params_read_string_array(char *c, const char ***results, int *len
 }
 
 /* Converts a parameter list to a double array. */
-int pa_message_params_read_double_array(char *c, double **results, int *length) {
+int pa_message_params_read_double_array(char *c, double **results, int *length, void **state) {
     double  *values;
-    void *state = NULL;
-    uint32_t element_count, i;
+    void *state1 = NULL;
+    int element_count, i;
     int err;
     char *start_pos;
 
@@ -411,8 +410,7 @@ int pa_message_params_read_double_array(char *c, double **results, int *length) 
     /* Allocate array */
     values = pa_xmalloc0(element_count * sizeof(double));
 
-    state = NULL;
-    for (i = 0; (err = pa_message_params_read_double(start_pos, &(values[i]), &state)) > 0; i++)
+    for (i = 0; (err = pa_message_params_read_double(start_pos, &(values[i]), &state1)) > 0; i++)
         ;
 
     if (err < 0) {
@@ -427,10 +425,10 @@ int pa_message_params_read_double_array(char *c, double **results, int *length) 
 }
 
 /* Converts a parameter list to an int64 array. */
-int pa_message_params_read_int64_array(char *c, int64_t **results, int *length) {
+int pa_message_params_read_int64_array(char *c, int64_t **results, int *length, void **state) {
     int64_t  *values;
-    void *state = NULL;
-    uint32_t element_count, i;
+    void *state1 = NULL;
+    int element_count, i;
     int err;
     char *start_pos;
 
@@ -452,8 +450,7 @@ int pa_message_params_read_int64_array(char *c, int64_t **results, int *length) 
     /* Allocate array */
     values = pa_xmalloc0(element_count * sizeof(int64_t));
 
-    state = NULL;
-    for (i = 0; (err = pa_message_params_read_int64(start_pos, &(values[i]), &state)) > 0; i++)
+    for (i = 0; (err = pa_message_params_read_int64(start_pos, &(values[i]), &state1)) > 0; i++)
         ;
 
     if (err < 0) {
@@ -468,10 +465,10 @@ int pa_message_params_read_int64_array(char *c, int64_t **results, int *length) 
 }
 
 /* Converts a parameter list to an uint64 array. */
-int pa_message_params_read_uint64_array(char *c, uint64_t **results, int *length) {
+int pa_message_params_read_uint64_array(char *c, uint64_t **results, int *length, void **state) {
     uint64_t  *values;
-    void *state = NULL;
-    uint32_t element_count, i;
+    void *state1 = NULL;
+    int element_count, i;
     int err;
     char *start_pos;
 
@@ -493,8 +490,7 @@ int pa_message_params_read_uint64_array(char *c, uint64_t **results, int *length
     /* Allocate array */
     values = pa_xmalloc0(element_count * sizeof(uint64_t));
 
-    state = NULL;
-    for (i = 0; (err = pa_message_params_read_uint64(start_pos, &(values[i]), &state)) > 0; i++)
+    for (i = 0; (err = pa_message_params_read_uint64(start_pos, &(values[i]), &state1)) > 0; i++)
         ;
 
     if (err < 0) {

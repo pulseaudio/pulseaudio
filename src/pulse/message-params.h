@@ -77,7 +77,7 @@ int pa_message_params_read_double(char *c, double *result, void **state);
 /** Converts a parameter list to a double array. Empty elements in the parameter
  * list are treated as error. Returns allocated array in *results and array size in *length.
  * The returned array must be freed with pa_xfree(). \since 15.0 */
-int pa_message_params_read_double_array(char *c, double **results, int *length);
+int pa_message_params_read_double_array(char *c, double **results, int *length, void **state);
 
 /** Read an integer from parameter list in c. \since 15.0 */
 int pa_message_params_read_int64(char *c, int64_t *result, void **state);
@@ -85,7 +85,7 @@ int pa_message_params_read_int64(char *c, int64_t *result, void **state);
 /** Converts a parameter list to an int64 array. Empty elements in the parameter
  * list are treated as error. Returns allocated array in *results and array size in *length.
  * The returned array must be freed with pa_xfree(). \since 15.0 */
-int pa_message_params_read_int64_array(char *c, int64_t **results, int *length);
+int pa_message_params_read_int64_array(char *c, int64_t **results, int *length, void **state);
 
 /** Read raw data from parameter list in c. Used to split a message parameter
  * string into list elements. The string returned in *result must not be freed.  \since 15.0 */
@@ -99,7 +99,7 @@ int pa_message_params_read_string(char *c, const char **result, void **state);
  * the strings. Returns allocated array of pointers to sub-strings within c in
  * *results and stores array size in *length. The returned array must be
  * freed with pa_xfree(), but not the strings within the array. \since 15.0 */
-int pa_message_params_read_string_array(char *c, const char ***results, int *length);
+int pa_message_params_read_string_array(char *c, const char ***results, int *length, void **state);
 
 /** Read an unsigned integer from parameter list in c. \since 15.0 */
 int pa_message_params_read_uint64(char *c, uint64_t *result, void **state);
@@ -107,7 +107,7 @@ int pa_message_params_read_uint64(char *c, uint64_t *result, void **state);
 /** Converts a parameter list to an uint64 array. Empty elements in the parameter
  * list are treated as error. Returns allocated array in *results and array size in *length.
  * The returned array must be freed with pa_xfree(). \since 15.0 */
-int pa_message_params_read_uint64_array(char *c, uint64_t **results, int *length);
+int pa_message_params_read_uint64_array(char *c, uint64_t **results, int *length, void **state);
 
 /** @} */
 
