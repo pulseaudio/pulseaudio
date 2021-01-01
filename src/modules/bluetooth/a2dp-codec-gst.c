@@ -575,14 +575,7 @@ fail:
 
 void *gst_codec_init(enum a2dp_codec_type codec_type, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *ss) {
     struct gst_info *info = NULL;
-    GError *error = NULL;
     bool ret;
-
-    if (!gst_init_check(NULL, NULL, &error)) {
-        pa_log_error("Could not initialise GStreamer: %s", error->message);
-        g_error_free(error);
-        goto fail;
-    }
 
     info = pa_xnew0(struct gst_info, 1);
     pa_assert(info);

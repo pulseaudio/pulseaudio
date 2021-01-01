@@ -48,6 +48,9 @@ typedef struct pa_a2dp_codec {
     /* True if codec is bi-directional and supports backchannel */
     bool support_backchannel;
 
+    /* Returns true if the codec can be supported on the system */
+    bool (*can_be_supported)(void);
+
     /* Returns true if codec accepts capabilities, for_encoding is true when
      * capabilities are used for encoding */
     bool (*can_accept_capabilities)(const uint8_t *capabilities_buffer, uint8_t capabilities_size, bool for_encoding);

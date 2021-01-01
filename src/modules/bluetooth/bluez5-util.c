@@ -2150,6 +2150,7 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c, int headset_backe
     const pa_a2dp_codec *a2dp_codec;
     char *endpoint;
 
+    pa_bluetooth_a2dp_codec_gst_init();
     y = pa_xnew0(pa_bluetooth_discovery, 1);
     PA_REFCNT_INIT(y);
     y->core = c;

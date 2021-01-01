@@ -23,6 +23,9 @@
 
 #include <pulsecore/core.h>
 #include <pulsecore/core-util.h>
+#if defined(HAVE_GSTAPTX) || defined(HAVE_GSTLDAC)
+#include <gst/gst.h>
+#endif
 
 #include "a2dp-codec-util.h"
 
@@ -71,4 +74,17 @@ const pa_a2dp_codec *pa_bluetooth_get_a2dp_codec(const char *name) {
     }
 
     return NULL;
+}
+
+void pa_bluetooth_a2dp_codec_gst_init(void) {
+#if defined(HAVE_GSTAPTX) || defined(HAVE_GSTLDAC)
+    GError *error = NULL;
+
+    if (!gst_init_check(NULL, NULL, &error)) {
+        pa_log_error("Could not initialise GStreamer: %s", error->message);
+        g_error_free(error);
+        return;
+    }
+    pa_log_info("GStreamer initialisation done");
+#endif
 }

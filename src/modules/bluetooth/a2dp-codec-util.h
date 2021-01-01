@@ -31,4 +31,7 @@ const pa_a2dp_codec *pa_bluetooth_a2dp_codec_iter(unsigned int i);
 /* Get codec by name */
 const pa_a2dp_codec *pa_bluetooth_get_a2dp_codec(const char *name);
 
+/* Initialise GStreamer */
+void pa_bluetooth_a2dp_codec_gst_init(void);
+
 #endif

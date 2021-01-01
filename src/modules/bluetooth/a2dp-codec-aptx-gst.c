@@ -33,6 +33,28 @@
 #include "a2dp-codec-gst.h"
 #include "rtp.h"
 
+static bool can_be_supported(void) {
+    GstElementFactory *element_factory;
+
+    element_factory = gst_element_factory_find("openaptxenc");
+    if (element_factory == NULL) {
+        pa_log_info("aptX encoder not found");
+        return false;
+    }
+
+    gst_object_unref(element_factory);
+
+    element_factory = gst_element_factory_find("openaptxdec");
+    if (element_factory == NULL) {
+        pa_log_info("aptX decoder not found");
+        return false;
+    }
+
+    gst_object_unref(element_factory);
+
+    return true;
+}
+
 static bool can_accept_capabilities_common(const a2dp_aptx_t *capabilities, uint32_t vendor_id, uint16_t codec_id) {
     if (A2DP_GET_VENDOR_ID(capabilities->info) != vendor_id || A2DP_GET_CODEC_ID(capabilities->info) != codec_id)
         return false;
@@ -359,6 +381,7 @@ const pa_a2dp_codec pa_a2dp_codec_aptx = {
     .description = "aptX",
     .id = { A2DP_CODEC_VENDOR, APTX_VENDOR_ID, APTX_CODEC_ID },
     .support_backchannel = false,
+    .can_be_supported = can_be_supported,
     .can_accept_capabilities = can_accept_capabilities,
     .choose_remote_endpoint = choose_remote_endpoint,
     .fill_capabilities = fill_capabilities,
@@ -379,6 +402,7 @@ const pa_a2dp_codec pa_a2dp_codec_aptx_hd = {
     .description = "aptX HD",
     .id = { A2DP_CODEC_VENDOR, APTX_HD_VENDOR_ID, APTX_HD_CODEC_ID },
     .support_backchannel = false,
+    .can_be_supported = can_be_supported,
     .can_accept_capabilities = can_accept_capabilities_hd,
     .choose_remote_endpoint = choose_remote_endpoint_hd,
     .fill_capabilities = fill_capabilities_hd,

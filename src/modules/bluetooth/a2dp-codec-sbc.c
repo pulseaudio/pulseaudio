@@ -53,6 +53,10 @@ struct sbc_info {
     uint8_t max_bitpool;
 };
 
+static bool can_be_supported(void) {
+    return true;
+}
+
 static bool can_accept_capabilities(const uint8_t *capabilities_buffer, uint8_t capabilities_size, bool for_encoding) {
     const a2dp_sbc_t *capabilities = (const a2dp_sbc_t *) capabilities_buffer;
 
@@ -666,6 +670,7 @@ const pa_a2dp_codec pa_a2dp_codec_sbc = {
     .description = "SBC",
     .id = { A2DP_CODEC_SBC, 0, 0 },
     .support_backchannel = false,
+    .can_be_supported = can_be_supported,
     .can_accept_capabilities = can_accept_capabilities,
     .choose_remote_endpoint = choose_remote_endpoint,
     .fill_capabilities = fill_capabilities,
