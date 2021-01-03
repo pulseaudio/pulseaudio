@@ -9,14 +9,16 @@ msgstr ""
 "Project-Id-Version: git trunk\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-01-30 10:10+0000\n"
-"PO-Revision-Date: 2012-01-30 09:53+0000\n"
-"Last-Translator: Ville-Pekka Vainio <vpivaini@cs.helsinki.fi>\n"
-"Language-Team: Finnish <laatu@lokalisointi.org>\n"
+"PO-Revision-Date: 2021-01-04 18:36+0000\n"
+"Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
+"Language-Team: Finnish <https://translate.fedoraproject.org/projects/"
+"pulseaudio/pulseaudio/fi/>\n"
 "Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.4\n"
 
 #: ../src/modules/alsa/alsa-util.c:1136 ../src/modules/alsa/alsa-util.c:1204
 #, c-format
@@ -44,14 +46,15 @@ msgstr ""
 "ongelmasta ALSA-kehittäjille."
 
 #: ../src/modules/alsa/alsa-util.c:1220
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_avail_delay() returned strange values: delay %lu is less than avail "
 "%lu.\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
-"snd_pcm_avail() palautti poikkeuksellisen suuren arvon: %lu tavua (%lu ms).\n"
+"snd_pcm_avail_delay() palautti poikkeuksellisia arvoja: %lu on vähemmän kuin "
+"saatavissa oleva %lu.\n"
 "Tämä on todennäköisesti ohjelmavirhe ALSA-ajurissa ”%s”. Ilmoita tästä "
 "ongelmasta ALSA-kehittäjille."
 
@@ -81,7 +84,6 @@ msgid "Virtual LADSPA sink"
 msgstr "Virtuaalinen LADSPA-nielu"
 
 #: ../src/modules/module-ladspa-sink.c:52
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "master=<name of sink to filter> format=<sample format> rate=<sample rate> "
@@ -96,7 +98,7 @@ msgstr ""
 "rate=<näytteenottotaajuus> channels=<kanavien määrä> "
 "channel_map=<kanavakartta> plugin=<ladspa-liitännäisen nimi> label=<ladspa-"
 "liitännäisen nimiö (label)> control=<pilkulla erotettu luettelo "
-"syötteenhallinta-arvoja>"
+"syötteenhallinta-arvoja> "
 
 #: ../src/modules/module-null-sink.c:49
 msgid "Clocked NULL sink"
@@ -271,9 +273,9 @@ msgid "Failed to acquire stdio."
 msgstr "stdio:n saaminen epäonnistui."
 
 #: ../src/daemon/main.c:763 ../src/daemon/main.c:828
-#, fuzzy, c-format
+#, c-format
 msgid "pipe() failed: %s"
-msgstr "putki epäonnistui: %s"
+msgstr "pipe() epäonnistui: %s"
 
 #: ../src/daemon/main.c:768 ../src/daemon/main.c:833
 #, c-format
@@ -294,9 +296,9 @@ msgid "Daemon startup successful."
 msgstr "Taustaprosessin käynnistys onnistui."
 
 #: ../src/daemon/main.c:816
-#, fuzzy, c-format
+#, c-format
 msgid "setsid() failed: %s"
-msgstr "read() epäonnistui: %s"
+msgstr "setsid() epäonnistui: %s"
 
 #: ../src/daemon/main.c:901
 #, c-format
@@ -342,7 +344,7 @@ msgid "Running in valgrind mode: %s"
 msgstr "Käynnissä valgrind-tilassa: %s"
 
 #: ../src/daemon/main.c:921
-#, fuzzy, c-format
+#, c-format
 msgid "Running in VM: %s"
 msgstr "Käynnissä isäntäkoneella: %s"
 
@@ -648,13 +650,12 @@ msgid "--use-pid-file expects boolean argument"
 msgstr "--use-pid-file vaatii totuusarvoisen argumentin"
 
 #: ../src/daemon/cmdline.c:318
-#, fuzzy
 msgid ""
 "Invalid log target: use either 'syslog', 'stderr' or 'auto' or a valid file "
 "name 'file:<path>'."
 msgstr ""
 "Virheellinen lokikirjoituksen kohde: käytä jotain seuraavista: ”syslog”, "
-"”stderr” tai ”auto”."
+"”stderr” tai ”auto” tai laillista tiedostonimeä 'file:<path>'."
 
 #: ../src/daemon/cmdline.c:325
 msgid "--log-time expects boolean argument"
@@ -782,9 +783,9 @@ msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] Virheellinen nice-taso ”%s”."
 
 #: ../src/daemon/daemon-conf.c:528
-#, fuzzy, c-format
+#, c-format
 msgid "[%s:%u] Invalid server type '%s'."
-msgstr "[%s:%u] Virheellinen näytteenottotaajuus ”%s”."
+msgstr "[%s:%u] Virheellinen palvelintyyppi ”%s”."
 
 #: ../src/daemon/daemon-conf.c:641
 #, c-format
@@ -817,14 +818,12 @@ msgid "Start the PulseAudio Sound System"
 msgstr "Käynnistä PulseAudio-äänijärjestelmä"
 
 #: ../src/daemon/pulseaudio-kde.desktop.in.h:1
-#, fuzzy
 msgid "PulseAudio Sound System KDE Routing Policy"
-msgstr "PulseAudio-äänijärjestelmä"
+msgstr "PulseAudio-äänijärjestelmä KDE reitityskäytäntö"
 
 #: ../src/daemon/pulseaudio-kde.desktop.in.h:2
-#, fuzzy
 msgid "Start the PulseAudio Sound System with KDE Routing Policy"
-msgstr "Käynnistä PulseAudio-äänijärjestelmä"
+msgstr "Käynnistä PulseAudio-äänijärjestelmä KDE reitityskäytännöllä"
 
 #: ../src/pulse/channelmap.c:105 ../src/pulse/channelmap.c:757
 msgid "Mono"
@@ -856,7 +855,7 @@ msgstr "Oikea taka"
 
 #: ../src/pulse/channelmap.c:115
 msgid "Subwoofer"
-msgstr ""
+msgstr "Subwoofer"
 
 #: ../src/pulse/channelmap.c:117
 msgid "Front Left-of-center"
@@ -1195,13 +1194,12 @@ msgid "%u B"
 msgstr "%u B"
 
 #: ../src/pulse/client-conf-x11.c:54 ../src/utils/pax11publish.c:100
-#, fuzzy
 msgid "xcb_connect() failed"
-msgstr "pa_context_connect() epäonnistui: %s"
+msgstr "xcb_connect() epäonnistui"
 
 #: ../src/pulse/client-conf-x11.c:59 ../src/utils/pax11publish.c:105
 msgid "xcb_connection_has_error() returned true"
-msgstr ""
+msgstr "xcb_connection_has_error() palautti totta"
 
 #: ../src/pulse/client-conf-x11.c:97
 msgid "Failed to parse cookie data"
@@ -1403,7 +1401,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() epäonnistui: %s"
 
 #: ../src/utils/pacat.c:653
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -1486,8 +1484,8 @@ msgstr ""
 "palvelimella\n"
 "      --volume=ÄÄNENVOIMAKKUUS          Määritä (lineaarinen) "
 "aloitusäänenvoimakkuus väliltä 0...65536\n"
-"      --rate=NÄYTTEENOTTOTAAJUUS        Näytteenottotaajuus hertseinä"
-"(oletus: 44100)\n"
+"      --rate=NÄYTTEENOTTOTAAJUUS        Näytteenottotaajuus hertseinä(oletus:"
+" 44100)\n"
 "      --format=NÄYTEMUOTO               Näytteen tyyppi, yksi seuraavista:"
 "s16le, s16be, u8, float32le,\n"
 "                                        float32be, ulaw, alaw, s32le, s32be\n"
@@ -1507,8 +1505,8 @@ msgstr ""
 "      --no-remix                        Älä yli- tai alimiksaa kanavia.\n"
 "      --no-remap                        Kartoita kanavat indeksin mukaan, "
 "älä nimen mukaan.\n"
-"      --latency=TAVUA                   Pyydä määritettyä latenssia "
-"tavuissa.\n"
+"      --latency=TAVUA                   Pyydä määritettyä latenssia tavuissa."
+"\n"
 "      --process-time=TAVUA              Pyydä määritettyä prosessiaikaa "
 "pyyntöä kohti tavuissa.\n"
 "      --property=ASETUS=ARVO            Anna määritetylle asetukselle "
@@ -1629,9 +1627,8 @@ msgid "playback"
 msgstr "toisto"
 
 #: ../src/utils/pacat.c:1110
-#, fuzzy
 msgid "Failed to set media name."
-msgstr "Komentorivin jäsentäminen epäonnistui."
+msgstr "Median nimeäminen epäonnistui."
 
 #: ../src/utils/pacat.c:1117 ../src/utils/pactl.c:1777
 msgid "pa_mainloop_new() failed."
@@ -1780,7 +1777,7 @@ msgid ""
 msgstr ""
 
 #: ../src/utils/pactl.c:192
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "User Name: %s\n"
 "Host Name: %s\n"
@@ -1800,7 +1797,7 @@ msgstr ""
 "Oletuskanavakartta: %s\n"
 "Oletusnielu: %s\n"
 "Oletuslähde: %s\n"
-"Eväste: %08x\n"
+"Eväste: %04x:%04x\n"
 
 #: ../src/utils/pactl.c:244 ../src/utils/pactl.c:830
 #, c-format
@@ -1808,7 +1805,7 @@ msgid "Failed to get sink information: %s"
 msgstr "Nielun tietojen nouto epäonnistui: %s"
 
 #: ../src/utils/pactl.c:270
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Sink #%u\n"
 "\tState: %s\n"
@@ -1842,7 +1839,7 @@ msgstr ""
 "\tPerusäänenvoimakkuus: %s%s%s\n"
 "\tTarkkailulähde: %s\n"
 "\tLatenssi: %0.0f μs, asetettu %0.0f μs\n"
-"\tLiput: %s%s%s%s%s%s\n"
+"\tLiput:  %s%s%s%s%s%s%s\n"
 "\tOminaisuudet:\n"
 "\t\t%s\n"
 
@@ -1857,9 +1854,9 @@ msgid "\tActive Port: %s\n"
 msgstr "\tAktiivinen portti: %s\n"
 
 #: ../src/utils/pactl.c:331 ../src/utils/pactl.c:443
-#, fuzzy, c-format
+#, c-format
 msgid "\tFormats:\n"
-msgstr "\tPortit:\n"
+msgstr "\tFormaatit:\n"
 
 #: ../src/utils/pactl.c:357 ../src/utils/pactl.c:849
 #, c-format
@@ -1993,7 +1990,7 @@ msgid "Failed to get sink input information: %s"
 msgstr "Nielun sisääntulon tietojen nouto epäonnistui: %s"
 
 #: ../src/utils/pactl.c:622
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Sink Input #%u\n"
 "\tDriver: %s\n"
@@ -2020,6 +2017,7 @@ msgstr ""
 "\tNielu: %u\n"
 "\tNäytemäärittely: %s\n"
 "\tKanavakartta: %s\n"
+"    Formaatti: %s\n"
 "\tVaimennus: %s\n"
 "\tÄänenvoimakkuus: %s\n"
 "\t                 %s\n"
@@ -2036,7 +2034,7 @@ msgid "Failed to get source output information: %s"
 msgstr "Lähteen ulostulon tietojen nouto epäonnistui: %s"
 
 #: ../src/utils/pactl.c:693
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Source Output #%u\n"
 "\tDriver: %s\n"
@@ -2056,19 +2054,20 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Nielun sisääntulo #%u\n"
+"Lähteen ulostulo #%u\n"
 "\tAjuri: %s\n"
 "\tOmistava moduuli: %s\n"
 "\tAsiakas: %s\n"
-"\tNielu: %u\n"
+"\tLähde: %u\n"
 "\tNäytemäärittely: %s\n"
 "\tKanavakartta: %s\n"
+"    Formaatti: %s\n"
 "\tVaimennus: %s\n"
 "\tÄänenvoimakkuus: %s\n"
 "\t                 %s\n"
 "\t                 balanssi %0.2f\n"
 "\tPuskurin latenssi: %0.0f μs\n"
-"\tNielun latenssi: %0.0f μs\n"
+"\tLähteen latenssi: %0.0f μs\n"
 "\tUudelleennäytteistyksen tapa: %s\n"
 "\tOminaisuudet:\n"
 "\t\t%s\n"
@@ -2115,9 +2114,9 @@ msgid "Failure: %s"
 msgstr "Epäonnistuminen: %s"
 
 #: ../src/utils/pactl.c:915
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to set format: invalid format string %s"
-msgstr "Lähteen tietojen nouto epäonnistui: %s"
+msgstr "Formaatin asetus epäonnistui: virheellinen formaatti merkkijono %s"
 
 #: ../src/utils/pactl.c:954
 #, c-format
@@ -2130,19 +2129,19 @@ msgstr "Ennenaikainen tiedoston päättyminen"
 
 #: ../src/utils/pactl.c:991
 msgid "new"
-msgstr ""
+msgstr "uusi"
 
 #: ../src/utils/pactl.c:994
 msgid "change"
-msgstr ""
+msgstr "vaihda"
 
 #: ../src/utils/pactl.c:997
 msgid "remove"
-msgstr ""
+msgstr "poista"
 
 #: ../src/utils/pactl.c:1000 ../src/utils/pactl.c:1035
 msgid "unknown"
-msgstr ""
+msgstr "tuntematon"
 
 #: ../src/utils/pactl.c:1008
 msgid "sink"
@@ -2157,26 +2156,24 @@ msgid "sink-input"
 msgstr ""
 
 #: ../src/utils/pactl.c:1017
-#, fuzzy
 msgid "source-output"
-msgstr "lähde"
+msgstr "lähde-ulostulo"
 
 #: ../src/utils/pactl.c:1020
 msgid "module"
-msgstr ""
+msgstr "moduuli"
 
 #: ../src/utils/pactl.c:1023
 msgid "client"
-msgstr ""
+msgstr "asiakas"
 
 #: ../src/utils/pactl.c:1026
 msgid "sample-cache"
 msgstr ""
 
 #: ../src/utils/pactl.c:1029 ../src/utils/pactl.c:1032
-#, fuzzy
 msgid "server"
-msgstr "Virheellinen palvelin"
+msgstr "palvelin"
 
 #: ../src/utils/pactl.c:1041
 #, c-format
@@ -2206,15 +2203,15 @@ msgstr ""
 #: ../src/utils/pactl.c:1335 ../src/utils/pactl.c:1336
 #: ../src/utils/pactl.c:1337
 msgid "[options]"
-msgstr ""
+msgstr "[vaihtoehdot]"
 
 #: ../src/utils/pactl.c:1321
 msgid "[TYPE]"
-msgstr ""
+msgstr "[TYYPPI]"
 
 #: ../src/utils/pactl.c:1323
 msgid "FILENAME [NAME]"
-msgstr ""
+msgstr "TIEDOSTONIMI [NIMI]"
 
 #: ../src/utils/pactl.c:1324
 msgid "NAME [SINK]"
@@ -2222,15 +2219,15 @@ msgstr ""
 
 #: ../src/utils/pactl.c:1325
 msgid "NAME"
-msgstr ""
+msgstr "NIMI"
 
 #: ../src/utils/pactl.c:1326
 msgid "NAME [ARGS ...]"
-msgstr ""
+msgstr "NIMI [ARGUMENTIT...]"
 
 #: ../src/utils/pactl.c:1327
 msgid "#N"
-msgstr ""
+msgstr "#N"
 
 #: ../src/utils/pactl.c:1328
 msgid "#N SINK|SOURCE"
@@ -2238,34 +2235,34 @@ msgstr ""
 
 #: ../src/utils/pactl.c:1329 ../src/utils/pactl.c:1334
 msgid "NAME|#N 1|0"
-msgstr ""
+msgstr "NIMI|#N 1|0"
 
 #: ../src/utils/pactl.c:1330
 msgid "CARD PROFILE"
-msgstr ""
+msgstr "KORTTI PROFIILI"
 
 #: ../src/utils/pactl.c:1331
 msgid "NAME|#N PORT"
-msgstr ""
+msgstr "NIMI|#N PORT"
 
 #: ../src/utils/pactl.c:1332
 msgid "NAME|#N VOLUME"
-msgstr ""
+msgstr "NIMI|#N VOLUUMI"
 
 #: ../src/utils/pactl.c:1333
 msgid "#N VOLUME"
-msgstr ""
+msgstr "#N VOLUUMI"
 
 #: ../src/utils/pactl.c:1335
 msgid "#N 1|0"
-msgstr ""
+msgstr "#N 1|0"
 
 #: ../src/utils/pactl.c:1336
 msgid "#N FORMATS"
-msgstr ""
+msgstr "#N FORMAATIT"
 
 #: ../src/utils/pactl.c:1339
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "  -h, --help                            Show this help\n"
@@ -2276,13 +2273,13 @@ msgid ""
 "  -n, --client-name=NAME                How to call this client on the "
 "server\n"
 msgstr ""
-"%s [valitsimet] ... \n"
 "\n"
 "  -h, --help                            Näytä tämä ohje\n"
 "      --version                         Näytä versio\n"
-"  -s, --server=PALVELIN                 Sen palvelimen nimi, johon\n"
-"                                        yhdistetään\n"
-"\n"
+"      \n"
+"  -s, --server=PALVELIN                 Sen palvelimen nimi, johon "
+"yhdistetään\n"
+"  -n, --client-name=NIMI                  Asiakkaan nimi palvelimella\n"
 
 #: ../src/utils/pactl.c:1380
 #, c-format
@@ -2376,14 +2373,12 @@ msgid "Invalid sink input index"
 msgstr "Virheellinen nielun syöteindeksi"
 
 #: ../src/utils/pactl.c:1660
-#, fuzzy
 msgid "You have to specify a source output index and a volume"
-msgstr "Lähteen ulostuloindeksi ja lähde on annettava"
+msgstr "Lähteen ulostuloindeksi ja volyymi on annettava"
 
 #: ../src/utils/pactl.c:1665
-#, fuzzy
 msgid "Invalid source output index"
-msgstr "Virheellinen nielun syöteindeksi"
+msgstr "Virheellinen lähteen ulostuloindeksi"
 
 #: ../src/utils/pactl.c:1677
 msgid "You have to specify a sink name/index and a mute boolean"
@@ -2391,9 +2386,8 @@ msgstr "Nielun nimi/indeksi ja vaimennuksen totuusarvo on annettava"
 
 #: ../src/utils/pactl.c:1682 ../src/utils/pactl.c:1699
 #: ../src/utils/pactl.c:1721 ../src/utils/pactl.c:1742
-#, fuzzy
 msgid "Invalid mute specification"
-msgstr "Virheellinen näytemääritys"
+msgstr "Virheellinen äänenvaimennuksen määritys"
 
 #: ../src/utils/pactl.c:1694
 msgid "You have to specify a source name/index and a mute boolean"
@@ -2408,9 +2402,8 @@ msgid "Invalid sink input index specification"
 msgstr "Virheellinen nielun syöteindeksin määritys"
 
 #: ../src/utils/pactl.c:1732
-#, fuzzy
 msgid "You have to specify a source output index and a mute boolean"
-msgstr "Lähteen nimi/indeksi ja vaimennuksen totuusarvo on annettava"
+msgstr "Lähteen ulostuloindeksi ja vaimennuksen totuusarvo on annettava"
 
 #: ../src/utils/pactl.c:1737
 #, fuzzy
@@ -2636,12 +2629,10 @@ msgid "Docking Station Input"
 msgstr "Telakan sisääntulo"
 
 #: ../src/modules/alsa/alsa-mixer.c:2221
-#, fuzzy
 msgid "Docking Station Microphone"
 msgstr "Telakan mikrofoni"
 
 #: ../src/modules/alsa/alsa-mixer.c:2222
-#, fuzzy
 msgid "Docking Station Line In"
 msgstr "Telakan sisääntulo"
 
@@ -2654,14 +2645,12 @@ msgid "Microphone"
 msgstr "Mikrofoni"
 
 #: ../src/modules/alsa/alsa-mixer.c:2225 ../src/modules/alsa/alsa-mixer.c:2303
-#, fuzzy
 msgid "Front Microphone"
-msgstr "Telakan mikrofoni"
+msgstr "Etumikrofoni"
 
 #: ../src/modules/alsa/alsa-mixer.c:2226 ../src/modules/alsa/alsa-mixer.c:2304
-#, fuzzy
 msgid "Rear Microphone"
-msgstr "Mikrofoni"
+msgstr "takamikrofoni"
 
 #: ../src/modules/alsa/alsa-mixer.c:2227
 msgid "External Microphone"
@@ -2704,18 +2693,16 @@ msgid "No Amplifier"
 msgstr "Ei vahvistinta"
 
 #: ../src/modules/alsa/alsa-mixer.c:2237
-#, fuzzy
 msgid "Bass Boost"
-msgstr "Vahvistus"
+msgstr "Bassonvahvistus"
 
 #: ../src/modules/alsa/alsa-mixer.c:2238
-#, fuzzy
 msgid "No Bass Boost"
-msgstr "Ei vahvistusta"
+msgstr "Ei basson vahvistusta"
 
 #: ../src/modules/alsa/alsa-mixer.c:2239
 msgid "Speaker"
-msgstr ""
+msgstr "Kaiutin"
 
 #: ../src/modules/alsa/alsa-mixer.c:2240 ../src/modules/alsa/alsa-mixer.c:2311
 msgid "Headphones"
@@ -2738,27 +2725,24 @@ msgid "LFE on Separate Mono Output"
 msgstr "Analoginen ulostulo (LFE)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2313
-#, fuzzy
 msgid "Line Out"
-msgstr "Linjasisääntulo"
+msgstr "Linjaulostulo"
 
 #: ../src/modules/alsa/alsa-mixer.c:2314
 msgid "Analog Mono Output"
 msgstr "Analoginen monoulostulo"
 
 #: ../src/modules/alsa/alsa-mixer.c:2315
-#, fuzzy
 msgid "Speakers"
-msgstr "Analoginen stereo"
+msgstr "Kaiuttimet"
 
 #: ../src/modules/alsa/alsa-mixer.c:2316
 msgid "HDMI / DisplayPort"
-msgstr ""
+msgstr "HDMI / DisplayPort"
 
 #: ../src/modules/alsa/alsa-mixer.c:2317
-#, fuzzy
 msgid "Digital Output (S/PDIF)"
-msgstr "Digitaalinen stereo (HDMI)"
+msgstr "Digitaalinen ulostulo (S/PDIF)"
 
 #: ../src/modules/alsa/alsa-mixer.c:2318
 #, fuzzy
@@ -2839,9 +2823,8 @@ msgid "Digital Stereo (HDMI)"
 msgstr "Digitaalinen stereo (HDMI)"
 
 #: ../src/modules/alsa/alsa-mixer.c:3774
-#, fuzzy
 msgid "Digital Surround 5.1 (HDMI)"
-msgstr "Digitaalinen tilaääni 5.1 (IEC958/AC3)"
+msgstr "Digitaalinen tilaääni 5.1 (HDMI)"
 
 #: ../src/modules/alsa/alsa-mixer.c:3895
 msgid "Analog Mono Duplex"
@@ -2856,14 +2839,14 @@ msgid "Digital Stereo Duplex (IEC958)"
 msgstr "Digitaalinen stereo, molemmat suunnat (IEC958)"
 
 #: ../src/modules/alsa/alsa-mixer.c:3997
-#, fuzzy, c-format
+#, c-format
 msgid "%s Output"
-msgstr "Tyhjä ulostulo"
+msgstr "%s Ulostulo"
 
 #: ../src/modules/alsa/alsa-mixer.c:4005
-#, fuzzy, c-format
+#, c-format
 msgid "%s Input"
-msgstr "Sisääntulo"
+msgstr "%s Sisääntulo"
 
 #: ../src/modules/echo-cancel/module-echo-cancel.c:63
 msgid ""
@@ -2932,14 +2915,14 @@ msgid ""
 msgstr ""
 
 #: ../src/tests/resampler-test.c:356
-#, fuzzy, c-format
+#, c-format
 msgid "%s %s\n"
-msgstr "%s %s"
+msgstr "%s %s\n"
 
 #: ../src/tests/resampler-test.c:419
 #, c-format
 msgid "=== %d seconds: %d Hz %d ch (%s) -> %d Hz %d ch (%s)"
-msgstr ""
+msgstr "=== %d sekuntia: %d Hz %d ch (%s) -> %d Hz %d ch (%s)"
 
 #~ msgid "[%s:%u] rlimit not supported on this platform."
 #~ msgstr "[%s:%u] rlimitiä ei tueta tällä alustalla."
