@@ -28,6 +28,7 @@
 
 #include <pulse/xmalloc.h>
 #include <pulse/timeval.h>
+#include <pulse/util.h>
 
 #include <pulsecore/sink.h>
 #include <pulsecore/source.h>
@@ -412,7 +413,7 @@ static void sink_get_volume_cb(pa_sink *s) {
     DWORD vol;
     pa_volume_t left, right;
 
-    if (waveOutGetDevCaps(u->hwo, &caps, sizeof(caps)) != MMSYSERR_NOERROR)
+    if (waveOutGetDevCaps((UINT_PTR) u->hwo, &caps, sizeof(caps)) != MMSYSERR_NOERROR)
         return;
     if (!(caps.dwSupport & WAVECAPS_VOLUME))
         return;
@@ -440,7 +441,7 @@ static void sink_set_volume_cb(pa_sink *s) {
     WAVEOUTCAPS caps;
     DWORD vol;
 
-    if (waveOutGetDevCaps(u->hwo, &caps, sizeof(caps)) != MMSYSERR_NOERROR)
+    if (waveOutGetDevCaps((UINT_PTR) u->hwo, &caps, sizeof(caps)) != MMSYSERR_NOERROR)
         return;
     if (!(caps.dwSupport & WAVECAPS_VOLUME))
         return;
