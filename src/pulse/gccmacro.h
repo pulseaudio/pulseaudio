@@ -25,10 +25,8 @@
 
 #if defined(__GNUC__)
 #ifdef __MINGW32__
-/* libintl overrides printf with a #define. As this breaks this attribute,
- * it has a workaround. However the workaround isn't enabled for MINGW
- * builds (only cygwin) */
-#define PA_GCC_PRINTF_ATTR(a,b) __attribute__ ((format (__printf__, a, b)))
+#include <stdio.h>
+#define PA_GCC_PRINTF_ATTR(a,b) __attribute__ ((format (__MINGW_PRINTF_FORMAT, a, b)))
 #else
 #define PA_GCC_PRINTF_ATTR(a,b) __attribute__ ((format (printf, a, b)))
 #endif
