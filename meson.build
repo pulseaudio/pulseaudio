@@ -67,6 +67,11 @@ localstatedir = join_paths(prefix, get_option('localstatedir'))
 sysconfdir = join_paths(prefix, get_option('sysconfdir'))
 privlibdir = join_paths(libdir, 'pulseaudio')
 
+if host_machine.system() == 'windows'
+  # Windows only supports loading libraries from the same dir as the executable
+  privlibdir = bindir
+endif
+
 alsadatadir = get_option('alsadatadir')
 if alsadatadir == ''
   alsadatadir = join_paths(datadir, 'pulseaudio', 'alsa-mixer')
