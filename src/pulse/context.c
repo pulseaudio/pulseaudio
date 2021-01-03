@@ -1027,7 +1027,10 @@ int pa_context_connect(
 
         /* Add TCP/IP on the localhost */
         if (c->conf->auto_connect_localhost) {
+#if defined(HAVE_IPV6) && !defined(OS_IS_WIN32)
+            /* FIXME: pa_socket_client does not support IPv6 on Windows */
             c->server_list = pa_strlist_prepend(c->server_list, "tcp6:[::1]");
+#endif
             c->server_list = pa_strlist_prepend(c->server_list, "tcp4:127.0.0.1");
         }
 
