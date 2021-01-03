@@ -21,7 +21,7 @@
 #include <config.h>
 #endif
 
-#if !defined(HAVE_ARPA_INET_H) && defined(OS_IS_WIN32)
+#if !defined(HAVE_ARPA_INET_H) && defined(OS_IS_WIN32) && NTDDI_VERSION < NTDDI_VISTA
 
 #include <errno.h>
 

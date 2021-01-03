@@ -24,6 +24,8 @@
 
 #if defined(HAVE_POLL_H)
 #include <poll.h>
+#elif OS_IS_WIN32 && HAVE_WINSOCK2_H && NTDDI_VERSION >= NTDDI_VISTA
+#include <winsock2.h>
 #else
 
 /* Event types that can be polled for.  These bits may be set in `events'
