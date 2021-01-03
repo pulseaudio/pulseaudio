@@ -251,7 +251,7 @@ finish:
                     LocalFree(msgbuf);
                 } else {
                     pa_log_warn("FindFirstFile(%s) failed with error %ld, ignoring.", pattern, err);
-                    pa_log_warn("FormatMessage failed with error %ld", GetLastError());
+                    pa_log_warn("FormatMessage failed with error %lu", GetLastError());
                 }
             }
         }

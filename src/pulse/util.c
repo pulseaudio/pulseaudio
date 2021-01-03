@@ -510,7 +510,7 @@ int pa_thread_make_realtime(int rtprio) {
         return 0;
     }
 
-    pa_log_warn("SetThreadPriority() failed: 0x%08X", GetLastError());
+    pa_log_warn("SetThreadPriority() failed: 0x%08lX", GetLastError());
     errno = EPERM;
 #else
     errno = ENOTSUP;

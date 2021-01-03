@@ -759,7 +759,7 @@ int pa_raise_priority(int nice_level) {
 #ifdef OS_IS_WIN32
     if (nice_level < 0) {
         if (!SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS)) {
-            pa_log_warn("SetPriorityClass() failed: 0x%08X", GetLastError());
+            pa_log_warn("SetPriorityClass() failed: 0x%08lX", GetLastError());
             errno = EPERM;
             return -1;
         }
@@ -1325,7 +1325,7 @@ int pa_lock_fd(int fd, int b) {
     if (!b && UnlockFile(h, 0, 0, 0xFFFFFFFF, 0xFFFFFFFF))
         return 0;
 
-    pa_log("%slock failed: 0x%08X", !b ? "un" : "", GetLastError());
+    pa_log("%slock failed: 0x%08lX", !b ? "un" : "", GetLastError());
 
     /* FIXME: Needs to set errno! */
 #endif
@@ -3256,7 +3256,7 @@ char *pa_uname_string(void) {
     i.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
     pa_assert_se(GetVersionEx(&i));
 
-    return pa_sprintf_malloc("Windows %d.%d (%d) %s", i.dwMajorVersion, i.dwMinorVersion, i.dwBuildNumber, i.szCSDVersion);
+    return pa_sprintf_malloc("Windows %lu.%lu (%lu) %s", i.dwMajorVersion, i.dwMinorVersion, i.dwBuildNumber, i.szCSDVersion);
 #endif
 }
 
