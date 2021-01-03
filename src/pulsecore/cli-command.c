@@ -2074,34 +2074,34 @@ int pa_cli_command_execute_line_stateful(pa_core *c, const char *s, pa_strbuf *b
                             }
 
                             closedir(d);
+                            if ((count = pa_dynarray_size(files))) {
+                                sorted_files = pa_xnew(char*, count);
+                                for (i = 0; i < count; ++i)
+                                    sorted_files[i] = pa_dynarray_get(files, i);
+                                pa_dynarray_free(files);
 
-                            count = pa_dynarray_size(files);
-                            sorted_files = pa_xnew(char*, count);
-                            for (i = 0; i < count; ++i)
-                                sorted_files[i] = pa_dynarray_get(files, i);
-                            pa_dynarray_free(files);
-
-                            for (i = 0; i < count; ++i) {
-                                for (unsigned j = 0; j < count; ++j) {
-                                    if (strcmp(sorted_files[i], sorted_files[j]) < 0) {
-                                        char *tmp = sorted_files[i];
-                                        sorted_files[i] = sorted_files[j];
-                                        sorted_files[j] = tmp;
+                                for (i = 0; i < count; ++i) {
+                                    for (unsigned j = 0; j < count; ++j) {
+                                        if (strcmp(sorted_files[i], sorted_files[j]) < 0) {
+                                            char *tmp = sorted_files[i];
+                                            sorted_files[i] = sorted_files[j];
+                                            sorted_files[j] = tmp;
+                                        }
                                     }
                                 }
-                            }
 
-                            for (i = 0; i < count; ++i) {
-                                if (!failed) {
-                                    if (pa_cli_command_execute_file(c, sorted_files[i], buf, fail) < 0 && *fail)
-                                        failed = true;
+                                for (i = 0; i < count; ++i) {
+                                    if (!failed) {
+                                        if (pa_cli_command_execute_file(c, sorted_files[i], buf, fail) < 0 && *fail)
+                                            failed = true;
+                                    }
+
+                                    pa_xfree(sorted_files[i]);
                                 }
-
-                                pa_xfree(sorted_files[i]);
+                                pa_xfree(sorted_files);
+                                if (failed)
+                                    return -1;
                             }
-                            pa_xfree(sorted_files);
-                            if (failed)
-                                return -1;
                         }
                     } else if (pa_cli_command_execute_file(c, filename, buf, fail) < 0 && *fail) {
                         return -1;
