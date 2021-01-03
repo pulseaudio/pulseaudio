@@ -32,6 +32,10 @@
 #include <pulsecore/pipe.h>
 #endif
 
+#ifdef OS_IS_WIN32
+#include <winsock2.h>
+#endif
+
 #include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
@@ -450,6 +454,17 @@ static const pa_mainloop_api vtable = {
 pa_mainloop *pa_mainloop_new(void) {
     pa_mainloop *m;
 
+#ifdef OS_IS_WIN32
+    {
+        int r;
+        WSADATA data;
+        if ((r = WSAStartup(MAKEWORD(2, 0), &data))) {
+            pa_log_error("ERROR: cannot initialize Winsock2 (%d)", r);
+            return NULL;
+        }
+    }
+#endif
+
     pa_init_i18n();
 
     m = pa_xnew0(pa_mainloop, 1);
@@ -579,6 +594,12 @@ void pa_mainloop_free(pa_mainloop *m) {
     pa_close_pipe(m->wakeup_pipe);
 
     pa_xfree(m);
+
+#ifdef OS_IS_WIN32
+    {
+        WSACleanup();
+    }
+#endif
 }
 
 static void scan_dead(pa_mainloop *m) {

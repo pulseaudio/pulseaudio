@@ -842,10 +842,6 @@ libpulsecommon_@PA_MAJORMINOR@_la_CFLAGS += $(LIBASYNCNS_CFLAGS)
 libpulsecommon_@PA_MAJORMINOR@_la_LIBADD += $(LIBASYNCNS_LIBS)
 endif
 
-if OS_IS_WIN32
-libpulsecommon_@PA_MAJORMINOR@_la_SOURCES += pulsecore/dllmain.c
-endif
-
 if HAVE_DBUS
 libpulsecommon_@PA_MAJORMINOR@_la_SOURCES += \
 		pulsecore/dbus-util.c pulsecore/dbus-util.h \
