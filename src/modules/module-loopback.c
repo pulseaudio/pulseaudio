@@ -1016,6 +1016,14 @@ static void set_sink_input_latency(struct userdata *u, pa_sink *sink) {
     if (u->min_source_latency > requested_latency) {
         latency = PA_MAX(u->latency, u->minimum_latency);
         requested_latency = (latency - u->min_source_latency) / 2;
+        /* In the case of a fixed alsa source, u->minimum_latency is calculated from
+         * the default fragment size while u->min_source_latency is the reported minimum
+         * of the source latency (nr_of_fragments * fragment_size). This can lead to a
+         * situation where u->minimum_latency < u->min_source_latency. We only fall
+         * back to use the fragment size instead of min_source_latency if the calculation
+         * above does not deliver a usable result. */
+        if (u->fixed_alsa_source && u->min_source_latency >= latency)
+            requested_latency = (latency - u->core->default_fragment_size_msec * PA_USEC_PER_MSEC) / 2;
     }
 
     latency = PA_CLAMP(requested_latency , u->min_sink_latency, u->max_sink_latency);
