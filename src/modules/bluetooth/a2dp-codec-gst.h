@@ -33,6 +33,7 @@ enum a2dp_codec_type {
 };
 
 struct gst_info {
+    pa_core *core;
     pa_sample_spec *ss;
     enum a2dp_codec_type codec_type;
     union {
@@ -54,7 +55,7 @@ struct gst_info {
     uint16_t seq_num;
 };
 
-void *gst_codec_init(enum a2dp_codec_type codec_type, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *ss);
+void *gst_codec_init(enum a2dp_codec_type codec_type, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *ss, pa_core *core);
 size_t gst_encode_buffer(void *codec_info, uint32_t timestamp, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed);
 size_t gst_decode_buffer(void *codec_info, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed);
 void gst_codec_deinit(void *codec_info);

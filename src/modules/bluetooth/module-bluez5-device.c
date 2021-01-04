@@ -1256,7 +1256,7 @@ static int transport_config(struct userdata *u) {
         u->a2dp_codec = u->transport->a2dp_codec;
         pa_assert(u->a2dp_codec);
 
-        info = u->a2dp_codec->init(is_a2dp_sink, false, u->transport->config, u->transport->config_size, is_a2dp_sink ? &u->encoder_sample_spec : &u->decoder_sample_spec);
+        info = u->a2dp_codec->init(is_a2dp_sink, false, u->transport->config, u->transport->config_size, is_a2dp_sink ? &u->encoder_sample_spec : &u->decoder_sample_spec, u->core);
         if (is_a2dp_sink)
             u->encoder_info = info;
         else

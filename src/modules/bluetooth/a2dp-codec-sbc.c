@@ -327,7 +327,7 @@ static void set_params(struct sbc_info *sbc_info) {
     sbc_info->frame_length = sbc_get_frame_length(&sbc_info->sbc);
 }
 
-static void *init(bool for_encoding, bool for_backchannel, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *sample_spec) {
+static void *init(bool for_encoding, bool for_backchannel, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *sample_spec, pa_core *core) {
     struct sbc_info *sbc_info;
     const a2dp_sbc_t *config = (const a2dp_sbc_t *) config_buffer;
     int ret;

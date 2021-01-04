@@ -28,6 +28,7 @@
 #include <pulsecore/once.h>
 #include <pulsecore/core-util.h>
 #include <pulse/sample.h>
+#include <pulse/util.h>
 
 #include "a2dp-codecs.h"
 #include "a2dp-codec-api.h"
@@ -115,251 +116,34 @@ static void gst_deinit_dec_common(struct gst_info *info) {
         gst_object_unref(info->dec_pipeline);
 }
 
-static bool gst_init_ldac(struct gst_info *info, pa_sample_spec *ss) {
-    GstElement *rtpldacpay;
-    GstElement *enc;
-    GstCaps *caps;
+static GstBusSyncReply sync_bus_handler (GstBus *bus, GstMessage *message, struct gst_info *info) {
+    GstStreamStatusType type;
+    GstElement *owner;
 
-    ss->format = PA_SAMPLE_S32LE;
+    switch (GST_MESSAGE_TYPE (message)) {
+        case GST_MESSAGE_STREAM_STATUS:
 
-    switch (info->a2dp_codec_t.ldac_config->frequency) {
-        case LDAC_SAMPLING_FREQ_44100:
-            ss->rate = 44100u;
-            break;
-        case LDAC_SAMPLING_FREQ_48000:
-            ss->rate = 48000u;
-            break;
-        case LDAC_SAMPLING_FREQ_88200:
-            ss->rate = 88200;
-            break;
-        case LDAC_SAMPLING_FREQ_96000:
-            ss->rate = 96000;
-            break;
+            gst_message_parse_stream_status (message, &type, &owner);
+
+            switch (type) {
+            case GST_STREAM_STATUS_TYPE_ENTER:
+                pa_log_debug("GStreamer pipeline thread starting up");
+                if (info->core->realtime_scheduling)
+                    pa_thread_make_realtime(info->core->realtime_priority);
+                break;
+            case GST_STREAM_STATUS_TYPE_LEAVE:
+                pa_log_debug("GStreamer pipeline thread shutting down");
+                break;
+            default:
+                break;
+            }
+        break;
         default:
-            pa_log_error("LDAC invalid frequency %d", info->a2dp_codec_t.ldac_config->frequency);
-            goto fail;
-    }
-
-    switch (info->a2dp_codec_t.ldac_config->channel_mode) {
-        case LDAC_CHANNEL_MODE_STEREO:
-            ss->channels = 2;
             break;
-        case LDAC_CHANNEL_MODE_MONO:
-            ss->channels = 1;
-            break;
-        case LDAC_CHANNEL_MODE_DUAL:
-            ss->channels = 1;
-            break;
-        default:
-            pa_log_error("LDAC invalid channel mode %d", info->a2dp_codec_t.ldac_config->channel_mode);
-            goto fail;
     }
 
-    enc = gst_element_factory_make("ldacenc", "ldac_enc");
-    if (!enc) {
-        pa_log_error("Could not create LDAC encoder element");
-        goto fail;
-    }
-
-    switch (info->codec_type) {
-        case LDAC_EQMID_HQ:
-            g_object_set(enc, "eqmid", 0, NULL);
-            break;
-        case LDAC_EQMID_SQ:
-            g_object_set(enc, "eqmid", 1, NULL);
-            break;
-        case LDAC_EQMID_MQ:
-            g_object_set(enc, "eqmid", 2, NULL);
-            break;
-        default:
-            goto fail;
-    }
-
-    caps = gst_caps_new_simple("audio/x-raw",
-            "format", G_TYPE_STRING, "S32LE",
-            "rate", G_TYPE_INT, (int) ss->rate,
-            "channels", G_TYPE_INT, (int) ss->channels,
-            "channel-mask", G_TYPE_INT, 0,
-            "layout", G_TYPE_STRING, "interleaved",
-            NULL);
-    g_object_set(info->enc_src, "caps", caps, NULL);
-    gst_caps_unref(caps);
-
-    rtpldacpay = gst_element_factory_make("rtpldacpay", "rtp_ldac_pay");
-    if (!rtpldacpay) {
-        pa_log_error("Could not create RTP LDAC payloader element");
-        goto fail;
-    }
-
-    gst_bin_add_many(GST_BIN(info->enc_pipeline), info->enc_src, enc, rtpldacpay, info->enc_sink, NULL);
-
-    if (!gst_element_link_many(info->enc_src, enc, rtpldacpay, info->enc_sink, NULL)) {
-        pa_log_error("Failed to link elements for LDAC encoder");
-        goto bin_remove;
-    }
-
-    if (gst_element_set_state(info->enc_pipeline, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
-        pa_log_error("Could not start LDAC encoder pipeline");
-        goto bin_remove;
-    }
-
-    info->gst_enc = enc;
-
-    return true;
-
-bin_remove:
-    gst_bin_remove_many(GST_BIN(info->enc_pipeline), info->enc_src, enc, rtpldacpay, info->enc_sink, NULL);
-fail:
-    pa_log_error("LDAC encoder initialisation failed");
-    return false;
-}
-
-static bool gst_init_aptx(struct gst_info *info, pa_sample_spec *ss) {
-    GstElement *enc, *dec;
-    GstCaps *caps;
-    const char *aptx_codec_media_type;
-
-    ss->format = PA_SAMPLE_S24LE;
-
-    if (info->codec_type == APTX_HD) {
-        switch (info->a2dp_codec_t.aptx_hd_config->aptx.frequency) {
-            case APTX_SAMPLING_FREQ_16000:
-                ss->rate = 16000u;
-                break;
-            case APTX_SAMPLING_FREQ_32000:
-                ss->rate = 32000u;
-                break;
-            case APTX_SAMPLING_FREQ_44100:
-                ss->rate = 44100u;
-                break;
-            case APTX_SAMPLING_FREQ_48000:
-                ss->rate = 48000u;
-                break;
-            default:
-                pa_log_error("aptX HD invalid frequency %d", info->a2dp_codec_t.aptx_hd_config->aptx.frequency);
-                goto fail;
-        }
-
-        switch (info->a2dp_codec_t.aptx_hd_config->aptx.channel_mode) {
-            case APTX_CHANNEL_MODE_STEREO:
-                ss->channels = 2;
-                break;
-            default:
-                pa_log_error("aptX HD invalid channel mode %d", info->a2dp_codec_t.aptx_hd_config->aptx.frequency);
-                goto fail;
-        }
-    } else {
-        switch (info->a2dp_codec_t.aptx_config->frequency) {
-            case APTX_SAMPLING_FREQ_16000:
-                ss->rate = 16000u;
-                break;
-            case APTX_SAMPLING_FREQ_32000:
-                ss->rate = 32000u;
-                break;
-            case APTX_SAMPLING_FREQ_44100:
-                ss->rate = 44100u;
-                break;
-            case APTX_SAMPLING_FREQ_48000:
-                ss->rate = 48000u;
-                break;
-            default:
-                pa_log_error("aptX invalid frequency %d", info->a2dp_codec_t.aptx_config->frequency);
-                goto fail;
-        }
-
-        switch (info->a2dp_codec_t.aptx_config->channel_mode) {
-            case APTX_CHANNEL_MODE_STEREO:
-                ss->channels = 2;
-                break;
-            default:
-                pa_log_error("aptX invalid channel mode %d", info->a2dp_codec_t.aptx_config->frequency);
-                goto fail;
-        }
-    }
-
-    enc = gst_element_factory_make("openaptxenc", "aptx_encoder");
-
-    if (enc == NULL) {
-        pa_log_error("Could not create aptX encoder element");
-        goto fail;
-    }
-
-    dec = gst_element_factory_make("openaptxdec", "aptx_decoder");
-
-    if (dec == NULL) {
-        pa_log_error("Could not create aptX decoder element");
-        goto fail;
-    }
-
-    aptx_codec_media_type = info->codec_type == APTX_HD ? "audio/aptx-hd" : "audio/aptx";
-
-    caps = gst_caps_new_simple("audio/x-raw",
-            "format", G_TYPE_STRING, "S24LE",
-            "rate", G_TYPE_INT, (int) ss->rate,
-            "channels", G_TYPE_INT, (int) ss->channels,
-            "channel-mask", G_TYPE_INT, 0,
-            "layout", G_TYPE_STRING, "interleaved",
-            NULL);
-    g_object_set(info->enc_src, "caps", caps, NULL);
-    gst_caps_unref(caps);
-
-    caps = gst_caps_new_simple(aptx_codec_media_type,
-            "rate", G_TYPE_INT, (int) ss->rate,
-            "channels", G_TYPE_INT, (int) ss->channels,
-            NULL);
-    g_object_set(info->enc_sink, "caps", caps, NULL);
-    gst_caps_unref(caps);
-
-    caps = gst_caps_new_simple(aptx_codec_media_type,
-            "rate", G_TYPE_INT, (int) ss->rate,
-            "channels", G_TYPE_INT, (int) ss->channels,
-            NULL);
-    g_object_set(info->dec_src, "caps", caps, NULL);
-    gst_caps_unref(caps);
-
-    caps = gst_caps_new_simple("audio/x-raw",
-            "format", G_TYPE_STRING, "S24LE",
-            "rate", G_TYPE_INT, (int) ss->rate,
-            "channels", G_TYPE_INT, (int) ss->channels,
-            "layout", G_TYPE_STRING, "interleaved",
-            NULL);
-    g_object_set(info->dec_sink, "caps", caps, NULL);
-    gst_caps_unref(caps);
-
-    gst_bin_add_many(GST_BIN(info->enc_pipeline), info->enc_src, enc, info->enc_sink, NULL);
-    gst_bin_add_many(GST_BIN(info->dec_pipeline), info->dec_src, dec, info->dec_sink, NULL);
-
-    if (!gst_element_link_many(info->enc_src, enc, info->enc_sink, NULL)) {
-        pa_log_error("Failed to link elements for aptX encoder");
-        goto bin_remove;
-    }
-
-    if (!gst_element_link_many(info->dec_src, dec, info->dec_sink, NULL)) {
-        pa_log_error("Failed to link elements for aptX decoder");
-        goto bin_remove;
-    }
-
-    if (gst_element_set_state(info->enc_pipeline, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
-        pa_log_error("Could not start aptX encoder pipeline");
-        goto bin_remove;
-    }
-
-    if (gst_element_set_state(info->dec_pipeline, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
-        pa_log_error("Could not start aptX decoder pipeline");
-        goto bin_remove;
-    }
-
-    info->gst_enc = enc;
-    info->gst_dec = dec;
-
-    return true;
-
-bin_remove:
-    gst_bin_remove_many(GST_BIN(info->enc_pipeline), info->enc_src, enc, info->enc_sink, NULL);
-    gst_bin_remove_many(GST_BIN(info->dec_pipeline), info->dec_src, dec, info->dec_sink, NULL);
-fail:
-    pa_log_error("aptX initialisation failed");
-    return false;
+    /* pass all messages on the async queue */
+    return GST_BUS_PASS;
 }
 
 static bool gst_init_enc_common(struct gst_info *info, pa_sample_spec *ss) {
@@ -367,6 +151,7 @@ static bool gst_init_enc_common(struct gst_info *info, pa_sample_spec *ss) {
     GstElement *appsrc = NULL, *appsink = NULL;
     GstAdapter *adapter;
     GstAppSinkCallbacks callbacks = { 0, };
+    GstBus *bus;
 
     appsrc = gst_element_factory_make("appsrc", "enc_source");
     if (!appsrc) {
@@ -392,6 +177,10 @@ static bool gst_init_enc_common(struct gst_info *info, pa_sample_spec *ss) {
     pipeline = gst_pipeline_new(NULL);
     pa_assert(pipeline);
 
+    bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));
+    gst_bus_set_sync_handler (bus, (GstBusSyncHandler) sync_bus_handler, info, NULL);
+    gst_object_unref (bus);
+
     info->enc_src = appsrc;
     info->enc_sink = appsink;
     info->enc_adapter = adapter;
@@ -411,6 +200,7 @@ static bool gst_init_dec_common(struct gst_info *info, pa_sample_spec *ss) {
     GstElement *appsrc = NULL, *appsink = NULL;
     GstAdapter *adapter;
     GstAppSinkCallbacks callbacks = { 0, };
+    GstBus *bus;
 
     appsrc = gst_element_factory_make("appsrc", "dec_source");
     if (!appsrc) {
@@ -435,6 +225,10 @@ static bool gst_init_dec_common(struct gst_info *info, pa_sample_spec *ss) {
 
     pipeline = gst_pipeline_new(NULL);
     pa_assert(pipeline);
+
+    bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline));
+    gst_bus_set_sync_handler (bus, (GstBusSyncHandler) sync_bus_handler, info, NULL);
+    gst_object_unref (bus);
 
     info->dec_src = appsrc;
     info->dec_sink = appsink;
@@ -573,12 +367,14 @@ fail:
     return false;
 }
 
-void *gst_codec_init(enum a2dp_codec_type codec_type, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *ss) {
+void *gst_codec_init(enum a2dp_codec_type codec_type, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *ss, pa_core *core) {
     struct gst_info *info = NULL;
     bool ret;
 
     info = pa_xnew0(struct gst_info, 1);
     pa_assert(info);
+
+    info->core = core;
 
     switch (codec_type) {
         case AAC:

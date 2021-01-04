@@ -69,7 +69,7 @@ typedef struct pa_a2dp_codec {
     /* Initialize codec, returns codec info data and set sample_spec,
      * for_encoding is true when codec_info is used for encoding,
      * for_backchannel is true when codec_info is used for backchannel */
-    void *(*init)(bool for_encoding, bool for_backchannel, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *sample_spec);
+    void *(*init)(bool for_encoding, bool for_backchannel, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *sample_spec, pa_core *core);
     /* Deinitialize and release codec info data in codec_info */
     void (*deinit)(void *codec_info);
     /* Reset internal state of codec info data in codec_info, returns

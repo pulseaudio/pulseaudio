@@ -266,12 +266,12 @@ static uint8_t fill_preferred_configuration_hd(const pa_sample_spec *default_sam
     return sizeof(*config);
 }
 
-static void *init(bool for_encoding, bool for_backchannel, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *sample_spec) {
-    return gst_codec_init(APTX, config_buffer, config_size, sample_spec);
+static void *init(bool for_encoding, bool for_backchannel, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *sample_spec, pa_core *core) {
+    return gst_codec_init(APTX, config_buffer, config_size, sample_spec, core);
 }
 
-static void *init_hd(bool for_encoding, bool for_backchannel, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *sample_spec) {
-    return gst_codec_init(APTX_HD, config_buffer, config_size, sample_spec);
+static void *init_hd(bool for_encoding, bool for_backchannel, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *sample_spec, pa_core *core) {
+    return gst_codec_init(APTX_HD, config_buffer, config_size, sample_spec, core);
 }
 
 static void deinit(void *codec_info) {
