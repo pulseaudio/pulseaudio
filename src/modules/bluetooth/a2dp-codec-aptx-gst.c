@@ -266,12 +266,214 @@ static uint8_t fill_preferred_configuration_hd(const pa_sample_spec *default_sam
     return sizeof(*config);
 }
 
+bool gst_init_aptx(struct gst_info *info, pa_sample_spec *ss, bool for_encoding) {
+    GstElement *enc, *dec;
+    GstCaps *caps;
+    GstPad *pad;
+    const char *aptx_codec_media_type;
+
+    ss->format = PA_SAMPLE_S24LE;
+
+    if (info->codec_type == APTX_HD) {
+        switch (info->a2dp_codec_t.aptx_hd_config->aptx.frequency) {
+            case APTX_SAMPLING_FREQ_16000:
+                ss->rate = 16000u;
+                break;
+            case APTX_SAMPLING_FREQ_32000:
+                ss->rate = 32000u;
+                break;
+            case APTX_SAMPLING_FREQ_44100:
+                ss->rate = 44100u;
+                break;
+            case APTX_SAMPLING_FREQ_48000:
+                ss->rate = 48000u;
+                break;
+            default:
+                pa_log_error("aptX HD invalid frequency %d", info->a2dp_codec_t.aptx_hd_config->aptx.frequency);
+                goto fail;
+        }
+
+        switch (info->a2dp_codec_t.aptx_hd_config->aptx.channel_mode) {
+            case APTX_CHANNEL_MODE_STEREO:
+                ss->channels = 2;
+                break;
+            default:
+                pa_log_error("aptX HD invalid channel mode %d", info->a2dp_codec_t.aptx_hd_config->aptx.frequency);
+                goto fail;
+        }
+    } else {
+        switch (info->a2dp_codec_t.aptx_config->frequency) {
+            case APTX_SAMPLING_FREQ_16000:
+                ss->rate = 16000u;
+                break;
+            case APTX_SAMPLING_FREQ_32000:
+                ss->rate = 32000u;
+                break;
+            case APTX_SAMPLING_FREQ_44100:
+                ss->rate = 44100u;
+                break;
+            case APTX_SAMPLING_FREQ_48000:
+                ss->rate = 48000u;
+                break;
+            default:
+                pa_log_error("aptX invalid frequency %d", info->a2dp_codec_t.aptx_config->frequency);
+                goto fail;
+        }
+
+        switch (info->a2dp_codec_t.aptx_config->channel_mode) {
+            case APTX_CHANNEL_MODE_STEREO:
+                ss->channels = 2;
+                break;
+            default:
+                pa_log_error("aptX invalid channel mode %d", info->a2dp_codec_t.aptx_config->frequency);
+                goto fail;
+        }
+    }
+
+    aptx_codec_media_type = info->codec_type == APTX_HD ? "audio/aptx-hd" : "audio/aptx";
+
+    if (for_encoding) {
+        enc = gst_element_factory_make("openaptxenc", "aptx_encoder");
+
+        if (enc == NULL) {
+            pa_log_error("Could not create aptX encoder element");
+            goto fail;
+        }
+
+        caps = gst_caps_new_simple("audio/x-raw",
+                "format", G_TYPE_STRING, "S24LE",
+                "rate", G_TYPE_INT, (int) ss->rate,
+                "channels", G_TYPE_INT, (int) ss->channels,
+                "channel-mask", G_TYPE_INT, 0,
+                "layout", G_TYPE_STRING, "interleaved",
+                NULL);
+        g_object_set(info->enc_src, "caps", caps, NULL);
+        gst_caps_unref(caps);
+
+        caps = gst_caps_new_simple(aptx_codec_media_type,
+                "rate", G_TYPE_INT, (int) ss->rate,
+                "channels", G_TYPE_INT, (int) ss->channels,
+                NULL);
+        g_object_set(info->enc_sink, "caps", caps, NULL);
+        gst_caps_unref(caps);
+
+        info->enc_bin = gst_bin_new("aptx_enc_bin");
+        pa_assert(info->enc_bin);
+
+        gst_bin_add(GST_BIN(info->enc_bin), enc);
+
+        pad = gst_element_get_static_pad(enc, "sink");
+        gst_element_add_pad(info->enc_bin, gst_ghost_pad_new("sink", pad));
+        gst_object_unref(GST_OBJECT(pad));
+
+        pad = gst_element_get_static_pad(enc, "src");
+        gst_element_add_pad(info->enc_bin, gst_ghost_pad_new("src", pad));
+        gst_object_unref(GST_OBJECT(pad));
+    } else {
+        dec = gst_element_factory_make("openaptxdec", "aptx_decoder");
+
+        if (dec == NULL) {
+            pa_log_error("Could not create aptX decoder element");
+            goto fail;
+        }
+
+        caps = gst_caps_new_simple(aptx_codec_media_type,
+                "rate", G_TYPE_INT, (int) ss->rate,
+                "channels", G_TYPE_INT, (int) ss->channels,
+                NULL);
+        g_object_set(info->dec_src, "caps", caps, NULL);
+        gst_caps_unref(caps);
+
+        caps = gst_caps_new_simple("audio/x-raw",
+                "format", G_TYPE_STRING, "S24LE",
+                "rate", G_TYPE_INT, (int) ss->rate,
+                "channels", G_TYPE_INT, (int) ss->channels,
+                "layout", G_TYPE_STRING, "interleaved",
+                NULL);
+        g_object_set(info->dec_sink, "caps", caps, NULL);
+        gst_caps_unref(caps);
+
+        info->dec_bin = gst_bin_new("aptx_dec_bin");
+        pa_assert(info->dec_bin);
+
+        gst_bin_add(GST_BIN(info->dec_bin), dec);
+
+        pad = gst_element_get_static_pad(dec, "sink");
+        gst_element_add_pad(info->dec_bin, gst_ghost_pad_new("sink", pad));
+        gst_object_unref(GST_OBJECT(pad));
+
+        pad = gst_element_get_static_pad(dec, "src");
+        gst_element_add_pad(info->dec_bin, gst_ghost_pad_new("src", pad));
+        gst_object_unref(GST_OBJECT(pad));
+    }
+
+    return true;
+
+fail:
+    pa_log_error("aptX initialisation failed");
+    return false;
+}
+
+static void *init_common(enum a2dp_codec_type codec_type, bool for_encoding, bool for_backchannel, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *sample_spec, pa_core *core) {
+    struct gst_info *info = NULL;
+
+    info = pa_xnew0(struct gst_info, 1);
+    pa_assert(info);
+
+    info->core = core;
+    info->ss = sample_spec;
+
+    if (codec_type == APTX) {
+        info->codec_type = APTX;
+        info->a2dp_codec_t.aptx_config = (const a2dp_aptx_t *) config_buffer;
+        pa_assert(config_size == sizeof(*(info->a2dp_codec_t.aptx_config)));
+    } else if (codec_type == APTX_HD) {
+        info->codec_type = APTX_HD;
+        info->a2dp_codec_t.aptx_hd_config = (const a2dp_aptx_hd_t *) config_buffer;
+        pa_assert(config_size == sizeof(*(info->a2dp_codec_t.aptx_hd_config)));
+    } else
+        pa_assert_not_reached();
+
+    /*
+     * The common encoder/decoder initialisation functions need to be called
+     * before the codec specific ones, as the codec specific initialisation
+     * function needs to set the caps specific property appropriately on the
+     * appsrc and appsink as per the sample spec and the codec.
+     */
+    if (for_encoding) {
+        if (!gst_init_enc_common(info))
+            goto fail;
+    } else {
+        if (!gst_init_dec_common(info))
+            goto fail;
+    }
+
+    if (!gst_init_aptx(info, sample_spec, for_encoding))
+        goto enc_dec_fail;
+
+    if (!gst_codec_init(info, for_encoding))
+        goto enc_dec_fail;
+
+    return info;
+
+enc_dec_fail:
+    if (for_encoding)
+        gst_deinit_enc_common(info);
+    else
+        gst_deinit_dec_common(info);
+fail:
+    if (info)
+        pa_xfree(info);
+
+    return NULL;
+}
+
 static void *init(bool for_encoding, bool for_backchannel, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *sample_spec, pa_core *core) {
-    return gst_codec_init(APTX, config_buffer, config_size, sample_spec, core);
+    return init_common(APTX, for_encoding, for_backchannel, config_buffer, config_size, sample_spec, core);
 }
 
 static void *init_hd(bool for_encoding, bool for_backchannel, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *sample_spec, pa_core *core) {
-    return gst_codec_init(APTX_HD, config_buffer, config_size, sample_spec, core);
+    return init_common(APTX_HD, for_encoding, for_backchannel, config_buffer, config_size, sample_spec, core);
 }
 
 static void deinit(void *codec_info) {

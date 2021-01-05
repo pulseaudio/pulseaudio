@@ -82,15 +82,13 @@ static GstFlowReturn dec_sink_new_sample(GstAppSink *appsink, gpointer userdata)
     return GST_FLOW_OK;
 }
 
-static void gst_deinit_enc_common(struct gst_info *info) {
+void gst_deinit_enc_common(struct gst_info *info) {
     if (!info)
         return;
     if (info->enc_fdsem)
         pa_fdsem_free(info->enc_fdsem);
     if (info->enc_src)
         gst_object_unref(info->enc_src);
-    if (info->gst_enc)
-        gst_object_unref(info->gst_enc);
     if (info->enc_sink)
         gst_object_unref(info->enc_sink);
     if (info->enc_adapter)
@@ -99,15 +97,13 @@ static void gst_deinit_enc_common(struct gst_info *info) {
         gst_object_unref(info->enc_pipeline);
 }
 
-static void gst_deinit_dec_common(struct gst_info *info) {
+void gst_deinit_dec_common(struct gst_info *info) {
     if (!info)
         return;
     if (info->dec_fdsem)
         pa_fdsem_free(info->dec_fdsem);
     if (info->dec_src)
         gst_object_unref(info->dec_src);
-    if (info->gst_dec)
-        gst_object_unref(info->gst_dec);
     if (info->dec_sink)
         gst_object_unref(info->dec_sink);
     if (info->dec_adapter)
@@ -146,7 +142,7 @@ static GstBusSyncReply sync_bus_handler (GstBus *bus, GstMessage *message, struc
     return GST_BUS_PASS;
 }
 
-static bool gst_init_enc_common(struct gst_info *info, pa_sample_spec *ss) {
+bool gst_init_enc_common(struct gst_info *info) {
     GstElement *pipeline = NULL;
     GstElement *appsrc = NULL, *appsink = NULL;
     GstAdapter *adapter;
@@ -190,12 +186,15 @@ static bool gst_init_enc_common(struct gst_info *info, pa_sample_spec *ss) {
     return true;
 
 fail:
-    gst_deinit_enc_common(info);
+    if (appsrc)
+        gst_object_unref(appsrc);
+    if (appsink)
+        gst_object_unref(appsink);
 
     return false;
 }
 
-static bool gst_init_dec_common(struct gst_info *info, pa_sample_spec *ss) {
+bool gst_init_dec_common(struct gst_info *info) {
     GstElement *pipeline = NULL;
     GstElement *appsrc = NULL, *appsink = NULL;
     GstAdapter *adapter;
@@ -239,7 +238,10 @@ static bool gst_init_dec_common(struct gst_info *info, pa_sample_spec *ss) {
     return true;
 
 fail:
-    gst_deinit_dec_common(info);
+    if (appsrc)
+        gst_object_unref(appsrc);
+    if (appsink)
+        gst_object_unref(appsink);
 
     return false;
 }
@@ -304,121 +306,62 @@ static GstPadProbeReturn gst_decoder_buffer_probe(GstPad *pad, GstPadProbeInfo *
     return GST_PAD_PROBE_OK;
 }
 
-static bool gst_init_common(struct gst_info *info, pa_sample_spec *ss) {
+bool gst_codec_init(struct gst_info *info, bool for_encoding) {
     GstPad *pad;
 
     info->seq_num = 0;
 
-    if (!gst_init_enc_common(info, ss))
-        goto fail;
+    /* In case if we ever have a codec which supports decoding but not encoding */
+    if (for_encoding && info->enc_bin) {
+        gst_bin_add_many(GST_BIN(info->enc_pipeline), info->enc_src, info->enc_bin, info->enc_sink, NULL);
 
-    switch (info->codec_type) {
-        case AAC:
-            goto fail;
-            break;
-        case APTX:
-        case APTX_HD:
-            if (!gst_init_dec_common(info, ss))
-                goto enc_fail;
+        if (!gst_element_link_many(info->enc_src, info->enc_bin, info->enc_sink, NULL)) {
+            pa_log_error("Failed to link encoder elements");
+            goto enc_dec_fail;
+        }
 
-            if (!gst_init_aptx(info, ss))
-                goto dec_fail;
-            break;
-        case LDAC_EQMID_HQ:
-        case LDAC_EQMID_SQ:
-        case LDAC_EQMID_MQ:
-            if (!gst_init_ldac(info, ss))
-                goto dec_fail;
-            break;
-        default:
-            goto fail;
-    }
+        if (gst_element_set_state(info->enc_pipeline, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
+            pa_log_error("Could not start encoder pipeline");
+            goto enc_dec_fail;
+        }
 
-    /* See the comment on buffer probe functions */
-    if (info->gst_enc) {
-        pad = gst_element_get_static_pad(info->gst_enc, "sink");
+        /* See the comment on buffer probe functions */
+        pad = gst_element_get_static_pad(info->enc_bin, "sink");
         gst_pad_add_probe(pad, GST_PAD_PROBE_TYPE_BUFFER, gst_encoder_buffer_probe, info, NULL);
         gst_object_unref(pad);
-    }
+    } else if (!for_encoding && info->dec_bin) {
+        gst_bin_add_many(GST_BIN(info->dec_pipeline), info->dec_src, info->dec_bin, info->dec_sink, NULL);
 
-    if (info->gst_dec) {
-        pad = gst_element_get_static_pad(info->gst_dec, "sink");
+        if (!gst_element_link_many(info->dec_src, info->dec_bin, info->dec_sink, NULL)) {
+            pa_log_error("Failed to link decoder elements");
+            goto enc_dec_fail;
+        }
+
+        if (gst_element_set_state(info->dec_pipeline, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
+            pa_log_error("Could not start decoder pipeline");
+            goto enc_dec_fail;
+        }
+
+        /* See the comment on buffer probe functions */
+        pad = gst_element_get_static_pad(info->dec_bin, "sink");
         gst_pad_add_probe(pad, GST_PAD_PROBE_TYPE_BUFFER, gst_decoder_buffer_probe, info, NULL);
         gst_object_unref(pad);
-    }
+    } else
+        pa_assert_not_reached();
 
     pa_log_info("Gstreamer pipeline initialisation succeeded");
 
     return true;
 
-dec_fail:
-    if (info->dec_pipeline) {
-        gst_element_set_state(info->dec_pipeline, GST_STATE_NULL);
-        gst_object_unref(info->dec_pipeline);
-    }
-enc_fail:
-    if (info->enc_pipeline) {
-        gst_element_set_state(info->enc_pipeline, GST_STATE_NULL);
-        gst_object_unref(info->enc_pipeline);
-    }
-fail:
+enc_dec_fail:
+    if (for_encoding)
+        gst_deinit_enc_common(info);
+    else
+        gst_deinit_dec_common(info);
+
     pa_log_error("Gstreamer pipeline initialisation failed");
 
     return false;
-}
-
-void *gst_codec_init(enum a2dp_codec_type codec_type, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *ss, pa_core *core) {
-    struct gst_info *info = NULL;
-    bool ret;
-
-    info = pa_xnew0(struct gst_info, 1);
-    pa_assert(info);
-
-    info->core = core;
-
-    switch (codec_type) {
-        case AAC:
-            info->codec_type = AAC;
-            info->a2dp_codec_t.aac_config = (const a2dp_aac_t *) config_buffer;
-            pa_assert(config_size == sizeof(*(info->a2dp_codec_t.aac_config)));
-            break;
-        case APTX:
-            info->codec_type = APTX;
-            info->a2dp_codec_t.aptx_config = (const a2dp_aptx_t *) config_buffer;
-            pa_assert(config_size == sizeof(*(info->a2dp_codec_t.aptx_config)));
-            break;
-        case APTX_HD:
-            info->codec_type = APTX_HD;
-            info->a2dp_codec_t.aptx_hd_config = (const a2dp_aptx_hd_t *) config_buffer;
-            pa_assert(config_size == sizeof(*(info->a2dp_codec_t.aptx_hd_config)));
-            break;
-        case LDAC_EQMID_HQ:
-        case LDAC_EQMID_SQ:
-        case LDAC_EQMID_MQ:
-            info->codec_type = codec_type;
-            info->a2dp_codec_t.ldac_config = (const a2dp_ldac_t *) config_buffer;
-            pa_assert(config_size == sizeof(*(info->a2dp_codec_t.ldac_config)));
-            break;
-        default:
-            pa_log_error("Unsupported bluetooth codec");
-            goto fail;
-    }
-
-    ret = gst_init_common(info, ss);
-    if (!ret)
-        goto fail;
-
-    info->ss = ss;
-
-    pa_log_info("Rate: %d Channels: %d Format: %d", ss->rate, ss->channels, ss->format);
-
-    return info;
-
-fail:
-    if (info)
-        pa_xfree(info);
-
-    return NULL;
 }
 
 size_t gst_encode_buffer(void *codec_info, uint32_t timestamp, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed) {

@@ -195,16 +195,162 @@ static uint8_t fill_preferred_configuration(const pa_sample_spec *default_sample
     return sizeof(*config);
 }
 
+bool gst_init_ldac(struct gst_info *info, pa_sample_spec *ss, bool for_encoding) {
+    GstElement *rtpldacpay;
+    GstElement *enc;
+    GstCaps *caps;
+    GstPad *pad;
+
+    if (!for_encoding) {
+        pa_log_error("LDAC does not support decoding");
+        return false;
+    }
+
+    ss->format = PA_SAMPLE_S32LE;
+
+    switch (info->a2dp_codec_t.ldac_config->frequency) {
+        case LDAC_SAMPLING_FREQ_44100:
+            ss->rate = 44100u;
+            break;
+        case LDAC_SAMPLING_FREQ_48000:
+            ss->rate = 48000u;
+            break;
+        case LDAC_SAMPLING_FREQ_88200:
+            ss->rate = 88200;
+            break;
+        case LDAC_SAMPLING_FREQ_96000:
+            ss->rate = 96000;
+            break;
+        default:
+            pa_log_error("LDAC invalid frequency %d", info->a2dp_codec_t.ldac_config->frequency);
+            goto fail;
+    }
+
+    switch (info->a2dp_codec_t.ldac_config->channel_mode) {
+        case LDAC_CHANNEL_MODE_STEREO:
+            ss->channels = 2;
+            break;
+        case LDAC_CHANNEL_MODE_MONO:
+            ss->channels = 1;
+            break;
+        case LDAC_CHANNEL_MODE_DUAL:
+            ss->channels = 1;
+            break;
+        default:
+            pa_log_error("LDAC invalid channel mode %d", info->a2dp_codec_t.ldac_config->channel_mode);
+            goto fail;
+    }
+
+    enc = gst_element_factory_make("ldacenc", "ldac_enc");
+    if (!enc) {
+        pa_log_error("Could not create LDAC encoder element");
+        goto fail;
+    }
+
+    switch (info->codec_type) {
+        case LDAC_EQMID_HQ:
+            g_object_set(enc, "eqmid", 0, NULL);
+            break;
+        case LDAC_EQMID_SQ:
+            g_object_set(enc, "eqmid", 1, NULL);
+            break;
+        case LDAC_EQMID_MQ:
+            g_object_set(enc, "eqmid", 2, NULL);
+            break;
+        default:
+            goto fail;
+    }
+
+    caps = gst_caps_new_simple("audio/x-raw",
+            "format", G_TYPE_STRING, "S32LE",
+            "rate", G_TYPE_INT, (int) ss->rate,
+            "channels", G_TYPE_INT, (int) ss->channels,
+            "channel-mask", G_TYPE_INT, 0,
+            "layout", G_TYPE_STRING, "interleaved",
+            NULL);
+    g_object_set(info->enc_src, "caps", caps, NULL);
+    gst_caps_unref(caps);
+
+    rtpldacpay = gst_element_factory_make("rtpldacpay", "rtp_ldac_pay");
+    if (!rtpldacpay) {
+        pa_log_error("Could not create RTP LDAC payloader element");
+        goto fail;
+    }
+
+    info->enc_bin = gst_bin_new("ldac_enc_bin");
+    pa_assert(info->enc_bin);
+
+    gst_bin_add_many(GST_BIN(info->enc_bin), enc, rtpldacpay, NULL);
+
+    if (!gst_element_link(enc, rtpldacpay)) {
+        pa_log_error("Failed to link LDAC encoder to LDAC RTP payloader");
+        return false;
+    }
+
+    pad = gst_element_get_static_pad(enc, "sink");
+    gst_element_add_pad(info->enc_bin, gst_ghost_pad_new("sink", pad));
+    gst_object_unref(GST_OBJECT(pad));
+
+    pad = gst_element_get_static_pad(rtpldacpay, "src");
+    gst_element_add_pad(info->enc_bin, gst_ghost_pad_new("src", pad));
+    gst_object_unref(GST_OBJECT(pad));
+
+    return true;
+
+fail:
+    pa_log_error("LDAC encoder initialisation failed");
+    return false;
+}
+
+static void *init_common(enum a2dp_codec_type codec_type, bool for_encoding, bool for_backchannel, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *sample_spec, pa_core *core) {
+    struct gst_info *info = NULL;
+
+    info = pa_xnew0(struct gst_info, 1);
+    pa_assert(info);
+
+    info->core = core;
+    info->ss = sample_spec;
+
+    info->codec_type = codec_type;
+    info->a2dp_codec_t.ldac_config = (const a2dp_ldac_t *) config_buffer;
+    pa_assert(config_size == sizeof(*(info->a2dp_codec_t.ldac_config)));
+
+    /*
+     * The common encoder/decoder initialisation functions need to be called
+     * before the codec specific ones, as the codec specific initialisation
+     * function needs to set the caps specific property appropriately on the
+     * appsrc and appsink as per the sample spec and the codec.
+     */
+    if (!gst_init_enc_common(info))
+        goto fail;
+
+    if (!gst_init_ldac(info, sample_spec, for_encoding))
+        goto enc_fail;
+
+    if (!gst_codec_init(info, for_encoding))
+        goto enc_fail;
+
+    return info;
+
+enc_fail:
+    gst_deinit_enc_common(info);
+fail:
+    if (info)
+        pa_xfree(info);
+
+    return NULL;
+}
+
 static void *init_hq(bool for_encoding, bool for_backchannel, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *sample_spec, pa_core *core) {
-    return gst_codec_init(LDAC_EQMID_HQ, config_buffer, config_size, sample_spec, core);
+    return init_common(LDAC_EQMID_HQ, for_encoding, for_backchannel, config_buffer, config_size, sample_spec, core);
 }
 
 static void *init_sq(bool for_encoding, bool for_backchannel, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *sample_spec, pa_core *core) {
-    return gst_codec_init(LDAC_EQMID_SQ, config_buffer, config_size, sample_spec, core);
+    return init_common(LDAC_EQMID_SQ, for_encoding, for_backchannel, config_buffer, config_size, sample_spec, core);
 }
 
 static void *init_mq(bool for_encoding, bool for_backchannel, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *sample_spec, pa_core *core) {
-    return gst_codec_init(LDAC_EQMID_MQ, config_buffer, config_size, sample_spec, core);
+    return init_common(LDAC_EQMID_MQ, for_encoding, for_backchannel, config_buffer, config_size, sample_spec, core);
 }
 
 static void deinit(void *codec_info) {
@@ -280,7 +426,6 @@ static size_t encode_buffer(void *codec_info, uint32_t timestamp, const uint8_t 
     written = gst_encode_buffer(codec_info, timestamp, input_buffer, input_size, output_buffer, output_size, processed);
     if (PA_UNLIKELY(*processed != input_size))
         pa_log_error("LDAC encoding error");
-
 
     return written;
 }

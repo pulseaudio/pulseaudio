@@ -43,7 +43,7 @@ struct gst_info {
         const a2dp_ldac_t *ldac_config;
     } a2dp_codec_t;
 
-    GstElement *gst_enc, *gst_dec;
+    GstElement *enc_bin, *dec_bin;
     GstElement *enc_src, *enc_sink;
     GstElement *dec_src, *dec_sink;
     GstElement *enc_pipeline, *dec_pipeline;
@@ -55,7 +55,12 @@ struct gst_info {
     uint16_t seq_num;
 };
 
-void *gst_codec_init(enum a2dp_codec_type codec_type, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *ss, pa_core *core);
+bool gst_codec_init(struct gst_info *info, bool for_encoding);
 size_t gst_encode_buffer(void *codec_info, uint32_t timestamp, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed);
 size_t gst_decode_buffer(void *codec_info, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed);
 void gst_codec_deinit(void *codec_info);
+
+bool gst_init_enc_common(struct gst_info *info);
+bool gst_init_dec_common(struct gst_info *info);
+void gst_deinit_enc_common(struct gst_info *info);
+void gst_deinit_dec_common(struct gst_info *info);
