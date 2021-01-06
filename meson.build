@@ -938,7 +938,7 @@ if host_machine.system() != 'windows'
     ]
     warning('\n' + '\n'.join(message))
   endif
-  if not udev_dep.found()
+  if host_machine.system() == 'linux' and not udev_dep.found()
     message = [
       'You do not have udev support enabled. It is strongly recommended',
       'that you enable udev support if your platform supports it as it is',
