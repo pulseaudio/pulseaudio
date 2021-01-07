@@ -88,3 +88,17 @@ void pa_bluetooth_a2dp_codec_gst_init(void) {
     pa_log_info("GStreamer initialisation done");
 #endif
 }
+
+bool pa_bluetooth_a2dp_codec_is_codec_available(const pa_a2dp_codec_id *id, bool is_a2dp_sink) {
+    unsigned int i;
+    unsigned int count = pa_bluetooth_a2dp_codec_count();
+
+    for (i = 0; i < count; i++) {
+        if (memcmp(id, &pa_a2dp_codecs[i]->id, sizeof(pa_a2dp_codec_id)) == 0) {
+            return (is_a2dp_sink && pa_a2dp_codecs[i]->encode_buffer != NULL)
+                || (!is_a2dp_sink && pa_a2dp_codecs[i]->decode_buffer != NULL);
+        }
+    }
+
+    return false;
+}

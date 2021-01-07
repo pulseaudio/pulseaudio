@@ -1335,6 +1335,11 @@ static void parse_remote_endpoint_properties(pa_bluetooth_discovery *y, const ch
         a2dp_codec_id->vendor_codec_id = 0;
     }
 
+    if (!pa_bluetooth_a2dp_codec_is_codec_available(a2dp_codec_id, pa_streq(uuid, PA_BLUETOOTH_UUID_A2DP_SINK))) {
+        pa_xfree(a2dp_codec_id);
+        return;
+    }
+
     a2dp_codec_capabilities = pa_xmalloc0(sizeof(*a2dp_codec_capabilities) + capabilities_size);
     a2dp_codec_capabilities->size = capabilities_size;
     memcpy(a2dp_codec_capabilities->buffer, capabilities, capabilities_size);
@@ -2108,15 +2113,19 @@ static DBusHandlerResult object_manager_handler(DBusConnection *c, DBusMessage *
             capabilities_size = a2dp_codec->fill_capabilities(capabilities);
             pa_assert(capabilities_size != 0);
 
-            endpoint = pa_sprintf_malloc("%s/%s", A2DP_SINK_ENDPOINT, a2dp_codec->name);
-            append_a2dp_object(&array, endpoint, PA_BLUETOOTH_UUID_A2DP_SINK, codec_id,
-                    capabilities, capabilities_size);
-            pa_xfree(endpoint);
+            if (a2dp_codec->decode_buffer != NULL) {
+                endpoint = pa_sprintf_malloc("%s/%s", A2DP_SINK_ENDPOINT, a2dp_codec->name);
+                append_a2dp_object(&array, endpoint, PA_BLUETOOTH_UUID_A2DP_SINK, codec_id,
+                        capabilities, capabilities_size);
+                pa_xfree(endpoint);
+            }
 
-            endpoint = pa_sprintf_malloc("%s/%s", A2DP_SOURCE_ENDPOINT, a2dp_codec->name);
-            append_a2dp_object(&array, endpoint, PA_BLUETOOTH_UUID_A2DP_SOURCE, codec_id,
-                    capabilities, capabilities_size);
-            pa_xfree(endpoint);
+            if (a2dp_codec->encode_buffer != NULL) {
+                endpoint = pa_sprintf_malloc("%s/%s", A2DP_SOURCE_ENDPOINT, a2dp_codec->name);
+                append_a2dp_object(&array, endpoint, PA_BLUETOOTH_UUID_A2DP_SOURCE, codec_id,
+                        capabilities, capabilities_size);
+                pa_xfree(endpoint);
+            }
         }
 
         dbus_message_iter_close_container(&iter, &array);
@@ -2214,13 +2223,17 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c, int headset_backe
         if (!a2dp_codec->can_be_supported())
             continue;
 
-        endpoint = pa_sprintf_malloc("%s/%s", A2DP_SINK_ENDPOINT, a2dp_codec->name);
-        endpoint_init(y, endpoint);
-        pa_xfree(endpoint);
+        if (a2dp_codec->decode_buffer != NULL) {
+            endpoint = pa_sprintf_malloc("%s/%s", A2DP_SINK_ENDPOINT, a2dp_codec->name);
+            endpoint_init(y, endpoint);
+            pa_xfree(endpoint);
+        }
 
-        endpoint = pa_sprintf_malloc("%s/%s", A2DP_SOURCE_ENDPOINT, a2dp_codec->name);
-        endpoint_init(y, endpoint);
-        pa_xfree(endpoint);
+        if (a2dp_codec->encode_buffer != NULL) {
+            endpoint = pa_sprintf_malloc("%s/%s", A2DP_SOURCE_ENDPOINT, a2dp_codec->name);
+            endpoint_init(y, endpoint);
+            pa_xfree(endpoint);
+        }
     }
 
     get_managed_objects(y);
@@ -2304,13 +2317,17 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
             if (!a2dp_codec->can_be_supported())
                 continue;
 
-            endpoint = pa_sprintf_malloc("%s/%s", A2DP_SINK_ENDPOINT, a2dp_codec->name);
-            endpoint_done(y, endpoint);
-            pa_xfree(endpoint);
+            if (a2dp_codec->decode_buffer != NULL) {
+                endpoint = pa_sprintf_malloc("%s/%s", A2DP_SINK_ENDPOINT, a2dp_codec->name);
+                endpoint_done(y, endpoint);
+                pa_xfree(endpoint);
+            }
 
-            endpoint = pa_sprintf_malloc("%s/%s", A2DP_SOURCE_ENDPOINT, a2dp_codec->name);
-            endpoint_done(y, endpoint);
-            pa_xfree(endpoint);
+            if (a2dp_codec->encode_buffer != NULL) {
+                endpoint = pa_sprintf_malloc("%s/%s", A2DP_SOURCE_ENDPOINT, a2dp_codec->name);
+                endpoint_done(y, endpoint);
+                pa_xfree(endpoint);
+            }
         }
 
         pa_dbus_connection_unref(y->connection);
