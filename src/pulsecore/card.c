@@ -163,10 +163,10 @@ static int card_message_handler(const char *object_path, const char *message, co
     pa_card *c;
     const char *port_name;
     bool jack_detection;
+    int64_t port_state;
     void *state = NULL;
     pa_device_port *port = NULL;
     const pa_json_object *o;
-    int64_t current_state;
     char *message_handler_path;
 
     pa_assert(c = (pa_card *) userdata);
@@ -240,7 +240,7 @@ static int card_message_handler(const char *object_path, const char *message, co
                 pa_log_info("Parameters type does not match message command");
                 return -PA_ERR_INVALID;
             }
-            current_state = pa_json_object_get_int(o);
+            port_state = pa_json_object_get_int(o);
         }
 
     } else {
@@ -256,15 +256,35 @@ static int card_message_handler(const char *object_path, const char *message, co
         }
     }
 
+    state = NULL;
+
     if (pa_streq(message, "set-jack-detection")) {
 
         if (!port) {
 
-            PA_HASHMAP_FOREACH(port, c->ports, state)
-                port->jack_detection = jack_detection;
+            PA_HASHMAP_FOREACH(port, c->ports, state) {
+                pa_available_t avail = PA_AVAILABLE_UNKNOWN;
 
-        } else
+                /* If jack detection was enabled, set the port state
+                 * to the hardware state. */
+                if (jack_detection)
+                    avail = port->hw_available;
+
+                port->jack_detection = jack_detection;
+                pa_device_port_set_available(port, avail, true);
+            }
+
+        } else {
+            pa_available_t avail = PA_AVAILABLE_UNKNOWN;
+
+            /* If jack detection was enabled, set the port state
+             * to the hardware state. */
+            if (jack_detection)
+                avail = port->hw_available;
+
             port->jack_detection = jack_detection;
+            pa_device_port_set_available(port, avail, true);
+        }
 
         return PA_OK;
 
@@ -291,10 +311,25 @@ static int card_message_handler(const char *object_path, const char *message, co
 
     } else if (pa_streq(message, "set-port-state")) {
 
-        /* Not implemented because jack_detection is still unused
-         * and manually setting a port state would require to disable
-         * jack detection */
-        return -PA_ERR_NOTIMPLEMENTED;
+        /* Validate port state parameter */
+        if ((pa_available_t) port_state > PA_AVAILABLE_YES)
+            return -PA_ERR_INVALID;
+
+        if (!port) {
+
+            PA_HASHMAP_FOREACH(port, c->ports, state) {
+
+                port->jack_detection = false;
+                pa_device_port_set_available(port, (pa_available_t) port_state, true);
+            }
+
+        } else {
+
+            port->jack_detection = false;
+            pa_device_port_set_available(port, (pa_available_t) port_state, true);
+        }
+
+        return PA_OK;
 
     } else if (pa_streq(message, "get-port-state")) {
         pa_json_encoder *encoder;
@@ -306,14 +341,14 @@ static int card_message_handler(const char *object_path, const char *message, co
 
             pa_json_encoder_begin_member_object(encoder, "Port states");
             PA_HASHMAP_FOREACH(port, c->ports, state) {
-                current_state = port->available;
-                pa_json_encoder_add_member_int(encoder, port->name, current_state);
+                port_state = port->available;
+                pa_json_encoder_add_member_int(encoder, port->name, port_state);
             }
             pa_json_encoder_end_object(encoder);
 
        } else {
-            current_state = port->available;
-            pa_json_encoder_add_member_int(encoder, port->name, current_state);
+            port_state = port->available;
+            pa_json_encoder_add_member_int(encoder, port->name, port_state);
        }
        pa_json_encoder_end_object(encoder);
 

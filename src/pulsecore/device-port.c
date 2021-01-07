@@ -90,10 +90,23 @@ void pa_device_port_set_preferred_profile(pa_device_port *p, const char *new_pp)
     }
 }
 
-void pa_device_port_set_available(pa_device_port *p, pa_available_t status) {
+void pa_device_port_set_available(pa_device_port *p, pa_available_t status, bool force) {
     pa_assert(p);
 
+    /* If force is not set, status reflects the state of the port from a
+     * hardware perspective. We need to keep track of the real port state
+     * so that we can go back to it once jack detection is enabled for the
+     * port. If force is set, we are updating the port state manually, so
+     * the hardware state is unaffected. */
+    if (!force)
+        p->hw_available = status;
+
     if (p->available == status)
+        return;
+
+    /* Do not set the port state if jack detection is disabled for the port
+     * unless we are setting the state manually. */
+    if (!force && !p->jack_detection)
         return;
 
 /*    pa_assert(status != PA_AVAILABLE_UNKNOWN); */
