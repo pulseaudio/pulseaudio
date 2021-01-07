@@ -53,14 +53,6 @@ struct transport_data {
     pa_mainloop_api *mainloop;
 };
 
-#define BLUEZ_SERVICE "org.bluez"
-#define BLUEZ_MEDIA_TRANSPORT_INTERFACE BLUEZ_SERVICE ".MediaTransport1"
-
-#define BLUEZ_ERROR_NOT_SUPPORTED "org.bluez.Error.NotSupported"
-
-#define BLUEZ_PROFILE_MANAGER_INTERFACE BLUEZ_SERVICE ".ProfileManager1"
-#define BLUEZ_PROFILE_INTERFACE BLUEZ_SERVICE ".Profile1"
-
 #define HSP_AG_PROFILE "/Profile/HSPAGProfile"
 #define HSP_HS_PROFILE "/Profile/HSPHSProfile"
 
