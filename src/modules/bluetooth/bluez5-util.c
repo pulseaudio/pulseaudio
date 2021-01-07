@@ -382,11 +382,11 @@ bool pa_bluetooth_switch_codec(pa_bluetooth_device *device, pa_bluetooth_profile
     dbus_message_iter_init_append(m, &iter);
     pa_assert_se(dbus_message_iter_append_basic(&iter, DBUS_TYPE_OBJECT_PATH, &pa_endpoint));
     dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY,
-            DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING
-            DBUS_TYPE_STRING_AS_STRING
-            DBUS_TYPE_VARIANT_AS_STRING
-            DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
-            &dict);
+                                     DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING
+                                     DBUS_TYPE_STRING_AS_STRING
+                                     DBUS_TYPE_VARIANT_AS_STRING
+                                     DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
+                                     &dict);
     pa_dbus_append_basic_array_variant_dict_entry(&dict, "Capabilities", DBUS_TYPE_BYTE, &config, config_size);
     dbus_message_iter_close_container(&iter, &dict);
 
@@ -1109,8 +1109,12 @@ static void register_legacy_sbc_endpoint(pa_bluetooth_discovery *y, const pa_a2d
 
     dbus_message_iter_init_append(m, &i);
     pa_assert_se(dbus_message_iter_append_basic(&i, DBUS_TYPE_OBJECT_PATH, &endpoint));
-    dbus_message_iter_open_container(&i, DBUS_TYPE_ARRAY, DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING DBUS_TYPE_STRING_AS_STRING
-                                         DBUS_TYPE_VARIANT_AS_STRING DBUS_DICT_ENTRY_END_CHAR_AS_STRING, &d);
+    dbus_message_iter_open_container(&i, DBUS_TYPE_ARRAY,
+                                     DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING
+                                     DBUS_TYPE_STRING_AS_STRING
+                                     DBUS_TYPE_VARIANT_AS_STRING
+                                     DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
+                                     &d);
     pa_dbus_append_basic_variant_dict_entry(&d, "UUID", DBUS_TYPE_STRING, &uuid);
     pa_dbus_append_basic_variant_dict_entry(&d, "Codec", DBUS_TYPE_BYTE, &codec_id);
     pa_dbus_append_basic_array_variant_dict_entry(&d, "Capabilities", DBUS_TYPE_BYTE, &capabilities, capabilities_size);
@@ -1196,11 +1200,11 @@ static void register_application(pa_bluetooth_adapter *a) {
     dbus_message_iter_init_append(m, &i);
     pa_assert_se(dbus_message_iter_append_basic(&i, DBUS_TYPE_OBJECT_PATH, &object_manager_path));
     dbus_message_iter_open_container(&i, DBUS_TYPE_ARRAY,
-            DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING
-            DBUS_TYPE_STRING_AS_STRING
-            DBUS_TYPE_VARIANT_AS_STRING
-            DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
-            &d);
+                                     DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING
+                                     DBUS_TYPE_STRING_AS_STRING
+                                     DBUS_TYPE_VARIANT_AS_STRING
+                                     DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
+                                     &d);
     dbus_message_iter_close_container(&i, &d);
 
     send_and_add_to_pending(a->discovery, m, register_application_reply, pa_xstrdup(a->path));
