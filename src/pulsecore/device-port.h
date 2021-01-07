@@ -45,6 +45,8 @@ struct pa_device_port {
     char *preferred_profile;
     pa_device_port_type_t type;
 
+    bool jack_detection;
+
     unsigned priority;
     pa_available_t available;         /* PA_AVAILABLE_UNKNOWN, PA_AVAILABLE_NO or PA_AVAILABLE_YES */
     char *availability_group;         /* a string indentifier which determine the group of devices handling the available state simulteneously */

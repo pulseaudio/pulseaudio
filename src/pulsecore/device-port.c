@@ -200,6 +200,7 @@ pa_device_port *pa_device_port_new(pa_core *c, pa_device_port_new_data *data, si
     p->type = data->type;
 
     p->latency_offset = 0;
+    p->jack_detection = true;
     p->proplist = pa_proplist_new();
 
     return p;

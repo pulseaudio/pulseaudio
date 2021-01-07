@@ -106,6 +106,8 @@ typedef struct pa_card_new_data {
     pa_device_port *preferred_input_port;
     pa_device_port *preferred_output_port;
 
+    bool jack_detection;
+
     bool namereg_fail:1;
 } pa_card_new_data;
 

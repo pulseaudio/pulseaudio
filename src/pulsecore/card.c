@@ -38,8 +38,6 @@
 
 #include "card.h"
 
-static int card_message_handler(const char *object_path, const char *message, const pa_json_object *parameters, char **response, void *userdata);
-
 static char* make_message_handler_path(const char *name) {
     return pa_sprintf_malloc("/card/%s", name);
 }
@@ -140,6 +138,191 @@ void pa_card_new_data_done(pa_card_new_data *data) {
         pa_hashmap_free(data->ports);
 
     pa_xfree(data->name);
+}
+
+static int card_set_profile_is_sticky(pa_card *c, bool profile_is_sticky) {
+    pa_assert(c);
+
+    if (c->profile_is_sticky == profile_is_sticky)
+        return 0;
+
+    pa_log_debug("%s: profile_is_sticky: %s -> %s",
+            c->name, pa_yes_no(c->profile_is_sticky), pa_yes_no(profile_is_sticky));
+
+    c->profile_is_sticky = profile_is_sticky;
+
+    if (c->linked) {
+        pa_hook_fire(&c->core->hooks[PA_CORE_HOOK_CARD_PROFILE_CHANGED], c);
+        pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, c->index);
+    }
+
+    return 0;
+}
+
+static int card_message_handler(const char *object_path, const char *message, const pa_json_object *parameters, char **response, void *userdata) {
+    pa_card *c;
+    const char *port_name;
+    bool jack_detection;
+    void *state = NULL;
+    pa_device_port *port = NULL;
+    const pa_json_object *o;
+    int64_t current_state;
+    char *message_handler_path;
+
+    pa_assert(c = (pa_card *) userdata);
+    pa_assert(message);
+    pa_assert(response);
+
+    message_handler_path = make_message_handler_path(c->name);
+
+    if (!object_path || !pa_streq(object_path, message_handler_path)) {
+        pa_xfree(message_handler_path);
+        return -PA_ERR_NOENTITY;
+    }
+
+    pa_xfree(message_handler_path);
+
+    /* Sticky profile operations */
+
+    if (pa_streq(message, "get-profile-sticky")) {
+        pa_json_encoder *encoder;
+        encoder = pa_json_encoder_new();
+
+        pa_json_encoder_add_element_bool(encoder, c->profile_is_sticky);
+
+        *response = pa_json_encoder_to_string_free(encoder);
+
+        return PA_OK;
+    } else if (pa_streq(message, "set-profile-sticky")) {
+
+        if (!parameters || pa_json_object_get_type(parameters) != PA_JSON_TYPE_BOOL) {
+            pa_log_info("Card operation set-profile-sticky requires argument: \"true\" or \"false\"");
+            return -PA_ERR_INVALID;
+        }
+
+        card_set_profile_is_sticky(c, pa_json_object_get_bool(parameters));
+
+        return PA_OK;
+    }
+
+    /* Jack detection operations */
+
+    if (!parameters) {
+        pa_log_info("Card jack detection operations require at least one parameter");
+        return -PA_ERR_INVALID;
+    }
+
+    /* Get the arguments of the message */
+    if (pa_json_object_get_type(parameters) == PA_JSON_TYPE_STRING)
+       port_name = pa_json_object_get_string(parameters);
+
+    else if (pa_json_object_get_type(parameters) == PA_JSON_TYPE_OBJECT) {
+        const pa_hashmap *h;
+
+        h = pa_json_object_get_object_member_hashmap(parameters);
+        if (pa_hashmap_size(h) > 1) {
+            pa_log_info("Too many parameters");
+            return -PA_ERR_INVALID;
+        }
+        o = pa_hashmap_iterate(h, &state, (const void **) &port_name);
+        if (!o || (pa_json_object_get_type(o) != PA_JSON_TYPE_BOOL && pa_json_object_get_type(o) != PA_JSON_TYPE_INT)) {
+            pa_log_info("Parameters must contain a valid JSON object");
+            return -PA_ERR_INVALID;
+        }
+        if (pa_json_object_get_type(o) == PA_JSON_TYPE_BOOL) {
+            if (!pa_streq(message, "set-jack-detection")) {
+                pa_log_info("Parameters type does not match message command");
+                return -PA_ERR_INVALID;
+            }
+            jack_detection = pa_json_object_get_bool(o);
+        } else {
+            if (!pa_streq(message, "set-port-state")) {
+                pa_log_info("Parameters type does not match message command");
+                return -PA_ERR_INVALID;
+            }
+            current_state = pa_json_object_get_int(o);
+        }
+
+    } else {
+        pa_log_info("Parameters must be a valid JSON object");
+        return -PA_ERR_INVALID;
+    }
+
+    /* If the port argument is not "all", retrieve the port */
+    if (!pa_streq(port_name, "all")) {
+        if (!(port = pa_hashmap_get(c->ports, port_name))) {
+            pa_log_info("Parameters do not contain a valid port name");
+            return -PA_ERR_INVALID;
+        }
+    }
+
+    if (pa_streq(message, "set-jack-detection")) {
+
+        if (!port) {
+
+            PA_HASHMAP_FOREACH(port, c->ports, state)
+                port->jack_detection = jack_detection;
+
+        } else
+            port->jack_detection = jack_detection;
+
+        return PA_OK;
+
+    } else if (pa_streq(message, "get-jack-detection")) {
+        pa_json_encoder *encoder;
+
+        encoder = pa_json_encoder_new();
+        pa_json_encoder_begin_element_object(encoder);
+        if (!port) {
+            pa_json_encoder_add_member_string(encoder, "Card name", c->name);
+
+            pa_json_encoder_begin_member_object(encoder, "Detection states");
+            PA_HASHMAP_FOREACH(port, c->ports, state)
+                pa_json_encoder_add_member_bool(encoder, port->name, port->jack_detection);
+            pa_json_encoder_end_object(encoder);
+
+       } else
+            pa_json_encoder_add_member_bool(encoder, port->name, port->jack_detection);
+
+       pa_json_encoder_end_object(encoder);
+
+        *response = pa_json_encoder_to_string_free(encoder);
+        return PA_OK;
+
+    } else if (pa_streq(message, "set-port-state")) {
+
+        /* Not implemented because jack_detection is still unused
+         * and manually setting a port state would require to disable
+         * jack detection */
+        return -PA_ERR_NOTIMPLEMENTED;
+
+    } else if (pa_streq(message, "get-port-state")) {
+        pa_json_encoder *encoder;
+
+        encoder = pa_json_encoder_new();
+        pa_json_encoder_begin_element_object(encoder);
+        if (!port) {
+            pa_json_encoder_add_member_string(encoder, "Card name", c->name);
+
+            pa_json_encoder_begin_member_object(encoder, "Port states");
+            PA_HASHMAP_FOREACH(port, c->ports, state) {
+                current_state = port->available;
+                pa_json_encoder_add_member_int(encoder, port->name, current_state);
+            }
+            pa_json_encoder_end_object(encoder);
+
+       } else {
+            current_state = port->available;
+            pa_json_encoder_add_member_int(encoder, port->name, current_state);
+       }
+       pa_json_encoder_end_object(encoder);
+
+        *response = pa_json_encoder_to_string_free(encoder);
+        return PA_OK;
+
+    }
+
+    return -PA_ERR_NOTIMPLEMENTED;
 }
 
 pa_card *pa_card_new(pa_core *core, pa_card_new_data *data) {
@@ -328,25 +511,6 @@ static void update_port_preferred_profile(pa_card *c) {
             pa_device_port_set_preferred_profile(source->active_port, profile_name_for_dir(c->active_profile, PA_DIRECTION_INPUT));
 }
 
-static int card_set_profile_is_sticky(pa_card *c, bool profile_is_sticky) {
-    pa_assert(c);
-
-    if (c->profile_is_sticky == profile_is_sticky)
-        return 0;
-
-    pa_log_debug("%s: profile_is_sticky: %s -> %s",
-            c->name, pa_yes_no(c->profile_is_sticky), pa_yes_no(profile_is_sticky));
-
-    c->profile_is_sticky = profile_is_sticky;
-
-    if (c->linked) {
-        pa_hook_fire(&c->core->hooks[PA_CORE_HOOK_CARD_PROFILE_CHANGED], c);
-        pa_subscription_post(c->core, PA_SUBSCRIPTION_EVENT_CARD|PA_SUBSCRIPTION_EVENT_CHANGE, c->index);
-    }
-
-    return 0;
-}
-
 int pa_card_set_profile(pa_card *c, pa_card_profile *profile, bool save) {
     int r;
 
@@ -464,45 +628,4 @@ int pa_card_suspend(pa_card *c, bool suspend, pa_suspend_cause_t cause) {
     }
 
     return ret;
-}
-
-static int card_message_handler(const char *object_path, const char *message, const pa_json_object *parameters, char **response, void *userdata) {
-    pa_card *c;
-    char *message_handler_path;
-
-    pa_assert(c = (pa_card *) userdata);
-    pa_assert(message);
-    pa_assert(response);
-
-    message_handler_path = make_message_handler_path(c->name);
-
-    if (!object_path || !pa_streq(object_path, message_handler_path)) {
-        pa_xfree(message_handler_path);
-        return -PA_ERR_NOENTITY;
-    }
-
-    pa_xfree(message_handler_path);
-
-    if (pa_streq(message, "get-profile-sticky")) {
-        pa_json_encoder *encoder;
-        encoder = pa_json_encoder_new();
-
-        pa_json_encoder_add_element_bool(encoder, c->profile_is_sticky);
-
-        *response = pa_json_encoder_to_string_free(encoder);
-
-        return PA_OK;
-    } else if (pa_streq(message, "set-profile-sticky")) {
-
-        if (!parameters || pa_json_object_get_type(parameters) != PA_JSON_TYPE_BOOL) {
-            pa_log_info("Card operation set-profile-sticky requires argument: \"true\" or \"false\"");
-            return -PA_ERR_INVALID;
-        }
-
-        card_set_profile_is_sticky(c, pa_json_object_get_bool(parameters));
-
-        return PA_OK;
-    }
-
-    return -PA_ERR_NOTIMPLEMENTED;
 }
