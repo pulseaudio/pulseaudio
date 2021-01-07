@@ -158,7 +158,7 @@ static DBusHandlerResult disconnection_filter_cb(DBusConnection *connection, DBu
     pa_assert(message);
     pa_assert(c);
 
-    if (dbus_message_is_signal(message, "org.freedesktop.DBus.Local", "Disconnected")) {
+    if (dbus_message_is_signal(message, DBUS_INTERFACE_LOCAL, "Disconnected")) {
         /* The connection died. Now we want to free the connection object, but
          * let's wait until this message is fully processed, in case someone
          * else is interested in this signal too. */

@@ -77,7 +77,7 @@ static long long rtkit_get_int_property(DBusConnection *connection, const char* 
         if (!(m = dbus_message_new_method_call(
                               RTKIT_SERVICE_NAME,
                               RTKIT_OBJECT_PATH,
-                              "org.freedesktop.DBus.Properties",
+                              DBUS_INTERFACE_PROPERTIES,
                               "Get"))) {
                 ret = -ENOMEM;
                 goto finish;

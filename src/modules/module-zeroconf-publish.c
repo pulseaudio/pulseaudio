@@ -689,7 +689,7 @@ static char *get_icon_name(pa_module*m) {
 
     msg = dbus_message_new_method_call(HOSTNAME_DBUS_INTERFACE,
                                        HOSTNAME_DBUS_PATH,
-                                       "org.freedesktop.DBus.Properties",
+                                       DBUS_INTERFACE_PROPERTIES,
                                        "Get");
     dbus_message_append_args(msg, DBUS_TYPE_STRING, &interface, DBUS_TYPE_STRING, &property, DBUS_TYPE_INVALID);
 

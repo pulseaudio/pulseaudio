@@ -515,7 +515,7 @@ static DBusHandlerResult handle_message_cb(DBusConnection *connection, DBusMessa
     pa_assert_se(call_info.method = dbus_message_get_member(message));
     pa_assert_se(call_info.method_sig = dbus_message_get_signature(message));
 
-    if (dbus_message_is_method_call(message, "org.freedesktop.DBus.Introspectable", "Introspect") ||
+    if (dbus_message_is_method_call(message, DBUS_INTERFACE_INTROSPECTABLE, "Introspect") ||
         (!dbus_message_get_interface(message) && dbus_message_has_member(message, "Introspect"))) {
         pa_dbus_send_basic_value_reply(connection, message, DBUS_TYPE_STRING, &call_info.obj_entry->introspection);
         goto finish;

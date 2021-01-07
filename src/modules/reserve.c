@@ -71,14 +71,14 @@ static const char introspection[] =
 	"  <property name=\"ApplicationName\" type=\"s\" access=\"read\"/>"
 	"  <property name=\"ApplicationDeviceName\" type=\"s\" access=\"read\"/>"
 	" </interface>"
-	" <interface name=\"org.freedesktop.DBus.Properties\">"
+	" <interface name=\"" DBUS_INTERFACE_PROPERTIES "\">"
 	"  <method name=\"Get\">"
 	"   <arg name=\"interface\" direction=\"in\" type=\"s\"/>"
 	"   <arg name=\"property\" direction=\"in\" type=\"s\"/>"
 	"   <arg name=\"value\" direction=\"out\" type=\"v\"/>"
 	"  </method>"
 	" </interface>"
-	" <interface name=\"org.freedesktop.DBus.Introspectable\">"
+	" <interface name=\"" DBUS_INTERFACE_INTROSPECTABLE "\">"
 	"  <method name=\"Introspect\">"
 	"   <arg name=\"data\" type=\"s\" direction=\"out\"/>"
 	"  </method>"
@@ -170,7 +170,7 @@ static DBusHandlerResult object_handler(
 
 	} else if (dbus_message_is_method_call(
 			   m,
-			   "org.freedesktop.DBus.Properties",
+			   DBUS_INTERFACE_PROPERTIES,
 			   "Get")) {
 
 		const char *interface, *property;
@@ -234,7 +234,7 @@ static DBusHandlerResult object_handler(
 
 	} else if (dbus_message_is_method_call(
 			   m,
-			   "org.freedesktop.DBus.Introspectable",
+			   DBUS_INTERFACE_INTROSPECTABLE,
 			   "Introspect")) {
 			    const char *i = introspection;
 
@@ -300,7 +300,7 @@ static DBusHandlerResult filter_handler(
 	d = userdata;
 	assert(d->ref >= 1);
 
-	if (dbus_message_is_signal(m, "org.freedesktop.DBus", "NameLost")) {
+	if (dbus_message_is_signal(m, DBUS_INTERFACE_DBUS, "NameLost")) {
 		const char *name;
 
 		if (!dbus_message_get_args(
@@ -670,7 +670,7 @@ int rd_dbus_get_name_owner(
 			goto fail;
 		}
 
-	} else if (dbus_error_has_name(error, "org.freedesktop.DBus.Error.NameHasNoOwner"))
+	} else if (dbus_error_has_name(error, DBUS_ERROR_NAME_HAS_NO_OWNER))
 		dbus_error_free(error);
 	else {
 		r = -EIO;

@@ -27,7 +27,7 @@ def get_ladspa_property_interface(sinkname):
     session = dbus.SessionBus()
 
     # get the private D-Bus socket address from PulseAudio properties
-    session_property_iface = dbus.Interface(session.get_object("org.PulseAudio1", "/org/pulseaudio/server_lookup1"), "org.freedesktop.DBus.Properties")
+    session_property_iface = dbus.Interface(session.get_object("org.PulseAudio1", "/org/pulseaudio/server_lookup1"), dbus.PROPERTIES_IFACE)
     socket = session_property_iface.Get("org.PulseAudio.ServerLookup1", "Address")
 
     # connect to the private PulseAudio D-Bus socket
@@ -40,7 +40,7 @@ def get_ladspa_property_interface(sinkname):
     ladspa_sink_path = core.GetSinkByName(sinkname)
 
     # property interface proxy for the sink
-    ladspa_sink_property_iface = dbus.Interface(connection.get_object(object_path=ladspa_sink_path), "org.freedesktop.DBus.Properties")
+    ladspa_sink_property_iface = dbus.Interface(connection.get_object(object_path=ladspa_sink_path), dbus.PROPERTIES_IFACE)
 
     return ladspa_sink_property_iface
 

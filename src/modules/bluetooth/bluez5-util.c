@@ -42,6 +42,8 @@
 
 #define WAIT_FOR_PROFILES_TIMEOUT_USEC (3 * PA_USEC_PER_SEC)
 
+#define DBUS_INTERFACE_OBJECT_MANAGER DBUS_INTERFACE_DBUS ".ObjectManager"
+
 #define A2DP_OBJECT_MANAGER_PATH "/MediaEndpoint"
 #define A2DP_SOURCE_ENDPOINT A2DP_OBJECT_MANAGER_PATH "/A2DPSource"
 #define A2DP_SINK_ENDPOINT A2DP_OBJECT_MANAGER_PATH "/A2DPSink"
@@ -49,7 +51,7 @@
 #define OBJECT_MANAGER_INTROSPECT_XML                                          \
     DBUS_INTROSPECT_1_0_XML_DOCTYPE_DECL_NODE                                  \
     "<node>\n"                                                                 \
-    " <interface name=\"org.freedesktop.DBus.ObjectManager\">\n"               \
+    " <interface name=\"" DBUS_INTERFACE_OBJECT_MANAGER "\">\n"                \
     "  <method name=\"GetManagedObjects\">\n"                                  \
     "   <arg name=\"objects\" direction=\"out\" type=\"a{oa{sa{sv}}}\"/>\n"    \
     "  </method>\n"                                                            \
@@ -62,7 +64,7 @@
     "   <arg name=\"interfaces\" type=\"as\"/>\n"                              \
     "  </signal>\n"                                                            \
     " </interface>\n"                                                          \
-    " <interface name=\"org.freedesktop.DBus.Introspectable\">\n"              \
+    " <interface name=\"" DBUS_INTERFACE_INTROSPECTABLE "\">\n"                \
     "  <method name=\"Introspect\">\n"                                         \
     "   <arg name=\"data\" direction=\"out\" type=\"s\"/>\n"                   \
     "  </method>\n"                                                            \
@@ -89,7 +91,7 @@
     "  <method name=\"Release\">"                                       \
     "  </method>"                                                       \
     " </interface>"                                                     \
-    " <interface name=\"org.freedesktop.DBus.Introspectable\">"         \
+    " <interface name=\"" DBUS_INTERFACE_INTROSPECTABLE "\">"           \
     "  <method name=\"Introspect\">"                                    \
     "   <arg name=\"data\" type=\"s\" direction=\"out\"/>"              \
     "  </method>"                                                       \
@@ -1515,7 +1517,7 @@ static void get_managed_objects(pa_bluetooth_discovery *y) {
 
     pa_assert(y);
 
-    pa_assert_se(m = dbus_message_new_method_call(BLUEZ_SERVICE, "/", "org.freedesktop.DBus.ObjectManager",
+    pa_assert_se(m = dbus_message_new_method_call(BLUEZ_SERVICE, "/", DBUS_INTERFACE_OBJECT_MANAGER,
                                                   "GetManagedObjects"));
     send_and_add_to_pending(y, m, get_managed_objects_reply, NULL);
 }
@@ -1537,7 +1539,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
 
     dbus_error_init(&err);
 
-    if (dbus_message_is_signal(m, "org.freedesktop.DBus", "NameOwnerChanged")) {
+    if (dbus_message_is_signal(m, DBUS_INTERFACE_DBUS, "NameOwnerChanged")) {
         const char *name, *old_owner, *new_owner;
 
         if (!dbus_message_get_args(m, &err,
@@ -1545,7 +1547,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
                                    DBUS_TYPE_STRING, &old_owner,
                                    DBUS_TYPE_STRING, &new_owner,
                                    DBUS_TYPE_INVALID)) {
-            pa_log_error("Failed to parse org.freedesktop.DBus.NameOwnerChanged: %s", err.message);
+            pa_log_error("Failed to parse " DBUS_INTERFACE_DBUS ".NameOwnerChanged: %s", err.message);
             goto fail;
         }
 
@@ -1572,7 +1574,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
         }
 
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
-    } else if (dbus_message_is_signal(m, "org.freedesktop.DBus.ObjectManager", "InterfacesAdded")) {
+    } else if (dbus_message_is_signal(m, DBUS_INTERFACE_OBJECT_MANAGER, "InterfacesAdded")) {
         DBusMessageIter arg_i;
 
         if (!y->objects_listed)
@@ -1586,7 +1588,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
         parse_interfaces_and_properties(y, &arg_i);
 
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
-    } else if (dbus_message_is_signal(m, "org.freedesktop.DBus.ObjectManager", "InterfacesRemoved")) {
+    } else if (dbus_message_is_signal(m, DBUS_INTERFACE_OBJECT_MANAGER, "InterfacesRemoved")) {
         const char *p;
         DBusMessageIter arg_i;
         DBusMessageIter element_i;
@@ -1623,7 +1625,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *us
 
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 
-    } else if (dbus_message_is_signal(m, "org.freedesktop.DBus.Properties", "PropertiesChanged")) {
+    } else if (dbus_message_is_signal(m, DBUS_INTERFACE_PROPERTIES, "PropertiesChanged")) {
         DBusMessageIter arg_i;
         const char *iface;
 
@@ -1972,7 +1974,7 @@ static DBusHandlerResult endpoint_handler(DBusConnection *c, DBusMessage *m, voi
     if (!a2dp_endpoint_to_a2dp_codec(path))
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 
-    if (dbus_message_is_method_call(m, "org.freedesktop.DBus.Introspectable", "Introspect")) {
+    if (dbus_message_is_method_call(m, DBUS_INTERFACE_INTROSPECTABLE, "Introspect")) {
         const char *xml = ENDPOINT_INTROSPECT_XML;
 
         pa_assert_se(r = dbus_message_new_method_return(m));
@@ -2068,12 +2070,12 @@ static DBusHandlerResult object_manager_handler(DBusConnection *c, DBusMessage *
 
     pa_log_debug("dbus: path=%s, interface=%s, member=%s", path, interface, member);
 
-    if (dbus_message_is_method_call(m, "org.freedesktop.DBus.Introspectable", "Introspect")) {
+    if (dbus_message_is_method_call(m, DBUS_INTERFACE_INTROSPECTABLE, "Introspect")) {
         const char *xml = OBJECT_MANAGER_INTROSPECT_XML;
 
         pa_assert_se(r = dbus_message_new_method_return(m));
         pa_assert_se(dbus_message_append_args(r, DBUS_TYPE_STRING, &xml, DBUS_TYPE_INVALID));
-    } else if (dbus_message_is_method_call(m, "org.freedesktop.DBus.ObjectManager", "GetManagedObjects")) {
+    } else if (dbus_message_is_method_call(m, DBUS_INTERFACE_OBJECT_MANAGER, "GetManagedObjects")) {
         DBusMessageIter iter, array;
         int i;
 
@@ -2193,18 +2195,18 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c, int headset_backe
     y->filter_added = true;
 
     if (pa_dbus_add_matches(conn, &err,
-            "type='signal',sender='org.freedesktop.DBus',interface='org.freedesktop.DBus',member='NameOwnerChanged'"
+            "type='signal',sender='" DBUS_SERVICE_DBUS "',interface='" DBUS_INTERFACE_DBUS "',member='NameOwnerChanged'"
             ",arg0='" BLUEZ_SERVICE "'",
-            "type='signal',sender='" BLUEZ_SERVICE "',interface='org.freedesktop.DBus.ObjectManager',member='InterfacesAdded'",
-            "type='signal',sender='" BLUEZ_SERVICE "',interface='org.freedesktop.DBus.ObjectManager',"
+            "type='signal',sender='" BLUEZ_SERVICE "',interface='" DBUS_INTERFACE_OBJECT_MANAGER "',member='InterfacesAdded'",
+            "type='signal',sender='" BLUEZ_SERVICE "',interface='" DBUS_INTERFACE_OBJECT_MANAGER "',"
             "member='InterfacesRemoved'",
-            "type='signal',sender='" BLUEZ_SERVICE "',interface='org.freedesktop.DBus.Properties',member='PropertiesChanged'"
+            "type='signal',sender='" BLUEZ_SERVICE "',interface='" DBUS_INTERFACE_PROPERTIES "',member='PropertiesChanged'"
             ",arg0='" BLUEZ_ADAPTER_INTERFACE "'",
-            "type='signal',sender='" BLUEZ_SERVICE "',interface='org.freedesktop.DBus.Properties',member='PropertiesChanged'"
+            "type='signal',sender='" BLUEZ_SERVICE "',interface='" DBUS_INTERFACE_PROPERTIES "',member='PropertiesChanged'"
             ",arg0='" BLUEZ_DEVICE_INTERFACE "'",
-            "type='signal',sender='" BLUEZ_SERVICE "',interface='org.freedesktop.DBus.Properties',member='PropertiesChanged'"
+            "type='signal',sender='" BLUEZ_SERVICE "',interface='" DBUS_INTERFACE_PROPERTIES "',member='PropertiesChanged'"
             ",arg0='" BLUEZ_MEDIA_ENDPOINT_INTERFACE "'",
-            "type='signal',sender='" BLUEZ_SERVICE "',interface='org.freedesktop.DBus.Properties',member='PropertiesChanged'"
+            "type='signal',sender='" BLUEZ_SERVICE "',interface='" DBUS_INTERFACE_PROPERTIES "',member='PropertiesChanged'"
             ",arg0='" BLUEZ_MEDIA_TRANSPORT_INTERFACE "'",
             NULL) < 0) {
         pa_log_error("Failed to add D-Bus matches: %s", err.message);
@@ -2283,19 +2285,19 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
 
         if (y->matches_added)
             pa_dbus_remove_matches(pa_dbus_connection_get(y->connection),
-                "type='signal',sender='org.freedesktop.DBus',interface='org.freedesktop.DBus',member='NameOwnerChanged',"
+                "type='signal',sender='" DBUS_SERVICE_DBUS "',interface='" DBUS_INTERFACE_DBUS "',member='NameOwnerChanged',"
                 "arg0='" BLUEZ_SERVICE "'",
-                "type='signal',sender='" BLUEZ_SERVICE "',interface='org.freedesktop.DBus.ObjectManager',"
+                "type='signal',sender='" BLUEZ_SERVICE "',interface='" DBUS_INTERFACE_OBJECT_MANAGER "',"
                 "member='InterfacesAdded'",
-                "type='signal',sender='" BLUEZ_SERVICE "',interface='org.freedesktop.DBus.ObjectManager',"
+                "type='signal',sender='" BLUEZ_SERVICE "',interface='" DBUS_INTERFACE_OBJECT_MANAGER "',"
                 "member='InterfacesRemoved'",
-                "type='signal',sender='" BLUEZ_SERVICE "',interface='org.freedesktop.DBus.Properties',"
+                "type='signal',sender='" BLUEZ_SERVICE "',interface='" DBUS_INTERFACE_PROPERTIES "',"
                 "member='PropertiesChanged',arg0='" BLUEZ_ADAPTER_INTERFACE "'",
-                "type='signal',sender='" BLUEZ_SERVICE "',interface='org.freedesktop.DBus.Properties',"
+                "type='signal',sender='" BLUEZ_SERVICE "',interface='" DBUS_INTERFACE_PROPERTIES "',"
                 "member='PropertiesChanged',arg0='" BLUEZ_DEVICE_INTERFACE "'",
-                "type='signal',sender='" BLUEZ_SERVICE "',interface='org.freedesktop.DBus.Properties',"
+                "type='signal',sender='" BLUEZ_SERVICE "',interface='" DBUS_INTERFACE_PROPERTIES "',"
                 "member='PropertiesChanged',arg0='" BLUEZ_MEDIA_ENDPOINT_INTERFACE "'",
-                "type='signal',sender='" BLUEZ_SERVICE "',interface='org.freedesktop.DBus.Properties',"
+                "type='signal',sender='" BLUEZ_SERVICE "',interface='" DBUS_INTERFACE_PROPERTIES "',"
                 "member='PropertiesChanged',arg0='" BLUEZ_MEDIA_TRANSPORT_INTERFACE "'",
                 NULL);
 

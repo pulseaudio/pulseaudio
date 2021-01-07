@@ -90,7 +90,7 @@ static DBusHandlerResult filter_handler(
 	m = userdata;
 	assert(m->ref >= 1);
 
-	if (dbus_message_is_signal(s, "org.freedesktop.DBus", "NameOwnerChanged")) {
+	if (dbus_message_is_signal(s, DBUS_INTERFACE_DBUS, "NameOwnerChanged")) {
 		const char *name, *old, *new;
 
 		if (!dbus_message_get_args(

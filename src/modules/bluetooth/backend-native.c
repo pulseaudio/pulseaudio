@@ -75,7 +75,7 @@ struct transport_data {
     "   <arg name=\"opts\" direction=\"in\" type=\"a{sv}\"/>"           \
     "  </method>"                                                       \
     " </interface>"                                                     \
-    " <interface name=\"org.freedesktop.DBus.Introspectable\">"         \
+    " <interface name=\"" DBUS_INTERFACE_INTROSPECTABLE "\">"           \
     "  <method name=\"Introspect\">"                                    \
     "   <arg name=\"data\" type=\"s\" direction=\"out\"/>"              \
     "  </method>"                                                       \
@@ -588,7 +588,7 @@ static DBusHandlerResult profile_handler(DBusConnection *c, DBusMessage *m, void
     if (!pa_streq(path, HSP_AG_PROFILE) && !pa_streq(path, HSP_HS_PROFILE))
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 
-    if (dbus_message_is_method_call(m, "org.freedesktop.DBus.Introspectable", "Introspect")) {
+    if (dbus_message_is_method_call(m, DBUS_INTERFACE_INTROSPECTABLE, "Introspect")) {
         const char *xml = PROFILE_INTROSPECT_XML;
 
         pa_assert_se(r = dbus_message_new_method_return(m));

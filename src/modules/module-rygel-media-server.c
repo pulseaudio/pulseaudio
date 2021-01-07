@@ -96,7 +96,7 @@ PA_MODULE_USAGE("display_name=<UPnP Media Server name>");
     "  <property name=\"Path\" type=\"s\" access=\"read\"/>"            \
     "  <property name=\"DisplayName\" type=\"s\" access=\"read\"/>"     \
     " </interface>"                                                     \
-    " <interface name=\"org.freedesktop.DBus.Properties\">"             \
+    " <interface name=\"" DBUS_INTERFACE_PROPERTIES "\">"               \
     "  <method name=\"Get\">"                                           \
     "   <arg name=\"interface\" direction=\"in\" type=\"s\"/>"          \
     "   <arg name=\"property\" direction=\"in\" type=\"s\"/>"           \
@@ -107,7 +107,7 @@ PA_MODULE_USAGE("display_name=<UPnP Media Server name>");
     "   <arg name=\"properties\" direction=\"out\" type=\"a{sv}\"/>"    \
     "  </method>"                                                       \
     " </interface>"                                                     \
-    " <interface name=\"org.freedesktop.DBus.Introspectable\">"         \
+    " <interface name=\"" DBUS_INTERFACE_INTROSPECTABLE "\">"           \
     "  <method name=\"Introspect\">"                                    \
     "   <arg name=\"data\" type=\"s\" direction=\"out\"/>"              \
     "  </method>"                                                       \
@@ -130,7 +130,7 @@ PA_MODULE_USAGE("display_name=<UPnP Media Server name>");
     " <interface name=\"org.gnome.UPnP.MediaItem2\">"                   \
     "  <property name=\"URLs\" type=\"as\" access=\"read\"/>"           \
     "  <property name=\"MIMEType\" type=\"s\" access=\"read\"/>"        \
-    "  <property name=\"DLNAProfile\" type=\"s\" access=\"read\"/>"        \
+    "  <property name=\"DLNAProfile\" type=\"s\" access=\"read\"/>"     \
     " </interface>"                                                     \
     " <interface name=\"org.gnome.UPnP.MediaObject2\">"                 \
     "  <property name=\"Parent\" type=\"s\" access=\"read\"/>"          \
@@ -138,7 +138,7 @@ PA_MODULE_USAGE("display_name=<UPnP Media Server name>");
     "  <property name=\"Path\" type=\"s\" access=\"read\"/>"            \
     "  <property name=\"DisplayName\" type=\"s\" access=\"read\"/>"     \
     " </interface>"                                                     \
-    " <interface name=\"org.freedesktop.DBus.Properties\">"             \
+    " <interface name=\"" DBUS_INTERFACE_PROPERTIES "\">"               \
     "  <method name=\"Get\">"                                           \
     "   <arg name=\"interface\" direction=\"in\" type=\"s\"/>"          \
     "   <arg name=\"property\" direction=\"in\" type=\"s\"/>"           \
@@ -149,7 +149,7 @@ PA_MODULE_USAGE("display_name=<UPnP Media Server name>");
     "   <arg name=\"properties\" direction=\"out\" type=\"a{sv}\"/>"    \
     "  </method>"                                                       \
     " </interface>"                                                     \
-    " <interface name=\"org.freedesktop.DBus.Introspectable\">"         \
+    " <interface name=\"" DBUS_INTERFACE_INTROSPECTABLE "\">"           \
     "  <method name=\"Introspect\">"                                    \
     "   <arg name=\"data\" type=\"s\" direction=\"out\"/>"              \
     "  </method>"                                                       \
@@ -215,7 +215,7 @@ static bool message_is_property_get(DBusMessage *m, const char *interface, const
 
     pa_assert(m);
 
-    if (!dbus_message_is_method_call(m, "org.freedesktop.DBus.Properties", "Get"))
+    if (!dbus_message_is_method_call(m, DBUS_INTERFACE_PROPERTIES, "Get"))
         return false;
 
     if (!dbus_message_get_args(m, &error, DBUS_TYPE_STRING, &i, DBUS_TYPE_STRING, &p, DBUS_TYPE_INVALID) || dbus_error_is_set(&error)) {
@@ -234,7 +234,7 @@ static bool message_is_property_get_all(DBusMessage *m, const char *interface) {
 
     pa_assert(m);
 
-    if (!dbus_message_is_method_call(m, "org.freedesktop.DBus.Properties", "GetAll"))
+    if (!dbus_message_is_method_call(m, DBUS_INTERFACE_PROPERTIES, "GetAll"))
         return false;
 
     if (!dbus_message_get_args(m, &error, DBUS_TYPE_STRING, &i, DBUS_TYPE_INVALID) || dbus_error_is_set(&error)) {
@@ -721,7 +721,7 @@ static DBusHandlerResult root_handler(DBusConnection *c, DBusMessage *m, void *u
         append_property_dict_entry_string(r, &sub, "DisplayName", u->display_name);
         pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
 
-    } else if (dbus_message_is_method_call(m, "org.freedesktop.DBus.Introspectable", "Introspect")) {
+    } else if (dbus_message_is_method_call(m, DBUS_INTERFACE_INTROSPECTABLE, "Introspect")) {
         const char *xml = ROOT_INTROSPECT_XML;
 
         pa_assert_se(r = dbus_message_new_method_return(m));
@@ -913,7 +913,7 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
             append_sink_or_source_container_mediaobject2_properties(r, &sub, path);
             pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
 
-        } else if (dbus_message_is_method_call(m, "org.freedesktop.DBus.Introspectable", "Introspect")) {
+        } else if (dbus_message_is_method_call(m, DBUS_INTERFACE_INTROSPECTABLE, "Introspect")) {
             pa_strbuf *sb;
             char *xml;
             uint32_t idx;
@@ -1010,7 +1010,7 @@ static DBusHandlerResult sinks_and_sources_handler(DBusConnection *c, DBusMessag
 
             pa_assert_se(dbus_message_iter_close_container(&iter, &sub));
 
-        } else if (dbus_message_is_method_call(m, "org.freedesktop.DBus.Introspectable", "Introspect")) {
+        } else if (dbus_message_is_method_call(m, DBUS_INTERFACE_INTROSPECTABLE, "Introspect")) {
             const char *xml =
                 ITEM_INTROSPECT_XML;
 

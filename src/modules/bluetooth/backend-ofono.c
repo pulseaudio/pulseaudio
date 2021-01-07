@@ -43,12 +43,12 @@
 #define HF_AUDIO_AGENT_XML                                          \
     DBUS_INTROSPECT_1_0_XML_DOCTYPE_DECL_NODE                       \
     "<node>"                                                        \
-    "  <interface name=\"org.freedesktop.DBus.Introspectable\">"    \
+    "  <interface name=\"" DBUS_INTERFACE_INTROSPECTABLE "\">"      \
     "    <method name=\"Introspect\">"                              \
     "      <arg direction=\"out\" type=\"s\" />"                    \
     "    </method>"                                                 \
     "  </interface>"                                                \
-    "  <interface name=\"org.ofono.HandsfreeAudioAgent\">"          \
+    "  <interface name=\"" HF_AUDIO_AGENT_INTERFACE "\">"           \
     "    <method name=\"Release\">"                                 \
     "    </method>"                                                 \
     "    <method name=\"NewConnection\">"                           \
@@ -515,12 +515,12 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *da
     pa_assert(backend);
 
     sender = dbus_message_get_sender(m);
-    if (!pa_safe_streq(backend->ofono_bus_id, sender) && !pa_streq("org.freedesktop.DBus", sender))
+    if (!pa_safe_streq(backend->ofono_bus_id, sender) && !pa_streq(DBUS_SERVICE_DBUS, sender))
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 
     dbus_error_init(&err);
 
-    if (dbus_message_is_signal(m, "org.freedesktop.DBus", "NameOwnerChanged")) {
+    if (dbus_message_is_signal(m, DBUS_INTERFACE_DBUS, "NameOwnerChanged")) {
         const char *name, *old_owner, *new_owner;
 
         if (!dbus_message_get_args(m, &err,
@@ -528,7 +528,7 @@ static DBusHandlerResult filter_cb(DBusConnection *bus, DBusMessage *m, void *da
                                    DBUS_TYPE_STRING, &old_owner,
                                    DBUS_TYPE_STRING, &new_owner,
                                    DBUS_TYPE_INVALID)) {
-            pa_log_error("Failed to parse org.freedesktop.DBus.NameOwnerChanged: %s", err.message);
+            pa_log_error("Failed to parse " DBUS_INTERFACE_DBUS ".NameOwnerChanged: %s", err.message);
             goto fail;
         }
 
@@ -664,7 +664,7 @@ static DBusHandlerResult hf_audio_agent_handler(DBusConnection *c, DBusMessage *
 
     pa_log_debug("dbus: path=%s, interface=%s, member=%s", path, interface, member);
 
-    if (dbus_message_is_method_call(m, "org.freedesktop.DBus.Introspectable", "Introspect")) {
+    if (dbus_message_is_method_call(m, DBUS_INTERFACE_INTROSPECTABLE, "Introspect")) {
         const char *xml = HF_AUDIO_AGENT_XML;
 
         pa_assert_se(r = dbus_message_new_method_return(m));
@@ -718,7 +718,7 @@ pa_bluetooth_backend *pa_bluetooth_ofono_backend_new(pa_core *c, pa_bluetooth_di
     }
 
     if (pa_dbus_add_matches(pa_dbus_connection_get(backend->connection), &err,
-            "type='signal',sender='org.freedesktop.DBus',interface='org.freedesktop.DBus',member='NameOwnerChanged',"
+            "type='signal',sender='" DBUS_SERVICE_DBUS "',interface='" DBUS_INTERFACE_DBUS "',member='NameOwnerChanged',"
             "arg0='" OFONO_SERVICE "'",
             "type='signal',sender='" OFONO_SERVICE "',interface='" HF_AUDIO_MANAGER_INTERFACE "',member='CardAdded'",
             "type='signal',sender='" OFONO_SERVICE "',interface='" HF_AUDIO_MANAGER_INTERFACE "',member='CardRemoved'",
@@ -748,7 +748,7 @@ void pa_bluetooth_ofono_backend_free(pa_bluetooth_backend *backend) {
     dbus_connection_unregister_object_path(pa_dbus_connection_get(backend->connection), HF_AUDIO_AGENT_PATH);
 
     pa_dbus_remove_matches(pa_dbus_connection_get(backend->connection),
-            "type='signal',sender='org.freedesktop.DBus',interface='org.freedesktop.DBus',member='NameOwnerChanged',"
+            "type='signal',sender='" DBUS_SERVICE_DBUS "',interface='" DBUS_INTERFACE_DBUS "',member='NameOwnerChanged',"
             "arg0='" OFONO_SERVICE "'",
             "type='signal',sender='" OFONO_SERVICE "',interface='" HF_AUDIO_MANAGER_INTERFACE "',member='CardAdded'",
             "type='signal',sender='" OFONO_SERVICE "',interface='" HF_AUDIO_MANAGER_INTERFACE "',member='CardRemoved'",
