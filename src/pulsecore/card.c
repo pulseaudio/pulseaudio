@@ -159,6 +159,21 @@ static int card_set_profile_is_sticky(pa_card *c, bool profile_is_sticky) {
     return 0;
 }
 
+static void set_jack_detection(pa_device_port *port, bool jack_detection, pa_available_t avail) {
+
+    /* If jack detection was enabled, set the port state
+     * to the hardware state. */
+    if (jack_detection)
+        avail = port->hw_available;
+
+    if (port->jack_detection != jack_detection) {
+        port->jack_detection = jack_detection;
+        pa_hook_fire(&port->core->hooks[PA_CORE_HOOK_PORT_JACK_DETECTION_CHANGED], port);
+    }
+
+    pa_device_port_set_available(port, avail, true);
+}
+
 static int card_message_handler(const char *object_path, const char *message, const pa_json_object *parameters, char **response, void *userdata) {
     pa_card *c;
     const char *port_name;
@@ -261,30 +276,11 @@ static int card_message_handler(const char *object_path, const char *message, co
     if (pa_streq(message, "set-jack-detection")) {
 
         if (!port) {
+            PA_HASHMAP_FOREACH(port, c->ports, state)
+                set_jack_detection(port, jack_detection, PA_AVAILABLE_UNKNOWN);
 
-            PA_HASHMAP_FOREACH(port, c->ports, state) {
-                pa_available_t avail = PA_AVAILABLE_UNKNOWN;
-
-                /* If jack detection was enabled, set the port state
-                 * to the hardware state. */
-                if (jack_detection)
-                    avail = port->hw_available;
-
-                port->jack_detection = jack_detection;
-                pa_device_port_set_available(port, avail, true);
-            }
-
-        } else {
-            pa_available_t avail = PA_AVAILABLE_UNKNOWN;
-
-            /* If jack detection was enabled, set the port state
-             * to the hardware state. */
-            if (jack_detection)
-                avail = port->hw_available;
-
-            port->jack_detection = jack_detection;
-            pa_device_port_set_available(port, avail, true);
-        }
+        } else
+            set_jack_detection(port, jack_detection, PA_AVAILABLE_UNKNOWN);
 
         return PA_OK;
 
@@ -316,18 +312,11 @@ static int card_message_handler(const char *object_path, const char *message, co
             return -PA_ERR_INVALID;
 
         if (!port) {
+            PA_HASHMAP_FOREACH(port, c->ports, state)
+                set_jack_detection(port, false, (pa_available_t) port_state);
 
-            PA_HASHMAP_FOREACH(port, c->ports, state) {
-
-                port->jack_detection = false;
-                pa_device_port_set_available(port, (pa_available_t) port_state, true);
-            }
-
-        } else {
-
-            port->jack_detection = false;
-            pa_device_port_set_available(port, (pa_available_t) port_state, true);
-        }
+        } else
+            set_jack_detection(port, false, (pa_available_t) port_state);
 
         return PA_OK;
 

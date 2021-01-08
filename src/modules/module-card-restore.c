@@ -67,12 +67,14 @@ struct userdata {
     bool restore_bluetooth_profile;
 };
 
-#define ENTRY_VERSION 5
+#define ENTRY_VERSION 6
 
 struct port_info {
     char *name;
     int64_t offset;
     char *profile;
+    bool jack_detection;
+    pa_available_t available;
 };
 
 struct entry {
@@ -126,6 +128,8 @@ static struct port_info *port_info_new(pa_device_port *port) {
         p_info = pa_xnew0(struct port_info, 1);
         p_info->name = pa_xstrdup(port->name);
         p_info->offset = port->latency_offset;
+        p_info->jack_detection = port->jack_detection;
+        p_info->available = port->available;
         if (port->preferred_profile)
             p_info->profile = pa_xstrdup(port->preferred_profile);
     } else
@@ -179,7 +183,11 @@ static bool entrys_equal(struct entry *a, struct entry *b) {
 
     PA_HASHMAP_FOREACH(Ap_info, a->ports, state) {
         if ((Bp_info = pa_hashmap_get(b->ports, Ap_info->name))) {
-            if (Ap_info->offset != Bp_info->offset)
+            if (Ap_info->offset != Bp_info->offset ||
+                Ap_info->jack_detection != Bp_info->jack_detection)
+                return false;
+            /* Availability only matters if jack detection is off */
+            if (!Ap_info->jack_detection && Ap_info->available != Bp_info->available)
                 return false;
         } else
             return false;
@@ -217,6 +225,8 @@ static bool entry_write(struct userdata *u, const char *name, const struct entry
         pa_tagstruct_puts(t, p_info->name);
         pa_tagstruct_puts64(t, p_info->offset);
         pa_tagstruct_puts(t, p_info->profile);
+        pa_tagstruct_put_boolean(t, p_info->jack_detection);
+        pa_tagstruct_putu32(t, (uint32_t)p_info->available);
     }
 
     pa_tagstruct_puts(t, e->preferred_input_port);
@@ -314,6 +324,8 @@ static struct entry* entry_read(struct userdata *u, const char *name) {
         int64_t port_offset = 0;
         struct port_info *p_info;
         unsigned i;
+        uint32_t available = PA_AVAILABLE_UNKNOWN;
+        bool jack_detection = true;
 
         if (pa_tagstruct_getu32(t, &port_count) < 0)
             goto fail;
@@ -326,12 +338,19 @@ static struct entry* entry_read(struct userdata *u, const char *name) {
                 goto fail;
             if (version >= 3 && pa_tagstruct_gets(t, &profile_name) < 0)
                 goto fail;
+            if (version >= 6) {
+                if (pa_tagstruct_get_boolean(t, &jack_detection) < 0 ||
+                    pa_tagstruct_getu32(t, &available) < 0)
+                    goto fail;
+            }
 
             p_info = port_info_new(NULL);
             p_info->name = pa_xstrdup(port_name);
             p_info->offset = port_offset;
             if (profile_name)
                 p_info->profile = pa_xstrdup(profile_name);
+            p_info->jack_detection = jack_detection;
+            p_info->available = (pa_available_t)available;
 
             pa_assert_se(pa_hashmap_put(e->ports, p_info->name, p_info) >= 0);
         }
@@ -394,9 +413,9 @@ static void show_full_info(pa_card *card) {
     pa_assert(card);
 
     if (card->save_profile)
-        pa_log_info("Storing profile and port latency offsets for card %s.", card->name);
+        pa_log_info("Storing profile, port latency offsets, jack detection and port availability for card %s.", card->name);
     else
-        pa_log_info("Storing port latency offsets for card %s.", card->name);
+        pa_log_info("Storing port latency offsets, jack detection and port availability for card %s.", card->name);
 }
 
 static pa_hook_result_t card_put_hook_callback(pa_core *c, pa_card *card, struct userdata *u) {
@@ -529,6 +548,76 @@ static pa_hook_result_t port_offset_change_callback(pa_core *c, pa_device_port *
     return PA_HOOK_OK;
 }
 
+static pa_hook_result_t port_available_change_callback(pa_core *c, pa_device_port *port, struct userdata *u) {
+    struct entry *entry;
+    pa_card *card;
+
+    pa_assert(port);
+
+    /* If jack detection is enabled, the availability change needs not be saved */
+    if (port->jack_detection)
+        return PA_HOOK_OK;
+
+    card = port->card;
+
+    if ((entry = entry_read(u, card->name))) {
+        struct port_info *p_info;
+
+        if ((p_info = pa_hashmap_get(entry->ports, port->name)))
+            p_info->available = port->available;
+        else {
+            p_info = port_info_new(port);
+            pa_assert_se(pa_hashmap_put(entry->ports, p_info->name, p_info) >= 0);
+        }
+
+        pa_log_info("Storing availability for port %s on card %s.", port->name, card->name);
+
+    } else {
+        entry = entry_from_card(card);
+        show_full_info(card);
+    }
+
+    if (entry_write(u, card->name, entry))
+        trigger_save(u);
+
+    entry_free(entry);
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t port_jack_detection_change_callback(pa_core *c, pa_device_port *port, struct userdata *u) {
+    struct entry *entry;
+    pa_card *card;
+
+    pa_assert(port);
+
+    card = port->card;
+
+    if ((entry = entry_read(u, card->name))) {
+        struct port_info *p_info;
+
+        if ((p_info = pa_hashmap_get(entry->ports, port->name))) {
+            p_info->jack_detection = port->jack_detection;
+            if (!p_info->jack_detection)
+                p_info->available = port->available;
+        } else {
+            p_info = port_info_new(port);
+            pa_assert_se(pa_hashmap_put(entry->ports, p_info->name, p_info) >= 0);
+        }
+
+        pa_log_info("Storing jack detection for port %s on card %s.", port->name, card->name);
+
+    } else {
+        entry = entry_from_card(card);
+        show_full_info(card);
+    }
+
+    if (entry_write(u, card->name, entry))
+        trigger_save(u);
+
+    entry_free(entry);
+    return PA_HOOK_OK;
+}
+
 static pa_hook_result_t card_new_hook_callback(pa_core *c, pa_card_new_data *new_data, struct userdata *u) {
     struct entry *e;
     void *state;
@@ -543,13 +632,19 @@ static pa_hook_result_t card_new_hook_callback(pa_core *c, pa_card_new_data *new
     /* Always restore the latency offsets because their
      * initial value is always 0 */
 
-    pa_log_info("Restoring port latency offsets for card %s.", new_data->name);
+    pa_log_info("Restoring port latency offsets and jack detection for card %s.", new_data->name);
 
     PA_HASHMAP_FOREACH(p_info, e->ports, state)
         if ((p = pa_hashmap_get(new_data->ports, p_info->name))) {
             p->latency_offset = p_info->offset;
             if (!p->preferred_profile && p_info->profile)
                 pa_device_port_set_preferred_profile(p, p_info->profile);
+
+            /* Restore availability and jack detection only if jack detction was off */
+            if (!p_info->jack_detection) {
+                p->jack_detection = p_info->jack_detection;
+                p->available = p_info->available;
+            }
         }
 
     if (e->preferred_input_port) {
@@ -669,6 +764,8 @@ int pa__init(pa_module*m) {
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_PROFILE_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) card_profile_changed_callback, u);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_PROFILE_ADDED], PA_HOOK_NORMAL, (pa_hook_cb_t) card_profile_added_callback, u);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_PORT_LATENCY_OFFSET_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) port_offset_change_callback, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_PORT_AVAILABLE_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) port_available_change_callback, u);
+    pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_PORT_JACK_DETECTION_CHANGED], PA_HOOK_NORMAL, (pa_hook_cb_t) port_jack_detection_change_callback, u);
 
     if (!(state_path = pa_state_path(NULL, true)))
         goto fail;
