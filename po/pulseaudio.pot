@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/issues/new\n"
-"POT-Creation-Date: 2020-12-08 13:51+0200\n"
+"POT-Creation-Date: 2021-01-11 21:24+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -215,18 +215,18 @@ msgstr ""
 msgid "[%s:%u] Invalid server type '%s'."
 msgstr ""
 
-#: src/daemon/daemon-conf.c:673
+#: src/daemon/daemon-conf.c:685
 #, c-format
 msgid "Failed to open configuration file: %s"
 msgstr ""
 
-#: src/daemon/daemon-conf.c:689
+#: src/daemon/daemon-conf.c:701
 msgid ""
 "The specified default channel map has a different number of channels than the specified "
 "default number of channels."
 msgstr ""
 
-#: src/daemon/daemon-conf.c:776
+#: src/daemon/daemon-conf.c:788
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
 msgstr ""
@@ -417,11 +417,11 @@ msgstr ""
 msgid "setsid() failed: %s"
 msgstr ""
 
-#: src/daemon/main.c:971
+#: src/daemon/main.c:970
 msgid "Failed to get machine ID"
 msgstr ""
 
-#: src/daemon/main.c:997
+#: src/daemon/main.c:996
 msgid ""
 "OK, so you are running PA in system mode. Please make sure that you actually do want to "
 "do that.\n"
@@ -429,26 +429,26 @@ msgid ""
 "WhatIsWrongWithSystemWide/ for an explanation why system mode is usually a bad idea."
 msgstr ""
 
-#: src/daemon/main.c:1013
+#: src/daemon/main.c:1012
 msgid "pa_pid_file_create() failed."
 msgstr ""
 
-#: src/daemon/main.c:1045
+#: src/daemon/main.c:1044
 msgid "pa_core_new() failed."
 msgstr ""
 
-#: src/daemon/main.c:1120
+#: src/daemon/main.c:1119
 msgid "command line arguments"
 msgstr ""
 
-#: src/daemon/main.c:1127
+#: src/daemon/main.c:1126
 #, c-format
 msgid ""
 "Failed to initialize daemon due to errors while executing startup commands. Source of "
 "commands: %s"
 msgstr ""
 
-#: src/daemon/main.c:1132
+#: src/daemon/main.c:1131
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 
@@ -460,168 +460,180 @@ msgstr ""
 msgid "Start the PulseAudio Sound System"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2621
+#: src/modules/alsa/alsa-mixer.c:2700
 msgid "Input"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2622
+#: src/modules/alsa/alsa-mixer.c:2701
 msgid "Docking Station Input"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2623
+#: src/modules/alsa/alsa-mixer.c:2702
 msgid "Docking Station Microphone"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2624
+#: src/modules/alsa/alsa-mixer.c:2703
 msgid "Docking Station Line In"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2625 src/modules/alsa/alsa-mixer.c:2716
+#: src/modules/alsa/alsa-mixer.c:2704 src/modules/alsa/alsa-mixer.c:2795
 msgid "Line In"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2626 src/modules/alsa/alsa-mixer.c:2710
-#: src/modules/bluetooth/module-bluez5-device.c:1792
+#: src/modules/alsa/alsa-mixer.c:2705 src/modules/alsa/alsa-mixer.c:2789
+#: src/modules/bluetooth/module-bluez5-device.c:1784
 msgid "Microphone"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2627 src/modules/alsa/alsa-mixer.c:2711
+#: src/modules/alsa/alsa-mixer.c:2706 src/modules/alsa/alsa-mixer.c:2790
 msgid "Front Microphone"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2628 src/modules/alsa/alsa-mixer.c:2712
+#: src/modules/alsa/alsa-mixer.c:2707 src/modules/alsa/alsa-mixer.c:2791
 msgid "Rear Microphone"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2629
+#: src/modules/alsa/alsa-mixer.c:2708
 msgid "External Microphone"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2630 src/modules/alsa/alsa-mixer.c:2714
+#: src/modules/alsa/alsa-mixer.c:2709 src/modules/alsa/alsa-mixer.c:2793
 msgid "Internal Microphone"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2631 src/modules/alsa/alsa-mixer.c:2717
+#: src/modules/alsa/alsa-mixer.c:2710 src/modules/alsa/alsa-mixer.c:2796
 #: src/utils/pactl.c:265
 msgid "Radio"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2632 src/modules/alsa/alsa-mixer.c:2718
+#: src/modules/alsa/alsa-mixer.c:2711 src/modules/alsa/alsa-mixer.c:2797
 #: src/utils/pactl.c:266
 msgid "Video"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2633
+#: src/modules/alsa/alsa-mixer.c:2712
 msgid "Automatic Gain Control"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2634
+#: src/modules/alsa/alsa-mixer.c:2713
 msgid "No Automatic Gain Control"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2635
+#: src/modules/alsa/alsa-mixer.c:2714
 msgid "Boost"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2636
+#: src/modules/alsa/alsa-mixer.c:2715
 msgid "No Boost"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2637
+#: src/modules/alsa/alsa-mixer.c:2716
 msgid "Amplifier"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2638
+#: src/modules/alsa/alsa-mixer.c:2717
 msgid "No Amplifier"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2639
+#: src/modules/alsa/alsa-mixer.c:2718
 msgid "Bass Boost"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2640
+#: src/modules/alsa/alsa-mixer.c:2719
 msgid "No Bass Boost"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2641 src/modules/bluetooth/module-bluez5-device.c:1800
+#: src/modules/alsa/alsa-mixer.c:2720 src/modules/bluetooth/module-bluez5-device.c:1792
 #: src/utils/pactl.c:255
 msgid "Speaker"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2642 src/modules/alsa/alsa-mixer.c:2720
+#: src/modules/alsa/alsa-mixer.c:2721 src/modules/alsa/alsa-mixer.c:2799
 #: src/utils/pactl.c:256
 msgid "Headphones"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2709
+#: src/modules/alsa/alsa-mixer.c:2788
 msgid "Analog Input"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2713
+#: src/modules/alsa/alsa-mixer.c:2792
 msgid "Dock Microphone"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2715
+#: src/modules/alsa/alsa-mixer.c:2794
 msgid "Headset Microphone"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2719
+#: src/modules/alsa/alsa-mixer.c:2798
 msgid "Analog Output"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2721
+#: src/modules/alsa/alsa-mixer.c:2800
+msgid "Headphones 2"
+msgstr ""
+
+#: src/modules/alsa/alsa-mixer.c:2801
 msgid "Headphones Mono Output"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2722
+#: src/modules/alsa/alsa-mixer.c:2802
 msgid "Line Out"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2723
+#: src/modules/alsa/alsa-mixer.c:2803
 msgid "Analog Mono Output"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2724
+#: src/modules/alsa/alsa-mixer.c:2804
 msgid "Speakers"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2725
+#: src/modules/alsa/alsa-mixer.c:2805
 msgid "HDMI / DisplayPort"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2726
+#: src/modules/alsa/alsa-mixer.c:2806
 msgid "Digital Output (S/PDIF)"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2727
+#: src/modules/alsa/alsa-mixer.c:2807
 msgid "Digital Input (S/PDIF)"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2728
+#: src/modules/alsa/alsa-mixer.c:2808
 msgid "Multichannel Input"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2729
+#: src/modules/alsa/alsa-mixer.c:2809
 msgid "Multichannel Output"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2730
+#: src/modules/alsa/alsa-mixer.c:2810
 msgid "Game Output"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2731
+#: src/modules/alsa/alsa-mixer.c:2811 src/modules/alsa/alsa-mixer.c:2812
 msgid "Chat Output"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4394
+#: src/modules/alsa/alsa-mixer.c:2813
+msgid "Chat Input"
+msgstr ""
+
+#: src/modules/alsa/alsa-mixer.c:2814
+msgid "Virtual Surround 7.1"
+msgstr ""
+
+#: src/modules/alsa/alsa-mixer.c:4554
 msgid "Analog Mono"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4395
+#: src/modules/alsa/alsa-mixer.c:4555
 msgid "Analog Mono (Left)"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4396
+#: src/modules/alsa/alsa-mixer.c:4556
 msgid "Analog Mono (Right)"
 msgstr ""
 
@@ -630,140 +642,144 @@ msgstr ""
 #. * here would lead to the source name to become "Analog Stereo Input
 #. * Input". The same logic applies to analog-stereo-output,
 #. * multichannel-input and multichannel-output.
-#: src/modules/alsa/alsa-mixer.c:4397 src/modules/alsa/alsa-mixer.c:4405
-#: src/modules/alsa/alsa-mixer.c:4406
+#: src/modules/alsa/alsa-mixer.c:4557 src/modules/alsa/alsa-mixer.c:4565
+#: src/modules/alsa/alsa-mixer.c:4566
 msgid "Analog Stereo"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4398 src/pulse/channelmap.c:103
+#: src/modules/alsa/alsa-mixer.c:4558 src/pulse/channelmap.c:103
 #: src/pulse/channelmap.c:771
 msgid "Mono"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4399 src/pulse/channelmap.c:775
+#: src/modules/alsa/alsa-mixer.c:4559 src/pulse/channelmap.c:775
 msgid "Stereo"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4407 src/modules/alsa/alsa-mixer.c:4565
-#: src/modules/bluetooth/module-bluez5-device.c:1780 src/utils/pactl.c:259
+#: src/modules/alsa/alsa-mixer.c:4567 src/modules/alsa/alsa-mixer.c:4725
+#: src/modules/bluetooth/module-bluez5-device.c:1772 src/utils/pactl.c:259
 msgid "Headset"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4408 src/modules/alsa/alsa-mixer.c:4566
+#: src/modules/alsa/alsa-mixer.c:4568 src/modules/alsa/alsa-mixer.c:4726
 msgid "Speakerphone"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4409 src/modules/alsa/alsa-mixer.c:4410
+#: src/modules/alsa/alsa-mixer.c:4569 src/modules/alsa/alsa-mixer.c:4570
 msgid "Multichannel"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4411
+#: src/modules/alsa/alsa-mixer.c:4571
 msgid "Analog Surround 2.1"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4412
+#: src/modules/alsa/alsa-mixer.c:4572
 msgid "Analog Surround 3.0"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4413
+#: src/modules/alsa/alsa-mixer.c:4573
 msgid "Analog Surround 3.1"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4414
+#: src/modules/alsa/alsa-mixer.c:4574
 msgid "Analog Surround 4.0"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4415
+#: src/modules/alsa/alsa-mixer.c:4575
 msgid "Analog Surround 4.1"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4416
+#: src/modules/alsa/alsa-mixer.c:4576
 msgid "Analog Surround 5.0"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4417
+#: src/modules/alsa/alsa-mixer.c:4577
 msgid "Analog Surround 5.1"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4418
+#: src/modules/alsa/alsa-mixer.c:4578
 msgid "Analog Surround 6.0"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4419
+#: src/modules/alsa/alsa-mixer.c:4579
 msgid "Analog Surround 6.1"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4420
+#: src/modules/alsa/alsa-mixer.c:4580
 msgid "Analog Surround 7.0"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4421
+#: src/modules/alsa/alsa-mixer.c:4581
 msgid "Analog Surround 7.1"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4422
+#: src/modules/alsa/alsa-mixer.c:4582
 msgid "Digital Stereo (IEC958)"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4423
+#: src/modules/alsa/alsa-mixer.c:4583
 msgid "Digital Surround 4.0 (IEC958/AC3)"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4424
+#: src/modules/alsa/alsa-mixer.c:4584
 msgid "Digital Surround 5.1 (IEC958/AC3)"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4425
+#: src/modules/alsa/alsa-mixer.c:4585
 msgid "Digital Surround 5.1 (IEC958/DTS)"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4426
+#: src/modules/alsa/alsa-mixer.c:4586
 msgid "Digital Stereo (HDMI)"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4427
+#: src/modules/alsa/alsa-mixer.c:4587
 msgid "Digital Surround 5.1 (HDMI)"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4428
+#: src/modules/alsa/alsa-mixer.c:4588
 msgid "Chat"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4429
+#: src/modules/alsa/alsa-mixer.c:4589
 msgid "Game"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4563
+#: src/modules/alsa/alsa-mixer.c:4723
 msgid "Analog Mono Duplex"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4564
+#: src/modules/alsa/alsa-mixer.c:4724
 msgid "Analog Stereo Duplex"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4567
+#: src/modules/alsa/alsa-mixer.c:4727
 msgid "Digital Stereo Duplex (IEC958)"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4568
+#: src/modules/alsa/alsa-mixer.c:4728
 msgid "Multichannel Duplex"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4569
+#: src/modules/alsa/alsa-mixer.c:4729
 msgid "Stereo Duplex"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4570 src/modules/alsa/module-alsa-card.c:188
-#: src/modules/bluetooth/module-bluez5-device.c:2053
+#: src/modules/alsa/alsa-mixer.c:4730
+msgid "Mono Chat + 7.1 Surround"
+msgstr ""
+
+#: src/modules/alsa/alsa-mixer.c:4731 src/modules/alsa/module-alsa-card.c:190
+#: src/modules/bluetooth/module-bluez5-device.c:2045
 msgid "Off"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4670
+#: src/modules/alsa/alsa-mixer.c:4831
 #, c-format
 msgid "%s Output"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:4678
+#: src/modules/alsa/alsa-mixer.c:4839
 #, c-format
 msgid "%s Input"
 msgstr ""
@@ -837,54 +853,54 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1773
-#: src/modules/bluetooth/module-bluez5-device.c:1799
-#: src/modules/bluetooth/module-bluez5-device.c:1806
+#: src/modules/bluetooth/module-bluez5-device.c:1765
+#: src/modules/bluetooth/module-bluez5-device.c:1791
+#: src/modules/bluetooth/module-bluez5-device.c:1798
 msgid "Bluetooth Input"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1774
-#: src/modules/bluetooth/module-bluez5-device.c:1793
+#: src/modules/bluetooth/module-bluez5-device.c:1766
+#: src/modules/bluetooth/module-bluez5-device.c:1785
 msgid "Bluetooth Output"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1786 src/utils/pactl.c:270
+#: src/modules/bluetooth/module-bluez5-device.c:1778 src/utils/pactl.c:270
 msgid "Handsfree"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1807
+#: src/modules/bluetooth/module-bluez5-device.c:1799
 msgid "Headphone"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1813 src/utils/pactl.c:269
+#: src/modules/bluetooth/module-bluez5-device.c:1805 src/utils/pactl.c:269
 msgid "Portable"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1819 src/utils/pactl.c:271
+#: src/modules/bluetooth/module-bluez5-device.c:1811 src/utils/pactl.c:271
 msgid "Car"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1825 src/utils/pactl.c:272
+#: src/modules/bluetooth/module-bluez5-device.c:1817 src/utils/pactl.c:272
 msgid "HiFi"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1831 src/utils/pactl.c:273
+#: src/modules/bluetooth/module-bluez5-device.c:1823 src/utils/pactl.c:273
 msgid "Phone"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1878
+#: src/modules/bluetooth/module-bluez5-device.c:1870
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1890
+#: src/modules/bluetooth/module-bluez5-device.c:1882
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1902
+#: src/modules/bluetooth/module-bluez5-device.c:1894
 msgid "Headset Head Unit (HSP/HFP)"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1915
+#: src/modules/bluetooth/module-bluez5-device.c:1907
 msgid "Headset Audio Gateway (HSP/HFP)"
 msgstr ""
 
@@ -984,12 +1000,12 @@ msgstr ""
 
 #. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
 #. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
-#: src/modules/module-tunnel-sink-new.c:307 src/modules/module-tunnel-source-new.c:305
+#: src/modules/module-tunnel-sink-new.c:320 src/modules/module-tunnel-source-new.c:305
 #, c-format
 msgid "Tunnel for %s@%s"
 msgstr ""
 
-#: src/modules/module-tunnel-sink-new.c:544 src/modules/module-tunnel-source-new.c:540
+#: src/modules/module-tunnel-sink-new.c:564 src/modules/module-tunnel-source-new.c:540
 #, c-format
 msgid "Tunnel to %s/%s"
 msgstr ""
@@ -1258,17 +1274,17 @@ msgstr ""
 msgid "Failed to parse cookie data"
 msgstr ""
 
-#: src/pulse/context.c:706
+#: src/pulse/context.c:717
 #, c-format
 msgid "fork(): %s"
 msgstr ""
 
-#: src/pulse/context.c:761
+#: src/pulse/context.c:772
 #, c-format
 msgid "waitpid(): %s"
 msgstr ""
 
-#: src/pulse/context.c:1467
+#: src/pulse/context.c:1478
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr ""
@@ -1289,7 +1305,7 @@ msgstr ""
 msgid "invalid"
 msgstr ""
 
-#: src/pulsecore/core-util.c:1712
+#: src/pulsecore/core-util.c:1780
 #, c-format
 msgid ""
 "XDG_RUNTIME_DIR (%s) is not owned by us (uid %d), but by uid %d! (This could e.g. "
@@ -1297,11 +1313,11 @@ msgid ""
 "protocol. Don't do that.)"
 msgstr ""
 
-#: src/pulsecore/core-util.h:96
+#: src/pulsecore/core-util.h:97
 msgid "yes"
 msgstr ""
 
-#: src/pulsecore/core-util.h:96
+#: src/pulsecore/core-util.h:97
 msgid "no"
 msgstr ""
 
