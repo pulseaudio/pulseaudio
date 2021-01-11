@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: git trunk\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-01-30 10:10+0000\n"
-"PO-Revision-Date: 2021-01-04 18:36+0000\n"
+"PO-Revision-Date: 2021-01-12 16:36+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/fi/>\n"
@@ -2558,9 +2558,9 @@ msgstr ""
 "ALSA herätti taustaprosessin kirjoittamaan uutta dataa laitteelle, mutta "
 "mitään kirjoitettavaa ei ollut!\n"
 "Tämä on luultavasti ohjelmavirhe ALSA-ajurissa ”%s”. Raportoi tästä "
-"ongelmasta ALSA-kehittäjille. Taustaprosessi herätettiin POLLOUT "
-"asetettuna,  snd_pcm_avail() palautti kuitenkin 0 tai jonkin muun arvon, "
-"joka on < min_avail."
+"ongelmasta ALSA-kehittäjille. \n"
+"Taustaprosessi herätettiin POLLOUT asetettuna, snd_pcm_avail() palautti "
+"kuitenkin 0 tai jonkin muun arvon, joka on < min_avail."
 
 #: ../src/modules/alsa/alsa-source.c:519 ../src/modules/alsa/alsa-source.c:672
 #, c-format
@@ -2575,8 +2575,9 @@ msgstr ""
 "ALSA herätti taustaprosessin lukemaan uutta dataa laitteelta, mutta mitään "
 "luettavaa ei ollut!\n"
 "Tämä on luultavasti ohjelmavirhe ALSA-ajurissa ”%s”. Raportoi tästä "
-"ongelmasta ALSA-kehittäjille. Taustaprosessi herätettiin POLLIN asetettuna,  "
-"snd_pcm_avail() palautti kuitenkin 0 tai jonkin muun arvon, on < min_avail."
+"ongelmasta ALSA-kehittäjille. \n"
+"Taustaprosessi herätettiin POLLIN asetettuna, snd_pcm_avail() palautti "
+"kuitenkin 0 tai jonkin muun arvon, on < min_avail."
 
 #: ../src/modules/alsa/module-alsa-card.c:167
 #: ../src/modules/bluetooth/module-bluetooth-device.c:2796
