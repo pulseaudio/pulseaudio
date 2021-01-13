@@ -1,3 +1,26 @@
+PulseAudio 14.1
+
+A bug fix release.
+
+ * Support upto 8 mixer channels on ALSA devices
+ * Handle ALSA jacks with the same name but different index values
+ * Switch to plugged-in headset when mic availability is unknown
+ * Fix a potential segfault in the Bluetooth oFono HFP backend
+ * Fix a problem with module-ladspa-sink when avoid-resampling=true
+ * Fix database names containing canonical host for meson builds
+
+Contributors
+
+  Arun Raghavan
+  Hui Wang
+  Igor V. Kovalenko
+  Jaroslav Kysela
+  Kai-Heng Feng
+  Patrick Gaskin
+  Tanu Kaskinen
+  morrishoresh
+
+
 PulseAudio 14.0
 
 Changes at a glance:
