@@ -1909,7 +1909,7 @@ fail:
 static DBusMessage *endpoint_clear_configuration(DBusConnection *conn, DBusMessage *m, void *userdata) {
     pa_bluetooth_discovery *y = userdata;
     pa_bluetooth_transport *t;
-    DBusMessage *r;
+    DBusMessage *r = NULL;
     DBusError err;
     const char *path;
 
@@ -1926,12 +1926,14 @@ static DBusMessage *endpoint_clear_configuration(DBusConnection *conn, DBusMessa
         pa_bluetooth_transport_free(t);
     }
 
-    pa_assert_se(r = dbus_message_new_method_return(m));
+    if (!dbus_message_get_no_reply(m))
+        pa_assert_se(r = dbus_message_new_method_return(m));
 
     return r;
 
 fail:
-    pa_assert_se(r = dbus_message_new_error(m, "org.bluez.Error.InvalidArguments", "Unable to clear configuration"));
+    if (!dbus_message_get_no_reply(m))
+        pa_assert_se(r = dbus_message_new_error(m, "org.bluez.Error.InvalidArguments", "Unable to clear configuration"));
     return r;
 }
 
