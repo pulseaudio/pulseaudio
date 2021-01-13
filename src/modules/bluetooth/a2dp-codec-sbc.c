@@ -36,8 +36,8 @@
 #include "a2dp-codec-api.h"
 #include "rtp.h"
 
-#define SBC_BITPOOL_DEC_LIMIT 32
 #define SBC_BITPOOL_DEC_STEP 5
+#define SBC_BITPOOL_INC_STEP 1
 
 struct sbc_info {
     sbc_t sbc;                           /* Codec data */
@@ -503,14 +503,20 @@ static size_t reduce_encoder_bitrate(void *codec_info, size_t write_link_mtu) {
     struct sbc_info *sbc_info = (struct sbc_info *) codec_info;
     uint8_t bitpool;
 
-    /* Check if bitpool is already at its limit */
-    if (sbc_info->sbc.bitpool <= SBC_BITPOOL_DEC_LIMIT)
+    bitpool = PA_MAX(sbc_info->sbc.bitpool - SBC_BITPOOL_DEC_STEP, sbc_info->min_bitpool);
+
+    if (sbc_info->sbc.bitpool == bitpool)
         return 0;
 
-    bitpool = sbc_info->sbc.bitpool - SBC_BITPOOL_DEC_STEP;
+    set_bitpool(sbc_info, bitpool);
+    return get_block_size(codec_info, write_link_mtu);
+}
 
-    if (bitpool < SBC_BITPOOL_DEC_LIMIT)
-        bitpool = SBC_BITPOOL_DEC_LIMIT;
+static size_t increase_encoder_bitrate(void *codec_info, size_t write_link_mtu) {
+    struct sbc_info *sbc_info = (struct sbc_info *) codec_info;
+    uint8_t bitpool;
+
+    bitpool = PA_MIN(sbc_info->sbc.bitpool + SBC_BITPOOL_INC_STEP, sbc_info->max_bitpool);
 
     if (sbc_info->sbc.bitpool == bitpool)
         return 0;
@@ -682,6 +688,7 @@ const pa_a2dp_codec pa_a2dp_codec_sbc = {
     .get_read_block_size = get_block_size,
     .get_write_block_size = get_block_size,
     .reduce_encoder_bitrate = reduce_encoder_bitrate,
+    .increase_encoder_bitrate = increase_encoder_bitrate,
     .encode_buffer = encode_buffer,
     .decode_buffer = decode_buffer,
 };
