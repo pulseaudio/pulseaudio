@@ -278,8 +278,10 @@ static void switch_from_port(pa_device_port *port, struct port_pointers pp) {
      * profile is still available in the
      * PA_CORE_HOOK_CARD_PROFILE_AVAILABLE_CHANGED callback, as at this point
      * the profile availability hasn't been updated yet. */
-    if (best_port)
-        switch_to_port(best_port, pp);
+    if (best_port) {
+        struct port_pointers best_pp = find_port_pointers(best_port);
+        switch_to_port(best_port, best_pp);
+    }
 }
 
 
