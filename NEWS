@@ -1,3 +1,14 @@
+PulseAudio 14.2
+
+A bug fix release.
+
+ * Fix port switching when unplugging headphones
+
+Contributors
+
+  Tanu Kaskinen
+
+
 PulseAudio 14.1
 
 A bug fix release.
