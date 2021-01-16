@@ -96,7 +96,6 @@ src/pulsecore/core-subscribe.c
 src/pulsecore/core-util.c
 src/pulsecore/core-util.h
 src/pulsecore/dbus-util.c
-src/pulsecore/dllmain.c
 src/pulsecore/dynarray.c
 src/pulsecore/fdsem.c
 src/pulsecore/ffmpeg/resample2.c
