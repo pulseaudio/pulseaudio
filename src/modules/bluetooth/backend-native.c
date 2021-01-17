@@ -742,25 +742,44 @@ static void rfcomm_io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_i
                 rfcomm_write_response(fd, "+XAPL=iPhone,6");
             do_reply = true;
         } else if (sscanf(buf, "AT+IPHONEACCEV=%d", &num) == 1) {
-            char *substr = strchr(buf, ',');
-            bool isval = false;
-            int key, val;
+            char *substr = buf, *keystr;
+            int key, val, i;
 
-            for (; substr; substr = strchr(substr, ',')) {
-                substr++;
-                if (!isval) {
-                    key = atoi(substr);
-                } else {
-                    val = atoi(substr);
-                    if (key == 1) {
-                        pa_log_notice("Battery Level: %d0%%", val + 1);
-                    } else if (key == 2) {
-                        pa_log_notice("Dock Status: %s", val ? "docked" : "undocked");
-                    }
-                }
-                isval = !isval;
-            }
             do_reply = true;
+
+            for (i = 0; i < num; ++i) {
+                keystr = strchr(substr, ',');
+                if (!keystr) {
+                    pa_log_warn("%s misses key for argument #%d", buf, i);
+                    do_reply = false;
+                    break;
+                }
+                keystr++;
+                substr = strchr(keystr, ',');
+                if (!substr) {
+                    pa_log_warn("%s misses value for argument #%d", buf, i);
+                    do_reply = false;
+                    break;
+                }
+                substr++;
+
+                key = atoi(keystr);
+                val = atoi(substr);
+
+                switch (key) {
+                    case 1:
+                        pa_log_notice("Battery Level: %d0%%", val + 1);
+                        break;
+                    case 2:
+                        pa_log_notice("Dock Status: %s", val ? "docked" : "undocked");
+                        break;
+                    default:
+                        pa_log_debug("Unexpected IPHONEACCEV key %#x", key);
+                        break;
+                }
+            }
+            if (!do_reply)
+                rfcomm_write_response(fd, "ERROR");
         } else if (t->config) { /* t->config is only non-null for hfp profile */
             do_reply = hfp_rfcomm_handle(fd, t, buf);
         } else {
