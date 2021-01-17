@@ -764,6 +764,7 @@ static void rfcomm_io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_i
         } else if (t->config) { /* t->config is only non-null for hfp profile */
             do_reply = hfp_rfcomm_handle(fd, t, buf);
         } else {
+            rfcomm_write_response(fd, "ERROR");
             do_reply = false;
         }
 
