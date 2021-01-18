@@ -868,6 +868,12 @@ bool pa_bluetooth_device_any_transport_connected(const pa_bluetooth_device *d) {
     return false;
 }
 
+void pa_bluetooth_device_report_battery_level(pa_bluetooth_device *d, uint8_t level) {
+    d->has_battery_level = true;
+    d->battery_level = level;
+    pa_hook_fire(&d->discovery->hooks[PA_BLUETOOTH_HOOK_DEVICE_BATTERY_LEVEL_CHANGED], d);
+}
+
 static int transport_state_from_string(const char* value, pa_bluetooth_transport_state_t *state) {
     pa_assert(value);
     pa_assert(state);
