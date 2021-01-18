@@ -107,7 +107,7 @@ EXTRA_DIST = \
 		utils/qpaeq \
 		utils/pa-info \
 		daemon/pulseaudio.desktop.in \
-		map-file \
+		pulse/map-file \
 		daemon/pulseaudio-system.conf \
 		modules/echo-cancel/adrian-license.txt \
 		modules/gsettings/org.freedesktop.pulseaudio.gschema.xml \
@@ -2277,7 +2277,7 @@ update-map-file:
 	  ctags -I PA_GCC_MALLOC,PA_GCC_ALLOC_SIZE2,PA_GCC_ALLOC_SIZE,PA_GCC_PURE,PA_GCC_CONST,PA_GCC_DEPRECATED,PA_GCC_PRINTF_ATTR -f - --c-kinds=p $(pulseinclude_HEADERS) | awk '/^pa_/ { print $$1 ";" }' | sort ; \
 	  echo "local:" ;  \
 	  echo "*;" ; \
-	  echo "};" ) > $(srcdir)/map-file
+	  echo "};" ) > $(srcdir)/pulse/map-file
 
 update-all: update-ffmpeg update-map-file
 
