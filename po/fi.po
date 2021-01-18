@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: git trunk\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-01-30 10:10+0000\n"
-"PO-Revision-Date: 2021-01-12 16:36+0000\n"
+"PO-Revision-Date: 2021-01-19 13:36+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/fi/>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.4\n"
+"X-Generator: Weblate 4.4.2\n"
 
 #: ../src/modules/alsa/alsa-util.c:1136 ../src/modules/alsa/alsa-util.c:1204
 #, c-format
@@ -260,13 +260,13 @@ msgstr ""
 #: ../src/daemon/main.c:724
 msgid "Running in system mode, forcibly disabling SHM mode!"
 msgstr ""
-"Suoritetaan järjestelmätilassa, otetaan SHM-tila pakotetusti pois käytöstä."
+"Suoritetaan järjestelmätilassa, otetaan SHM-tila pakotetusti pois käytöstä!"
 
 #: ../src/daemon/main.c:729
 msgid "Running in system mode, forcibly disabling exit idle time!"
 msgstr ""
 "Suoritetaan järjestelmätilassa, otetaan poistumisen joutenoloaika "
-"pakotetusti pois käytöstä."
+"pakotetusti pois käytöstä!"
 
 #: ../src/daemon/main.c:757
 msgid "Failed to acquire stdio."
@@ -416,7 +416,7 @@ msgstr ""
 "Jos silti teet näin, on sinun vikasi jos kaikki ei toimikaan odotetusti.\n"
 "Lisätietoja siitä, miksi järjestelmätilan käyttäminen on yleensä huono "
 "ajatus on osoitteessa http://www.freedesktop.org/wiki/Software/PulseAudio/"
-"Documentation/User/WhatIsWrongWithSystemWide/"
+"Documentation/User/WhatIsWrongWithSystemWide/."
 
 #: ../src/daemon/main.c:981
 msgid "pa_pid_file_create() failed."
@@ -424,7 +424,7 @@ msgstr "pa_pid_file_create() epäonnistui."
 
 #: ../src/daemon/main.c:991
 msgid "Fresh high-resolution timers available! Bon appetit!"
-msgstr "Korkean tarkkuuden ajastimet käytettävissä."
+msgstr "Korkean tarkkuuden ajastimet käytettävissä!"
 
 #: ../src/daemon/main.c:993
 msgid ""
@@ -1710,8 +1710,8 @@ msgstr ""
 "\n"
 "  -h, --help                            Näytä tämä ohje\n"
 "      --version                         Näytä versio\n"
-"  -s, --server=PALVELIN                 Sen palvelimen nimi, johon\n"
-"                                        yhdistetään\n"
+"  -s, --server=PALVELIN                 Sen palvelimen nimi, johon "
+"yhdistetään\n"
 "\n"
 
 #: ../src/utils/pasuspender.c:248
@@ -2432,14 +2432,13 @@ msgid ""
 "variables and cookie file.\n"
 " -r    Remove PulseAudio data from X11 display\n"
 msgstr ""
-"%s [-D näyttö] [-S palvelin] [-O nielu] [-I lähde] [-c tiedosto]  [-d|-e|-i|-"
-"r]\n"
+"%s [-D näyttö] [-S palvelin] [-O nielu] [-I lähde] [-c tiedosto]  "
+"[-d|-e|-i|-r]\n"
 "\n"
 " -d    Näytä nykyiseen X11-näyttöön yhdistetyn PulseAudion tiedot (oletus)\n"
 " -e    Vie paikalliset PulseAudio-tiedot X11-näytölle\n"
 " -i    Tuo PulseAudio-tiedot X11-näytöltä paikallisiin ympäristömuuttujiin "
-"ja\n"
-"       evästetiedostoon.\n"
+"ja evästetiedostoon.\n"
 " -r    Poista PulseAudio-tiedostot X11-näytöltä\n"
 
 #: ../src/utils/pax11publish.c:94
@@ -2867,7 +2866,6 @@ msgid "General Purpose Equalizer"
 msgstr ""
 
 #: ../src/modules/module-equalizer-sink.c:76
-#, fuzzy
 msgid ""
 "sink_name=<name of the sink> sink_properties=<properties for the sink> "
 "sink_master=<sink to connect to> format=<sample format> rate=<sample rate> "
@@ -2879,7 +2877,7 @@ msgstr ""
 "rate=<näytteenottotaajuus> channels=<kanavien määrä> "
 "channel_map=<kanavakartta> plugin=<ladspa-liitännäisen nimi> label=<ladspa-"
 "liitännäisen nimiö (label)> control=<pilkulla erotettu luettelo "
-"syötteenhallinta-arvoja>"
+"syötteenhallinta-arvoja> "
 
 #: ../src/modules/module-filter-apply.c:48
 msgid "autoclean=<automatically unload unused filters?>"
