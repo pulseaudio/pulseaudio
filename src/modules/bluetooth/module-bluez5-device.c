@@ -186,8 +186,8 @@ static pa_bluetooth_form_factor_t form_factor_from_class(uint32_t class_of_devic
     };
 
     /*
-     * See Bluetooth Assigned Numbers:
-     * https://www.bluetooth.org/Technical/AssignedNumbers/baseband.htm
+     * See Bluetooth Assigned Numbers for Baseband
+     * https://www.bluetooth.com/specifications/assigned-numbers/baseband/
      */
     major = (class_of_device >> 8) & 0x1F;
     minor = (class_of_device >> 2) & 0x3F;
