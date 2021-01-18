@@ -769,7 +769,7 @@ static void rfcomm_io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_i
                 switch (key) {
                     case 1:
                         pa_log_notice("Battery Level: %d0%%", val + 1);
-                        pa_bluetooth_device_report_battery_level(t->device, (val + 1) * 10);
+                        pa_bluetooth_device_report_battery_level(t->device, (val + 1) * 10, "Apple accessory indication");
                         break;
                     case 2:
                         pa_log_notice("Dock Status: %s", val ? "docked" : "undocked");
