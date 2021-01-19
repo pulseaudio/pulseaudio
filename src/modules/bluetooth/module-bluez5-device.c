@@ -2308,12 +2308,15 @@ static pa_hook_result_t device_battery_level_changed_cb(pa_bluetooth_discovery *
     pa_assert(d);
     pa_assert(u);
 
-    if (d != u->device || !d->has_battery_level)
+    if (d != u->device)
         return PA_HOOK_OK;
 
-    level = d->battery_level;
-
-    pa_proplist_setf(u->card->proplist, "bluetooth.battery", "%d%%", level);
+    if (d->has_battery_level) {
+        level = d->battery_level;
+        pa_proplist_setf(u->card->proplist, "bluetooth.battery", "%d%%", level);
+    } else {
+        pa_proplist_unset(u->card->proplist, "bluetooth.battery");
+    }
 
     return PA_HOOK_OK;
 }

@@ -686,6 +686,11 @@ static void rfcomm_io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_i
 
     if (events & (PA_IO_EVENT_HANGUP|PA_IO_EVENT_ERROR)) {
         pa_log_info("Lost RFCOMM connection.");
+        // TODO: Keep track of which profile is the current battery provider,
+        // only deregister if it is us currently providing these levels.
+        // (Also helpful to fill the 'Source' property)
+        // We might also move this to Profile1::RequestDisconnection
+        pa_bluetooth_device_deregister_battery(t->device);
         goto fail;
     }
 

@@ -927,6 +927,42 @@ void pa_bluetooth_device_report_battery_level(pa_bluetooth_device *d, uint8_t le
     }
 }
 
+/* Notify BlueZ that we're no longer providing battery info for this device */
+void pa_bluetooth_device_deregister_battery(pa_bluetooth_device *d) {
+    static const char *interface_name = BLUEZ_BATTERY_PROVIDER_INTERFACE;
+    DBusMessage *m;
+    DBusMessageIter iter, array;
+    char *battery_path, *provider_path;
+
+    if (!d->has_battery_level)
+        return;
+
+    d->has_battery_level = false;
+    pa_hook_fire(&d->discovery->hooks[PA_BLUETOOTH_HOOK_DEVICE_BATTERY_LEVEL_CHANGED], d);
+
+    if (!d->adapter->battery_provider_registered)
+        return;
+
+    battery_path = device_battery_provider_path(d);
+    provider_path = adapter_battery_provider_path(d->adapter);
+
+    pa_log_debug("Deregistering battery provider %s", battery_path);
+
+    pa_assert_se(m = dbus_message_new_signal(provider_path, DBUS_INTERFACE_OBJECT_MANAGER, "InterfacesRemoved"));
+    dbus_message_iter_init_append(m, &iter);
+    pa_assert_se(dbus_message_iter_append_basic(&iter, DBUS_TYPE_OBJECT_PATH, &battery_path));
+    pa_assert_se(dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, DBUS_TYPE_STRING_AS_STRING, &array));
+    pa_assert_se(dbus_message_iter_append_basic(&array, DBUS_TYPE_STRING, &interface_name));
+    pa_assert_se(dbus_message_iter_close_container(&iter, &array));
+
+    pa_assert_se(dbus_connection_send(pa_dbus_connection_get(d->discovery->connection), m, NULL));
+    d->has_battery_level = false;
+
+    pa_xfree(battery_path);
+    pa_xfree(provider_path);
+}
+
+
 static int transport_state_from_string(const char* value, pa_bluetooth_transport_state_t *state) {
     pa_assert(value);
     pa_assert(state);

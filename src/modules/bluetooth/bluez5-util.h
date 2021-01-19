@@ -206,6 +206,7 @@ void pa_bluetooth_transport_load_a2dp_sink_volume(pa_bluetooth_transport *t);
 bool pa_bluetooth_device_any_transport_connected(const pa_bluetooth_device *d);
 bool pa_bluetooth_device_switch_codec(pa_bluetooth_device *device, pa_bluetooth_profile_t profile, pa_hashmap *capabilities_hashmap, const pa_a2dp_endpoint_conf *endpoint_conf, void (*codec_switch_cb)(bool, pa_bluetooth_profile_t profile, void *), void *userdata);
 void pa_bluetooth_device_report_battery_level(pa_bluetooth_device *d, uint8_t level, const char *reporting_source);
+void pa_bluetooth_device_deregister_battery(pa_bluetooth_device *d);
 
 pa_bluetooth_device* pa_bluetooth_discovery_get_device_by_path(pa_bluetooth_discovery *y, const char *path);
 pa_bluetooth_device* pa_bluetooth_discovery_get_device_by_address(pa_bluetooth_discovery *y, const char *remote, const char *local);
