@@ -53,7 +53,7 @@ struct sbc_info {
     uint8_t max_bitpool;
 };
 
-static bool can_be_supported(void) {
+static bool can_be_supported(bool for_encoding) {
     return true;
 }
 

@@ -33,24 +33,26 @@
 #include "a2dp-codec-gst.h"
 #include "rtp.h"
 
-static bool can_be_supported(void) {
+static bool can_be_supported(bool for_encoding) {
     GstElementFactory *element_factory;
 
-    element_factory = gst_element_factory_find("openaptxenc");
-    if (element_factory == NULL) {
-        pa_log_info("aptX encoder not found");
-        return false;
+    if (for_encoding) {
+        element_factory = gst_element_factory_find("openaptxenc");
+        if (element_factory == NULL) {
+            pa_log_info("aptX encoder not found");
+            return false;
+        }
+
+        gst_object_unref(element_factory);
+    } else {
+        element_factory = gst_element_factory_find("openaptxdec");
+        if (element_factory == NULL) {
+            pa_log_info("aptX decoder not found");
+            return false;
+        }
+
+        gst_object_unref(element_factory);
     }
-
-    gst_object_unref(element_factory);
-
-    element_factory = gst_element_factory_find("openaptxdec");
-    if (element_factory == NULL) {
-        pa_log_info("aptX decoder not found");
-        return false;
-    }
-
-    gst_object_unref(element_factory);
 
     return true;
 }

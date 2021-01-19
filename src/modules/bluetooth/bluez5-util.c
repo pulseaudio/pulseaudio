@@ -2108,21 +2108,21 @@ static DBusHandlerResult object_manager_handler(DBusConnection *c, DBusMessage *
             char *endpoint;
 
             a2dp_codec = pa_bluetooth_a2dp_codec_iter(i);
-            if (!a2dp_codec->can_be_supported())
-                continue;
 
             codec_id = a2dp_codec->id.codec_id;
-            capabilities_size = a2dp_codec->fill_capabilities(capabilities);
-            pa_assert(capabilities_size != 0);
 
-            if (a2dp_codec->decode_buffer != NULL) {
+            if (a2dp_codec->can_be_supported(false)) {
+                capabilities_size = a2dp_codec->fill_capabilities(capabilities);
+                pa_assert(capabilities_size != 0);
                 endpoint = pa_sprintf_malloc("%s/%s", A2DP_SINK_ENDPOINT, a2dp_codec->name);
                 append_a2dp_object(&array, endpoint, PA_BLUETOOTH_UUID_A2DP_SINK, codec_id,
                         capabilities, capabilities_size);
                 pa_xfree(endpoint);
             }
 
-            if (a2dp_codec->encode_buffer != NULL) {
+            if (a2dp_codec->can_be_supported(true)) {
+                capabilities_size = a2dp_codec->fill_capabilities(capabilities);
+                pa_assert(capabilities_size != 0);
                 endpoint = pa_sprintf_malloc("%s/%s", A2DP_SOURCE_ENDPOINT, a2dp_codec->name);
                 append_a2dp_object(&array, endpoint, PA_BLUETOOTH_UUID_A2DP_SOURCE, codec_id,
                         capabilities, capabilities_size);
@@ -2222,16 +2222,13 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c, int headset_backe
     count = pa_bluetooth_a2dp_codec_count();
     for (i = 0; i < count; i++) {
         a2dp_codec = pa_bluetooth_a2dp_codec_iter(i);
-        if (!a2dp_codec->can_be_supported())
-            continue;
-
-        if (a2dp_codec->decode_buffer != NULL) {
+        if (a2dp_codec->can_be_supported(false)) {
             endpoint = pa_sprintf_malloc("%s/%s", A2DP_SINK_ENDPOINT, a2dp_codec->name);
             endpoint_init(y, endpoint);
             pa_xfree(endpoint);
         }
 
-        if (a2dp_codec->encode_buffer != NULL) {
+        if (a2dp_codec->can_be_supported(true)) {
             endpoint = pa_sprintf_malloc("%s/%s", A2DP_SOURCE_ENDPOINT, a2dp_codec->name);
             endpoint_init(y, endpoint);
             pa_xfree(endpoint);
@@ -2316,16 +2313,13 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
         for (i = 0; i < count; i++) {
             a2dp_codec = pa_bluetooth_a2dp_codec_iter(i);
 
-            if (!a2dp_codec->can_be_supported())
-                continue;
-
-            if (a2dp_codec->decode_buffer != NULL) {
+            if (a2dp_codec->can_be_supported(false)) {
                 endpoint = pa_sprintf_malloc("%s/%s", A2DP_SINK_ENDPOINT, a2dp_codec->name);
                 endpoint_done(y, endpoint);
                 pa_xfree(endpoint);
             }
 
-            if (a2dp_codec->encode_buffer != NULL) {
+            if (a2dp_codec->can_be_supported(true)) {
                 endpoint = pa_sprintf_malloc("%s/%s", A2DP_SOURCE_ENDPOINT, a2dp_codec->name);
                 endpoint_done(y, endpoint);
                 pa_xfree(endpoint);

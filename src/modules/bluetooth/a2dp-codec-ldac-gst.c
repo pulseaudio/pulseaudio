@@ -33,8 +33,11 @@
 #include "a2dp-codec-gst.h"
 #include "rtp.h"
 
-static bool can_be_supported(void) {
+static bool can_be_supported(bool for_encoding) {
     GstElementFactory *element_factory;
+
+    if (!for_encoding)
+        return false;
 
     element_factory = gst_element_factory_find("ldacenc");
     if (element_factory == NULL) {

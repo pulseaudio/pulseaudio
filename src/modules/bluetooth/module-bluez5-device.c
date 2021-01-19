@@ -2307,7 +2307,7 @@ static char *list_codecs(struct userdata *u) {
             a2dp_codec = pa_bluetooth_a2dp_codec_iter(i);
 
             if (memcmp(key, &a2dp_codec->id, sizeof(pa_a2dp_codec_id)) == 0) {
-                if (a2dp_codec->can_be_supported()) {
+                if (a2dp_codec->can_be_supported(is_a2dp_sink)) {
                     pa_message_params_begin_list(param);
 
                     pa_message_params_write_string(param, a2dp_codec->name);
@@ -2383,12 +2383,12 @@ static int bluez5_device_message_handler(const char *object_path, const char *me
             return -PA_ERR_INVALID;
         }
 
-        if (!codec->can_be_supported()) {
+        is_a2dp_sink = u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK;
+
+        if (!u->a2dp_codec->can_be_supported(is_a2dp_sink)) {
             pa_log_info("Codec not found on system");
             return -PA_ERR_NOTSUPPORTED;
         }
-
-        is_a2dp_sink = u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK;
 
         /*
          * We need to check if we have valid sink or source endpoints which
