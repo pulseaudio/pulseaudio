@@ -766,6 +766,7 @@ if bluez5_gst_dep.found() and bluez5_gstapp_dep.found()
   have_bluez5_gstreamer = true
   cdata.set('HAVE_GSTLDAC', 1)
   cdata.set('HAVE_GSTAPTX', 1)
+  cdata.set('HAVE_GSTAAC', 1)
 endif
 
 # These are required for the CMake file generation
