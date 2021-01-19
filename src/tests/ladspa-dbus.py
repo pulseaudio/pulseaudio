@@ -84,7 +84,7 @@ def print_arguments(arguments, defaults):
 sinkname, arguments, defaults = parse_arguments(sys.argv)
 
 if sinkname == None:
-    print USAGE
+    print(USAGE)
     sys.exit(1)
 
 # get the D-Bus property interface of the sink
