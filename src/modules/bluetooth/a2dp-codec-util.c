@@ -89,15 +89,16 @@ void pa_bluetooth_a2dp_codec_gst_init(void) {
 #endif
 }
 
-bool pa_bluetooth_a2dp_codec_is_codec_available(const pa_a2dp_codec_id *id, bool is_a2dp_sink) {
+bool pa_bluetooth_a2dp_codec_is_available(const pa_a2dp_codec_id *id, bool is_a2dp_sink) {
     unsigned int i;
     unsigned int count = pa_bluetooth_a2dp_codec_count();
+    const pa_a2dp_codec *a2dp_codec;
 
     for (i = 0; i < count; i++) {
-        if (memcmp(id, &pa_a2dp_codecs[i]->id, sizeof(pa_a2dp_codec_id)) == 0) {
-            return (is_a2dp_sink && pa_a2dp_codecs[i]->encode_buffer != NULL)
-                || (!is_a2dp_sink && pa_a2dp_codecs[i]->decode_buffer != NULL);
-        }
+        a2dp_codec = pa_bluetooth_a2dp_codec_iter(i);
+        if (memcmp(id, &a2dp_codec->id, sizeof(pa_a2dp_codec_id)) == 0
+                && a2dp_codec->can_be_supported(is_a2dp_sink))
+            return true;
     }
 
     return false;

@@ -1335,7 +1335,7 @@ static void parse_remote_endpoint_properties(pa_bluetooth_discovery *y, const ch
         a2dp_codec_id->vendor_codec_id = 0;
     }
 
-    if (!pa_bluetooth_a2dp_codec_is_codec_available(a2dp_codec_id, pa_streq(uuid, PA_BLUETOOTH_UUID_A2DP_SINK))) {
+    if (!pa_bluetooth_a2dp_codec_is_available(a2dp_codec_id, pa_streq(uuid, PA_BLUETOOTH_UUID_A2DP_SINK))) {
         pa_xfree(a2dp_codec_id);
         return;
     }
