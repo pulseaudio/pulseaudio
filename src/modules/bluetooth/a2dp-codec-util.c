@@ -30,6 +30,9 @@
 #include "a2dp-codec-util.h"
 
 extern const pa_a2dp_codec pa_a2dp_codec_sbc;
+extern const pa_a2dp_codec pa_a2dp_codec_sbc_xq_453;
+extern const pa_a2dp_codec pa_a2dp_codec_sbc_xq_512;
+extern const pa_a2dp_codec pa_a2dp_codec_sbc_xq_552;
 #ifdef HAVE_GSTAPTX
 extern const pa_a2dp_codec pa_a2dp_codec_aptx;
 extern const pa_a2dp_codec pa_a2dp_codec_aptx_hd;
@@ -53,6 +56,9 @@ static const pa_a2dp_codec *pa_a2dp_codecs[] = {
     &pa_a2dp_codec_aptx,
 #endif
     &pa_a2dp_codec_sbc,
+    &pa_a2dp_codec_sbc_xq_453,
+    &pa_a2dp_codec_sbc_xq_512,
+    &pa_a2dp_codec_sbc_xq_552,
 };
 
 unsigned int pa_bluetooth_a2dp_codec_count(void) {

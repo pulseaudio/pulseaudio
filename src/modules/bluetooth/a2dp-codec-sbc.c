@@ -51,6 +51,9 @@ struct sbc_info {
     uint8_t initial_bitpool;
     uint8_t min_bitpool;
     uint8_t max_bitpool;
+
+    uint8_t nr_blocks;
+    uint8_t nr_subbands;
 };
 
 static bool can_be_supported(bool for_encoding) {
@@ -81,6 +84,30 @@ static bool can_accept_capabilities(const uint8_t *capabilities_buffer, uint8_t 
     return true;
 }
 
+static bool can_accept_capabilities_xq(const uint8_t *capabilities_buffer, uint8_t capabilities_size, bool for_encoding) {
+    const a2dp_sbc_t *capabilities = (const a2dp_sbc_t *) capabilities_buffer;
+
+    if (capabilities_size != sizeof(*capabilities))
+        return false;
+
+    if (!(capabilities->frequency & (SBC_SAMPLING_FREQ_44100 | SBC_SAMPLING_FREQ_48000)))
+        return false;
+
+    if (!(capabilities->channel_mode & (SBC_CHANNEL_MODE_DUAL_CHANNEL)))
+        return false;
+
+    if (!(capabilities->allocation_method & (SBC_ALLOCATION_LOUDNESS)))
+        return false;
+
+    if (!(capabilities->subbands & (SBC_SUBBANDS_8)))
+        return false;
+
+    if (!(capabilities->block_length & (SBC_BLOCK_LENGTH_16)))
+        return false;
+
+    return true;
+}
+
 static const char *choose_remote_endpoint(const pa_hashmap *capabilities_hashmap, const pa_sample_spec *default_sample_spec, bool for_encoding) {
     const pa_a2dp_codec_capabilities *a2dp_capabilities;
     const char *key;
@@ -89,6 +116,20 @@ static const char *choose_remote_endpoint(const pa_hashmap *capabilities_hashmap
     /* There is no preference, just choose random valid entry */
     PA_HASHMAP_FOREACH_KV(key, a2dp_capabilities, capabilities_hashmap, state) {
         if (can_accept_capabilities(a2dp_capabilities->buffer, a2dp_capabilities->size, for_encoding))
+            return key;
+    }
+
+    return NULL;
+}
+
+static const char *choose_remote_endpoint_xq(const pa_hashmap *capabilities_hashmap, const pa_sample_spec *default_sample_spec, bool for_encoding) {
+    const pa_a2dp_codec_capabilities *a2dp_capabilities;
+    const char *key;
+    void *state;
+
+    /* There is no preference, just choose random valid entry */
+    PA_HASHMAP_FOREACH_KV(key, a2dp_capabilities, capabilities_hashmap, state) {
+        if (can_accept_capabilities_xq(a2dp_capabilities->buffer, a2dp_capabilities->size, for_encoding))
             return key;
     }
 
@@ -109,6 +150,29 @@ static uint8_t fill_capabilities(uint8_t capabilities_buffer[MAX_A2DP_CAPS_SIZE]
     capabilities->block_length = SBC_BLOCK_LENGTH_4 | SBC_BLOCK_LENGTH_8 | SBC_BLOCK_LENGTH_12 | SBC_BLOCK_LENGTH_16;
     capabilities->min_bitpool = SBC_MIN_BITPOOL;
     capabilities->max_bitpool = SBC_BITPOOL_HQ_JOINT_STEREO_44100;
+
+    return sizeof(*capabilities);
+}
+
+/* SBC XQ
+ *
+ * References:
+ *   https://habr.com/en/post/456476/
+ *   http://soundexpert.org/articles/-/blogs/audio-quality-of-sbc-xq-bluetooth-audio-codec
+ *
+ */
+static uint8_t fill_capabilities_xq(uint8_t capabilities_buffer[MAX_A2DP_CAPS_SIZE]) {
+    a2dp_sbc_t *capabilities = (a2dp_sbc_t *) capabilities_buffer;
+
+    pa_zero(*capabilities);
+
+    capabilities->channel_mode = SBC_CHANNEL_MODE_DUAL_CHANNEL;
+    capabilities->frequency = SBC_SAMPLING_FREQ_44100 | SBC_SAMPLING_FREQ_48000;
+    capabilities->allocation_method = SBC_ALLOCATION_LOUDNESS;
+    capabilities->subbands = SBC_SUBBANDS_8;
+    capabilities->block_length = SBC_BLOCK_LENGTH_16;
+    capabilities->min_bitpool = SBC_MIN_BITPOOL;
+    capabilities->max_bitpool = SBC_MAX_BITPOOL;
 
     return sizeof(*capabilities);
 }
@@ -314,38 +378,7 @@ static uint8_t fill_preferred_configuration(const pa_sample_spec *default_sample
     return sizeof(*config);
 }
 
-static void set_params(struct sbc_info *sbc_info) {
-    sbc_info->sbc.frequency = sbc_info->frequency;
-    sbc_info->sbc.blocks = sbc_info->blocks;
-    sbc_info->sbc.subbands = sbc_info->subbands;
-    sbc_info->sbc.mode = sbc_info->mode;
-    sbc_info->sbc.allocation = sbc_info->allocation;
-    sbc_info->sbc.bitpool = sbc_info->initial_bitpool;
-    sbc_info->sbc.endian = SBC_LE;
-
-    sbc_info->codesize = sbc_get_codesize(&sbc_info->sbc);
-    sbc_info->frame_length = sbc_get_frame_length(&sbc_info->sbc);
-}
-
-static void *init(bool for_encoding, bool for_backchannel, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *sample_spec, pa_core *core) {
-    struct sbc_info *sbc_info;
-    const a2dp_sbc_t *config = (const a2dp_sbc_t *) config_buffer;
-    int ret;
-
-    pa_assert(config_size == sizeof(*config));
-    pa_assert(!for_backchannel);
-
-    sbc_info = pa_xnew0(struct sbc_info, 1);
-
-    ret = sbc_init(&sbc_info->sbc, 0);
-    if (ret != 0) {
-        pa_xfree(sbc_info);
-        pa_log_error("SBC initialization failed: %d", ret);
-        return NULL;
-    }
-
-    sample_spec->format = PA_SAMPLE_S16LE;
-
+static void set_info_and_sample_spec_from_sbc_config(struct sbc_info *sbc_info, pa_sample_spec *sample_spec, const a2dp_sbc_t *config) {
     switch (config->frequency) {
         case SBC_SAMPLING_FREQ_16000:
             sbc_info->frequency = SBC_FREQ_16000;
@@ -402,9 +435,11 @@ static void *init(bool for_encoding, bool for_backchannel, const uint8_t *config
     switch (config->subbands) {
         case SBC_SUBBANDS_4:
             sbc_info->subbands = SBC_SB_4;
+            sbc_info->nr_subbands = 4;
             break;
         case SBC_SUBBANDS_8:
             sbc_info->subbands = SBC_SB_8;
+            sbc_info->nr_subbands = 8;
             break;
         default:
             pa_assert_not_reached();
@@ -413,15 +448,19 @@ static void *init(bool for_encoding, bool for_backchannel, const uint8_t *config
     switch (config->block_length) {
         case SBC_BLOCK_LENGTH_4:
             sbc_info->blocks = SBC_BLK_4;
+            sbc_info->nr_blocks = 4;
             break;
         case SBC_BLOCK_LENGTH_8:
             sbc_info->blocks = SBC_BLK_8;
+            sbc_info->nr_blocks = 8;
             break;
         case SBC_BLOCK_LENGTH_12:
             sbc_info->blocks = SBC_BLK_12;
+            sbc_info->nr_blocks = 12;
             break;
         case SBC_BLOCK_LENGTH_16:
             sbc_info->blocks = SBC_BLK_16;
+            sbc_info->nr_blocks = 16;
             break;
         default:
             pa_assert_not_reached();
@@ -429,6 +468,182 @@ static void *init(bool for_encoding, bool for_backchannel, const uint8_t *config
 
     sbc_info->min_bitpool = config->min_bitpool;
     sbc_info->max_bitpool = config->max_bitpool;
+}
+
+static void set_params(struct sbc_info *sbc_info) {
+    sbc_info->sbc.frequency = sbc_info->frequency;
+    sbc_info->sbc.blocks = sbc_info->blocks;
+    sbc_info->sbc.subbands = sbc_info->subbands;
+    sbc_info->sbc.mode = sbc_info->mode;
+    sbc_info->sbc.allocation = sbc_info->allocation;
+    sbc_info->sbc.bitpool = sbc_info->initial_bitpool;
+    sbc_info->sbc.endian = SBC_LE;
+
+    sbc_info->codesize = sbc_get_codesize(&sbc_info->sbc);
+    sbc_info->frame_length = sbc_get_frame_length(&sbc_info->sbc);
+}
+
+uint8_t sbc_get_max_bitpool_below_rate(a2dp_sbc_t *config, uint8_t lower_bound, uint8_t upper_bound, uint32_t bitrate_cap) {
+    pa_sample_spec sample_spec;
+    struct sbc_info sbc_info;
+    int ret;
+
+    pa_assert(config);
+
+    ret = sbc_init(&sbc_info.sbc, 0);
+    if (ret != 0) {
+        pa_log_error("SBC initialization failed: %d", ret);
+        return lower_bound;
+    }
+
+    set_info_and_sample_spec_from_sbc_config(&sbc_info, &sample_spec, config);
+
+    while (upper_bound - lower_bound > 1) {
+        size_t midpoint = (upper_bound + lower_bound) / 2;
+
+        sbc_info.initial_bitpool = midpoint;
+        set_params(&sbc_info);
+
+        size_t bitrate = sbc_info.frame_length * 8 * sample_spec.rate / (sbc_info.nr_subbands * sbc_info.nr_blocks);
+
+        if (bitrate > bitrate_cap)
+            upper_bound = midpoint;
+        else
+            lower_bound = midpoint;
+    }
+
+    sbc_finish(&sbc_info.sbc);
+
+    pa_log_debug("SBC target bitrate %u bitpool %u sample rate %u", bitrate_cap, lower_bound, sample_spec.rate);
+
+    return lower_bound;
+}
+
+static uint8_t fill_preferred_configuration_xq(const pa_sample_spec *default_sample_spec, const uint8_t *capabilities_buffer, uint8_t capabilities_size, uint8_t config_buffer[MAX_A2DP_CAPS_SIZE], uint32_t bitrate_cap) {
+    a2dp_sbc_t *config = (a2dp_sbc_t *) config_buffer;
+    const a2dp_sbc_t *capabilities = (const a2dp_sbc_t *) capabilities_buffer;
+    int i;
+
+    static const struct {
+        uint32_t rate;
+        uint8_t cap;
+    } freq_table[] = {
+        { 16000U, SBC_SAMPLING_FREQ_16000 },
+        { 32000U, SBC_SAMPLING_FREQ_32000 },
+        { 44100U, SBC_SAMPLING_FREQ_44100 },
+        { 48000U, SBC_SAMPLING_FREQ_48000 }
+    };
+
+    if (capabilities_size != sizeof(*capabilities)) {
+        pa_log_error("Invalid size of capabilities buffer");
+        return 0;
+    }
+
+    pa_zero(*config);
+
+    /* Find the lowest freq that is at least as high as the requested sampling rate */
+    for (i = 0; (unsigned) i < PA_ELEMENTSOF(freq_table); i++)
+        if (freq_table[i].rate >= default_sample_spec->rate && (capabilities->frequency & freq_table[i].cap)) {
+            config->frequency = freq_table[i].cap;
+            break;
+        }
+
+    if ((unsigned) i == PA_ELEMENTSOF(freq_table)) {
+        for (--i; i >= 0; i--) {
+            if (capabilities->frequency & freq_table[i].cap) {
+                config->frequency = freq_table[i].cap;
+                break;
+            }
+        }
+
+        if (i < 0) {
+            pa_log_error("Not suitable sample rate");
+            return 0;
+        }
+    }
+
+    pa_assert((unsigned) i < PA_ELEMENTSOF(freq_table));
+
+    if (default_sample_spec->channels <= 1) {
+        if (capabilities->channel_mode & SBC_CHANNEL_MODE_DUAL_CHANNEL)
+            config->channel_mode = SBC_CHANNEL_MODE_DUAL_CHANNEL;
+        else {
+            pa_log_error("No supported channel modes");
+            return 0;
+        }
+    } else {
+        if (capabilities->channel_mode & SBC_CHANNEL_MODE_DUAL_CHANNEL)
+            config->channel_mode = SBC_CHANNEL_MODE_DUAL_CHANNEL;
+        else {
+            pa_log_error("No supported channel modes");
+            return 0;
+        }
+    }
+
+    if (capabilities->block_length & SBC_BLOCK_LENGTH_16)
+        config->block_length = SBC_BLOCK_LENGTH_16;
+    else {
+        pa_log_error("No supported block lengths");
+        return 0;
+    }
+
+    if (capabilities->subbands & SBC_SUBBANDS_8)
+        config->subbands = SBC_SUBBANDS_8;
+    else {
+        pa_log_error("No supported subbands");
+        return 0;
+    }
+
+    if (capabilities->allocation_method & SBC_ALLOCATION_LOUDNESS)
+        config->allocation_method = SBC_ALLOCATION_LOUDNESS;
+    else {
+        pa_log_error("No supported allocation method");
+        return 0;
+    }
+
+    config->min_bitpool = (uint8_t) PA_MAX(SBC_MIN_BITPOOL, capabilities->min_bitpool);
+    config->max_bitpool = sbc_get_max_bitpool_below_rate(config, config->min_bitpool, capabilities->max_bitpool, bitrate_cap);
+
+    if (config->min_bitpool > config->max_bitpool) {
+        pa_log_error("No supported bitpool");
+        return 0;
+    }
+
+    return sizeof(*config);
+}
+
+static uint8_t fill_preferred_configuration_xq_453kbps(const pa_sample_spec *default_sample_spec, const uint8_t *capabilities_buffer, uint8_t capabilities_size, uint8_t config_buffer[MAX_A2DP_CAPS_SIZE]) {
+    return fill_preferred_configuration_xq(default_sample_spec, capabilities_buffer, capabilities_size, config_buffer, 453000);
+}
+
+static uint8_t fill_preferred_configuration_xq_512kbps(const pa_sample_spec *default_sample_spec, const uint8_t *capabilities_buffer, uint8_t capabilities_size, uint8_t config_buffer[MAX_A2DP_CAPS_SIZE]) {
+    return fill_preferred_configuration_xq(default_sample_spec, capabilities_buffer, capabilities_size, config_buffer, 512000);
+}
+
+static uint8_t fill_preferred_configuration_xq_552kbps(const pa_sample_spec *default_sample_spec, const uint8_t *capabilities_buffer, uint8_t capabilities_size, uint8_t config_buffer[MAX_A2DP_CAPS_SIZE]) {
+    return fill_preferred_configuration_xq(default_sample_spec, capabilities_buffer, capabilities_size, config_buffer, 552000);
+}
+
+static void *init(bool for_encoding, bool for_backchannel, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *sample_spec, pa_core *core) {
+    struct sbc_info *sbc_info;
+    const a2dp_sbc_t *config = (const a2dp_sbc_t *) config_buffer;
+    int ret;
+
+    pa_assert(config_size == sizeof(*config));
+    pa_assert(!for_backchannel);
+
+    sbc_info = pa_xnew0(struct sbc_info, 1);
+
+    ret = sbc_init(&sbc_info->sbc, 0);
+    if (ret != 0) {
+        pa_xfree(sbc_info);
+        pa_log_error("SBC initialization failed: %d", ret);
+        return NULL;
+    }
+
+    sample_spec->format = PA_SAMPLE_S16LE;
+
+    set_info_and_sample_spec_from_sbc_config(sbc_info, sample_spec, config);
 
     /* Set minimum bitpool for source to get the maximum possible block_size
      * in get_block_size() function. This block_size is length of buffer used
@@ -689,6 +904,82 @@ const pa_a2dp_codec pa_a2dp_codec_sbc = {
     .get_write_block_size = get_block_size,
     .reduce_encoder_bitrate = reduce_encoder_bitrate,
     .increase_encoder_bitrate = increase_encoder_bitrate,
+    .encode_buffer = encode_buffer,
+    .decode_buffer = decode_buffer,
+};
+
+/* There are multiple definitions of SBC XQ, but in all cases this is
+ * SBC codec in Dual Channel mode, 8 bands, block length 16, allocation method Loudness,
+ * with bitpool adjusted to match target bitrates.
+ *
+ * Most commonly choosen bitrates and reasons are:
+ * 453000 - this yields most efficient packing of frames on Android for bluetooth EDR 2mbps
+ * 512000 - this looks to be old limit stated in bluetooth documents
+ * 552000 - this yields most efficient packing of frames on Android for bluetooth EDR 3mbps
+ *
+ * Efficient packing considerations do not apply on Linux (yet?) but still
+ * we can gain from increased bitrate.
+ */
+
+const pa_a2dp_codec pa_a2dp_codec_sbc_xq_453 = {
+    .name = "sbc_xq_453",
+    .description = "SBC XQ 453kbps",
+    .id = { A2DP_CODEC_SBC, 0, 0 },
+    .support_backchannel = false,
+    .can_be_supported = can_be_supported,
+    .can_accept_capabilities = can_accept_capabilities_xq,
+    .choose_remote_endpoint = choose_remote_endpoint_xq,
+    .fill_capabilities = fill_capabilities_xq,
+    .is_configuration_valid = is_configuration_valid,
+    .fill_preferred_configuration = fill_preferred_configuration_xq_453kbps,
+    .init = init,
+    .deinit = deinit,
+    .reset = reset,
+    .get_read_block_size = get_block_size,
+    .get_write_block_size = get_block_size,
+    .reduce_encoder_bitrate = reduce_encoder_bitrate,
+    .encode_buffer = encode_buffer,
+    .decode_buffer = decode_buffer,
+};
+
+const pa_a2dp_codec pa_a2dp_codec_sbc_xq_512 = {
+    .name = "sbc_xq_512",
+    .description = "SBC XQ 512kbps",
+    .id = { A2DP_CODEC_SBC, 0, 0 },
+    .support_backchannel = false,
+    .can_be_supported = can_be_supported,
+    .can_accept_capabilities = can_accept_capabilities_xq,
+    .choose_remote_endpoint = choose_remote_endpoint_xq,
+    .fill_capabilities = fill_capabilities_xq,
+    .is_configuration_valid = is_configuration_valid,
+    .fill_preferred_configuration = fill_preferred_configuration_xq_512kbps,
+    .init = init,
+    .deinit = deinit,
+    .reset = reset,
+    .get_read_block_size = get_block_size,
+    .get_write_block_size = get_block_size,
+    .reduce_encoder_bitrate = reduce_encoder_bitrate,
+    .encode_buffer = encode_buffer,
+    .decode_buffer = decode_buffer,
+};
+
+const pa_a2dp_codec pa_a2dp_codec_sbc_xq_552 = {
+    .name = "sbc_xq_552",
+    .description = "SBC XQ 552kbps",
+    .id = { A2DP_CODEC_SBC, 0, 0 },
+    .support_backchannel = false,
+    .can_be_supported = can_be_supported,
+    .can_accept_capabilities = can_accept_capabilities_xq,
+    .choose_remote_endpoint = choose_remote_endpoint_xq,
+    .fill_capabilities = fill_capabilities_xq,
+    .is_configuration_valid = is_configuration_valid,
+    .fill_preferred_configuration = fill_preferred_configuration_xq_552kbps,
+    .init = init,
+    .deinit = deinit,
+    .reset = reset,
+    .get_read_block_size = get_block_size,
+    .get_write_block_size = get_block_size,
+    .reduce_encoder_bitrate = reduce_encoder_bitrate,
     .encode_buffer = encode_buffer,
     .decode_buffer = decode_buffer,
 };
