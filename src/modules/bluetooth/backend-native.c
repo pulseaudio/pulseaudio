@@ -560,7 +560,7 @@ static DBusMessage *profile_new_connection(DBusConnection *conn, DBusMessage *m,
     return r;
 
 fail:
-    pa_assert_se(r = dbus_message_new_error(m, "org.bluez.Error.InvalidArguments", "Unable to handle new connection"));
+    pa_assert_se(r = dbus_message_new_error(m, BLUEZ_ERROR_INVALID_ARGUMENTS, "Unable to handle new connection"));
     return r;
 }
 

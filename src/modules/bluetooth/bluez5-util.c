@@ -504,7 +504,7 @@ static int bluez5_transport_acquire_cb(pa_bluetooth_transport *t, bool optional,
     dbus_message_unref(m);
     m = NULL;
     if (!r) {
-        if (optional && pa_streq(err.name, "org.bluez.Error.NotAvailable"))
+        if (optional && pa_streq(err.name, BLUEZ_ERROR_NOT_AVAILABLE))
             pa_log_info("Failed optional acquire of unavailable transport %s", t->path);
         else
             pa_log_error("Transport %s() failed for transport %s (%s)", method, t->path, err.message);
@@ -1449,7 +1449,7 @@ void pa_bluetooth_discovery_set_ofono_running(pa_bluetooth_discovery *y, bool is
             if (device_supports_profile(d, PA_BLUETOOTH_PROFILE_HEADSET_AUDIO_GATEWAY)) {
                 DBusMessage *m;
 
-                pa_assert_se(m = dbus_message_new_method_call(BLUEZ_SERVICE, d->path, "org.bluez.Device1", "Disconnect"));
+                pa_assert_se(m = dbus_message_new_method_call(BLUEZ_SERVICE, d->path, BLUEZ_DEVICE_INTERFACE, "Disconnect"));
                 dbus_message_set_no_reply(m, true);
                 pa_assert_se(dbus_connection_send(pa_dbus_connection_get(y->connection), m, NULL));
                 dbus_message_unref(m);
@@ -1858,7 +1858,7 @@ fail:
     pa_log_error("Endpoint SetConfiguration(): invalid arguments");
 
 fail2:
-    pa_assert_se(r = dbus_message_new_error(m, "org.bluez.Error.InvalidArguments", "Unable to set configuration"));
+    pa_assert_se(r = dbus_message_new_error(m, BLUEZ_ERROR_INVALID_ARGUMENTS, "Unable to set configuration"));
     return r;
 }
 
@@ -1897,7 +1897,7 @@ static DBusMessage *endpoint_select_configuration(DBusConnection *conn, DBusMess
     return r;
 
 fail:
-    pa_assert_se(r = dbus_message_new_error(m, "org.bluez.Error.InvalidArguments", "Unable to select configuration"));
+    pa_assert_se(r = dbus_message_new_error(m, BLUEZ_ERROR_INVALID_ARGUMENTS, "Unable to select configuration"));
     return r;
 }
 
@@ -1928,7 +1928,7 @@ static DBusMessage *endpoint_clear_configuration(DBusConnection *conn, DBusMessa
 
 fail:
     if (!dbus_message_get_no_reply(m))
-        pa_assert_se(r = dbus_message_new_error(m, "org.bluez.Error.InvalidArguments", "Unable to clear configuration"));
+        pa_assert_se(r = dbus_message_new_error(m, BLUEZ_ERROR_INVALID_ARGUMENTS, "Unable to clear configuration"));
     return r;
 }
 
