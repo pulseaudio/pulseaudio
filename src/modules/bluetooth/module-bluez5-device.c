@@ -2011,29 +2011,56 @@ static pa_card_profile *create_card_profile(struct userdata *u, pa_bluetooth_pro
     return cp;
 }
 
+static void switch_codec_cb_handler(bool success, pa_bluetooth_profile_t profile, void *userdata);
+
 /* Run from main thread */
 static int set_profile_cb(pa_card *c, pa_card_profile *new_profile) {
     struct userdata *u;
-    pa_bluetooth_profile_t *p;
+    pa_bluetooth_profile_t p;
 
     pa_assert(c);
     pa_assert(new_profile);
     pa_assert_se(u = c->userdata);
 
-    p = PA_CARD_PROFILE_DATA(new_profile);
+    p = *(pa_bluetooth_profile_t *)PA_CARD_PROFILE_DATA(new_profile);
 
-    if (*p != PA_BLUETOOTH_PROFILE_OFF) {
+    stop_thread(u);
+
+    if (p != PA_BLUETOOTH_PROFILE_OFF) {
         const pa_bluetooth_device *d = u->device;
 
-        if (!d->transports[*p] || d->transports[*p]->state <= PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED) {
-            pa_log_warn("Refused to switch profile to %s: Not connected", new_profile->name);
+        if (!d->transports[p] || d->transports[p]->state <= PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED) {
+            if (p != PA_BLUETOOTH_PROFILE_A2DP_SINK && p != PA_BLUETOOTH_PROFILE_A2DP_SOURCE) {
+                pa_log_warn("Refused to switch profile to %s: Not connected", new_profile->name);
+                return -PA_ERR_IO;
+            }
+
+            bool is_a2dp_sink = p == PA_BLUETOOTH_PROFILE_A2DP_SINK;
+
+            for (int i = 0; i < pa_bluetooth_a2dp_endpoint_conf_count(); ++i) {
+                pa_hashmap *capabilities_hashmap;
+                const pa_a2dp_endpoint_conf *endpoint_conf = pa_bluetooth_a2dp_endpoint_conf_iter(i);
+
+                // Capabilities should already be filtered by this!
+                // if (!pa_bluetooth_a2dp_codec_is_codec_available(&endpoint_conf->id, is_a2dp_sink))
+                //     continue;
+
+                capabilities_hashmap = pa_hashmap_get(is_a2dp_sink ? u->device->a2dp_sink_endpoints : u->device->a2dp_source_endpoints, &endpoint_conf->id);
+                if (!capabilities_hashmap)
+                    continue;
+
+                if (!pa_bluetooth_device_switch_codec(u->device, p, capabilities_hashmap, endpoint_conf, switch_codec_cb_handler, u))
+                    continue;
+
+                return PA_OK;
+            }
+
+            pa_log_warn("Refused to switch profile to %s: ", new_profile->name);
             return -PA_ERR_IO;
         }
     }
 
-    stop_thread(u);
-
-    u->profile = *p;
+    u->profile = p;
 
     if (u->profile != PA_BLUETOOTH_PROFILE_OFF)
         if (init_profile(u) < 0)

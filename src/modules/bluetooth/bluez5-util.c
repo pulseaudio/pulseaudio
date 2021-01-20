@@ -371,7 +371,7 @@ bool pa_bluetooth_device_switch_codec(pa_bluetooth_device *device, pa_bluetooth_
     DBusMessageIter iter, dict;
     DBusMessage *m;
     struct switch_codec_data *data;
-    pa_a2dp_codec_capabilities *capabilities;
+    const pa_a2dp_codec_capabilities *capabilities;
     uint8_t config[MAX_A2DP_CAPS_SIZE];
     uint8_t config_size;
     bool is_a2dp_sink;
@@ -392,6 +392,8 @@ bool pa_bluetooth_device_switch_codec(pa_bluetooth_device *device, pa_bluetooth_
     pa_assert_se(endpoint = endpoint_conf->choose_remote_endpoint(capabilities_hashmap, &device->discovery->core->default_sample_spec, is_a2dp_sink));
     pa_assert_se(capabilities = pa_hashmap_get(capabilities_hashmap, endpoint));
 
+    pa_log_info("Switching to codec %s @ %s", endpoint_conf->bt_codec.name, endpoint);
+
     config_size = endpoint_conf->fill_preferred_configuration(&device->discovery->core->default_sample_spec,
             capabilities->buffer, capabilities->size, config);
     if (config_size == 0)
@@ -401,7 +403,7 @@ bool pa_bluetooth_device_switch_codec(pa_bluetooth_device *device, pa_bluetooth_
             endpoint_conf->bt_codec.name);
 
     pa_assert_se(m = dbus_message_new_method_call(BLUEZ_SERVICE, endpoint,
-                BLUEZ_MEDIA_ENDPOINT_INTERFACE, "SetConfiguration"));
+                 BLUEZ_MEDIA_ENDPOINT_INTERFACE, "SetConfiguration"));
 
     dbus_message_iter_init_append(m, &iter);
     pa_assert_se(dbus_message_iter_append_basic(&iter, DBUS_TYPE_OBJECT_PATH, &pa_endpoint));
