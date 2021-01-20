@@ -66,6 +66,8 @@ PA_MODULE_USAGE("path=<device object path>"
 
 #define HSP_MAX_GAIN 15
 
+#define DEFAULT_OUTPUT_RATE_REFRESH_INTERVAL_MS 500
+
 static const char* const valid_modargs[] = {
     "path",
     "autodetect_mtu",
@@ -1362,6 +1364,8 @@ static void thread_func(void *userdata) {
     struct userdata *u = userdata;
     unsigned blocks_to_write = 0;
     unsigned bytes_to_write = 0;
+    struct timeval tv_last_output_rate_change;
+    pa_usec_t ts_elapsed;
 
     pa_assert(u);
     pa_assert(u->transport);
@@ -1376,6 +1380,8 @@ static void thread_func(void *userdata) {
     /* Setup the stream only if the transport was already acquired */
     if (u->transport_acquired)
         setup_stream(u);
+
+    pa_gettimeofday(&tv_last_output_rate_change);
 
     for (;;) {
         struct pollfd *pollfd;
@@ -1525,6 +1531,7 @@ static void thread_func(void *userdata) {
                                     u->write_block_size = new_write_block_size;
                                     handle_sink_block_size_change(u);
                                 }
+                                pa_gettimeofday(&tv_last_output_rate_change);
                             }
                         }
 
@@ -1557,6 +1564,19 @@ static void thread_func(void *userdata) {
                             next_write_at = pa_bytes_to_usec(u->write_index, &u->encoder_sample_spec);
                             sleep_for = time_passed < next_write_at ? next_write_at - time_passed : 0;
                             /* pa_log("Sleeping for %lu; time passed %lu, next write at %lu", (unsigned long) sleep_for, (unsigned long) time_passed, (unsigned long)next_write_at); */
+
+                            if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK && u->write_memchunk.memblock == NULL) {
+                                /* write_block() is keeping up with input, try increasing bitrate */
+                                if (u->a2dp_codec->increase_encoder_bitrate
+                                    && pa_timeval_age(&tv_last_output_rate_change) >= u->device->output_rate_refresh_interval_ms * PA_USEC_PER_MSEC) {
+                                    size_t new_write_block_size = u->a2dp_codec->increase_encoder_bitrate(u->encoder_info, u->write_link_mtu);
+                                    if (new_write_block_size) {
+                                        u->write_block_size = new_write_block_size;
+                                        handle_sink_block_size_change(u);
+                                    }
+                                    pa_gettimeofday(&tv_last_output_rate_change);
+                                }
+                            }
                         } else
                             /* We could not write because the stream was not ready. Let's try
                              * again in 500 ms and drop audio if we still can't write. The
@@ -2488,6 +2508,7 @@ int pa__init(pa_module* m) {
     pa_modargs *ma;
     bool autodetect_mtu;
     char *message_handler_path;
+    uint32_t output_rate_refresh_interval_ms = DEFAULT_OUTPUT_RATE_REFRESH_INTERVAL_MS;
 
     pa_assert(m);
 
@@ -2525,6 +2546,13 @@ int pa__init(pa_module* m) {
     }
 
     u->device->autodetect_mtu = autodetect_mtu;
+
+    if (pa_modargs_get_value_u32(ma, "output-rate-refresh-interval-ms", &output_rate_refresh_interval_ms) < 0) {
+        pa_log("Invalid output_rate_refresh_interval.");
+        goto fail_free_modargs;
+    }
+
+    u->device->output_rate_refresh_interval_ms = output_rate_refresh_interval_ms;
 
     pa_modargs_free(ma);
 

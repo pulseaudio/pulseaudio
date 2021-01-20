@@ -88,6 +88,11 @@ typedef struct pa_a2dp_codec {
      * enough */
     size_t (*reduce_encoder_bitrate)(void *codec_info, size_t write_link_mtu);
 
+    /* Increase encoder bitrate for codec, returns new write block size or zero
+     * if not changed, called periodically when socket is keeping up with
+     * encoded data */
+    size_t (*increase_encoder_bitrate)(void *codec_info, size_t write_link_mtu);
+
     /* Encode input_buffer of input_size to output_buffer of output_size,
      * returns size of filled ouput_buffer and set processed to size of
      * processed input_buffer */

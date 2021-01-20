@@ -110,6 +110,7 @@ struct pa_bluetooth_device {
     bool valid;
     bool autodetect_mtu;
     bool codec_switching_in_progress;
+    uint32_t output_rate_refresh_interval_ms;
 
     /* Device information */
     char *path;
