@@ -342,16 +342,6 @@ bool gst_init_aptx(struct gst_info *info, pa_sample_spec *ss, bool for_encoding)
             goto fail;
         }
 
-        caps = gst_caps_new_simple("audio/x-raw",
-                "format", G_TYPE_STRING, "S24LE",
-                "rate", G_TYPE_INT, (int) ss->rate,
-                "channels", G_TYPE_INT, (int) ss->channels,
-                "channel-mask", G_TYPE_INT, 0,
-                "layout", G_TYPE_STRING, "interleaved",
-                NULL);
-        g_object_set(info->enc_src, "caps", caps, NULL);
-        gst_caps_unref(caps);
-
         caps = gst_caps_new_simple(aptx_codec_media_type,
                 "rate", G_TYPE_INT, (int) ss->rate,
                 "channels", G_TYPE_INT, (int) ss->channels,
@@ -384,15 +374,6 @@ bool gst_init_aptx(struct gst_info *info, pa_sample_spec *ss, bool for_encoding)
                 "channels", G_TYPE_INT, (int) ss->channels,
                 NULL);
         g_object_set(info->dec_src, "caps", caps, NULL);
-        gst_caps_unref(caps);
-
-        caps = gst_caps_new_simple("audio/x-raw",
-                "format", G_TYPE_STRING, "S24LE",
-                "rate", G_TYPE_INT, (int) ss->rate,
-                "channels", G_TYPE_INT, (int) ss->channels,
-                "layout", G_TYPE_STRING, "interleaved",
-                NULL);
-        g_object_set(info->dec_sink, "caps", caps, NULL);
         gst_caps_unref(caps);
 
         info->dec_bin = gst_bin_new("aptx_dec_bin");

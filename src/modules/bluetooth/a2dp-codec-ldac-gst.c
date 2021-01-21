@@ -201,7 +201,6 @@ static uint8_t fill_preferred_configuration(const pa_sample_spec *default_sample
 bool gst_init_ldac(struct gst_info *info, pa_sample_spec *ss, bool for_encoding) {
     GstElement *rtpldacpay;
     GstElement *enc;
-    GstCaps *caps;
     GstPad *pad;
 
     if (!for_encoding) {
@@ -263,16 +262,6 @@ bool gst_init_ldac(struct gst_info *info, pa_sample_spec *ss, bool for_encoding)
         default:
             goto fail;
     }
-
-    caps = gst_caps_new_simple("audio/x-raw",
-            "format", G_TYPE_STRING, "S32LE",
-            "rate", G_TYPE_INT, (int) ss->rate,
-            "channels", G_TYPE_INT, (int) ss->channels,
-            "channel-mask", G_TYPE_INT, 0,
-            "layout", G_TYPE_STRING, "interleaved",
-            NULL);
-    g_object_set(info->enc_src, "caps", caps, NULL);
-    gst_caps_unref(caps);
 
     rtpldacpay = gst_element_factory_make("rtpldacpay", "rtp_ldac_pay");
     if (!rtpldacpay) {

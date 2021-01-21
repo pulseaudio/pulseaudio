@@ -306,13 +306,63 @@ static GstPadProbeReturn gst_decoder_buffer_probe(GstPad *pad, GstPadProbeInfo *
     return GST_PAD_PROBE_OK;
 }
 
+static GstCaps *gst_create_caps_from_sample_spec(const pa_sample_spec *ss) {
+    gchar *sample_format;
+    GstCaps *caps;
+    int channel_mask;
+
+    switch (ss->format) {
+        case PA_SAMPLE_S16LE:
+            sample_format = "S16LE";
+            break;
+        case PA_SAMPLE_S24LE:
+            sample_format = "S24LE";
+            break;
+        case PA_SAMPLE_S32LE:
+            sample_format = "S32LE";
+            break;
+        default:
+            pa_assert_not_reached();
+            break;
+    }
+
+    switch (ss->channels) {
+        case 1:
+            channel_mask = 0x1;
+            break;
+        case 2:
+            channel_mask = 0x3;
+            break;
+        default:
+            pa_assert_not_reached();
+            break;
+    }
+
+    caps = gst_caps_new_simple("audio/x-raw",
+            "format", G_TYPE_STRING, sample_format,
+            "rate", G_TYPE_INT, (int) ss->rate,
+            "channels", G_TYPE_INT, (int) ss->channels,
+            "channel-mask", GST_TYPE_BITMASK, channel_mask,
+            "layout", G_TYPE_STRING, "interleaved",
+            NULL);
+
+    pa_assert(caps);
+    return caps;
+}
+
 bool gst_codec_init(struct gst_info *info, bool for_encoding) {
     GstPad *pad;
+    GstCaps *caps;
 
     info->seq_num = 0;
 
+    caps = gst_create_caps_from_sample_spec(info->ss);
+
     /* In case if we ever have a codec which supports decoding but not encoding */
     if (for_encoding && info->enc_bin) {
+        g_object_set(info->enc_src, "caps", caps, NULL);
+        gst_caps_unref(caps);
+
         gst_bin_add_many(GST_BIN(info->enc_pipeline), info->enc_src, info->enc_bin, info->enc_sink, NULL);
 
         if (!gst_element_link_many(info->enc_src, info->enc_bin, info->enc_sink, NULL)) {
@@ -330,6 +380,9 @@ bool gst_codec_init(struct gst_info *info, bool for_encoding) {
         gst_pad_add_probe(pad, GST_PAD_PROBE_TYPE_BUFFER, gst_encoder_buffer_probe, info, NULL);
         gst_object_unref(pad);
     } else if (!for_encoding && info->dec_bin) {
+        g_object_set(info->dec_sink, "caps", caps, NULL);
+        gst_caps_unref(caps);
+
         gst_bin_add_many(GST_BIN(info->dec_pipeline), info->dec_src, info->dec_bin, info->dec_sink, NULL);
 
         if (!gst_element_link_many(info->dec_src, info->dec_bin, info->dec_sink, NULL)) {
