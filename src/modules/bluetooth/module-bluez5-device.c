@@ -145,6 +145,8 @@ struct userdata {
     pa_sample_spec decoder_sample_spec;
     void *decoder_buffer;                        /* Codec transfer buffer */
     size_t decoder_buffer_size;                  /* Size of the buffer */
+
+    bool message_handler_registered;
 };
 
 typedef enum pa_bluetooth_form_factor {
@@ -2492,6 +2494,7 @@ int pa__init(pa_module* m) {
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->module = m;
     u->core = m->core;
+    u->message_handler_registered = false;
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log_error("Failed to parse module arguments");
@@ -2562,6 +2565,7 @@ int pa__init(pa_module* m) {
             bluez5_device_message_handler, (void *) u);
     pa_log_info("Bluez5 device message handler registered at path: %s", message_handler_path);
     pa_xfree(message_handler_path);
+    u->message_handler_registered = true;
 
     return 0;
 
@@ -2593,9 +2597,11 @@ void pa__done(pa_module *m) {
     if (!(u = m->userdata))
         return;
 
-    message_handler_path = make_message_handler_path(u->card->name);
-    pa_message_handler_unregister(m->core, message_handler_path);
-    pa_xfree(message_handler_path);
+    if (u->message_handler_registered) {
+        message_handler_path = make_message_handler_path(u->card->name);
+        pa_message_handler_unregister(m->core, message_handler_path);
+        pa_xfree(message_handler_path);
+    }
 
     stop_thread(u);
 
