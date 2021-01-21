@@ -43,11 +43,12 @@ struct gst_info {
         const a2dp_ldac_t *ldac_config;
     } a2dp_codec_t;
 
-    GstElement *app_src, *app_sink;
-    GstElement *pipeline;
+    /* The appsink element that accumulates encoded/decoded buffers */
+    GstElement *app_sink;
+    GstElement *bin;
     GstAdapter *sink_adapter;
-
-    pa_fdsem *sample_ready_fdsem;
+    /* The sink pad to push to-be-encoded/decoded buffers into */
+    GstPad *pad_sink;
 
     uint16_t seq_num;
 };
