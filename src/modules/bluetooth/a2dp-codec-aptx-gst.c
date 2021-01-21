@@ -269,7 +269,7 @@ static uint8_t fill_preferred_configuration_hd(const pa_sample_spec *default_sam
 }
 
 bool gst_init_aptx(struct gst_info *info, pa_sample_spec *ss, bool for_encoding) {
-    GstElement *enc, *dec;
+    GstElement *enc, *dec, *capsf;
     GstCaps *caps = NULL;
     GstPad *pad;
     const char *aptx_codec_media_type;
@@ -339,26 +339,32 @@ bool gst_init_aptx(struct gst_info *info, pa_sample_spec *ss, bool for_encoding)
             "channels", G_TYPE_INT, (int) ss->channels,
             NULL);
 
+    capsf = gst_element_factory_make("capsfilter", "aptx_capsfilter");
+    if (!capsf) {
+        pa_log_error("Could not create aptX capsfilter element");
+        goto fail;
+    }
+    g_object_set(capsf, "caps", caps, NULL);
+
     if (for_encoding) {
         enc = gst_element_factory_make("openaptxenc", "aptx_encoder");
 
         if (enc == NULL) {
             pa_log_error("Could not create aptX encoder element");
-            goto fail;
+            goto fail_enc_dec;
         }
-
-        g_object_set(info->enc_sink, "caps", caps, NULL);
 
         info->enc_bin = gst_bin_new("aptx_enc_bin");
         pa_assert(info->enc_bin);
 
-        pa_assert_se(gst_bin_add(GST_BIN(info->enc_bin), enc));
+        gst_bin_add_many(GST_BIN(info->enc_bin), enc, capsf, NULL);
+        pa_assert_se(gst_element_link_many(enc, capsf, NULL));
 
         pad = gst_element_get_static_pad(enc, "sink");
         pa_assert_se(gst_element_add_pad(info->enc_bin, gst_ghost_pad_new("sink", pad)));
         gst_object_unref(GST_OBJECT(pad));
 
-        pad = gst_element_get_static_pad(enc, "src");
+        pad = gst_element_get_static_pad(capsf, "src");
         pa_assert_se(gst_element_add_pad(info->enc_bin, gst_ghost_pad_new("src", pad)));
         gst_object_unref(GST_OBJECT(pad));
     } else {
@@ -366,17 +372,16 @@ bool gst_init_aptx(struct gst_info *info, pa_sample_spec *ss, bool for_encoding)
 
         if (dec == NULL) {
             pa_log_error("Could not create aptX decoder element");
-            goto fail;
+            goto fail_enc_dec;
         }
-
-        g_object_set(info->dec_src, "caps", caps, NULL);
 
         info->dec_bin = gst_bin_new("aptx_dec_bin");
         pa_assert(info->dec_bin);
 
-        pa_assert_se(gst_bin_add(GST_BIN(info->dec_bin), dec));
+        gst_bin_add_many(GST_BIN(info->dec_bin), capsf, dec, NULL);
+        pa_assert_se(gst_element_link_many(capsf, dec, NULL));
 
-        pad = gst_element_get_static_pad(dec, "sink");
+        pad = gst_element_get_static_pad(capsf, "sink");
         pa_assert_se(gst_element_add_pad(info->dec_bin, gst_ghost_pad_new("sink", pad)));
         gst_object_unref(GST_OBJECT(pad));
 
@@ -388,6 +393,9 @@ bool gst_init_aptx(struct gst_info *info, pa_sample_spec *ss, bool for_encoding)
     gst_caps_unref(caps);
 
     return true;
+
+fail_enc_dec:
+    gst_object_unref(GST_OBJECT(capsf));
 
 fail:
     if (caps)
