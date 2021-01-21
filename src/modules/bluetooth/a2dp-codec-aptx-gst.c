@@ -362,14 +362,14 @@ bool gst_init_aptx(struct gst_info *info, pa_sample_spec *ss, bool for_encoding)
         info->enc_bin = gst_bin_new("aptx_enc_bin");
         pa_assert(info->enc_bin);
 
-        gst_bin_add(GST_BIN(info->enc_bin), enc);
+        pa_assert_se(gst_bin_add(GST_BIN(info->enc_bin), enc));
 
         pad = gst_element_get_static_pad(enc, "sink");
-        gst_element_add_pad(info->enc_bin, gst_ghost_pad_new("sink", pad));
+        pa_assert_se(gst_element_add_pad(info->enc_bin, gst_ghost_pad_new("sink", pad)));
         gst_object_unref(GST_OBJECT(pad));
 
         pad = gst_element_get_static_pad(enc, "src");
-        gst_element_add_pad(info->enc_bin, gst_ghost_pad_new("src", pad));
+        pa_assert_se(gst_element_add_pad(info->enc_bin, gst_ghost_pad_new("src", pad)));
         gst_object_unref(GST_OBJECT(pad));
     } else {
         dec = gst_element_factory_make("openaptxdec", "aptx_decoder");
@@ -398,14 +398,14 @@ bool gst_init_aptx(struct gst_info *info, pa_sample_spec *ss, bool for_encoding)
         info->dec_bin = gst_bin_new("aptx_dec_bin");
         pa_assert(info->dec_bin);
 
-        gst_bin_add(GST_BIN(info->dec_bin), dec);
+        pa_assert_se(gst_bin_add(GST_BIN(info->dec_bin), dec));
 
         pad = gst_element_get_static_pad(dec, "sink");
-        gst_element_add_pad(info->dec_bin, gst_ghost_pad_new("sink", pad));
+        pa_assert_se(gst_element_add_pad(info->dec_bin, gst_ghost_pad_new("sink", pad)));
         gst_object_unref(GST_OBJECT(pad));
 
         pad = gst_element_get_static_pad(dec, "src");
-        gst_element_add_pad(info->dec_bin, gst_ghost_pad_new("src", pad));
+        pa_assert_se(gst_element_add_pad(info->dec_bin, gst_ghost_pad_new("src", pad)));
         gst_object_unref(GST_OBJECT(pad));
     }
 

@@ -291,11 +291,11 @@ bool gst_init_ldac(struct gst_info *info, pa_sample_spec *ss, bool for_encoding)
     }
 
     pad = gst_element_get_static_pad(enc, "sink");
-    gst_element_add_pad(info->enc_bin, gst_ghost_pad_new("sink", pad));
+    pa_assert_se(gst_element_add_pad(info->enc_bin, gst_ghost_pad_new("sink", pad)));
     gst_object_unref(GST_OBJECT(pad));
 
     pad = gst_element_get_static_pad(rtpldacpay, "src");
-    gst_element_add_pad(info->enc_bin, gst_ghost_pad_new("src", pad));
+    pa_assert_se(gst_element_add_pad(info->enc_bin, gst_ghost_pad_new("src", pad)));
     gst_object_unref(GST_OBJECT(pad));
 
     return true;
