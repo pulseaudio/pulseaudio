@@ -1367,7 +1367,6 @@ static void thread_func(void *userdata) {
     unsigned blocks_to_write = 0;
     unsigned bytes_to_write = 0;
     struct timeval tv_last_output_rate_change;
-    pa_usec_t ts_elapsed;
 
     pa_assert(u);
     pa_assert(u->transport);
