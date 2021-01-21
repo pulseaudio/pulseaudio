@@ -43,11 +43,9 @@ struct gst_info {
         const a2dp_ldac_t *ldac_config;
     } a2dp_codec_t;
 
-    GstElement *app_src, *app_sink;
+    GstElement *app_sink;
     GstElement *pipeline;
     GstAdapter *sink_adapter;
-
-    pa_fdsem *sample_ready_fdsem;
 
     uint16_t seq_num;
 };
