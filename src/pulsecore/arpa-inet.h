@@ -12,7 +12,7 @@
 
 #include <pulsecore/socket.h>
 
-#if NTDDI_VERSION < NTDDI_VISTA
+#if (_WIN32_WINNT <= 0x0600)
 
 const char *inet_ntop(int af, const void *src, char *dst, socklen_t cnt);
 
