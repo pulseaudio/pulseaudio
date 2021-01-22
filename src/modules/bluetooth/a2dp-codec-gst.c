@@ -39,31 +39,11 @@ static void app_sink_eos(GstAppSink *appsink, gpointer userdata) {
     pa_log_debug("Sink got EOS");
 }
 
-/* Called from the GStreamer streaming thread */
-static GstFlowReturn app_sink_new_sample(GstAppSink *appsink, gpointer userdata) {
-    struct gst_info *info = (struct gst_info *) userdata;
-    GstSample *sample = NULL;
-    GstBuffer *buf;
-
-    sample = gst_app_sink_pull_sample(GST_APP_SINK(info->app_sink));
-    if (!sample)
-        return GST_FLOW_OK;
-
-    buf = gst_sample_get_buffer(sample);
-    gst_buffer_ref(buf);
-    gst_adapter_push(info->sink_adapter, buf);
-    gst_sample_unref(sample);
-
-    return GST_FLOW_OK;
-}
-
 static void gst_deinit_common(struct gst_info *info) {
     if (!info)
         return;
     if (info->app_sink)
         gst_object_unref(info->app_sink);
-    if (info->sink_adapter)
-        g_object_unref(info->sink_adapter);
     if (info->bin)
         gst_object_unref(info->bin);
 }
@@ -71,7 +51,6 @@ static void gst_deinit_common(struct gst_info *info) {
 bool gst_init_common(struct gst_info *info) {
     GstElement *bin = NULL;
     GstElement *appsink = NULL;
-    GstAdapter *adapter;
     GstAppSinkCallbacks callbacks = { 0, };
 
     appsink = gst_element_factory_make("appsink", "app_sink");
@@ -82,17 +61,12 @@ bool gst_init_common(struct gst_info *info) {
     g_object_set(appsink, "sync", FALSE, "async", FALSE, "enable-last-sample", FALSE, NULL);
 
     callbacks.eos = app_sink_eos;
-    callbacks.new_sample = app_sink_new_sample;
     gst_app_sink_set_callbacks(GST_APP_SINK(appsink), &callbacks, info, NULL);
-
-    adapter = gst_adapter_new();
-    pa_assert(adapter);
 
     bin = gst_bin_new(NULL);
     pa_assert(bin);
 
     info->app_sink = appsink;
-    info->sink_adapter = adapter;
     info->bin = bin;
 
     return true;
@@ -234,10 +208,11 @@ common_fail:
 
 size_t gst_transcode_buffer(void *codec_info, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed) {
     struct gst_info *info = (struct gst_info *) codec_info;
-    gsize available, transcoded;
+    gsize transcoded;
     GstBuffer *in_buf;
     GstFlowReturn ret;
     size_t written = 0;
+    GstSample *sample;
 
     pa_assert(info->pad_sink);
 
@@ -262,17 +237,19 @@ size_t gst_transcode_buffer(void *codec_info, const uint8_t *input_buffer, size_
         goto fail;
     }
 
-    available = gst_adapter_available(info->sink_adapter);
+    while ((sample = gst_app_sink_try_pull_sample(GST_APP_SINK(info->app_sink), 0))) {
+        in_buf = gst_sample_get_buffer(sample);
 
-    if (available) {
-        transcoded = PA_MIN(available, output_size);
-
-        gst_adapter_copy(info->sink_adapter, output_buffer, 0, transcoded);
-        gst_adapter_flush(info->sink_adapter, transcoded);
-
+        transcoded = gst_buffer_get_size(in_buf);
         written += transcoded;
-    } else
-        pa_log_debug("No transcoded data available in adapter");
+        pa_assert(written <= output_size);
+
+        GstMapInfo map_info;
+        pa_assert_se(gst_buffer_map(in_buf, &map_info, GST_MAP_READ));
+        memcpy(output_buffer, map_info.data, transcoded);
+        gst_buffer_unmap(in_buf, &map_info);
+        gst_sample_unref(sample);
+    }
 
     *processed = input_size;
 
@@ -291,9 +268,6 @@ void gst_codec_deinit(void *codec_info) {
         gst_element_set_state(info->bin, GST_STATE_NULL);
         gst_object_unref(info->bin);
     }
-
-    if (info->sink_adapter)
-        g_object_unref(info->sink_adapter);
 
     if (info->pad_sink)
         gst_object_unref(GST_OBJECT(info->pad_sink));

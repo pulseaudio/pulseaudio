@@ -46,7 +46,6 @@ struct gst_info {
     /* The appsink element that accumulates encoded/decoded buffers */
     GstElement *app_sink;
     GstElement *bin;
-    GstAdapter *sink_adapter;
     /* The sink pad to push to-be-encoded/decoded buffers into */
     GstPad *pad_sink;
 
