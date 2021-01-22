@@ -208,7 +208,7 @@ bool gst_init_ldac(struct gst_info *info, pa_sample_spec *ss, bool for_encoding)
         return false;
     }
 
-    ss->format = PA_SAMPLE_S32LE;
+    ss->format = PA_SAMPLE_FLOAT32LE;
 
     switch (info->a2dp_codec_t.ldac_config->frequency) {
         case LDAC_SAMPLING_FREQ_44100:

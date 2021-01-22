@@ -321,6 +321,9 @@ static GstCaps *gst_create_caps_from_sample_spec(const pa_sample_spec *ss) {
         case PA_SAMPLE_S32LE:
             sample_format = "S32LE";
             break;
+        case PA_SAMPLE_FLOAT32LE:
+            sample_format = "F32LE";
+            break;
         default:
             pa_assert_not_reached();
             break;
