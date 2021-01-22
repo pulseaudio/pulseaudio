@@ -82,7 +82,7 @@ static GstFlowReturn dec_sink_new_sample(GstAppSink *appsink, gpointer userdata)
     return GST_FLOW_OK;
 }
 
-void gst_deinit_enc_common(struct gst_info *info) {
+static void gst_deinit_enc_common(struct gst_info *info) {
     if (!info)
         return;
     if (info->enc_fdsem)
@@ -97,7 +97,7 @@ void gst_deinit_enc_common(struct gst_info *info) {
         gst_object_unref(info->enc_pipeline);
 }
 
-void gst_deinit_dec_common(struct gst_info *info) {
+static void gst_deinit_dec_common(struct gst_info *info) {
     if (!info)
         return;
     if (info->dec_fdsem)
@@ -356,10 +356,20 @@ bool gst_codec_init(struct gst_info *info, bool for_encoding) {
 
     info->seq_num = 0;
 
+    if (for_encoding) {
+        if (!gst_init_enc_common(info))
+            goto fail_common;
+    } else {
+        if (!gst_init_dec_common(info))
+            goto fail_common;
+    }
+
     caps = gst_create_caps_from_sample_spec(info->ss);
 
     /* In case if we ever have a codec which supports decoding but not encoding */
-    if (for_encoding && info->enc_bin) {
+    if (for_encoding) {
+        pa_assert(info->enc_bin);
+
         g_object_set(info->enc_src, "caps", caps, NULL);
         gst_caps_unref(caps);
 
@@ -379,7 +389,9 @@ bool gst_codec_init(struct gst_info *info, bool for_encoding) {
         pad = gst_element_get_static_pad(info->enc_bin, "sink");
         gst_pad_add_probe(pad, GST_PAD_PROBE_TYPE_BUFFER, gst_encoder_buffer_probe, info, NULL);
         gst_object_unref(pad);
-    } else if (!for_encoding && info->dec_bin) {
+    } else {
+        pa_assert(info->dec_bin);
+
         g_object_set(info->dec_sink, "caps", caps, NULL);
         gst_caps_unref(caps);
 
@@ -399,10 +411,9 @@ bool gst_codec_init(struct gst_info *info, bool for_encoding) {
         pad = gst_element_get_static_pad(info->dec_bin, "sink");
         gst_pad_add_probe(pad, GST_PAD_PROBE_TYPE_BUFFER, gst_decoder_buffer_probe, info, NULL);
         gst_object_unref(pad);
-    } else
-        pa_assert_not_reached();
+    }
 
-    pa_log_info("Gstreamer pipeline initialisation succeeded");
+    pa_log_info("GStreamer pipeline initialisation succeeded");
 
     return true;
 
@@ -412,7 +423,21 @@ enc_dec_fail:
     else
         gst_deinit_dec_common(info);
 
-    pa_log_error("Gstreamer pipeline initialisation failed");
+    pa_log_error("GStreamer pipeline initialisation failed");
+
+    return false;
+
+fail_common:
+    /* If common initialization fails these have not had their ownership
+     * transferred to the pipeline yet.
+     */
+    if (for_encoding)
+        gst_object_unref(info->enc_bin);
+    else
+        gst_object_unref(info->dec_bin);
+
+
+    pa_log_error("GStreamer pipeline creation failed");
 
     return false;
 }

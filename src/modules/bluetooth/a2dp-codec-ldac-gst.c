@@ -297,6 +297,11 @@ fail:
 static void *init_common(enum a2dp_codec_type codec_type, bool for_encoding, bool for_backchannel, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *sample_spec, pa_core *core) {
     struct gst_info *info = NULL;
 
+    if (!for_encoding) {
+        pa_log_error("LDAC decoder not supported");
+        return NULL;
+    }
+
     info = pa_xnew0(struct gst_info, 1);
     pa_assert(info);
 
@@ -307,25 +312,14 @@ static void *init_common(enum a2dp_codec_type codec_type, bool for_encoding, boo
     info->a2dp_codec_t.ldac_config = (const a2dp_ldac_t *) config_buffer;
     pa_assert(config_size == sizeof(*(info->a2dp_codec_t.ldac_config)));
 
-    /*
-     * The common encoder/decoder initialisation functions need to be called
-     * before the codec specific ones, as the codec specific initialisation
-     * function needs to set the caps specific property appropriately on the
-     * appsrc and appsink as per the sample spec and the codec.
-     */
-    if (!gst_init_enc_common(info))
+    if (!gst_init_ldac(info, sample_spec, for_encoding))
         goto fail;
 
-    if (!gst_init_ldac(info, sample_spec, for_encoding))
-        goto enc_fail;
-
     if (!gst_codec_init(info, for_encoding))
-        goto enc_fail;
+        goto fail;
 
     return info;
 
-enc_fail:
-    gst_deinit_enc_common(info);
 fail:
     if (info)
         pa_xfree(info);

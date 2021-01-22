@@ -425,33 +425,14 @@ static void *init_common(enum a2dp_codec_type codec_type, bool for_encoding, boo
     } else
         pa_assert_not_reached();
 
-    /*
-     * The common encoder/decoder initialisation functions need to be called
-     * before the codec specific ones, as the codec specific initialisation
-     * function needs to set the caps specific property appropriately on the
-     * appsrc and appsink as per the sample spec and the codec.
-     */
-    if (for_encoding) {
-        if (!gst_init_enc_common(info))
-            goto fail;
-    } else {
-        if (!gst_init_dec_common(info))
-            goto fail;
-    }
-
     if (!gst_init_aptx(info, sample_spec, for_encoding))
-        goto enc_dec_fail;
+        goto fail;
 
     if (!gst_codec_init(info, for_encoding))
-        goto enc_dec_fail;
+        goto fail;
 
     return info;
 
-enc_dec_fail:
-    if (for_encoding)
-        gst_deinit_enc_common(info);
-    else
-        gst_deinit_dec_common(info);
 fail:
     if (info)
         pa_xfree(info);

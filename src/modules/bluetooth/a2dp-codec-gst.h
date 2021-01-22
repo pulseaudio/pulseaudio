@@ -59,8 +59,3 @@ bool gst_codec_init(struct gst_info *info, bool for_encoding);
 size_t gst_encode_buffer(void *codec_info, uint32_t timestamp, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed);
 size_t gst_decode_buffer(void *codec_info, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed);
 void gst_codec_deinit(void *codec_info);
-
-bool gst_init_enc_common(struct gst_info *info);
-bool gst_init_dec_common(struct gst_info *info);
-void gst_deinit_enc_common(struct gst_info *info);
-void gst_deinit_dec_common(struct gst_info *info);
