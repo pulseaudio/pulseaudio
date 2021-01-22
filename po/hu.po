@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: PulseAudio master\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2016-08-23 02:28+0000\n"
+"POT-Creation-Date: 2021-01-22 09:11+0200\n"
 "PO-Revision-Date: 2020-07-21 15:29+0000\n"
 "Last-Translator: Balázs Meskó <meskobalazs@mailbox.org>\n"
 "Language-Team: Hungarian <https://translate.fedoraproject.org/projects/"
@@ -25,8 +25,8 @@ msgstr ""
 "X-Poedit-Country: HUNGARY\n"
 "X-Poedit-SourceCharset: utf-8\n"
 
-#: ../src/daemon/cmdline.c:113
-#, c-format
+#: src/daemon/cmdline.c:113
+#, fuzzy, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -56,8 +56,7 @@ msgid ""
 "                                        (only available as root, when SUID "
 "or\n"
 "                                        with elevated RLIMIT_RTPRIO)\n"
-"      --disallow-module-loading[=BOOL]  Disallow module user requested "
-"module\n"
+"      --disallow-module-loading[=BOOL]  Disallow user requested module\n"
 "                                        loading/unloading after startup\n"
 "      --disallow-exit[=BOOL]            Disallow user requested exit\n"
 "      --exit-idle-time=SECS             Terminate the daemon when idle and "
@@ -179,15 +178,15 @@ msgstr ""
 "  -n                                    Ne töltse be az alapértelmezett\n"
 "                                           parancsfájlt\n"
 
-#: ../src/daemon/cmdline.c:246
+#: src/daemon/cmdline.c:246
 msgid "--daemonize expects boolean argument"
 msgstr "a --daemonize paraméter logikai értéket vár"
 
-#: ../src/daemon/cmdline.c:254
+#: src/daemon/cmdline.c:254
 msgid "--fail expects boolean argument"
 msgstr "a --fail paraméter logikai értéket vár"
 
-#: ../src/daemon/cmdline.c:265
+#: src/daemon/cmdline.c:265
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of debug, info, notice, warn, error)."
@@ -195,36 +194,37 @@ msgstr ""
 "a --log-level paraméter a naplózás szintjének értékét várja (Ez lehet a 0..4 "
 "tartomány, vagy a következők egyike: debug, info, notice, warn, error)."
 
-#: ../src/daemon/cmdline.c:277
+#: src/daemon/cmdline.c:277
 msgid "--high-priority expects boolean argument"
 msgstr "a --high-priority paraméter logikai értéket vár"
 
-#: ../src/daemon/cmdline.c:285
+#: src/daemon/cmdline.c:285
 msgid "--realtime expects boolean argument"
 msgstr "a --realtime paraméter logikai értéket vár"
 
-#: ../src/daemon/cmdline.c:293
+#: src/daemon/cmdline.c:293
 msgid "--disallow-module-loading expects boolean argument"
 msgstr "a --disallow-module-loading paraméter logikai értéket vár"
 
-#: ../src/daemon/cmdline.c:301
+#: src/daemon/cmdline.c:301
 msgid "--disallow-exit expects boolean argument"
 msgstr "a --disallow-exit paraméter logikai értéket vár"
 
-#: ../src/daemon/cmdline.c:309
+#: src/daemon/cmdline.c:309
 msgid "--use-pid-file expects boolean argument"
 msgstr "a --use-pid-file paraméter logikai értéket vár"
 
-#: ../src/daemon/cmdline.c:328
+#: src/daemon/cmdline.c:328
+#, fuzzy
 msgid ""
-"Invalid log target: use either 'syslog', 'journal','stderr' or 'auto' or a "
+"Invalid log target: use either 'syslog', 'journal', 'stderr' or 'auto' or a "
 "valid file name 'file:<path>', 'newfile:<path>'."
 msgstr ""
 "Érvénytelen naplózási cél: használja a „syslog”, „journal”, „stderr” vagy az "
 "„auto” egyikét, vagy egy érvényes fájlnevet: „file:<útvonal>”, „newfile:"
 "<útvonal>”."
 
-#: ../src/daemon/cmdline.c:330
+#: src/daemon/cmdline.c:330
 msgid ""
 "Invalid log target: use either 'syslog', 'stderr' or 'auto' or a valid file "
 "name 'file:<path>', 'newfile:<path>'."
@@ -232,101 +232,101 @@ msgstr ""
 "Érvénytelen naplózási cél: használja a „syslog”, „stderr” vagy az „auto” "
 "egyikét, vagy egy érvényes fájlnevet: „file:<útvonal>”, „newfile:<útvonal>”."
 
-#: ../src/daemon/cmdline.c:338
+#: src/daemon/cmdline.c:338
 msgid "--log-time expects boolean argument"
 msgstr "a --log-time paraméter logikai értéket vár"
 
-#: ../src/daemon/cmdline.c:346
+#: src/daemon/cmdline.c:346
 msgid "--log-meta expects boolean argument"
 msgstr "a --log-meta paraméter logikai értéket vár"
 
-#: ../src/daemon/cmdline.c:366
+#: src/daemon/cmdline.c:366
 #, c-format
 msgid "Invalid resample method '%s'."
 msgstr "Érvénytelen újramintavételezési eljárás: „%s”."
 
-#: ../src/daemon/cmdline.c:373
+#: src/daemon/cmdline.c:373
 msgid "--system expects boolean argument"
 msgstr "a --system paraméter logikai értéket vár"
 
-#: ../src/daemon/cmdline.c:381
+#: src/daemon/cmdline.c:381
 msgid "--no-cpu-limit expects boolean argument"
 msgstr "a --no-cpu-limit paraméter logikai értéket vár"
 
-#: ../src/daemon/cmdline.c:389
+#: src/daemon/cmdline.c:389
 msgid "--disable-shm expects boolean argument"
 msgstr "a --disable-shm paraméter logikai értéket vár"
 
-#: ../src/daemon/cmdline.c:397
+#: src/daemon/cmdline.c:397
 msgid "--enable-memfd expects boolean argument"
 msgstr "a --enable-memfd paraméter logikai értéket vár"
 
-#: ../src/daemon/daemon-conf.c:260
+#: src/daemon/daemon-conf.c:270
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
 msgstr "[%s:%u] Érvénytelen naplózási cél: „%s”."
 
-#: ../src/daemon/daemon-conf.c:275
+#: src/daemon/daemon-conf.c:285
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
 msgstr "[%s:%u] Érvénytelen naplózási szint: „%s”."
 
-#: ../src/daemon/daemon-conf.c:290
+#: src/daemon/daemon-conf.c:300
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
 msgstr "[%s:%u] Érvénytelen újramintavételezési eljárás: „%s”."
 
-#: ../src/daemon/daemon-conf.c:312
+#: src/daemon/daemon-conf.c:322
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
 msgstr "[%s:%u] Érvénytelen rlimit érték: „%s”."
 
-#: ../src/daemon/daemon-conf.c:332
+#: src/daemon/daemon-conf.c:342
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
 msgstr "[%s:%u] Érvénytelen mintavételi formátum: „%s”."
 
-#: ../src/daemon/daemon-conf.c:349 ../src/daemon/daemon-conf.c:366
+#: src/daemon/daemon-conf.c:359 src/daemon/daemon-conf.c:376
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
 msgstr "[%s:%u] Érvénytelen mintavételezési gyakoriság: „%s”."
 
-#: ../src/daemon/daemon-conf.c:389
+#: src/daemon/daemon-conf.c:399
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
 msgstr "[%s:%u] Érvénytelen minta csatornák: „%s”."
 
-#: ../src/daemon/daemon-conf.c:406
+#: src/daemon/daemon-conf.c:416
 #, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
 msgstr "[%s:%u] Érvénytelen csatornaleképzés: „%s”."
 
-#: ../src/daemon/daemon-conf.c:423
+#: src/daemon/daemon-conf.c:433
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
 msgstr "[%s:%u] Érvénytelen a részek száma: „%s”."
 
-#: ../src/daemon/daemon-conf.c:440
+#: src/daemon/daemon-conf.c:450
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
 msgstr "[%s:%u] Érvénytelen a részek mérete: „%s”."
 
-#: ../src/daemon/daemon-conf.c:457
+#: src/daemon/daemon-conf.c:467
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
 msgstr "[%s:%u] Érvénytelen a prioritási érték: „%s”."
 
-#: ../src/daemon/daemon-conf.c:500
+#: src/daemon/daemon-conf.c:552
 #, c-format
 msgid "[%s:%u] Invalid server type '%s'."
 msgstr "[%s:%u] Érvénytelen kiszolgálótípus: „%s”."
 
-#: ../src/daemon/daemon-conf.c:615
+#: src/daemon/daemon-conf.c:685
 #, c-format
 msgid "Failed to open configuration file: %s"
 msgstr "Nem sikerült megnyitni a konfigurációs fájlt: %s"
 
-#: ../src/daemon/daemon-conf.c:631
+#: src/daemon/daemon-conf.c:701
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
@@ -334,123 +334,123 @@ msgstr ""
 "A megadott alapértelmezett csatornaleképzés csatornáinak száma eltér az "
 "megadott alapértelmezett csatornaszámtól."
 
-#: ../src/daemon/daemon-conf.c:718
+#: src/daemon/daemon-conf.c:788
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
 msgstr "### Olvasás a következő konfigurációs fájlból: %s ###\n"
 
-#: ../src/daemon/dumpmodules.c:57
+#: src/daemon/dumpmodules.c:57
 #, c-format
 msgid "Name: %s\n"
 msgstr "Név: %s\n"
 
-#: ../src/daemon/dumpmodules.c:60
+#: src/daemon/dumpmodules.c:60
 #, c-format
 msgid "No module information available\n"
 msgstr "Nem áll rendelkezésre modulinformáció\n"
 
-#: ../src/daemon/dumpmodules.c:63
+#: src/daemon/dumpmodules.c:63
 #, c-format
 msgid "Version: %s\n"
 msgstr "Verzió: %s\n"
 
-#: ../src/daemon/dumpmodules.c:65
+#: src/daemon/dumpmodules.c:65
 #, c-format
 msgid "Description: %s\n"
 msgstr "Leírás: %s\n"
 
-#: ../src/daemon/dumpmodules.c:67
+#: src/daemon/dumpmodules.c:67
 #, c-format
 msgid "Author: %s\n"
 msgstr "Szerző: %s\n"
 
-#: ../src/daemon/dumpmodules.c:69
+#: src/daemon/dumpmodules.c:69
 #, c-format
 msgid "Usage: %s\n"
 msgstr "Használat: %s\n"
 
-#: ../src/daemon/dumpmodules.c:70
+#: src/daemon/dumpmodules.c:70
 #, c-format
 msgid "Load Once: %s\n"
 msgstr "Betöltve: %s\n"
 
-#: ../src/daemon/dumpmodules.c:72
+#: src/daemon/dumpmodules.c:72
 #, c-format
 msgid "DEPRECATION WARNING: %s\n"
 msgstr "ELAVULÁSI FIGYELMEZTETÉS: %s\n"
 
-#: ../src/daemon/dumpmodules.c:76
+#: src/daemon/dumpmodules.c:76
 #, c-format
 msgid "Path: %s\n"
 msgstr "Útvonal: %s\n"
 
-#: ../src/daemon/ltdl-bind-now.c:75
+#: src/daemon/ltdl-bind-now.c:75
 #, c-format
 msgid "Failed to open module %s: %s"
 msgstr "Nem sikerült megnyitni a(z) „%s” modult: %s"
 
-#: ../src/daemon/ltdl-bind-now.c:126
+#: src/daemon/ltdl-bind-now.c:126
 msgid "Failed to find original lt_dlopen loader."
 msgstr "Nem található az eredeti „lt_dlopen” betöltő."
 
-#: ../src/daemon/ltdl-bind-now.c:131
+#: src/daemon/ltdl-bind-now.c:131
 msgid "Failed to allocate new dl loader."
 msgstr "Nem foglalható le hely az új dl betöltő számára."
 
-#: ../src/daemon/ltdl-bind-now.c:144
+#: src/daemon/ltdl-bind-now.c:144
 msgid "Failed to add bind-now-loader."
 msgstr "Nem sikerült hozzáadni az azonnali betöltés csatolást."
 
-#: ../src/daemon/main.c:160
+#: src/daemon/main.c:171
 #, c-format
 msgid "Failed to find user '%s'."
 msgstr "Nem található a(z) „%s” felhasználó."
 
-#: ../src/daemon/main.c:165
+#: src/daemon/main.c:176
 #, c-format
 msgid "Failed to find group '%s'."
 msgstr "Nem található a(z) „%s” csoport."
 
-#: ../src/daemon/main.c:174
+#: src/daemon/main.c:185
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
 msgstr ""
 "A(z) „%s” felhasználó GID azonosítója és „%s” csoportja nem egyezik meg."
 
-#: ../src/daemon/main.c:179
+#: src/daemon/main.c:190
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
 msgstr "A(z) „%s” felhasználó Saját mappája nem „%s”. Kihagyás."
 
-#: ../src/daemon/main.c:182 ../src/daemon/main.c:187
+#: src/daemon/main.c:193 src/daemon/main.c:198
 #, c-format
 msgid "Failed to create '%s': %s"
 msgstr "Nem sikerült létrehozni a(z) „%s” fájlt: %s"
 
-#: ../src/daemon/main.c:194
+#: src/daemon/main.c:205
 #, c-format
 msgid "Failed to change group list: %s"
 msgstr "Nem sikerült megváltoztatni a csoportlistát: %s"
 
-#: ../src/daemon/main.c:210
+#: src/daemon/main.c:221
 #, c-format
 msgid "Failed to change GID: %s"
 msgstr "Nem sikerült megváltoztatni az GID azonosítót: %s"
 
-#: ../src/daemon/main.c:226
+#: src/daemon/main.c:237
 #, c-format
 msgid "Failed to change UID: %s"
 msgstr "Nem sikerült megváltoztatni az UID azonosítót: %s"
 
-#: ../src/daemon/main.c:255
+#: src/daemon/main.c:266
 msgid "System wide mode unsupported on this platform."
 msgstr "A rendszer üzemmód nem támogatott ezen az operációs rendszeren."
 
-#: ../src/daemon/main.c:484
+#: src/daemon/main.c:501
 msgid "Failed to parse command line."
 msgstr "Nem sikerült feldolgozni a parancssort."
 
-#: ../src/daemon/main.c:523
+#: src/daemon/main.c:540
 msgid ""
 "System mode refused for non-root user. Only starting the D-Bus server lookup "
 "service."
@@ -458,12 +458,12 @@ msgstr ""
 "Rendszer mód elutasítva a nem root felhasználóhoz. Csak a D-Bus kiszolgáló "
 "kikeresési szolgáltatás indul."
 
-#: ../src/daemon/main.c:622
+#: src/daemon/main.c:639
 #, c-format
 msgid "Failed to kill daemon: %s"
 msgstr "A démon kilövése nem sikerült: %s"
 
-#: ../src/daemon/main.c:651
+#: src/daemon/main.c:668
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
@@ -471,22 +471,22 @@ msgstr ""
 "Ez a program nincsen felkészítve arra, hogy rendszergazdai jogosultságokkal "
 "fusson (kivéve, ha a --system paraméter megadásra kerül)."
 
-#: ../src/daemon/main.c:654
+#: src/daemon/main.c:671
 msgid "Root privileges required."
 msgstr "Rendszergazdai jogosultságok szükségesek."
 
-#: ../src/daemon/main.c:661
+#: src/daemon/main.c:678
 msgid "--start not supported for system instances."
 msgstr "--start nem támogatott rendszer üzemmód használata esetén."
 
-#: ../src/daemon/main.c:701
+#: src/daemon/main.c:718
 #, c-format
 msgid "User-configured server at %s, refusing to start/autospawn."
 msgstr ""
 "Felhasználó által indított kiszolgáló itt: %s, az indítás/automatikus "
 "indítás elutasítva."
 
-#: ../src/daemon/main.c:707
+#: src/daemon/main.c:724
 #, c-format
 msgid ""
 "User-configured server at %s, which appears to be local. Probing deeper."
@@ -494,62 +494,62 @@ msgstr ""
 "Felhasználó által indított kiszolgáló itt: %s, helyinek tűnik. Mélyebb "
 "szondázás."
 
-#: ../src/daemon/main.c:712
+#: src/daemon/main.c:729
 msgid "Running in system mode, but --disallow-exit not set."
 msgstr ""
 "Futtatás rendszer üzemmódban, de a --disallow-exit paraméter nincs beállítva."
 
-#: ../src/daemon/main.c:715
+#: src/daemon/main.c:732
 msgid "Running in system mode, but --disallow-module-loading not set."
 msgstr ""
 "Futtatás rendszer üzemmódban, de a --disallow-module-loading paraméter nincs "
 "beállítva."
 
-#: ../src/daemon/main.c:718
+#: src/daemon/main.c:735
 msgid "Running in system mode, forcibly disabling SHM mode."
 msgstr ""
 "Futtatás rendszer üzemmódban, az SHM üzemmód kényszerített letiltásával."
 
-#: ../src/daemon/main.c:723
+#: src/daemon/main.c:740
 msgid "Running in system mode, forcibly disabling exit idle time."
 msgstr ""
 "Futtatás rendszer üzemmódban, a kilépési üresjárati idő kényszerített "
 "letiltásával."
 
-#: ../src/daemon/main.c:756
+#: src/daemon/main.c:773
 msgid "Failed to acquire stdio."
 msgstr ""
 "Nem sikerült jogot szerezni az alapértelmezett ki- és bemenetre (stdio)."
 
-#: ../src/daemon/main.c:762 ../src/daemon/main.c:833
+#: src/daemon/main.c:779 src/daemon/main.c:850
 #, c-format
 msgid "pipe() failed: %s"
 msgstr "a pipe() hívás meghiúsult: %s"
 
-#: ../src/daemon/main.c:767 ../src/daemon/main.c:838
+#: src/daemon/main.c:784 src/daemon/main.c:855
 #, c-format
 msgid "fork() failed: %s"
 msgstr "a fork() hívás meghiúsult: %s"
 
-#: ../src/daemon/main.c:782 ../src/daemon/main.c:853 ../src/utils/pacat.c:568
+#: src/daemon/main.c:799 src/daemon/main.c:870 src/utils/pacat.c:562
 #, c-format
 msgid "read() failed: %s"
 msgstr "a read() hívás meghiúsult: %s"
 
-#: ../src/daemon/main.c:788
+#: src/daemon/main.c:805
 msgid "Daemon startup failed."
 msgstr "A démon elindítása nem sikerült."
 
-#: ../src/daemon/main.c:821
+#: src/daemon/main.c:838
 #, c-format
 msgid "setsid() failed: %s"
 msgstr "a setsid() hívás meghiúsult: %s"
 
-#: ../src/daemon/main.c:948
+#: src/daemon/main.c:970
 msgid "Failed to get machine ID"
 msgstr "Nem sikerült lekérni a számítógép azonosítóját"
 
-#: ../src/daemon/main.c:974
+#: src/daemon/main.c:996
 msgid ""
 "OK, so you are running PA in system mode. Please make sure that you actually "
 "do want to do that.\n"
@@ -563,180 +563,223 @@ msgstr ""
 "Documentation/User/WhatIsWrongWithSystemWide/ amelyből megtudhatja miért nem "
 "tanácsos a rendszer üzemmód használata."
 
-#: ../src/daemon/main.c:990
+#: src/daemon/main.c:1012
 msgid "pa_pid_file_create() failed."
 msgstr "A „pa_pid_file_create()” függvényhívás meghiúsult."
 
-#: ../src/daemon/main.c:1022
+#: src/daemon/main.c:1044
 msgid "pa_core_new() failed."
 msgstr "A pa_core_new() sikertelen."
 
-#: ../src/daemon/main.c:1090
-msgid "Failed to initialize daemon."
-msgstr "Nem sikerült előkészíteni a démont."
+#: src/daemon/main.c:1119
+#, fuzzy
+msgid "command line arguments"
+msgstr "Túl sok argumentum."
 
-#: ../src/daemon/main.c:1095
+#: src/daemon/main.c:1126
+#, c-format
+msgid ""
+"Failed to initialize daemon due to errors while executing startup commands. "
+"Source of commands: %s"
+msgstr ""
+
+#: src/daemon/main.c:1131
 msgid "Daemon startup without any loaded modules, refusing to work."
 msgstr ""
 "A démont noha elindult, de nem töltött be modulokat, így a hangrendszer nem "
 "üzemképes."
 
-#: ../src/daemon/pulseaudio.desktop.in.h:1
+#: src/daemon/pulseaudio.desktop.in:4
 msgid "PulseAudio Sound System"
 msgstr "PulseAudio hangrendszer"
 
-#: ../src/daemon/pulseaudio.desktop.in.h:2
+#: src/daemon/pulseaudio.desktop.in:5
 msgid "Start the PulseAudio Sound System"
 msgstr "A PulseAudio hangrendszer elindítása"
 
-#: ../src/modules/alsa/alsa-mixer.c:2378
+#: src/modules/alsa/alsa-mixer.c:2708
 msgid "Input"
 msgstr "Bemenet"
 
-#: ../src/modules/alsa/alsa-mixer.c:2379
+#: src/modules/alsa/alsa-mixer.c:2709
 msgid "Docking Station Input"
 msgstr "Dokkolóállomás bemenet"
 
-#: ../src/modules/alsa/alsa-mixer.c:2380
+#: src/modules/alsa/alsa-mixer.c:2710
 msgid "Docking Station Microphone"
 msgstr "Dokkolóállomás mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2381
+#: src/modules/alsa/alsa-mixer.c:2711
 msgid "Docking Station Line In"
 msgstr "Dokkolóállomás vonalbemenet"
 
-#: ../src/modules/alsa/alsa-mixer.c:2382 ../src/modules/alsa/alsa-mixer.c:2467
+#: src/modules/alsa/alsa-mixer.c:2712 src/modules/alsa/alsa-mixer.c:2803
 msgid "Line In"
 msgstr "Vonalbemenet"
 
-#: ../src/modules/alsa/alsa-mixer.c:2383 ../src/modules/alsa/alsa-mixer.c:2461
-#: ../src/modules/bluetooth/module-bluez5-device.c:1710
+#: src/modules/alsa/alsa-mixer.c:2713 src/modules/alsa/alsa-mixer.c:2797
+#: src/modules/bluetooth/module-bluez5-device.c:1822
 msgid "Microphone"
 msgstr "Mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2384 ../src/modules/alsa/alsa-mixer.c:2462
+#: src/modules/alsa/alsa-mixer.c:2714 src/modules/alsa/alsa-mixer.c:2798
 msgid "Front Microphone"
 msgstr "Első mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2385 ../src/modules/alsa/alsa-mixer.c:2463
+#: src/modules/alsa/alsa-mixer.c:2715 src/modules/alsa/alsa-mixer.c:2799
 msgid "Rear Microphone"
 msgstr "Hátsó mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2386
+#: src/modules/alsa/alsa-mixer.c:2716
 msgid "External Microphone"
 msgstr "Külső mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2387 ../src/modules/alsa/alsa-mixer.c:2465
+#: src/modules/alsa/alsa-mixer.c:2717 src/modules/alsa/alsa-mixer.c:2801
 msgid "Internal Microphone"
 msgstr "Belső mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2388 ../src/modules/alsa/alsa-mixer.c:2468
+#: src/modules/alsa/alsa-mixer.c:2718 src/modules/alsa/alsa-mixer.c:2804
+#: src/utils/pactl.c:265
 msgid "Radio"
 msgstr "Rádió"
 
-#: ../src/modules/alsa/alsa-mixer.c:2389 ../src/modules/alsa/alsa-mixer.c:2469
+#: src/modules/alsa/alsa-mixer.c:2719 src/modules/alsa/alsa-mixer.c:2805
+#: src/utils/pactl.c:266
 msgid "Video"
 msgstr "Videó"
 
-#: ../src/modules/alsa/alsa-mixer.c:2390
+#: src/modules/alsa/alsa-mixer.c:2720
 msgid "Automatic Gain Control"
 msgstr "Automatikus erősítésszabályzás"
 
-#: ../src/modules/alsa/alsa-mixer.c:2391
+#: src/modules/alsa/alsa-mixer.c:2721
 msgid "No Automatic Gain Control"
 msgstr "Nincs automatikus erősítésszabályzás"
 
-#: ../src/modules/alsa/alsa-mixer.c:2392
+#: src/modules/alsa/alsa-mixer.c:2722
 msgid "Boost"
 msgstr "Erősítés"
 
-#: ../src/modules/alsa/alsa-mixer.c:2393
+#: src/modules/alsa/alsa-mixer.c:2723
 msgid "No Boost"
 msgstr "Nincs erősítés"
 
-#: ../src/modules/alsa/alsa-mixer.c:2394
+#: src/modules/alsa/alsa-mixer.c:2724
 msgid "Amplifier"
 msgstr "Erősítő"
 
-#: ../src/modules/alsa/alsa-mixer.c:2395
+#: src/modules/alsa/alsa-mixer.c:2725
 msgid "No Amplifier"
 msgstr "Nincs erősítő"
 
-#: ../src/modules/alsa/alsa-mixer.c:2396
+#: src/modules/alsa/alsa-mixer.c:2726
 msgid "Bass Boost"
 msgstr "Basszuskiemelés"
 
-#: ../src/modules/alsa/alsa-mixer.c:2397
+#: src/modules/alsa/alsa-mixer.c:2727
 msgid "No Bass Boost"
 msgstr "Nincs basszuskiemelés"
 
-#: ../src/modules/alsa/alsa-mixer.c:2398
-#: ../src/modules/bluetooth/module-bluez5-device.c:1717
+#: src/modules/alsa/alsa-mixer.c:2728
+#: src/modules/bluetooth/module-bluez5-device.c:1830 src/utils/pactl.c:255
 msgid "Speaker"
 msgstr "Hangszóró"
 
-#: ../src/modules/alsa/alsa-mixer.c:2399 ../src/modules/alsa/alsa-mixer.c:2471
+#: src/modules/alsa/alsa-mixer.c:2729 src/modules/alsa/alsa-mixer.c:2807
+#: src/utils/pactl.c:256
 msgid "Headphones"
 msgstr "Analóg fejhallgató"
 
-#: ../src/modules/alsa/alsa-mixer.c:2460
+#: src/modules/alsa/alsa-mixer.c:2796
 msgid "Analog Input"
 msgstr "Analóg bemenet"
 
-#: ../src/modules/alsa/alsa-mixer.c:2464
+#: src/modules/alsa/alsa-mixer.c:2800
 msgid "Dock Microphone"
 msgstr "Dokkolóállomás mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2466
+#: src/modules/alsa/alsa-mixer.c:2802
 msgid "Headset Microphone"
 msgstr "Fejhallgató mikrofon"
 
-#: ../src/modules/alsa/alsa-mixer.c:2470
+#: src/modules/alsa/alsa-mixer.c:2806
 msgid "Analog Output"
 msgstr "Analóg kimenet"
 
-#: ../src/modules/alsa/alsa-mixer.c:2472
-msgid "LFE on Separate Mono Output"
-msgstr "Analóg kimenet (mély)"
+#: src/modules/alsa/alsa-mixer.c:2808
+#, fuzzy
+msgid "Headphones 2"
+msgstr "Analóg fejhallgató"
 
-#: ../src/modules/alsa/alsa-mixer.c:2473
+#: src/modules/alsa/alsa-mixer.c:2809
+#, fuzzy
+msgid "Headphones Mono Output"
+msgstr "Analóg mono kimenet"
+
+#: src/modules/alsa/alsa-mixer.c:2810
 msgid "Line Out"
 msgstr "Vonalkimenet"
 
-#: ../src/modules/alsa/alsa-mixer.c:2474
+#: src/modules/alsa/alsa-mixer.c:2811
 msgid "Analog Mono Output"
 msgstr "Analóg mono kimenet"
 
-#: ../src/modules/alsa/alsa-mixer.c:2475
+#: src/modules/alsa/alsa-mixer.c:2812
 msgid "Speakers"
 msgstr "Hangszórók"
 
-#: ../src/modules/alsa/alsa-mixer.c:2476
+#: src/modules/alsa/alsa-mixer.c:2813
 msgid "HDMI / DisplayPort"
 msgstr "HDMI / DisplayPort"
 
-#: ../src/modules/alsa/alsa-mixer.c:2477
+#: src/modules/alsa/alsa-mixer.c:2814
 msgid "Digital Output (S/PDIF)"
 msgstr "Digitális kimenet (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2478
+#: src/modules/alsa/alsa-mixer.c:2815
 msgid "Digital Input (S/PDIF)"
 msgstr "Digitális bemenet (S/PDIF)"
 
-#: ../src/modules/alsa/alsa-mixer.c:2479
-msgid "Digital Passthrough (S/PDIF)"
-msgstr "Digitális Passthrough (S/PDIF)"
-
-#: ../src/modules/alsa/alsa-mixer.c:2480
+#: src/modules/alsa/alsa-mixer.c:2816
 msgid "Multichannel Input"
 msgstr "Többcsatornás bemenet"
 
-#: ../src/modules/alsa/alsa-mixer.c:2481
+#: src/modules/alsa/alsa-mixer.c:2817
 msgid "Multichannel Output"
 msgstr "Többcsatornás kimenet"
 
-#: ../src/modules/alsa/alsa-mixer.c:3990
+#: src/modules/alsa/alsa-mixer.c:2818
+#, fuzzy
+msgid "Game Output"
+msgstr "%s kimenet"
+
+#: src/modules/alsa/alsa-mixer.c:2819 src/modules/alsa/alsa-mixer.c:2820
+#, fuzzy
+msgid "Chat Output"
+msgstr "%s kimenet"
+
+#: src/modules/alsa/alsa-mixer.c:2821
+#, fuzzy
+msgid "Chat Input"
+msgstr "%s bemenet"
+
+#: src/modules/alsa/alsa-mixer.c:2822
+#, fuzzy
+msgid "Virtual Surround 7.1"
+msgstr "Virtuális térhatású nyelő"
+
+#: src/modules/alsa/alsa-mixer.c:4562
 msgid "Analog Mono"
+msgstr "Analóg mono"
+
+#: src/modules/alsa/alsa-mixer.c:4563
+#, fuzzy
+msgid "Analog Mono (Left)"
+msgstr "Analóg mono"
+
+#: src/modules/alsa/alsa-mixer.c:4564
+#, fuzzy
+msgid "Analog Mono (Right)"
 msgstr "Analóg mono"
 
 #. Note: Not translated to "Analog Stereo Input", because the source
@@ -744,120 +787,151 @@ msgstr "Analóg mono"
 #. * here would lead to the source name to become "Analog Stereo Input
 #. * Input". The same logic applies to analog-stereo-output,
 #. * multichannel-input and multichannel-output.
-#: ../src/modules/alsa/alsa-mixer.c:3991 ../src/modules/alsa/alsa-mixer.c:3997
-#: ../src/modules/alsa/alsa-mixer.c:3998
+#: src/modules/alsa/alsa-mixer.c:4565 src/modules/alsa/alsa-mixer.c:4573
+#: src/modules/alsa/alsa-mixer.c:4574
 msgid "Analog Stereo"
 msgstr "Analóg sztereó"
 
-#: ../src/modules/alsa/alsa-mixer.c:3999 ../src/modules/alsa/alsa-mixer.c:4000
+#: src/modules/alsa/alsa-mixer.c:4566 src/pulse/channelmap.c:103
+#: src/pulse/channelmap.c:771
+msgid "Mono"
+msgstr "Mono"
+
+#: src/modules/alsa/alsa-mixer.c:4567 src/pulse/channelmap.c:775
+msgid "Stereo"
+msgstr "Sztereó"
+
+#: src/modules/alsa/alsa-mixer.c:4575 src/modules/alsa/alsa-mixer.c:4733
+#: src/modules/bluetooth/module-bluez5-device.c:1810 src/utils/pactl.c:259
+msgid "Headset"
+msgstr "Fejhallgató"
+
+#: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
+#, fuzzy
+msgid "Speakerphone"
+msgstr "Hangszóró"
+
+#: src/modules/alsa/alsa-mixer.c:4577 src/modules/alsa/alsa-mixer.c:4578
 msgid "Multichannel"
 msgstr "Többcsatornás"
 
-#: ../src/modules/alsa/alsa-mixer.c:4001
+#: src/modules/alsa/alsa-mixer.c:4579
 msgid "Analog Surround 2.1"
 msgstr "Analóg térhatású 2.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4002
+#: src/modules/alsa/alsa-mixer.c:4580
 msgid "Analog Surround 3.0"
 msgstr "Analóg térhatású 3.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4003
+#: src/modules/alsa/alsa-mixer.c:4581
 msgid "Analog Surround 3.1"
 msgstr "Analóg térhatású 3.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4004
+#: src/modules/alsa/alsa-mixer.c:4582
 msgid "Analog Surround 4.0"
 msgstr "Analóg térhatású 4.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4005
+#: src/modules/alsa/alsa-mixer.c:4583
 msgid "Analog Surround 4.1"
 msgstr "Analóg térhatású 4.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4006
+#: src/modules/alsa/alsa-mixer.c:4584
 msgid "Analog Surround 5.0"
 msgstr "Analóg térhatású 5.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4007
+#: src/modules/alsa/alsa-mixer.c:4585
 msgid "Analog Surround 5.1"
 msgstr "Analóg térhatású 5.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4008
+#: src/modules/alsa/alsa-mixer.c:4586
 msgid "Analog Surround 6.0"
 msgstr "Analóg térhatású 6.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4009
+#: src/modules/alsa/alsa-mixer.c:4587
 msgid "Analog Surround 6.1"
 msgstr "Analóg térhatású 6.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4010
+#: src/modules/alsa/alsa-mixer.c:4588
 msgid "Analog Surround 7.0"
 msgstr "Analóg térhatású 7.0"
 
-#: ../src/modules/alsa/alsa-mixer.c:4011
+#: src/modules/alsa/alsa-mixer.c:4589
 msgid "Analog Surround 7.1"
 msgstr "Analóg térhatású 7.1"
 
-#: ../src/modules/alsa/alsa-mixer.c:4012
+#: src/modules/alsa/alsa-mixer.c:4590
 msgid "Digital Stereo (IEC958)"
 msgstr "Digitális sztereó (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4013
-msgid "Digital Passthrough  (IEC958)"
-msgstr "Digitális Passthrough (IEC958)"
-
-#: ../src/modules/alsa/alsa-mixer.c:4014
+#: src/modules/alsa/alsa-mixer.c:4591
 msgid "Digital Surround 4.0 (IEC958/AC3)"
 msgstr "Digitális térhatású 4.0 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4015
+#: src/modules/alsa/alsa-mixer.c:4592
 msgid "Digital Surround 5.1 (IEC958/AC3)"
 msgstr "Digitális térhatású 5.1 (IEC958/AC3)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4016
+#: src/modules/alsa/alsa-mixer.c:4593
 msgid "Digital Surround 5.1 (IEC958/DTS)"
 msgstr "Digitális térhatású 5.1 (IEC958/DTS)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4017
+#: src/modules/alsa/alsa-mixer.c:4594
 msgid "Digital Stereo (HDMI)"
 msgstr "Digitális térhatású (HDMI)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4018
+#: src/modules/alsa/alsa-mixer.c:4595
 msgid "Digital Surround 5.1 (HDMI)"
 msgstr "Digitális térhatású 5.1 (HDMI)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4151
+#: src/modules/alsa/alsa-mixer.c:4596
+msgid "Chat"
+msgstr ""
+
+#: src/modules/alsa/alsa-mixer.c:4597
+msgid "Game"
+msgstr ""
+
+#: src/modules/alsa/alsa-mixer.c:4731
 msgid "Analog Mono Duplex"
 msgstr "Analóg mono duplex"
 
-#: ../src/modules/alsa/alsa-mixer.c:4152
+#: src/modules/alsa/alsa-mixer.c:4732
 msgid "Analog Stereo Duplex"
 msgstr "Analóg sztereó duplex"
 
-#: ../src/modules/alsa/alsa-mixer.c:4153
+#: src/modules/alsa/alsa-mixer.c:4735
 msgid "Digital Stereo Duplex (IEC958)"
 msgstr "Analóg sztereó duplex (IEC958)"
 
-#: ../src/modules/alsa/alsa-mixer.c:4154
+#: src/modules/alsa/alsa-mixer.c:4736
 msgid "Multichannel Duplex"
 msgstr "Többcsatornás duplex"
 
-#: ../src/modules/alsa/alsa-mixer.c:4155
-#: ../src/modules/alsa/module-alsa-card.c:186
-#: ../src/modules/bluetooth/module-bluez5-device.c:1965
+#: src/modules/alsa/alsa-mixer.c:4737
+#, fuzzy
+msgid "Stereo Duplex"
+msgstr "Analóg sztereó duplex"
+
+#: src/modules/alsa/alsa-mixer.c:4738
+msgid "Mono Chat + 7.1 Surround"
+msgstr ""
+
+#: src/modules/alsa/alsa-mixer.c:4739 src/modules/alsa/module-alsa-card.c:197
+#: src/modules/bluetooth/module-bluez5-device.c:2083
 msgid "Off"
 msgstr "Kikapcsolva"
 
-#: ../src/modules/alsa/alsa-mixer.c:4254
+#: src/modules/alsa/alsa-mixer.c:4839
 #, c-format
 msgid "%s Output"
 msgstr "%s kimenet"
 
-#: ../src/modules/alsa/alsa-mixer.c:4262
+#: src/modules/alsa/alsa-mixer.c:4847
 #, c-format
 msgid "%s Input"
 msgstr "%s bemenet"
 
-#: ../src/modules/alsa/alsa-sink.c:570
+#: src/modules/alsa/alsa-sink.c:652 src/modules/alsa/alsa-sink.c:842
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -875,25 +949,7 @@ msgstr ""
 "„snd_pcm_avail()” függvény visszatérési értéke 0 vagy a min_avail-nál kisebb "
 "más érték volt."
 
-#: ../src/modules/alsa/alsa-sink.c:747
-#, c-format
-msgid ""
-"ALSA woke us up to write new data to the device, but there was actually "
-"nothing to write!\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers.\n"
-"We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
-"returned 0 or another value < min_avail."
-msgstr ""
-"Az ALSA modul értesítése nyomán új adatokat kellett volna írni az eszközre, "
-"de semmilyen írandó adat nem volt.\n"
-"Ez valószínűleg egy hiba eredménye az ALSA „%s” illesztőprogramban. Jelentse "
-"ezt a problémát az ALSA fejlesztői felé.\n"
-"Az értesítés érkezésekor a POLLOUT be volt állítva – viszont a későbbi "
-"„snd_pcm_avail()” függvény visszatérési értéke 0 vagy a min_avail-nál kisebb "
-"más érték volt."
-
-#: ../src/modules/alsa/alsa-source.c:529
+#: src/modules/alsa/alsa-source.c:611 src/modules/alsa/alsa-source.c:777
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -911,51 +967,53 @@ msgstr ""
 "„snd_pcm_avail()” függvény visszatérési értéke 0 vagy a min_avail-nál kisebb "
 "más érték volt."
 
-#: ../src/modules/alsa/alsa-source.c:680
-#, c-format
+#: src/modules/alsa/alsa-util.c:1183 src/modules/alsa/alsa-util.c:1277
+#, fuzzy, c-format
 msgid ""
-"ALSA woke us up to read new data from the device, but there was actually "
-"nothing to read!\n"
+"snd_pcm_avail() returned a value that is exceptionally large: %lu byte (%lu "
+"ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers.\n"
-"We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
-"returned 0 or another value < min_avail."
-msgstr ""
-"Az ALSA modul értesítése nyomán új adatokat kellett volna olvasni az "
-"eszközről, de nem volt olvasandó adat.\n"
-"Ez valószínűleg egy hiba eredménye az ALSA „%s” illesztőprogramban. Jelentse "
-"ezt a problémát az ALSA fejlesztői felé.\n"
-"Az értesítés érkezésekor a POLLIN be volt állítva – viszont a későbbi "
-"„snd_pcm_avail()” függvény visszatérési értéke 0 vagy a min_avail-nál kisebb "
-"más érték volt."
-
-#: ../src/modules/alsa/alsa-util.c:1166 ../src/modules/alsa/alsa-util.c:1241
-#, c-format
-msgid ""
+"to the ALSA developers."
+msgid_plural ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
 "ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
-msgstr ""
+msgstr[0] ""
+"A „snd_pcm_avail()” függvény visszatérési értéke váratlanul nagy értékű: %lu "
+"bájt (%lu ms).\n"
+"Ez valószínűleg egy hiba eredménye az ALSA „%s” illesztőprogramban. Jelentse "
+"ezt a problémát az ALSA fejlesztői felé."
+msgstr[1] ""
 "A „snd_pcm_avail()” függvény visszatérési értéke váratlanul nagy értékű: %lu "
 "bájt (%lu ms).\n"
 "Ez valószínűleg egy hiba eredménye az ALSA „%s” illesztőprogramban. Jelentse "
 "ezt a problémát az ALSA fejlesztői felé."
 
-#: ../src/modules/alsa/alsa-util.c:1216
-#, c-format
+#: src/modules/alsa/alsa-util.c:1249
+#, fuzzy, c-format
 msgid ""
+"snd_pcm_delay() returned a value that is exceptionally large: %li byte (%s"
+"%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgid_plural ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s"
 "%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
-msgstr ""
+msgstr[0] ""
+"A „snd_pcm_delay()” függvény visszatérési értéke váratlanul nagy értékű: %li "
+"bájt (%s%lu ms).\n"
+"Ez valószínűleg egy hiba eredménye az ALSA „%s” illesztőprogramban. Jelentse "
+"ezt a problémát az ALSA fejlesztői felé."
+msgstr[1] ""
 "A „snd_pcm_delay()” függvény visszatérési értéke váratlanul nagy értékű: %li "
 "bájt (%s%lu ms).\n"
 "Ez valószínűleg egy hiba eredménye az ALSA „%s” illesztőprogramban. Jelentse "
 "ezt a problémát az ALSA fejlesztői felé."
 
-#: ../src/modules/alsa/alsa-util.c:1257
+#: src/modules/alsa/alsa-util.c:1296
 #, c-format
 msgid ""
 "snd_pcm_avail_delay() returned strange values: delay %lu is less than avail "
@@ -968,78 +1026,82 @@ msgstr ""
 "Ez valószínűleg egy hiba eredménye az ALSA „%s” illesztőprogramban. Jelentse "
 "ezt a problémát az ALSA fejlesztői felé."
 
-#: ../src/modules/alsa/alsa-util.c:1300
-#, c-format
+#: src/modules/alsa/alsa-util.c:1339
+#, fuzzy, c-format
 msgid ""
+"snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu byte "
+"(%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
+"to the ALSA developers."
+msgid_plural ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
 "(%lu ms).\n"
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
-msgstr ""
+msgstr[0] ""
+"A „snd_pcm_mmap_begin()” függvény visszatérési értéke kivételesen nagy: %lu "
+"bájt (%lu ms).\n"
+"Ez valószínűleg egy hiba eredménye az ALSA „%s” illesztőprogramban. Jelentse "
+"ezt a problémát az ALSA fejlesztői felé."
+msgstr[1] ""
 "A „snd_pcm_mmap_begin()” függvény visszatérési értéke kivételesen nagy: %lu "
 "bájt (%lu ms).\n"
 "Ez valószínűleg egy hiba eredménye az ALSA „%s” illesztőprogramban. Jelentse "
 "ezt a problémát az ALSA fejlesztői felé."
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1700
-msgid "Headset"
-msgstr "Fejhallgató"
-
-# FIXME: utánanézni
-#: ../src/modules/bluetooth/module-bluez5-device.c:1705
-msgid "Handsfree"
-msgstr "Kihangosító"
-
-#: ../src/modules/bluetooth/module-bluez5-device.c:1723
-msgid "Headphone"
-msgstr "Fülhallgató"
-
-#: ../src/modules/bluetooth/module-bluez5-device.c:1728
-msgid "Portable"
-msgstr "Hordozható"
-
-#: ../src/modules/bluetooth/module-bluez5-device.c:1733
-msgid "Car"
-msgstr "Autó"
-
-#: ../src/modules/bluetooth/module-bluez5-device.c:1738
-msgid "HiFi"
-msgstr "Hi-Fi"
-
-#: ../src/modules/bluetooth/module-bluez5-device.c:1743
-msgid "Phone"
-msgstr "Telefon"
-
-#: ../src/modules/bluetooth/module-bluez5-device.c:1695
-#: ../src/modules/bluetooth/module-bluez5-device.c:1711
-#: ../src/modules/bluetooth/module-bluez5-device.c:1749
-msgid "Bluetooth Output"
-msgstr "Bluetooth kimenet"
-
-#: ../src/modules/bluetooth/module-bluez5-device.c:1694
-#: ../src/modules/bluetooth/module-bluez5-device.c:1716
-#: ../src/modules/bluetooth/module-bluez5-device.c:1722
-#: ../src/modules/bluetooth/module-bluez5-device.c:1748
+#: src/modules/bluetooth/module-bluez5-device.c:1803
+#: src/modules/bluetooth/module-bluez5-device.c:1829
+#: src/modules/bluetooth/module-bluez5-device.c:1836
 msgid "Bluetooth Input"
 msgstr "Bluetooth bemenet"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1790
+#: src/modules/bluetooth/module-bluez5-device.c:1804
+#: src/modules/bluetooth/module-bluez5-device.c:1823
+msgid "Bluetooth Output"
+msgstr "Bluetooth kimenet"
+
+# FIXME: utánanézni
+#: src/modules/bluetooth/module-bluez5-device.c:1816 src/utils/pactl.c:270
+msgid "Handsfree"
+msgstr "Kihangosító"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1837
+msgid "Headphone"
+msgstr "Fülhallgató"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1843 src/utils/pactl.c:269
+msgid "Portable"
+msgstr "Hordozható"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1849 src/utils/pactl.c:271
+msgid "Car"
+msgstr "Autó"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1855 src/utils/pactl.c:272
+msgid "HiFi"
+msgstr "Hi-Fi"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1861 src/utils/pactl.c:273
+msgid "Phone"
+msgstr "Telefon"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1908
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "Hi-Fi lejátszás (A2DP bemenet)"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1802
+#: src/modules/bluetooth/module-bluez5-device.c:1920
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "Hi-Fi felvétel (A2DP forrás)"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1814
+#: src/modules/bluetooth/module-bluez5-device.c:1932
 msgid "Headset Head Unit (HSP/HFP)"
 msgstr "Fejhallgató fejegység (HSP/HFP)"
 
-#: ../src/modules/bluetooth/module-bluez5-device.c:1827
+#: src/modules/bluetooth/module-bluez5-device.c:1945
 msgid "Headset Audio Gateway (HSP/HFP)"
 msgstr "Fejhallgató hangátjáró (HSP/HFP)"
 
-#: ../src/modules/echo-cancel/module-echo-cancel.c:61
+#: src/modules/echo-cancel/module-echo-cancel.c:59
 msgid ""
 "source_name=<name for the source> source_properties=<properties for the "
 "source> source_master=<name of source to filter> sink_name=<name for the "
@@ -1064,25 +1126,31 @@ msgstr ""
 "use_volume_sharing=<igen vagy nem> use_master_format=<igen vagy nem> "
 
 #. add on profile
-#: ../src/modules/macosx/module-coreaudio-device.c:811
+#: src/modules/macosx/module-coreaudio-device.c:825
 msgid "On"
 msgstr "Be"
 
-#: ../src/modules/module-allow-passthrough.c:73
-#: ../src/modules/module-always-sink.c:82
+#: src/modules/module-allow-passthrough.c:71
+#: src/modules/module-always-sink.c:80
 msgid "Dummy Output"
 msgstr "Látszólagos kimenet"
 
-#: ../src/modules/module-always-sink.c:36
+#: src/modules/module-always-sink.c:34
 msgid "Always keeps at least one sink loaded even if it's a null one"
 msgstr ""
 "Mindig maradjon betöltve legalább egy nyelő, még ha az csak az üres nyelő is"
 
-#: ../src/modules/module-equalizer-sink.c:70
+#: src/modules/module-always-source.c:35
+#, fuzzy
+msgid "Always keeps at least one source loaded even if it's a null one"
+msgstr ""
+"Mindig maradjon betöltve legalább egy nyelő, még ha az csak az üres nyelő is"
+
+#: src/modules/module-equalizer-sink.c:68
 msgid "General Purpose Equalizer"
 msgstr "Általános célú hangszínszabályzó"
 
-#: ../src/modules/module-equalizer-sink.c:74
+#: src/modules/module-equalizer-sink.c:72
 msgid ""
 "sink_name=<name of the sink> sink_properties=<properties for the sink> "
 "sink_master=<sink to connect to> format=<sample format> rate=<sample rate> "
@@ -1095,23 +1163,32 @@ msgstr ""
 "channel_map=<csatornaleképzés> autoloaded=<beállítva, ha ez a modul "
 "automatikusan betöltődik> use_volume_sharing=<igen vagy nem> "
 
-#: ../src/modules/module-filter-apply.c:47
+#: src/modules/module-equalizer-sink.c:1094
+#: src/modules/module-equalizer-sink.c:1217
+#, c-format
+msgid "FFT based equalizer on %s"
+msgstr ""
+
+#: src/modules/module-filter-apply.c:47
 msgid "autoclean=<automatically unload unused filters?>"
 msgstr "autoclean=<nem használt szűrők automatikus eltávolítása?>"
 
-#: ../src/modules/module-ladspa-sink.c:51
+#: src/modules/module-ladspa-sink.c:50
 msgid "Virtual LADSPA sink"
 msgstr "Látszólagos LADSPA nyelő"
 
-#: ../src/modules/module-ladspa-sink.c:55
+#: src/modules/module-ladspa-sink.c:54
+#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
-"master=<name of sink to filter> format=<sample format> rate=<sample rate> "
-"channels=<number of channels> channel_map=<input channel map> plugin=<ladspa "
-"plugin name> label=<ladspa plugin label> control=<comma separated list of "
-"input control values> input_ladspaport_map=<comma separated list of input "
-"LADSPA port names> output_ladspaport_map=<comma separated list of output "
-"LADSPA port names> "
+"sink_input_properties=<properties for the sink input> master=<name of sink "
+"to filter> sink_master=<name of sink to filter> format=<sample format> "
+"rate=<sample rate> channels=<number of channels> channel_map=<input channel "
+"map> plugin=<ladspa plugin name> label=<ladspa plugin label> control=<comma "
+"separated list of input control values> input_ladspaport_map=<comma "
+"separated list of input LADSPA port names> output_ladspaport_map=<comma "
+"separated list of output LADSPA port names> autoloaded=<set if this module "
+"is being loaded automatically> "
 msgstr ""
 "sink_name=<nyelő neve> sink_properties=<nyelő tulajdonságai> "
 "master=<szűrendő nyelő neve> format=<mintaformátum> rate=<mintavételezési "
@@ -1122,55 +1199,63 @@ msgstr ""
 "listája> output_ladspaport_map=<kimeneti LADSPA portnevek vesszővel "
 "elválasztott listája> "
 
-#: ../src/modules/module-null-sink.c:47
+#: src/modules/module-null-sink.c:46
 msgid "Clocked NULL sink"
 msgstr "Órajelezett NULL nyelő"
 
-#: ../src/modules/module-null-sink.c:280
+#: src/modules/module-null-sink.c:334
 msgid "Null Output"
 msgstr "NULL kimenet"
 
-#: ../src/modules/module-rygel-media-server.c:508
-#: ../src/modules/module-rygel-media-server.c:546
-#: ../src/modules/module-rygel-media-server.c:905
+#: src/modules/module-null-sink.c:346 src/utils/pactl.c:1170
+#, c-format
+msgid "Failed to set format: invalid format string %s"
+msgstr "Nem sikerült beállítani a formátumot: érvénytelen formátumleírás: %s"
+
+#: src/modules/module-rygel-media-server.c:506
+#: src/modules/module-rygel-media-server.c:544
+#: src/modules/module-rygel-media-server.c:903
 msgid "Output Devices"
 msgstr "Kimeneti eszközök"
 
-#: ../src/modules/module-rygel-media-server.c:509
-#: ../src/modules/module-rygel-media-server.c:547
-#: ../src/modules/module-rygel-media-server.c:906
+#: src/modules/module-rygel-media-server.c:507
+#: src/modules/module-rygel-media-server.c:545
+#: src/modules/module-rygel-media-server.c:904
 msgid "Input Devices"
 msgstr "Bemeneti eszközök"
 
-#: ../src/modules/module-rygel-media-server.c:1063
+#: src/modules/module-rygel-media-server.c:1061
 msgid "Audio on @HOSTNAME@"
 msgstr "Hangok ezen a számítógépen: @HOSTNAME@"
 
 #. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
 #. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
-#: ../src/modules/module-tunnel-sink-new.c:307
-#: ../src/modules/module-tunnel-source-new.c:305
+#: src/modules/module-tunnel-sink-new.c:320
+#: src/modules/module-tunnel-source-new.c:305
 #, c-format
 msgid "Tunnel for %s@%s"
 msgstr "Alagút ennek: %s@%s"
 
-#: ../src/modules/module-tunnel-sink-new.c:517
-#: ../src/modules/module-tunnel-source-new.c:516
+#: src/modules/module-tunnel-sink-new.c:564
+#: src/modules/module-tunnel-source-new.c:540
 #, c-format
 msgid "Tunnel to %s/%s"
 msgstr "Alagút ehhez: %s/%s"
 
-#: ../src/modules/module-virtual-surround-sink.c:47
+#: src/modules/module-virtual-surround-sink.c:50
 msgid "Virtual surround sink"
 msgstr "Virtuális térhatású nyelő"
 
-#: ../src/modules/module-virtual-surround-sink.c:51
+#: src/modules/module-virtual-surround-sink.c:54
+#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
-"master=<name of sink to filter> format=<sample format> rate=<sample rate> "
-"channels=<number of channels> channel_map=<channel map> "
-"use_volume_sharing=<yes or no> force_flat_volume=<yes or no> hrir=/path/to/"
-"left_hrir.wav "
+"master=<name of sink to filter> sink_master=<name of sink to filter> "
+"format=<sample format> rate=<sample rate> channels=<number of channels> "
+"channel_map=<channel map> use_volume_sharing=<yes or no> "
+"force_flat_volume=<yes or no> hrir=/path/to/left_hrir.wav hrir_left=/path/to/"
+"left_hrir.wav hrir_right=/path/to/optional/right_hrir.wav autoloaded=<set if "
+"this module is being loaded automatically> "
 msgstr ""
 "sink_name=<nyelő neve> sink_properties=<nyelő tulajdonságai> "
 "master=<szűrendő nyelő neve> format=<mintavételi formátum> "
@@ -1178,294 +1263,293 @@ msgstr ""
 "channel_map=<csatornaleképzés> use_volume_sharing=<igen vag nem> "
 "force_flat_volume=<igen vag nem> hrir=/útvonal/left_hrir.wav "
 
-#: ../src/modules/reserve-wrap.c:149
+#: src/modules/raop/module-raop-discover.c:295
+#, fuzzy
+msgid "Unknown device model"
+msgstr "Ismeretlen hibakód"
+
+#: src/modules/raop/raop-sink.c:655
+msgid "RAOP standard profile"
+msgstr ""
+
+#: src/modules/reserve-wrap.c:149
 msgid "PulseAudio Sound Server"
 msgstr "PulseAudio hangkiszolgáló"
 
-#: ../src/pulse/channelmap.c:103 ../src/pulse/channelmap.c:771
-msgid "Mono"
-msgstr "Mono"
-
-#: ../src/pulse/channelmap.c:105
+#: src/pulse/channelmap.c:105
 msgid "Front Center"
 msgstr "Első középső"
 
-#: ../src/pulse/channelmap.c:106
+#: src/pulse/channelmap.c:106
 msgid "Front Left"
 msgstr "Első bal"
 
-#: ../src/pulse/channelmap.c:107
+#: src/pulse/channelmap.c:107
 msgid "Front Right"
 msgstr "Első jobb"
 
-#: ../src/pulse/channelmap.c:109
+#: src/pulse/channelmap.c:109
 msgid "Rear Center"
 msgstr "Hátsó középső"
 
-#: ../src/pulse/channelmap.c:110
+#: src/pulse/channelmap.c:110
 msgid "Rear Left"
 msgstr "Hátsó bal"
 
-#: ../src/pulse/channelmap.c:111
+#: src/pulse/channelmap.c:111
 msgid "Rear Right"
 msgstr "Hátsó jobb"
 
-#: ../src/pulse/channelmap.c:113
+#: src/pulse/channelmap.c:113
 msgid "Subwoofer"
 msgstr "Mélysugárzó"
 
-#: ../src/pulse/channelmap.c:115
+#: src/pulse/channelmap.c:115
 msgid "Front Left-of-center"
 msgstr "Első közép-bal"
 
-#: ../src/pulse/channelmap.c:116
+#: src/pulse/channelmap.c:116
 msgid "Front Right-of-center"
 msgstr "Első közép-jobb"
 
-#: ../src/pulse/channelmap.c:118
+#: src/pulse/channelmap.c:118
 msgid "Side Left"
 msgstr "Bal oldalsó"
 
-#: ../src/pulse/channelmap.c:119
+#: src/pulse/channelmap.c:119
 msgid "Side Right"
 msgstr "Jobb oldalsó"
 
-#: ../src/pulse/channelmap.c:121
+#: src/pulse/channelmap.c:121
 msgid "Auxiliary 0"
 msgstr "Külső 0"
 
-#: ../src/pulse/channelmap.c:122
+#: src/pulse/channelmap.c:122
 msgid "Auxiliary 1"
 msgstr "Külső 1"
 
-#: ../src/pulse/channelmap.c:123
+#: src/pulse/channelmap.c:123
 msgid "Auxiliary 2"
 msgstr "Külső 2"
 
-#: ../src/pulse/channelmap.c:124
+#: src/pulse/channelmap.c:124
 msgid "Auxiliary 3"
 msgstr "Külső 3"
 
-#: ../src/pulse/channelmap.c:125
+#: src/pulse/channelmap.c:125
 msgid "Auxiliary 4"
 msgstr "Külső 4"
 
-#: ../src/pulse/channelmap.c:126
+#: src/pulse/channelmap.c:126
 msgid "Auxiliary 5"
 msgstr "Külső 5"
 
-#: ../src/pulse/channelmap.c:127
+#: src/pulse/channelmap.c:127
 msgid "Auxiliary 6"
 msgstr "Külső 6"
 
-#: ../src/pulse/channelmap.c:128
+#: src/pulse/channelmap.c:128
 msgid "Auxiliary 7"
 msgstr "Külső 7"
 
-#: ../src/pulse/channelmap.c:129
+#: src/pulse/channelmap.c:129
 msgid "Auxiliary 8"
 msgstr "Külső 8"
 
-#: ../src/pulse/channelmap.c:130
+#: src/pulse/channelmap.c:130
 msgid "Auxiliary 9"
 msgstr "Külső 9"
 
-#: ../src/pulse/channelmap.c:131
+#: src/pulse/channelmap.c:131
 msgid "Auxiliary 10"
 msgstr "Külső 10"
 
-#: ../src/pulse/channelmap.c:132
+#: src/pulse/channelmap.c:132
 msgid "Auxiliary 11"
 msgstr "Külső 11"
 
-#: ../src/pulse/channelmap.c:133
+#: src/pulse/channelmap.c:133
 msgid "Auxiliary 12"
 msgstr "Külső 12"
 
-#: ../src/pulse/channelmap.c:134
+#: src/pulse/channelmap.c:134
 msgid "Auxiliary 13"
 msgstr "Külső 13"
 
-#: ../src/pulse/channelmap.c:135
+#: src/pulse/channelmap.c:135
 msgid "Auxiliary 14"
 msgstr "Külső 14"
 
-#: ../src/pulse/channelmap.c:136
+#: src/pulse/channelmap.c:136
 msgid "Auxiliary 15"
 msgstr "Külső 15"
 
-#: ../src/pulse/channelmap.c:137
+#: src/pulse/channelmap.c:137
 msgid "Auxiliary 16"
 msgstr "Külső 16"
 
-#: ../src/pulse/channelmap.c:138
+#: src/pulse/channelmap.c:138
 msgid "Auxiliary 17"
 msgstr "Külső 17"
 
-#: ../src/pulse/channelmap.c:139
+#: src/pulse/channelmap.c:139
 msgid "Auxiliary 18"
 msgstr "Külső 18"
 
-#: ../src/pulse/channelmap.c:140
+#: src/pulse/channelmap.c:140
 msgid "Auxiliary 19"
 msgstr "Külső 19"
 
-#: ../src/pulse/channelmap.c:141
+#: src/pulse/channelmap.c:141
 msgid "Auxiliary 20"
 msgstr "Külső 20"
 
-#: ../src/pulse/channelmap.c:142
+#: src/pulse/channelmap.c:142
 msgid "Auxiliary 21"
 msgstr "Külső 21"
 
-#: ../src/pulse/channelmap.c:143
+#: src/pulse/channelmap.c:143
 msgid "Auxiliary 22"
 msgstr "Külső 22"
 
-#: ../src/pulse/channelmap.c:144
+#: src/pulse/channelmap.c:144
 msgid "Auxiliary 23"
 msgstr "Külső 23"
 
-#: ../src/pulse/channelmap.c:145
+#: src/pulse/channelmap.c:145
 msgid "Auxiliary 24"
 msgstr "Külső 24"
 
-#: ../src/pulse/channelmap.c:146
+#: src/pulse/channelmap.c:146
 msgid "Auxiliary 25"
 msgstr "Külső 25"
 
-#: ../src/pulse/channelmap.c:147
+#: src/pulse/channelmap.c:147
 msgid "Auxiliary 26"
 msgstr "Külső 26"
 
-#: ../src/pulse/channelmap.c:148
+#: src/pulse/channelmap.c:148
 msgid "Auxiliary 27"
 msgstr "Külső 27"
 
-#: ../src/pulse/channelmap.c:149
+#: src/pulse/channelmap.c:149
 msgid "Auxiliary 28"
 msgstr "Külső 28"
 
-#: ../src/pulse/channelmap.c:150
+#: src/pulse/channelmap.c:150
 msgid "Auxiliary 29"
 msgstr "Külső 29"
 
-#: ../src/pulse/channelmap.c:151
+#: src/pulse/channelmap.c:151
 msgid "Auxiliary 30"
 msgstr "Külső 30"
 
-#: ../src/pulse/channelmap.c:152
+#: src/pulse/channelmap.c:152
 msgid "Auxiliary 31"
 msgstr "Külső 31"
 
-#: ../src/pulse/channelmap.c:154
+#: src/pulse/channelmap.c:154
 msgid "Top Center"
 msgstr "Felső középső"
 
-#: ../src/pulse/channelmap.c:156
+#: src/pulse/channelmap.c:156
 msgid "Top Front Center"
 msgstr "Felső első középső"
 
-#: ../src/pulse/channelmap.c:157
+#: src/pulse/channelmap.c:157
 msgid "Top Front Left"
 msgstr "Felső első bal"
 
-#: ../src/pulse/channelmap.c:158
+#: src/pulse/channelmap.c:158
 msgid "Top Front Right"
 msgstr "Felső első jobb"
 
-#: ../src/pulse/channelmap.c:160
+#: src/pulse/channelmap.c:160
 msgid "Top Rear Center"
 msgstr "Felső hátsó középső"
 
-#: ../src/pulse/channelmap.c:161
+#: src/pulse/channelmap.c:161
 msgid "Top Rear Left"
 msgstr "Felső hátsó bal"
 
-#: ../src/pulse/channelmap.c:162
+#: src/pulse/channelmap.c:162
 msgid "Top Rear Right"
 msgstr "Felső hátsó jobb"
 
-#: ../src/pulse/channelmap.c:479 ../src/pulse/format.c:121
-#: ../src/pulse/sample.c:175 ../src/pulse/volume.c:294
-#: ../src/pulse/volume.c:320 ../src/pulse/volume.c:340
-#: ../src/pulse/volume.c:372 ../src/pulse/volume.c:412
-#: ../src/pulse/volume.c:431
+#: src/pulse/channelmap.c:479 src/pulse/format.c:123 src/pulse/sample.c:177
+#: src/pulse/volume.c:306 src/pulse/volume.c:332 src/pulse/volume.c:352
+#: src/pulse/volume.c:384 src/pulse/volume.c:424 src/pulse/volume.c:443
 msgid "(invalid)"
 msgstr "(Érvénytelen)"
 
-#: ../src/pulse/channelmap.c:775
-msgid "Stereo"
-msgstr "Sztereó"
-
-#: ../src/pulse/channelmap.c:780
+#: src/pulse/channelmap.c:780
 msgid "Surround 4.0"
 msgstr "Térhatású 4.0"
 
-#: ../src/pulse/channelmap.c:786
+#: src/pulse/channelmap.c:786
 msgid "Surround 4.1"
 msgstr "Térhatású 4.1"
 
-#: ../src/pulse/channelmap.c:792
+#: src/pulse/channelmap.c:792
 msgid "Surround 5.0"
 msgstr "Térhatású 5.0"
 
-#: ../src/pulse/channelmap.c:798
+#: src/pulse/channelmap.c:798
 msgid "Surround 5.1"
 msgstr "Térhatású 5.1"
 
-#: ../src/pulse/channelmap.c:805
+#: src/pulse/channelmap.c:805
 msgid "Surround 7.1"
 msgstr "Térhatású 7.1"
 
-#: ../src/pulse/client-conf-x11.c:53 ../src/utils/pax11publish.c:97
+#: src/pulse/client-conf-x11.c:61 src/utils/pax11publish.c:97
 msgid "xcb_connect() failed"
 msgstr "az xcb_connect() függvényhívás meghiúsult"
 
-#: ../src/pulse/client-conf-x11.c:58 ../src/utils/pax11publish.c:102
+#: src/pulse/client-conf-x11.c:66 src/utils/pax11publish.c:102
 msgid "xcb_connection_has_error() returned true"
 msgstr "az xcb_connection_has_error() igaz értéket adott vissza"
 
-#: ../src/pulse/client-conf-x11.c:94
+#: src/pulse/client-conf-x11.c:102
 msgid "Failed to parse cookie data"
 msgstr "Nem sikerült feldolgozni a süti adatait"
 
-#: ../src/pulse/context.c:702
+#: src/pulse/context.c:717
 #, c-format
 msgid "fork(): %s"
 msgstr "Programindítás: %s"
 
-#: ../src/pulse/context.c:757
+#: src/pulse/context.c:772
 #, c-format
 msgid "waitpid(): %s"
 msgstr "waitpid(): %s"
 
-#: ../src/pulse/context.c:1463
+#: src/pulse/context.c:1481
 #, c-format
 msgid "Received message for unknown extension '%s'"
 msgstr "Üzenet érkezett az ismeretlen „%s” kiterjesztéstől"
 
-#: ../src/pulse/direction.c:37
+#: src/pulse/direction.c:37
 msgid "input"
 msgstr "bemenet"
 
-#: ../src/pulse/direction.c:39
+#: src/pulse/direction.c:39
 msgid "output"
 msgstr "kimenet"
 
-#: ../src/pulse/direction.c:41
+#: src/pulse/direction.c:41
 msgid "bidirectional"
 msgstr "kétirányú"
 
-#: ../src/pulse/direction.c:43
+#: src/pulse/direction.c:43
 msgid "invalid"
 msgstr "érvénytelen"
 
-#: ../src/pulsecore/core-util.c:1836
-#, c-format
+#: src/pulsecore/core-util.c:1780
+#, fuzzy, c-format
 msgid ""
 "XDG_RUNTIME_DIR (%s) is not owned by us (uid %d), but by uid %d! (This could "
-"e g happen if you try to connect to a non-root PulseAudio as a root user, "
+"e.g. happen if you try to connect to a non-root PulseAudio as a root user, "
 "over the native protocol. Don't do that.)"
 msgstr ""
 "Az XDG_RUNTIME_DIR (%s) tulajdonosa nem a PulseAudio (uid %d), hanem ez az "
@@ -1473,24 +1557,24 @@ msgstr ""
 "PulseAudio-hoz root felhasználóként próbál csatlakozni a natív protokollon. "
 "Ne tegye.)"
 
-#: ../src/pulsecore/core-util.h:97
+#: src/pulsecore/core-util.h:97
 msgid "yes"
 msgstr "igen"
 
-#: ../src/pulsecore/core-util.h:97
+#: src/pulsecore/core-util.h:97
 msgid "no"
 msgstr "nem"
 
-#: ../src/pulsecore/lock-autospawn.c:141 ../src/pulsecore/lock-autospawn.c:227
+#: src/pulsecore/lock-autospawn.c:141 src/pulsecore/lock-autospawn.c:227
 msgid "Cannot access autospawn lock."
 msgstr "Nem érhető zárolás az automatikus indításhoz."
 
-#: ../src/pulsecore/log.c:165
+#: src/pulsecore/log.c:165
 #, c-format
 msgid "Failed to open target file '%s'."
 msgstr "Nem sikerült megnyitni a cél „%s” fájlt."
 
-#: ../src/pulsecore/log.c:188
+#: src/pulsecore/log.c:188
 #, c-format
 msgid ""
 "Tried to open target file '%s', '%s.1', '%s.2' ... '%s.%d', but all failed."
@@ -1498,335 +1582,335 @@ msgstr ""
 "Kísérlet történt a cél fájlok megnyitására: „%s”, „%s.1”, „%s.2” ... „%s."
 "%d”, de mind meghiúsult."
 
-#: ../src/pulsecore/log.c:651
+#: src/pulsecore/log.c:651
 msgid "Invalid log target."
 msgstr "Érvénytelen naplózási cél."
 
-#: ../src/pulsecore/sink.c:3459
+#: src/pulsecore/sink.c:3534
 msgid "Built-in Audio"
 msgstr "Belső hangforrás"
 
-#: ../src/pulsecore/sink.c:3464
+#: src/pulsecore/sink.c:3539
 msgid "Modem"
 msgstr "Modem"
 
-#: ../src/pulse/error.c:38
+#: src/pulse/error.c:38
 msgid "OK"
 msgstr "OK"
 
-#: ../src/pulse/error.c:39
+#: src/pulse/error.c:39
 msgid "Access denied"
 msgstr "Hozzáférés megtagadva"
 
-#: ../src/pulse/error.c:40
+#: src/pulse/error.c:40
 msgid "Unknown command"
 msgstr "Ismeretlen parancs"
 
-#: ../src/pulse/error.c:41
+#: src/pulse/error.c:41
 msgid "Invalid argument"
 msgstr "Érvénytelen paraméter"
 
-#: ../src/pulse/error.c:42
+#: src/pulse/error.c:42
 msgid "Entity exists"
 msgstr "Az egység létezik"
 
-#: ../src/pulse/error.c:43
+#: src/pulse/error.c:43
 msgid "No such entity"
 msgstr "Nincs ilyen egység"
 
-#: ../src/pulse/error.c:44
+#: src/pulse/error.c:44
 msgid "Connection refused"
 msgstr "Kapcsolat elutasítva"
 
-#: ../src/pulse/error.c:45
+#: src/pulse/error.c:45
 msgid "Protocol error"
 msgstr "Protokollhiba"
 
-#: ../src/pulse/error.c:46
+#: src/pulse/error.c:46
 msgid "Timeout"
 msgstr "Időtúllépés"
 
-#: ../src/pulse/error.c:47
+#: src/pulse/error.c:47
 msgid "No authentication key"
 msgstr "Nem érhető el hitelesítési kulcs"
 
-#: ../src/pulse/error.c:48
+#: src/pulse/error.c:48
 msgid "Internal error"
 msgstr "Belső hiba"
 
-#: ../src/pulse/error.c:49
+#: src/pulse/error.c:49
 msgid "Connection terminated"
 msgstr "A kapcsolat megszakadt"
 
-#: ../src/pulse/error.c:50
+#: src/pulse/error.c:50
 msgid "Entity killed"
 msgstr "Egység kilőve"
 
-#: ../src/pulse/error.c:51
+#: src/pulse/error.c:51
 msgid "Invalid server"
 msgstr "Érvénytelen kiszolgáló"
 
-#: ../src/pulse/error.c:52
+#: src/pulse/error.c:52
 msgid "Module initialization failed"
 msgstr "A modul előkészítése sikertelen"
 
-#: ../src/pulse/error.c:53
+#: src/pulse/error.c:53
 msgid "Bad state"
 msgstr "Hibás állapot"
 
-#: ../src/pulse/error.c:54
+#: src/pulse/error.c:54
 msgid "No data"
 msgstr "Nincs adat"
 
-#: ../src/pulse/error.c:55
+#: src/pulse/error.c:55
 msgid "Incompatible protocol version"
 msgstr "Inkompatibilis protokollverzió"
 
-#: ../src/pulse/error.c:56
+#: src/pulse/error.c:56
 msgid "Too large"
 msgstr "Túl nagy"
 
-#: ../src/pulse/error.c:57
+#: src/pulse/error.c:57
 msgid "Not supported"
 msgstr "Nem támogatott"
 
-#: ../src/pulse/error.c:58
+#: src/pulse/error.c:58
 msgid "Unknown error code"
 msgstr "Ismeretlen hibakód"
 
-#: ../src/pulse/error.c:59
+#: src/pulse/error.c:59
 msgid "No such extension"
 msgstr "Nincs ilyen kiterjesztés"
 
-#: ../src/pulse/error.c:60
+#: src/pulse/error.c:60
 msgid "Obsolete functionality"
 msgstr "Elavult funkcionalitás"
 
-#: ../src/pulse/error.c:61
+#: src/pulse/error.c:61
 msgid "Missing implementation"
 msgstr "Nincs megvalósítva"
 
-#: ../src/pulse/error.c:62
+#: src/pulse/error.c:62
 msgid "Client forked"
 msgstr "Kliens elindítva"
 
-#: ../src/pulse/error.c:63
+#: src/pulse/error.c:63
 msgid "Input/Output error"
 msgstr "Kimeneti/bemeneti hiba"
 
-#: ../src/pulse/error.c:64
+#: src/pulse/error.c:64
 msgid "Device or resource busy"
 msgstr "Az eszköz vagy erőforrás foglalt"
 
-#: ../src/pulse/sample.c:177
+#: src/pulse/sample.c:179
 #, c-format
 msgid "%s %uch %uHz"
 msgstr "%s %uch %uHz"
 
-#: ../src/pulse/sample.c:189
+#: src/pulse/sample.c:191
 #, c-format
 msgid "%0.1f GiB"
 msgstr "%0.1f GiB"
 
-#: ../src/pulse/sample.c:191
+#: src/pulse/sample.c:193
 #, c-format
 msgid "%0.1f MiB"
 msgstr "%0.1f MiB"
 
-#: ../src/pulse/sample.c:193
+#: src/pulse/sample.c:195
 #, c-format
 msgid "%0.1f KiB"
 msgstr "%0.1f KiB"
 
-#: ../src/pulse/sample.c:195
+#: src/pulse/sample.c:197
 #, c-format
 msgid "%u B"
 msgstr "%u B"
 
-#: ../src/utils/pacat.c:117
+#: src/utils/pacat.c:134
 #, c-format
 msgid "Failed to drain stream: %s"
 msgstr "Nem sikerült megcsapolni a következő adatfolyamot: %s"
 
-#: ../src/utils/pacat.c:122
+#: src/utils/pacat.c:139
 msgid "Playback stream drained."
 msgstr "A lejátszási adatfolyam megcsapolva."
 
-#: ../src/utils/pacat.c:133
+#: src/utils/pacat.c:150
 msgid "Draining connection to server."
 msgstr "A kiszolgáló kapcsolatának megcsapolása."
 
-#: ../src/utils/pacat.c:146
+#: src/utils/pacat.c:163
 #, c-format
 msgid "pa_stream_drain(): %s"
 msgstr "pa_stream_drain(): %s"
 
-#: ../src/utils/pacat.c:169
-#, c-format
-msgid "pa_stream_write() failed: %s"
-msgstr "A „pa_stream_write()” függvényhívás meghiúsult: %s"
-
-#: ../src/utils/pacat.c:210
+#: src/utils/pacat.c:194 src/utils/pacat.c:543
 #, c-format
 msgid "pa_stream_begin_write() failed: %s"
 msgstr "A „pa_stream_begin_write()” függvényhívás meghiúsult: %s"
 
-#: ../src/utils/pacat.c:260 ../src/utils/pacat.c:290
+#: src/utils/pacat.c:244 src/utils/pacat.c:274
 #, c-format
 msgid "pa_stream_peek() failed: %s"
 msgstr "A „pa_stream_peek()” függvényhívás meghiúsult: %s"
 
-#: ../src/utils/pacat.c:340
+#: src/utils/pacat.c:324
 msgid "Stream successfully created."
 msgstr "Az adatfolyam sikeresen létrejött."
 
-#: ../src/utils/pacat.c:343
+#: src/utils/pacat.c:327
 #, c-format
 msgid "pa_stream_get_buffer_attr() failed: %s"
 msgstr "A „pa_stream_get_buffer_attr()” függvényhívás meghiúsult: %s"
 
-#: ../src/utils/pacat.c:347
+#: src/utils/pacat.c:331
 #, c-format
 msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
 msgstr ""
 "Pufferméretek: maximális hossz: %u, hossz: %u, előpufferelés: %u, minimum: %u"
 
-#: ../src/utils/pacat.c:350
+#: src/utils/pacat.c:334
 #, c-format
 msgid "Buffer metrics: maxlength=%u, fragsize=%u"
 msgstr "Pufferméretek: maximális hossz: %u, részek mérete: %u"
 
-#: ../src/utils/pacat.c:354
+#: src/utils/pacat.c:338
 #, c-format
 msgid "Using sample spec '%s', channel map '%s'."
 msgstr "„%s” mintavételi leírás és „%s” csatornaleképzés használata."
 
-#: ../src/utils/pacat.c:358
+#: src/utils/pacat.c:342
 #, c-format
 msgid "Connected to device %s (index: %u, suspended: %s)."
 msgstr ""
 "Csatlakozva a következő eszközhöz: „%s” (index: %u, felfüggesztve: %s)."
 
-#: ../src/utils/pacat.c:368
+#: src/utils/pacat.c:352
 #, c-format
 msgid "Stream error: %s"
 msgstr "Adatfolyamhiba: %s"
 
-#: ../src/utils/pacat.c:378
+#: src/utils/pacat.c:362
 #, c-format
 msgid "Stream device suspended.%s"
 msgstr "Adatfolyam-eszköz készenléti állapotban. %s"
 
-#: ../src/utils/pacat.c:380
+#: src/utils/pacat.c:364
 #, c-format
 msgid "Stream device resumed.%s"
 msgstr "Adatfolyam-eszköz visszatért a készenléti állapotból. %s"
 
-#: ../src/utils/pacat.c:388
+#: src/utils/pacat.c:372
 #, c-format
 msgid "Stream underrun.%s"
 msgstr "Adatfolyam-alulcsordulás. %s"
 
-#: ../src/utils/pacat.c:395
+#: src/utils/pacat.c:379
 #, c-format
 msgid "Stream overrun.%s"
 msgstr "Adatfolyam-túlcsordulás. %s"
 
-#: ../src/utils/pacat.c:402
+#: src/utils/pacat.c:386
 #, c-format
 msgid "Stream started.%s"
 msgstr "Adatfolyam elindítva. %s"
 
-#: ../src/utils/pacat.c:409
+#: src/utils/pacat.c:393
 #, c-format
 msgid "Stream moved to device %s (%u, %ssuspended).%s"
 msgstr ""
 "Az adatfolyam áthelyezve a következő eszközre: „%s” (%u, %s felfüggesztve). "
 "%s"
 
-#: ../src/utils/pacat.c:409
+#: src/utils/pacat.c:393
 msgid "not "
 msgstr "nem "
 
-#: ../src/utils/pacat.c:416
+#: src/utils/pacat.c:400
 #, c-format
 msgid "Stream buffer attributes changed.%s"
 msgstr "Az adatfolyampuffer attribútumai megváltoztak. %s"
 
-#: ../src/utils/pacat.c:431
+#: src/utils/pacat.c:415
 msgid "Cork request stack is empty: corking stream"
 msgstr "A dugókérés verem üres: adatfolyam eldugaszolása"
 
-#: ../src/utils/pacat.c:437
+#: src/utils/pacat.c:421
 msgid "Cork request stack is empty: uncorking stream"
 msgstr "A dugókérés verem üres: adatfolyam eldugaszolásának megszüntetése"
 
-#: ../src/utils/pacat.c:441
+#: src/utils/pacat.c:425
 msgid "Warning: Received more uncork requests than cork requests."
 msgstr ""
 "Figyelmeztetés: több eldugaszolás-megszüntetési kérés érkezett, mint "
 "eldugaszolási."
 
-#: ../src/utils/pacat.c:466
+#: src/utils/pacat.c:450
 #, c-format
 msgid "Connection established.%s"
 msgstr "Kapcsolat létrehozva. %s"
 
-#: ../src/utils/pacat.c:469
+#: src/utils/pacat.c:453
 #, c-format
 msgid "pa_stream_new() failed: %s"
 msgstr "A „pa_stream_new()” függvényhívás meghiúsult: %s"
 
-#: ../src/utils/pacat.c:507
+#: src/utils/pacat.c:491
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s"
 msgstr "A „pa_stream_connect_playback()” függvényhívás meghiúsult: %s"
 
-#: ../src/utils/pacat.c:513
+#: src/utils/pacat.c:497
 #, c-format
 msgid "Failed to set monitor stream: %s"
 msgstr "Nem sikerült beállítani az adatfolyam megfigyelését: %s"
 
-#: ../src/utils/pacat.c:517
+#: src/utils/pacat.c:501
 #, c-format
 msgid "pa_stream_connect_record() failed: %s"
 msgstr "A „pa_stream_connect_record()” függvényhívás meghiúsult: %s"
 
-#: ../src/utils/pacat.c:530 ../src/utils/pactl.c:1446
+#: src/utils/pacat.c:514 src/utils/pactl.c:1572
 #, c-format
 msgid "Connection failure: %s"
 msgstr "Kapcsolódási hiba: %s"
 
-#: ../src/utils/pacat.c:563
+#: src/utils/pacat.c:557
 msgid "Got EOF."
 msgstr "A fájl vége elérve."
 
-#: ../src/utils/pacat.c:600
+#: src/utils/pacat.c:581
+#, c-format
+msgid "pa_stream_write() failed: %s"
+msgstr "A „pa_stream_write()” függvényhívás meghiúsult: %s"
+
+#: src/utils/pacat.c:605
 #, c-format
 msgid "write() failed: %s"
 msgstr "A „write()” függvényhívás sikertelen: %s"
 
-#: ../src/utils/pacat.c:621
+#: src/utils/pacat.c:626
 msgid "Got signal, exiting."
 msgstr "Kilépés, szignál hatására."
 
-#: ../src/utils/pacat.c:635
+#: src/utils/pacat.c:640
 #, c-format
 msgid "Failed to get latency: %s"
 msgstr "Nem sikerült lekérdezni a késleltetést: %s"
 
-#: ../src/utils/pacat.c:640
+#: src/utils/pacat.c:645
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec."
 msgstr "Idő: %0.3f másodperc, késleltetés: %0.0f ezredmásodperc."
 
-#: ../src/utils/pacat.c:661
+#: src/utils/pacat.c:666
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "A „pa_stream_update_timing_info()” függvényhívás meghiúsult: %s"
 
-#: ../src/utils/pacat.c:671
-#, c-format
+#: src/utils/pacat.c:676
+#, fuzzy, c-format
 msgid ""
 "%s [options]\n"
 "%s\n"
@@ -1851,11 +1935,10 @@ msgid ""
 "in range 0...65536\n"
 "      --rate=SAMPLERATE                 The sample rate in Hz (defaults to "
 "44100)\n"
-"      --format=SAMPLEFORMAT             The sample type, one of s16le, "
-"s16be, u8, float32le,\n"
-"                                        float32be, ulaw, alaw, s32le, s32be, "
-"s24le, s24be,\n"
-"                                        s24-32le, s24-32be (defaults to "
+"      --format=SAMPLEFORMAT             The sample format, see\n"
+"                                        https://www.freedesktop.org/wiki/"
+"Software/PulseAudio/Documentation/User/SupportedAudioFormats/\n"
+"                                        for possible values (defaults to "
 "s16ne)\n"
 "      --channels=CHANNELS               The number of channels, 1 for mono, "
 "2 for stereo\n"
@@ -1958,17 +2041,17 @@ msgstr ""
 "      --monitor-stream=INDEX            Felvétel az INDEX indexű "
 "nyelőbemenetről.\n"
 
-#: ../src/utils/pacat.c:788
+#: src/utils/pacat.c:793
 msgid "Play back encoded audio files on a PulseAudio sound server."
 msgstr "Kódolt hangfájlok lejátszása egy PulseAudio hangkiszolgálón."
 
-#: ../src/utils/pacat.c:792
+#: src/utils/pacat.c:797
 msgid ""
 "Capture audio data from a PulseAudio sound server and write it to a file."
 msgstr ""
 "Hangadatok rögzítése egy PulseAudio hangkiszolgálóról, és fájlba írásuk."
 
-#: ../src/utils/pacat.c:796
+#: src/utils/pacat.c:801
 msgid ""
 "Capture audio data from a PulseAudio sound server and write it to STDOUT or "
 "the specified file."
@@ -1976,7 +2059,7 @@ msgstr ""
 "Hangadatok rögzítése egy PulseAudio hangkiszolgálóról, és szabványos "
 "kimenetre, vagy a megadott fájlba írásuk."
 
-#: ../src/utils/pacat.c:800
+#: src/utils/pacat.c:805
 msgid ""
 "Play back audio data from STDIN or the specified file on a PulseAudio sound "
 "server."
@@ -1984,7 +2067,7 @@ msgstr ""
 "Hangadatok lejátszása a szabványos bemenetről, vagy a megadott fájlból egy "
 "PulseAudio hangkiszolgálón."
 
-#: ../src/utils/pacat.c:814
+#: src/utils/pacat.c:819
 #, c-format
 msgid ""
 "pacat %s\n"
@@ -1995,72 +2078,72 @@ msgstr ""
 "Lefordítva a libpulse %s programkönyvtárral\n"
 "Összeszerkesztve a libpulse %s programkönyvtárhoz\n"
 
-#: ../src/utils/pacat.c:847 ../src/utils/pactl.c:1648
+#: src/utils/pacat.c:852 src/utils/pactl.c:1775
 #, c-format
 msgid "Invalid client name '%s'"
 msgstr "Érvénytelen kliensnév: „%s”"
 
-#: ../src/utils/pacat.c:862
+#: src/utils/pacat.c:867
 #, c-format
 msgid "Invalid stream name '%s'"
 msgstr "Érvénytelen adatfolyamnév: „%s”"
 
-#: ../src/utils/pacat.c:899
+#: src/utils/pacat.c:904
 #, c-format
 msgid "Invalid channel map '%s'"
 msgstr "Érvénytelen csatornaleképzés: „%s”"
 
-#: ../src/utils/pacat.c:928 ../src/utils/pacat.c:942
+#: src/utils/pacat.c:933 src/utils/pacat.c:947
 #, c-format
 msgid "Invalid latency specification '%s'"
 msgstr "Érvénytelen késleltetésmeghatározás: „%s”"
 
-#: ../src/utils/pacat.c:935 ../src/utils/pacat.c:949
+#: src/utils/pacat.c:940 src/utils/pacat.c:954
 #, c-format
 msgid "Invalid process time specification '%s'"
 msgstr "Érvénytelen feldolgozásiidő-meghatározás: „%s”"
 
-#: ../src/utils/pacat.c:961
+#: src/utils/pacat.c:966
 #, c-format
 msgid "Invalid property '%s'"
 msgstr "Érvénytelen tulajdonság: „%s”"
 
-#: ../src/utils/pacat.c:980
+#: src/utils/pacat.c:985
 #, c-format
 msgid "Unknown file format %s."
 msgstr "Ismeretlen fájlformátum: „%s”."
 
-#: ../src/utils/pacat.c:995
+#: src/utils/pacat.c:1000
 msgid "Failed to parse the argument for --monitor-stream"
 msgstr "A --monitor-stream argumentumának feldolgozása sikertelen"
 
-#: ../src/utils/pacat.c:1006
+#: src/utils/pacat.c:1011
 msgid "Invalid sample specification"
 msgstr "Érvénytelen mintameghatározás"
 
-#: ../src/utils/pacat.c:1016
+#: src/utils/pacat.c:1021
 #, c-format
 msgid "open(): %s"
 msgstr "open(): %s"
 
-#: ../src/utils/pacat.c:1021
+#: src/utils/pacat.c:1026
 #, c-format
 msgid "dup2(): %s"
 msgstr "dup2(): %s"
 
-#: ../src/utils/pacat.c:1028
+#: src/utils/pacat.c:1033
 msgid "Too many arguments."
 msgstr "Túl sok argumentum."
 
-#: ../src/utils/pacat.c:1039
+#: src/utils/pacat.c:1044
 msgid "Failed to generate sample specification for file."
 msgstr "Nem sikerült létrehozni a mintavételi meghatározást a fájlhoz."
 
-#: ../src/utils/pacat.c:1065
+#: src/utils/pacat.c:1070
 msgid "Failed to open audio file."
 msgstr "Nem sikerült megnyitni a hangfájlt."
 
-#: ../src/utils/pacat.c:1071
+#: src/utils/pacat.c:1076
 msgid ""
 "Warning: specified sample specification will be overwritten with "
 "specification from file."
@@ -2068,24 +2151,24 @@ msgstr ""
 "Figyelmeztetés: a megadott mintavételi meghatározás felül lesz írva a "
 "fájlból származó meghatározással."
 
-#: ../src/utils/pacat.c:1074 ../src/utils/pactl.c:1712
+#: src/utils/pacat.c:1079 src/utils/pactl.c:1840
 msgid "Failed to determine sample specification from file."
 msgstr "Nem sikerült meghatározni a mintavételi meghatározást a fájlból."
 
-#: ../src/utils/pacat.c:1083
+#: src/utils/pacat.c:1088
 msgid "Warning: Failed to determine channel map from file."
 msgstr ""
 "Figyelmeztetés: Nem sikerült meghatározni a csatornaleképzést a fájlból."
 
-#: ../src/utils/pacat.c:1094
+#: src/utils/pacat.c:1099
 msgid "Channel map doesn't match sample specification"
 msgstr "A csatornaleképzés nem feleltethető meg a mintavételi meghatározásnak"
 
-#: ../src/utils/pacat.c:1105
+#: src/utils/pacat.c:1110
 msgid "Warning: failed to write channel map to file."
 msgstr "Hiba történt a csatornaleképzés fájlba írása közben."
 
-#: ../src/utils/pacat.c:1120
+#: src/utils/pacat.c:1125
 #, c-format
 msgid ""
 "Opening a %s stream with sample specification '%s' and channel map '%s'."
@@ -2093,133 +2176,137 @@ msgstr ""
 "A(z) „%s” adatfolyam megnyitása a következő mintavételi meghatározás: „%s” "
 "és csatornaleképzés: „%s” használatával."
 
-#: ../src/utils/pacat.c:1121
+#: src/utils/pacat.c:1126
 msgid "recording"
 msgstr "felvétel"
 
-#: ../src/utils/pacat.c:1121
+#: src/utils/pacat.c:1126
 msgid "playback"
 msgstr "lejátszás"
 
-#: ../src/utils/pacat.c:1145
+#: src/utils/pacat.c:1150
 msgid "Failed to set media name."
 msgstr "Nem sikerült beállítani a médianevet."
 
-#: ../src/utils/pacat.c:1152 ../src/utils/pactl.c:2062
+#: src/utils/pacat.c:1160 src/utils/pactl.c:2206
 msgid "pa_mainloop_new() failed."
 msgstr "A „pa_mainloop_new()” függvényhívás meghiúsult."
 
-#: ../src/utils/pacat.c:1175
+#: src/utils/pacat.c:1183
 msgid "io_new() failed."
 msgstr "Az „io_new()” függvényhívás meghiúsult."
 
-#: ../src/utils/pacat.c:1182 ../src/utils/pactl.c:2074
+#: src/utils/pacat.c:1190 src/utils/pactl.c:2218
 msgid "pa_context_new() failed."
 msgstr "A „pa_context_new()” függvényhívás meghiúsult."
 
-#: ../src/utils/pacat.c:1190 ../src/utils/pactl.c:2080
+#: src/utils/pacat.c:1198 src/utils/pactl.c:2224
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "A „pa_context_connect()” függvényhívás meghiúsult: %s"
 
-#: ../src/utils/pacat.c:1196
+#: src/utils/pacat.c:1204
 msgid "pa_context_rttime_new() failed."
 msgstr "A „pa_context_rttime_new()” függvényhívás meghiúsult."
 
-#: ../src/utils/pacat.c:1203 ../src/utils/pactl.c:2085
+#: src/utils/pacat.c:1211 src/utils/pactl.c:2229
 msgid "pa_mainloop_run() failed."
 msgstr "A „pa_mainloop_run()” függvényhívás meghiúsult."
 
-#: ../src/utils/pacmd.c:51 ../src/utils/pactl.c:1570
+#: src/utils/pacmd.c:51 src/utils/pactl.c:1696
 msgid "NAME [ARGS ...]"
 msgstr "NÉV [ARGUMENTUMOK …]"
 
-#: ../src/utils/pacmd.c:52 ../src/utils/pacmd.c:60 ../src/utils/pactl.c:1571
+#: src/utils/pacmd.c:52 src/utils/pacmd.c:60 src/utils/pactl.c:1697
 msgid "NAME|#N"
 msgstr "NÉV|#N"
 
-#: ../src/utils/pacmd.c:53 ../src/utils/pacmd.c:63 ../src/utils/pactl.c:1569
-#: ../src/utils/pactl.c:1575
+#: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:1695
+#: src/utils/pactl.c:1701
 msgid "NAME"
 msgstr "NÉV"
 
-#: ../src/utils/pacmd.c:54
+#: src/utils/pacmd.c:54
 msgid "NAME|#N VOLUME"
 msgstr "NÉV|#N HANGERŐ"
 
-#: ../src/utils/pacmd.c:55
+#: src/utils/pacmd.c:55
 msgid "#N VOLUME"
 msgstr "#N HANGERŐ"
 
-#: ../src/utils/pacmd.c:56 ../src/utils/pacmd.c:70 ../src/utils/pactl.c:1573
+#: src/utils/pacmd.c:56 src/utils/pacmd.c:70 src/utils/pactl.c:1699
 msgid "NAME|#N 1|0"
 msgstr "NÉV|#N 1|0"
 
-#: ../src/utils/pacmd.c:57
+#: src/utils/pacmd.c:57
 msgid "#N 1|0"
 msgstr "#N 1|0"
 
-#: ../src/utils/pacmd.c:58
+#: src/utils/pacmd.c:58
 msgid "NAME|#N KEY=VALUE"
 msgstr "NÉV|#N KULCS=ÉRTÉK"
 
-#: ../src/utils/pacmd.c:59
+#: src/utils/pacmd.c:59
 msgid "#N KEY=VALUE"
 msgstr "#N KULCS=ÉRTÉK"
 
-#: ../src/utils/pacmd.c:61
+#: src/utils/pacmd.c:61
 msgid "#N"
 msgstr "#N"
 
-#: ../src/utils/pacmd.c:62
+#: src/utils/pacmd.c:62
 msgid "NAME SINK|#N"
 msgstr "NÉV NYELŐ|#N"
 
-#: ../src/utils/pacmd.c:64 ../src/utils/pacmd.c:65
+#: src/utils/pacmd.c:64 src/utils/pacmd.c:65
 msgid "NAME FILENAME"
 msgstr "NÉV FÁJLNÉV"
 
-#: ../src/utils/pacmd.c:66
+#: src/utils/pacmd.c:66
 msgid "PATHNAME"
 msgstr "ÚTVONALNÉV"
 
-#: ../src/utils/pacmd.c:67
+#: src/utils/pacmd.c:67
 msgid "FILENAME SINK|#N"
 msgstr "FÁJLNÉV NYELŐ|#N"
 
-#: ../src/utils/pacmd.c:69 ../src/utils/pactl.c:1572
+#: src/utils/pacmd.c:69 src/utils/pactl.c:1698
 msgid "#N SINK|SOURCE"
 msgstr "#N NYELŐ|FORRÁS"
 
-#: ../src/utils/pacmd.c:71 ../src/utils/pacmd.c:77 ../src/utils/pacmd.c:78
+#: src/utils/pacmd.c:71 src/utils/pacmd.c:77 src/utils/pacmd.c:78
 msgid "1|0"
 msgstr "1|0"
 
-#: ../src/utils/pacmd.c:72 ../src/utils/pactl.c:1574
+#: src/utils/pacmd.c:72 src/utils/pactl.c:1700
 msgid "CARD PROFILE"
 msgstr "KÁRTYAPROFIL"
 
-#: ../src/utils/pacmd.c:73 ../src/utils/pactl.c:1576
+#: src/utils/pacmd.c:73 src/utils/pactl.c:1702
 msgid "NAME|#N PORT"
 msgstr "NÉV|#N PORT"
 
-#: ../src/utils/pacmd.c:74 ../src/utils/pactl.c:1582
+#: src/utils/pacmd.c:74 src/utils/pactl.c:1708
 msgid "CARD-NAME|CARD-#N PORT OFFSET"
 msgstr "KÁRTYANÉV|KÁRTYA-#N PORTELTOLÁS"
 
-#: ../src/utils/pacmd.c:75
+#: src/utils/pacmd.c:75
 msgid "TARGET"
 msgstr "CÉL"
 
-#: ../src/utils/pacmd.c:76
+#: src/utils/pacmd.c:76
 msgid "NUMERIC-LEVEL"
 msgstr "SZÁMOZOTT-SZINT"
 
-#: ../src/utils/pacmd.c:79
+#: src/utils/pacmd.c:79
 msgid "FRAMES"
 msgstr "KERETEK"
 
-#: ../src/utils/pacmd.c:81
+#: src/utils/pacmd.c:80 src/utils/pactl.c:1709
+msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
+msgstr ""
+
+#: src/utils/pacmd.c:82
 #, c-format
 msgid ""
 "\n"
@@ -2232,7 +2319,7 @@ msgstr ""
 "      --version                         Verziószám megjelenítése\n"
 "Ha nincs megadva parancs, a pacmd interaktív módban indul.\n"
 
-#: ../src/utils/pacmd.c:128
+#: src/utils/pacmd.c:129
 #, c-format
 msgid ""
 "pacmd %s\n"
@@ -2243,70 +2330,76 @@ msgstr ""
 "Lefordítva a libpulse %s programkönyvtárral\n"
 "Összeszerkesztve a libpulse %s programkönyvtárhoz\n"
 
-#: ../src/utils/pacmd.c:142
+#: src/utils/pacmd.c:143
 msgid "No PulseAudio daemon running, or not running as session daemon."
 msgstr "Nem fut a PulseAudio démon, vagy nem munkamenet-démonként fut."
 
-#: ../src/utils/pacmd.c:147
+#: src/utils/pacmd.c:148
 #, c-format
 msgid "socket(PF_UNIX, SOCK_STREAM, 0): %s"
 msgstr "socket(PF_UNIX, SOCK_STREAM, 0): %s"
 
-#: ../src/utils/pacmd.c:164
+#: src/utils/pacmd.c:165
 #, c-format
 msgid "connect(): %s"
 msgstr "connect(): %s"
 
-#: ../src/utils/pacmd.c:172
+#: src/utils/pacmd.c:173
 msgid "Failed to kill PulseAudio daemon."
 msgstr "A PulseAudio démon kilövése nem sikerült."
 
-#: ../src/utils/pacmd.c:180
+#: src/utils/pacmd.c:181
 msgid "Daemon not responding."
 msgstr "A démon nem válaszol."
 
-#: ../src/utils/pacmd.c:212 ../src/utils/pacmd.c:321 ../src/utils/pacmd.c:339
+#: src/utils/pacmd.c:213 src/utils/pacmd.c:322 src/utils/pacmd.c:340
 #, c-format
 msgid "write(): %s"
 msgstr "write(): %s"
 
-#: ../src/utils/pacmd.c:268
+#: src/utils/pacmd.c:269
 #, c-format
 msgid "poll(): %s"
 msgstr "poll(): %s"
 
-#: ../src/utils/pacmd.c:279 ../src/utils/pacmd.c:299
+#: src/utils/pacmd.c:280 src/utils/pacmd.c:300
 #, c-format
 msgid "read(): %s"
 msgstr "read(): %s"
 
-#: ../src/utils/pactl.c:164
+#: src/utils/pactl.c:169
 #, c-format
 msgid "Failed to get statistics: %s"
 msgstr "Nem sikerült a statisztika lekérdezése: %s"
 
-#: ../src/utils/pactl.c:170
-#, c-format
-msgid "Currently in use: %u blocks containing %s bytes total.\n"
-msgstr "Jelenleg használt: %u blokk, összesen %s bájt tartalommal.\n"
+#: src/utils/pactl.c:175
+#, fuzzy, c-format
+msgid "Currently in use: %u block containing %s bytes total.\n"
+msgid_plural "Currently in use: %u blocks containing %s bytes total.\n"
+msgstr[0] "Jelenleg használt: %u blokk, összesen %s bájt tartalommal.\n"
+msgstr[1] "Jelenleg használt: %u blokk, összesen %s bájt tartalommal.\n"
 
-#: ../src/utils/pactl.c:173
-#, c-format
-msgid "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
-msgstr ""
+#: src/utils/pactl.c:181
+#, fuzzy, c-format
+msgid "Allocated during whole lifetime: %u block containing %s bytes total.\n"
+msgid_plural ""
+"Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
+msgstr[0] ""
+"A futás során összesen lefoglalva: %u blokk, összesen %s bájt tartalommal.\n"
+msgstr[1] ""
 "A futás során összesen lefoglalva: %u blokk, összesen %s bájt tartalommal.\n"
 
-#: ../src/utils/pactl.c:176
+#: src/utils/pactl.c:187
 #, c-format
 msgid "Sample cache size: %s\n"
 msgstr "Mintagyorsítótár mérete: %s\n"
 
-#: ../src/utils/pactl.c:185
+#: src/utils/pactl.c:196
 #, c-format
 msgid "Failed to get server information: %s"
 msgstr "Nem sikerült lekérni a kiszolgáló adatait: %s"
 
-#: ../src/utils/pactl.c:190
+#: src/utils/pactl.c:201
 #, c-format
 msgid ""
 "Server String: %s\n"
@@ -2323,7 +2416,7 @@ msgstr ""
 "Kliensindex: %u\n"
 "Csempeméret: %zu\n"
 
-#: ../src/utils/pactl.c:206
+#: src/utils/pactl.c:217
 #, c-format
 msgid ""
 "User Name: %s\n"
@@ -2346,12 +2439,81 @@ msgstr ""
 "Alapértelmezett forrás: %s\n"
 "Süti: %04x:%04x\n"
 
-#: ../src/utils/pactl.c:255 ../src/utils/pactl.c:900 ../src/utils/pactl.c:978
+#: src/utils/pactl.c:242
+msgid "availability unknown"
+msgstr ""
+
+#: src/utils/pactl.c:243
+msgid "available"
+msgstr ""
+
+#: src/utils/pactl.c:244
+msgid "not available"
+msgstr ""
+
+#: src/utils/pactl.c:253 src/utils/pactl.c:277
+#, fuzzy
+msgid "Unknown"
+msgstr "ismeretlen"
+
+#: src/utils/pactl.c:254
+msgid "Aux"
+msgstr ""
+
+#: src/utils/pactl.c:257
+#, fuzzy
+msgid "Line"
+msgstr "Vonalbemenet"
+
+#: src/utils/pactl.c:258
+msgid "Mic"
+msgstr ""
+
+#: src/utils/pactl.c:260
+#, fuzzy
+msgid "Handset"
+msgstr "Fejhallgató"
+
+#: src/utils/pactl.c:261
+msgid "Earpiece"
+msgstr ""
+
+#: src/utils/pactl.c:262
+msgid "SPDIF"
+msgstr ""
+
+#: src/utils/pactl.c:263
+msgid "HDMI"
+msgstr ""
+
+#: src/utils/pactl.c:264
+msgid "TV"
+msgstr ""
+
+#: src/utils/pactl.c:267
+msgid "USB"
+msgstr ""
+
+#: src/utils/pactl.c:268
+#, fuzzy
+msgid "Bluetooth"
+msgstr "Bluetooth bemenet"
+
+#: src/utils/pactl.c:274
+msgid "Network"
+msgstr ""
+
+#: src/utils/pactl.c:275
+#, fuzzy
+msgid "Analog"
+msgstr "Analóg mono"
+
+#: src/utils/pactl.c:299 src/utils/pactl.c:1020 src/utils/pactl.c:1098
 #, c-format
 msgid "Failed to get sink information: %s"
 msgstr "Nem sikerült lekérni a nyelő adatait: %s"
 
-#: ../src/utils/pactl.c:281
+#: src/utils/pactl.c:325
 #, c-format
 msgid ""
 "Sink #%u\n"
@@ -2390,27 +2552,36 @@ msgstr ""
 "\tTulajdonságok:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:325 ../src/utils/pactl.c:431 ../src/utils/pactl.c:592
+#: src/utils/pactl.c:369 src/utils/pactl.c:477 src/utils/pactl.c:640
 #, c-format
 msgid "\tPorts:\n"
 msgstr "\tPortok:\n"
 
-#: ../src/utils/pactl.c:332 ../src/utils/pactl.c:438
+#: src/utils/pactl.c:371 src/utils/pactl.c:479
+#, fuzzy, c-format
+msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
+msgstr "\t\t%s: %s (nyelők: %u, források: %u, prioritás: %u, elérhető: %s)\n"
+
+#: src/utils/pactl.c:373 src/utils/pactl.c:481 src/utils/pactl.c:645
+msgid ", availability group: "
+msgstr ""
+
+#: src/utils/pactl.c:378 src/utils/pactl.c:486
 #, c-format
 msgid "\tActive Port: %s\n"
 msgstr "\tAktív port: %s\n"
 
-#: ../src/utils/pactl.c:338 ../src/utils/pactl.c:444
+#: src/utils/pactl.c:384 src/utils/pactl.c:492
 #, c-format
 msgid "\tFormats:\n"
 msgstr "\tFormátumok:\n"
 
-#: ../src/utils/pactl.c:362 ../src/utils/pactl.c:920 ../src/utils/pactl.c:993
+#: src/utils/pactl.c:408 src/utils/pactl.c:1040 src/utils/pactl.c:1113
 #, c-format
 msgid "Failed to get source information: %s"
 msgstr "Nem sikerült lekérni a forrás adatait: %s"
 
-#: ../src/utils/pactl.c:388
+#: src/utils/pactl.c:434
 #, c-format
 msgid ""
 "Source #%u\n"
@@ -2449,20 +2620,20 @@ msgstr ""
 "\tTulajdonságok:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:416 ../src/utils/pactl.c:486 ../src/utils/pactl.c:529
-#: ../src/utils/pactl.c:571 ../src/utils/pactl.c:669 ../src/utils/pactl.c:670
-#: ../src/utils/pactl.c:681 ../src/utils/pactl.c:739 ../src/utils/pactl.c:740
-#: ../src/utils/pactl.c:751 ../src/utils/pactl.c:802 ../src/utils/pactl.c:803
-#: ../src/utils/pactl.c:809
+#: src/utils/pactl.c:462 src/utils/pactl.c:534 src/utils/pactl.c:577
+#: src/utils/pactl.c:619 src/utils/pactl.c:718 src/utils/pactl.c:719
+#: src/utils/pactl.c:730 src/utils/pactl.c:788 src/utils/pactl.c:789
+#: src/utils/pactl.c:800 src/utils/pactl.c:851 src/utils/pactl.c:852
+#: src/utils/pactl.c:858
 msgid "n/a"
 msgstr "---"
 
-#: ../src/utils/pactl.c:455 ../src/utils/pactl.c:859
+#: src/utils/pactl.c:503 src/utils/pactl.c:977
 #, c-format
 msgid "Failed to get module information: %s"
 msgstr "Nem sikerült lekérni a modul adatait: %s"
 
-#: ../src/utils/pactl.c:478
+#: src/utils/pactl.c:526
 #, c-format
 msgid ""
 "Module #%u\n"
@@ -2479,12 +2650,12 @@ msgstr ""
 "\tTulajdonságok:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:497
+#: src/utils/pactl.c:545
 #, c-format
 msgid "Failed to get client information: %s"
 msgstr "Nem sikerült lekérni a kliens adatait: %s"
 
-#: ../src/utils/pactl.c:523
+#: src/utils/pactl.c:571
 #, c-format
 msgid ""
 "Client #%u\n"
@@ -2499,12 +2670,12 @@ msgstr ""
 "\tTulajdonságok:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:540
+#: src/utils/pactl.c:588
 #, c-format
 msgid "Failed to get card information: %s"
 msgstr "Nem sikerült lekérni a kártya adatait: %s"
 
-#: ../src/utils/pactl.c:563
+#: src/utils/pactl.c:611
 #, c-format
 msgid ""
 "Card #%u\n"
@@ -2521,22 +2692,28 @@ msgstr ""
 "\tTulajdonságok:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:579
+#: src/utils/pactl.c:627
 #, c-format
 msgid "\tProfiles:\n"
 msgstr "\tProfilok:\n"
 
-#: ../src/utils/pactl.c:581
+#: src/utils/pactl.c:629
 #, c-format
 msgid "\t\t%s: %s (sinks: %u, sources: %u, priority: %u, available: %s)\n"
 msgstr "\t\t%s: %s (nyelők: %u, források: %u, prioritás: %u, elérhető: %s)\n"
 
-#: ../src/utils/pactl.c:586
+#: src/utils/pactl.c:634
 #, c-format
 msgid "\tActive Profile: %s\n"
 msgstr "\tAktív profil: %s\n"
 
-#: ../src/utils/pactl.c:600
+#: src/utils/pactl.c:643
+#, c-format
+msgid ""
+"\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s, %s)\n"
+msgstr ""
+
+#: src/utils/pactl.c:649
 #, c-format
 msgid ""
 "\t\t\tProperties:\n"
@@ -2545,17 +2722,17 @@ msgstr ""
 "\t\t\tTulajdonságok:\n"
 "\t\t\t\t%s\n"
 
-#: ../src/utils/pactl.c:605
+#: src/utils/pactl.c:654
 #, c-format
 msgid "\t\t\tPart of profile(s): %s"
 msgstr "\t\t\tProfilok része: %s"
 
-#: ../src/utils/pactl.c:622 ../src/utils/pactl.c:940 ../src/utils/pactl.c:1008
+#: src/utils/pactl.c:671 src/utils/pactl.c:1060 src/utils/pactl.c:1128
 #, c-format
 msgid "Failed to get sink input information: %s"
 msgstr "Nem sikerült lekérni a nyelő bemeneti adatait: %s"
 
-#: ../src/utils/pactl.c:651
+#: src/utils/pactl.c:700
 #, c-format
 msgid ""
 "Sink Input #%u\n"
@@ -2594,12 +2771,12 @@ msgstr ""
 "\tTulajdonságok:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:692 ../src/utils/pactl.c:960 ../src/utils/pactl.c:1023
+#: src/utils/pactl.c:741 src/utils/pactl.c:1080 src/utils/pactl.c:1143
 #, c-format
 msgid "Failed to get source output information: %s"
 msgstr "Nem sikerült lekérni a forrás kimeneti adatait: %s"
 
-#: ../src/utils/pactl.c:721
+#: src/utils/pactl.c:770
 #, c-format
 msgid ""
 "Source Output #%u\n"
@@ -2638,12 +2815,12 @@ msgstr ""
 "\tTulajdonságok:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:762
+#: src/utils/pactl.c:811
 #, c-format
 msgid "Failed to get sample information: %s"
 msgstr "Nem sikerült lekérni a mintavétel adatait: %s"
 
-#: ../src/utils/pactl.c:789
+#: src/utils/pactl.c:838
 #, c-format
 msgid ""
 "Sample #%u\n"
@@ -2672,163 +2849,175 @@ msgstr ""
 "\tTulajdonságok:\n"
 "\t\t%s\n"
 
-#: ../src/utils/pactl.c:817 ../src/utils/pactl.c:827
+#: src/utils/pactl.c:866 src/utils/pactl.c:876
 #, c-format
 msgid "Failure: %s"
 msgstr "Hiba: %s"
 
-#: ../src/utils/pactl.c:866
+#: src/utils/pactl.c:889
+#, fuzzy, c-format
+msgid "Send message failed: %s"
+msgstr "a read() hívás meghiúsult: %s"
+
+#: src/utils/pactl.c:906
+#, c-format
+msgid "list-handlers message failed: %s"
+msgstr ""
+
+#: src/utils/pactl.c:912 src/utils/pactl.c:947
+msgid "list-handlers message response could not be parsed correctly"
+msgstr ""
+
+#: src/utils/pactl.c:984
 #, c-format
 msgid "Failed to unload module: Module %s not loaded"
 msgstr "Nem sikerült eltávolítani a modult: nincs betöltve %s nevű modul"
 
-#: ../src/utils/pactl.c:884
-#, c-format
+#: src/utils/pactl.c:1002
+#, fuzzy, c-format
 msgid ""
+"Failed to set volume: You tried to set volumes for %d channel, whereas "
+"channel(s) supported = %d\n"
+msgid_plural ""
 "Failed to set volume: You tried to set volumes for %d channels, whereas "
-"channel/s supported = %d\n"
-msgstr ""
+"channel(s) supported = %d\n"
+msgstr[0] ""
+"Nem sikerült a hangerő beállítása: kísérlet %d csatorna hangerejének "
+"beállítására, miközben a támogatott csatornák száma %d\n"
+msgstr[1] ""
 "Nem sikerült a hangerő beállítása: kísérlet %d csatorna hangerejének "
 "beállítására, miközben a támogatott csatornák száma %d\n"
 
-#: ../src/utils/pactl.c:1050
-#, c-format
-msgid "Failed to set format: invalid format string %s"
-msgstr "Nem sikerült beállítani a formátumot: érvénytelen formátumleírás: %s"
-
-#: ../src/utils/pactl.c:1093
+#: src/utils/pactl.c:1213
 #, c-format
 msgid "Failed to upload sample: %s"
 msgstr "Nem sikerült feltölteni a mintát: %s"
 
-#: ../src/utils/pactl.c:1110
+#: src/utils/pactl.c:1230
 msgid "Premature end of file"
 msgstr "Túl korai fájlvég"
 
-#: ../src/utils/pactl.c:1130
+#: src/utils/pactl.c:1250
 msgid "new"
 msgstr "új"
 
-#: ../src/utils/pactl.c:1133
+#: src/utils/pactl.c:1253
 msgid "change"
 msgstr "módosítás"
 
-#: ../src/utils/pactl.c:1136
+#: src/utils/pactl.c:1256
 msgid "remove"
 msgstr "eltávolítás"
 
-#: ../src/utils/pactl.c:1139 ../src/utils/pactl.c:1174
+#: src/utils/pactl.c:1259 src/utils/pactl.c:1294
 msgid "unknown"
 msgstr "ismeretlen"
 
-#: ../src/utils/pactl.c:1147
+#: src/utils/pactl.c:1267
 msgid "sink"
 msgstr "nyelő"
 
-#: ../src/utils/pactl.c:1150
+#: src/utils/pactl.c:1270
 msgid "source"
 msgstr "forrás"
 
-#: ../src/utils/pactl.c:1153
+#: src/utils/pactl.c:1273
 msgid "sink-input"
 msgstr "nyelő-bemenet"
 
-#: ../src/utils/pactl.c:1156
+#: src/utils/pactl.c:1276
 msgid "source-output"
 msgstr "forrás-kimenet"
 
-#: ../src/utils/pactl.c:1159
+#: src/utils/pactl.c:1279
 msgid "module"
 msgstr "modul"
 
-#: ../src/utils/pactl.c:1162
+#: src/utils/pactl.c:1282
 msgid "client"
 msgstr "kliens"
 
-#: ../src/utils/pactl.c:1165
+#: src/utils/pactl.c:1285
 msgid "sample-cache"
 msgstr "mintagyorsítótár"
 
-#: ../src/utils/pactl.c:1168
+#: src/utils/pactl.c:1288
 msgid "server"
 msgstr "kiszolgáló"
 
-#: ../src/utils/pactl.c:1171
+#: src/utils/pactl.c:1291
 msgid "card"
 msgstr "kártya"
 
-#: ../src/utils/pactl.c:1180
+#: src/utils/pactl.c:1300
 #, c-format
 msgid "Event '%s' on %s #%u\n"
 msgstr "„%1$s” esemény ezen: %3$u. %2$s\n"
 
-#: ../src/utils/pactl.c:1452
+#: src/utils/pactl.c:1578
 msgid "Got SIGINT, exiting."
 msgstr "Kilépés, SIGINT szignál hatására."
 
-#: ../src/utils/pactl.c:1485
+#: src/utils/pactl.c:1611
 msgid "Invalid volume specification"
 msgstr "A hangerő megadása érvénytelen"
 
-#: ../src/utils/pactl.c:1508
+#: src/utils/pactl.c:1634
 msgid "Volume outside permissible range.\n"
 msgstr "A hangerő a megengedett tartományon kívül esik.\n"
 
-#: ../src/utils/pactl.c:1521
+#: src/utils/pactl.c:1647
 msgid "Invalid number of volume specifications.\n"
 msgstr "A hangerőmegadások száma érvénytelen.\n"
 
-#: ../src/utils/pactl.c:1533
+#: src/utils/pactl.c:1659
 msgid "Inconsistent volume specification.\n"
 msgstr "A hangerő megadása inkonzisztens.\n"
 
-#: ../src/utils/pactl.c:1563 ../src/utils/pactl.c:1564
-#: ../src/utils/pactl.c:1565 ../src/utils/pactl.c:1566
-#: ../src/utils/pactl.c:1567 ../src/utils/pactl.c:1568
-#: ../src/utils/pactl.c:1569 ../src/utils/pactl.c:1570
-#: ../src/utils/pactl.c:1571 ../src/utils/pactl.c:1572
-#: ../src/utils/pactl.c:1573 ../src/utils/pactl.c:1574
-#: ../src/utils/pactl.c:1575 ../src/utils/pactl.c:1576
-#: ../src/utils/pactl.c:1577 ../src/utils/pactl.c:1578
-#: ../src/utils/pactl.c:1579 ../src/utils/pactl.c:1580
-#: ../src/utils/pactl.c:1581 ../src/utils/pactl.c:1582
-#: ../src/utils/pactl.c:1583
+#: src/utils/pactl.c:1689 src/utils/pactl.c:1690 src/utils/pactl.c:1691
+#: src/utils/pactl.c:1692 src/utils/pactl.c:1693 src/utils/pactl.c:1694
+#: src/utils/pactl.c:1695 src/utils/pactl.c:1696 src/utils/pactl.c:1697
+#: src/utils/pactl.c:1698 src/utils/pactl.c:1699 src/utils/pactl.c:1700
+#: src/utils/pactl.c:1701 src/utils/pactl.c:1702 src/utils/pactl.c:1703
+#: src/utils/pactl.c:1704 src/utils/pactl.c:1705 src/utils/pactl.c:1706
+#: src/utils/pactl.c:1707 src/utils/pactl.c:1708 src/utils/pactl.c:1709
+#: src/utils/pactl.c:1710
 msgid "[options]"
 msgstr "[kapcsolók]"
 
-#: ../src/utils/pactl.c:1565
+#: src/utils/pactl.c:1691
 msgid "[TYPE]"
 msgstr "[TÍPUS]"
 
-#: ../src/utils/pactl.c:1567
+#: src/utils/pactl.c:1693
 msgid "FILENAME [NAME]"
 msgstr "FÁJLNÉV [NÉV]"
 
-#: ../src/utils/pactl.c:1568
+#: src/utils/pactl.c:1694
 msgid "NAME [SINK]"
 msgstr "NÉV [NYELŐ]"
 
-#: ../src/utils/pactl.c:1577
+#: src/utils/pactl.c:1703
 msgid "NAME|#N VOLUME [VOLUME ...]"
 msgstr "NÉV|#N HANGERŐ [HANGERŐ …]"
 
-#: ../src/utils/pactl.c:1578
+#: src/utils/pactl.c:1704
 msgid "#N VOLUME [VOLUME ...]"
 msgstr "#N HANGERŐ [HANGERŐ …]"
 
-#: ../src/utils/pactl.c:1579
+#: src/utils/pactl.c:1705
 msgid "NAME|#N 1|0|toggle"
 msgstr "NÉV|#N 1|0|váltás"
 
-#: ../src/utils/pactl.c:1580
+#: src/utils/pactl.c:1706
 msgid "#N 1|0|toggle"
 msgstr "#N 1|0|váltás"
 
-#: ../src/utils/pactl.c:1581
+#: src/utils/pactl.c:1707
 msgid "#N FORMATS"
 msgstr "#N FORMÁTUMOK"
 
-#: ../src/utils/pactl.c:1584
+#: src/utils/pactl.c:1711
 #, c-format
 msgid ""
 "\n"
@@ -2839,7 +3028,7 @@ msgstr ""
 "A speciális @DEFAULT_SINK@, @DEFAULT_SOURCE@ and @DEFAULT_MONITOR@ nevek\n"
 "használhatók az alapértelmezett nyelő, forrás és megfigyelő megadására.\n"
 
-#: ../src/utils/pactl.c:1587
+#: src/utils/pactl.c:1714
 #, c-format
 msgid ""
 "\n"
@@ -2858,7 +3047,7 @@ msgstr ""
 "  -s, --server=KISZOLGÁLÓ               Csatlakozás ehhez a kiszolgálóhoz\n"
 "  -n, --client-name=NÉV                 A kliens neve a kiszolgálón\n"
 
-#: ../src/utils/pactl.c:1628
+#: src/utils/pactl.c:1755
 #, c-format
 msgid ""
 "pactl %s\n"
@@ -2869,139 +3058,139 @@ msgstr ""
 "Lefordítva a libpulse %s programkönyvtárral\n"
 "Összeszerkesztve a libpulse %s programkönyvtárhoz\n"
 
-#: ../src/utils/pactl.c:1684
+#: src/utils/pactl.c:1812
 #, c-format
 msgid "Specify nothing, or one of: %s"
 msgstr "Ne adjon meg semmit, vagy a következők egyikét: %s"
 
-#: ../src/utils/pactl.c:1694
+#: src/utils/pactl.c:1822
 msgid "Please specify a sample file to load"
 msgstr "Adja meg a betöltendő mintafájlt"
 
-#: ../src/utils/pactl.c:1707
+#: src/utils/pactl.c:1835
 msgid "Failed to open sound file."
 msgstr "Nem sikerült megnyitni a hangfájlt."
 
-#: ../src/utils/pactl.c:1719
+#: src/utils/pactl.c:1847
 msgid "Warning: Failed to determine sample specification from file."
 msgstr ""
 "Figyelmeztetés: Nem sikerült meghatározni a mintavételi meghatározást a "
 "fájlból."
 
-#: ../src/utils/pactl.c:1729
+#: src/utils/pactl.c:1857
 msgid "You have to specify a sample name to play"
 msgstr "Meg kell adnia a lejátszandó minta nevét"
 
-#: ../src/utils/pactl.c:1741
+#: src/utils/pactl.c:1869
 msgid "You have to specify a sample name to remove"
 msgstr "Meg kell adnia az eltávolítandó minta nevét"
 
-#: ../src/utils/pactl.c:1750
+#: src/utils/pactl.c:1878
 msgid "You have to specify a sink input index and a sink"
 msgstr "Meg kell adnia egy nyelő bemeneti indexét és egy nyelőt"
 
-#: ../src/utils/pactl.c:1760
+#: src/utils/pactl.c:1888
 msgid "You have to specify a source output index and a source"
 msgstr "Meg kell adnia a forrás kimeneti indexét és egy forrást"
 
-#: ../src/utils/pactl.c:1775
+#: src/utils/pactl.c:1903
 msgid "You have to specify a module name and arguments."
 msgstr "Meg kell adnia a modul nevét és argumentumait."
 
-#: ../src/utils/pactl.c:1795
+#: src/utils/pactl.c:1923
 msgid "You have to specify a module index or name"
 msgstr "Meg kell adnia a modul indexét vagy nevét"
 
-#: ../src/utils/pactl.c:1808
+#: src/utils/pactl.c:1936
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean value."
 msgstr "Nem adhat meg egynél több nyelőt. Egy logikai értéket kell megadnia."
 
-#: ../src/utils/pactl.c:1813 ../src/utils/pactl.c:1833
+#: src/utils/pactl.c:1941 src/utils/pactl.c:1961
 msgid "Invalid suspend specification."
 msgstr "Érvénytelen felfüggesztési meghatározás."
 
-#: ../src/utils/pactl.c:1828
+#: src/utils/pactl.c:1956
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
 msgstr "Nem adhat meg egynél több forrást. Egy logikai értéket kell megadnia."
 
-#: ../src/utils/pactl.c:1845
+#: src/utils/pactl.c:1973
 msgid "You have to specify a card name/index and a profile name"
 msgstr "Meg kell adnia a kártya nevét vagy indexét és egy profil nevét"
 
-#: ../src/utils/pactl.c:1856
+#: src/utils/pactl.c:1984
 msgid "You have to specify a sink name/index and a port name"
 msgstr "Meg kell adnia a nyelő nevét vagy indexét, és egy port nevét"
 
-#: ../src/utils/pactl.c:1867
+#: src/utils/pactl.c:1995
 msgid "You have to specify a sink name"
 msgstr "Meg kell adnia egy nyelő nevét"
 
-#: ../src/utils/pactl.c:1877
+#: src/utils/pactl.c:2005
 msgid "You have to specify a source name/index and a port name"
 msgstr "Meg kell adnia egy forrás nevét vagy indexét, és egy port nevét"
 
-#: ../src/utils/pactl.c:1888
+#: src/utils/pactl.c:2016
 msgid "You have to specify a source name"
 msgstr "Meg kell adnia egy forrás nevét"
 
-#: ../src/utils/pactl.c:1898
+#: src/utils/pactl.c:2026
 msgid "You have to specify a sink name/index and a volume"
 msgstr "Meg kell adnia egy nyelő nevét vagy indexét és egy hangerőt"
 
-#: ../src/utils/pactl.c:1911
+#: src/utils/pactl.c:2039
 msgid "You have to specify a source name/index and a volume"
 msgstr "Meg kell adnia egy forrás nevét vagy indexét és egy hangerőt"
 
-#: ../src/utils/pactl.c:1924
+#: src/utils/pactl.c:2052
 msgid "You have to specify a sink input index and a volume"
 msgstr "Meg kell adnia egy nyelő bemenet indexét és egy hangerőt"
 
-#: ../src/utils/pactl.c:1929
+#: src/utils/pactl.c:2057
 msgid "Invalid sink input index"
 msgstr "A nyelőbemenet indexe érvénytelen"
 
-#: ../src/utils/pactl.c:1940
+#: src/utils/pactl.c:2068
 msgid "You have to specify a source output index and a volume"
 msgstr "Meg kell adnia egy forráskimenet indexét és egy hangerőt"
 
-#: ../src/utils/pactl.c:1945
+#: src/utils/pactl.c:2073
 msgid "Invalid source output index"
 msgstr "A nyelőkimenet indexe érvénytelen"
 
-#: ../src/utils/pactl.c:1956
+#: src/utils/pactl.c:2084
 msgid ""
 "You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"
 msgstr ""
 "Meg kell adnia egy nyelő nevét vagy indexét, és a némítási műveletet (0, 1 "
 "vagy „toggle”)"
 
-#: ../src/utils/pactl.c:1961 ../src/utils/pactl.c:1976
-#: ../src/utils/pactl.c:1996 ../src/utils/pactl.c:2014
+#: src/utils/pactl.c:2089 src/utils/pactl.c:2104 src/utils/pactl.c:2124
+#: src/utils/pactl.c:2142
 msgid "Invalid mute specification"
 msgstr "Érvénytelen némításmeghatározás"
 
-#: ../src/utils/pactl.c:1971
+#: src/utils/pactl.c:2099
 msgid ""
 "You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
 msgstr ""
 "Meg kell adnia egy forrás nevét vagy indexét, és a némítási műveletet (0, 1 "
 "vagy „toggle”)"
 
-#: ../src/utils/pactl.c:1986
+#: src/utils/pactl.c:2114
 msgid ""
 "You have to specify a sink input index and a mute action (0, 1, or 'toggle')"
 msgstr ""
 "Meg kell adnia egy nyelő bemeneti indexét, és a némítási műveletet (0, 1 "
 "vagy „toggle”)"
 
-#: ../src/utils/pactl.c:1991
+#: src/utils/pactl.c:2119
 msgid "Invalid sink input index specification"
 msgstr "A nyelő bemeneti indexének megadása érvénytelen"
 
-#: ../src/utils/pactl.c:2004
+#: src/utils/pactl.c:2132
 msgid ""
 "You have to specify a source output index and a mute action (0, 1, or "
 "'toggle')"
@@ -3009,11 +3198,22 @@ msgstr ""
 "Meg kell adnia egy forráskimenet indexét, és a némítási műveletet (0, 1 vagy "
 "„toggle”)"
 
-#: ../src/utils/pactl.c:2009
+#: src/utils/pactl.c:2137
 msgid "Invalid source output index specification"
 msgstr "A forrás bemeneti indexének megadása érvénytelen"
 
-#: ../src/utils/pactl.c:2026
+#: src/utils/pactl.c:2150
+#, fuzzy
+msgid "You have to specify at least an object path and a message name"
+msgstr "Meg kell adnia a nyelő nevét vagy indexét, és egy port nevét"
+
+#: src/utils/pactl.c:2160
+msgid ""
+"Excess arguments given, they will be ignored. Note that all message "
+"parameters must be given as a single string."
+msgstr ""
+
+#: src/utils/pactl.c:2170
 msgid ""
 "You have to specify a sink index and a semicolon-separated list of supported "
 "formats"
@@ -3021,65 +3221,67 @@ msgstr ""
 "Meg kell adnia egy nyelő indexét és a támogatott formátumok pontosvesszővel "
 "elválasztott listáját"
 
-#: ../src/utils/pactl.c:2038
+#: src/utils/pactl.c:2182
 msgid "You have to specify a card name/index, a port name and a latency offset"
 msgstr ""
 "Meg kell adnia egy kártya nevét vagy indexét, egy port nevét és egy "
 "késleltetéseltolást"
 
-#: ../src/utils/pactl.c:2045
+#: src/utils/pactl.c:2189
 msgid "Could not parse latency offset"
 msgstr "Nem dolgozható fel a késleltetéseltolás"
 
-#: ../src/utils/pactl.c:2057
+#: src/utils/pactl.c:2201
 msgid "No valid command specified."
 msgstr "Érvénytelen parancs lett megadva."
 
-#: ../src/utils/pasuspender.c:79
+#: src/utils/pasuspender.c:79
 #, c-format
 msgid "fork(): %s\n"
 msgstr "fork(): %s\n"
 
-#: ../src/utils/pasuspender.c:92
+#: src/utils/pasuspender.c:92
 #, c-format
 msgid "execvp(): %s\n"
 msgstr "execvp(): %s\n"
 
-#: ../src/utils/pasuspender.c:111
+#: src/utils/pasuspender.c:111
 #, c-format
 msgid "Failure to resume: %s\n"
 msgstr "Hiba a folytatáskor: %s\n"
 
-#: ../src/utils/pasuspender.c:145
+#: src/utils/pasuspender.c:145
 #, c-format
 msgid "Failure to suspend: %s\n"
 msgstr "Hiba a felfüggesztéskor: %s\n"
 
-#: ../src/utils/pasuspender.c:170
+#: src/utils/pasuspender.c:170
 #, c-format
 msgid "WARNING: Sound server is not local, not suspending.\n"
 msgstr "FIGYELMEZTETÉS: A hangkiszolgáló nem helyi, nem lesz felfüggesztve.\n"
 
-#: ../src/utils/pasuspender.c:183
+#: src/utils/pasuspender.c:183
 #, c-format
 msgid "Connection failure: %s\n"
 msgstr "Kapcsolódási hiba: %s\n"
 
-#: ../src/utils/pasuspender.c:201
+#: src/utils/pasuspender.c:201
 #, c-format
 msgid "Got SIGINT, exiting.\n"
 msgstr "Kilépés, SIGINT szignál hatására.\n"
 
-#: ../src/utils/pasuspender.c:219
+#: src/utils/pasuspender.c:219
 #, c-format
 msgid "WARNING: Child process terminated by signal %u\n"
 msgstr ""
 "FIGYELMEZTETÉS: A gyermek folyamat a következő szignállal fejeződött be: %u\n"
 
-#: ../src/utils/pasuspender.c:228
-#, c-format
+#: src/utils/pasuspender.c:228
+#, fuzzy, c-format
 msgid ""
-"%s [options] ... \n"
+"%s [options] -- PROGRAM [ARGUMENTS ...]\n"
+"\n"
+"Temporarily suspend PulseAudio while PROGRAM runs.\n"
 "\n"
 "  -h, --help                            Show this help\n"
 "      --version                         Show version\n"
@@ -3094,7 +3296,7 @@ msgstr ""
 "  -s, --server=KISZOLGÁLÓ               Csatlakozás ehhez a kiszolgálóhoz\n"
 "\n"
 
-#: ../src/utils/pasuspender.c:266
+#: src/utils/pasuspender.c:267
 #, c-format
 msgid ""
 "pasuspender %s\n"
@@ -3105,22 +3307,22 @@ msgstr ""
 "Lefordítva a libpulse %s programkönyvtárral\n"
 "Összeszerkesztve a libpulse %s programkönyvtárhoz\n"
 
-#: ../src/utils/pasuspender.c:295
+#: src/utils/pasuspender.c:296
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
 msgstr "A „pa_mainloop_new()” függvényhívás meghiúsult.\n"
 
-#: ../src/utils/pasuspender.c:308
+#: src/utils/pasuspender.c:309
 #, c-format
 msgid "pa_context_new() failed.\n"
 msgstr "A „pa_context_new()” függvényhívás meghiúsult.\n"
 
-#: ../src/utils/pasuspender.c:320
+#: src/utils/pasuspender.c:321
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
 msgstr "A „pa_mainloop_run()” függvényhívás meghiúsult.\n"
 
-#: ../src/utils/pax11publish.c:58
+#: src/utils/pax11publish.c:58
 #, c-format
 msgid ""
 "%s [-D display] [-S server] [-O sink] [-I source] [-c file]  [-d|-e|-i|-r]\n"
@@ -3142,52 +3344,96 @@ msgstr ""
 "         környezeti változókba és süti fájlokba\n"
 " -r    Eltávolítja a PulseAudio adatokat az X11 megjelenítőről\n"
 
-#: ../src/utils/pax11publish.c:91
+#: src/utils/pax11publish.c:91
 #, c-format
 msgid "Failed to parse command line.\n"
 msgstr "Nem sikerült feldolgozni a parancssort.\n"
 
-#: ../src/utils/pax11publish.c:110
+#: src/utils/pax11publish.c:110
 #, c-format
 msgid "Server: %s\n"
 msgstr "Kiszolgáló: %s\n"
 
-#: ../src/utils/pax11publish.c:112
+#: src/utils/pax11publish.c:112
 #, c-format
 msgid "Source: %s\n"
 msgstr "Forrás: %s\n"
 
-#: ../src/utils/pax11publish.c:114
+#: src/utils/pax11publish.c:114
 #, c-format
 msgid "Sink: %s\n"
 msgstr "Nyelő: %s\n"
 
-#: ../src/utils/pax11publish.c:116
+#: src/utils/pax11publish.c:116
 #, c-format
 msgid "Cookie: %s\n"
 msgstr "Süti: %s\n"
 
-#: ../src/utils/pax11publish.c:134
+#: src/utils/pax11publish.c:134
 #, c-format
 msgid "Failed to parse cookie data\n"
 msgstr "Nem sikerült feldolgozni a sütiadatokat\n"
 
-#: ../src/utils/pax11publish.c:139
+#: src/utils/pax11publish.c:139
 #, c-format
 msgid "Failed to save cookie data\n"
 msgstr "Nem sikerült elmenteni a sütiadatokat\n"
 
-#: ../src/utils/pax11publish.c:168
+#: src/utils/pax11publish.c:168
 #, c-format
 msgid "Failed to get FQDN.\n"
 msgstr "Nem sikerült lekérdezni a teljes tartománynevet (FQDN).\n"
 
-#: ../src/utils/pax11publish.c:188
+#: src/utils/pax11publish.c:188
 #, c-format
 msgid "Failed to load cookie data\n"
 msgstr "Nem sikerült betölteni a sütiadatokat\n"
 
-#: ../src/utils/pax11publish.c:206
+#: src/utils/pax11publish.c:206
 #, c-format
 msgid "Not yet implemented.\n"
 msgstr "Még nincs elkészítve.\n"
+
+#~ msgid "Failed to initialize daemon."
+#~ msgstr "Nem sikerült előkészíteni a démont."
+
+#~ msgid "LFE on Separate Mono Output"
+#~ msgstr "Analóg kimenet (mély)"
+
+#~ msgid "Digital Passthrough (S/PDIF)"
+#~ msgstr "Digitális Passthrough (S/PDIF)"
+
+#~ msgid "Digital Passthrough  (IEC958)"
+#~ msgstr "Digitális Passthrough (IEC958)"
+
+#~ msgid ""
+#~ "ALSA woke us up to write new data to the device, but there was actually "
+#~ "nothing to write!\n"
+#~ "Most likely this is a bug in the ALSA driver '%s'. Please report this "
+#~ "issue to the ALSA developers.\n"
+#~ "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
+#~ "returned 0 or another value < min_avail."
+#~ msgstr ""
+#~ "Az ALSA modul értesítése nyomán új adatokat kellett volna írni az "
+#~ "eszközre, de semmilyen írandó adat nem volt.\n"
+#~ "Ez valószínűleg egy hiba eredménye az ALSA „%s” illesztőprogramban. "
+#~ "Jelentse ezt a problémát az ALSA fejlesztői felé.\n"
+#~ "Az értesítés érkezésekor a POLLOUT be volt állítva – viszont a későbbi "
+#~ "„snd_pcm_avail()” függvény visszatérési értéke 0 vagy a min_avail-nál "
+#~ "kisebb más érték volt."
+
+#~ msgid ""
+#~ "ALSA woke us up to read new data from the device, but there was actually "
+#~ "nothing to read!\n"
+#~ "Most likely this is a bug in the ALSA driver '%s'. Please report this "
+#~ "issue to the ALSA developers.\n"
+#~ "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
+#~ "returned 0 or another value < min_avail."
+#~ msgstr ""
+#~ "Az ALSA modul értesítése nyomán új adatokat kellett volna olvasni az "
+#~ "eszközről, de nem volt olvasandó adat.\n"
+#~ "Ez valószínűleg egy hiba eredménye az ALSA „%s” illesztőprogramban. "
+#~ "Jelentse ezt a problémát az ALSA fejlesztői felé.\n"
+#~ "Az értesítés érkezésekor a POLLIN be volt állítva – viszont a későbbi "
+#~ "„snd_pcm_avail()” függvény visszatérési értéke 0 vagy a min_avail-nál "
+#~ "kisebb más érték volt."
