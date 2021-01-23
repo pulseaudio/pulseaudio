@@ -268,8 +268,8 @@ static uint8_t fill_preferred_configuration_hd(const pa_sample_spec *default_sam
     return sizeof(*config);
 }
 
-bool gst_init_aptx(struct gst_info *info, pa_sample_spec *ss, bool for_encoding) {
-    GstElement *enc, *dec, *capsf;
+GstElement *gst_init_aptx(struct gst_info *info, pa_sample_spec *ss, bool for_encoding) {
+    GstElement *bin, *sink, *src, *capsf;
     GstCaps *caps;
     GstPad *pad;
     const char *aptx_codec_media_type;
@@ -348,61 +348,52 @@ bool gst_init_aptx(struct gst_info *info, pa_sample_spec *ss, bool for_encoding)
     gst_caps_unref(caps);
 
     if (for_encoding) {
-        enc = gst_element_factory_make("openaptxenc", "aptx_encoder");
+        sink = gst_element_factory_make("openaptxenc", "aptx_encoder");
+        src = capsf;
 
-        if (enc == NULL) {
+        if (sink == NULL) {
             pa_log_error("Could not create aptX encoder element");
             goto fail_enc_dec;
         }
 
-        info->enc_bin = gst_bin_new("aptx_enc_bin");
-        pa_assert(info->enc_bin);
-
-        gst_bin_add_many(GST_BIN(info->enc_bin), enc, capsf, NULL);
-        pa_assert_se(gst_element_link_many(enc, capsf, NULL));
-
-        pad = gst_element_get_static_pad(enc, "sink");
-        pa_assert_se(gst_element_add_pad(info->enc_bin, gst_ghost_pad_new("sink", pad)));
-        gst_object_unref(GST_OBJECT(pad));
-
-        pad = gst_element_get_static_pad(capsf, "src");
-        pa_assert_se(gst_element_add_pad(info->enc_bin, gst_ghost_pad_new("src", pad)));
-        gst_object_unref(GST_OBJECT(pad));
+        bin = gst_bin_new("aptx_enc_bin");
     } else {
-        dec = gst_element_factory_make("openaptxdec", "aptx_decoder");
+        sink = capsf;
+        src = gst_element_factory_make("openaptxdec", "aptx_decoder");
 
-        if (dec == NULL) {
+        if (src == NULL) {
             pa_log_error("Could not create aptX decoder element");
             goto fail_enc_dec;
         }
 
-        info->dec_bin = gst_bin_new("aptx_dec_bin");
-        pa_assert(info->dec_bin);
-
-        gst_bin_add_many(GST_BIN(info->dec_bin), capsf, dec, NULL);
-        pa_assert_se(gst_element_link_many(capsf, dec, NULL));
-
-        pad = gst_element_get_static_pad(capsf, "sink");
-        pa_assert_se(gst_element_add_pad(info->dec_bin, gst_ghost_pad_new("sink", pad)));
-        gst_object_unref(GST_OBJECT(pad));
-
-        pad = gst_element_get_static_pad(dec, "src");
-        pa_assert_se(gst_element_add_pad(info->dec_bin, gst_ghost_pad_new("src", pad)));
-        gst_object_unref(GST_OBJECT(pad));
+        bin = gst_bin_new("aptx_dec_bin");
     }
 
+    pa_assert(bin);
 
-    return true;
+    gst_bin_add_many(GST_BIN(bin), sink, src, NULL);
+    pa_assert_se(gst_element_link_many(sink, src, NULL));
+
+    pad = gst_element_get_static_pad(sink, "sink");
+    pa_assert_se(gst_element_add_pad(bin, gst_ghost_pad_new("sink", pad)));
+    gst_object_unref(GST_OBJECT(pad));
+
+    pad = gst_element_get_static_pad(src, "src");
+    pa_assert_se(gst_element_add_pad(bin, gst_ghost_pad_new("src", pad)));
+    gst_object_unref(GST_OBJECT(pad));
+
+    return bin;
 
 fail_enc_dec:
     gst_object_unref(GST_OBJECT(capsf));
 
 fail:
     pa_log_error("aptX initialisation failed");
-    return false;
+    return NULL;
 }
 
 static void *init_common(enum a2dp_codec_type codec_type, bool for_encoding, bool for_backchannel, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *sample_spec, pa_core *core) {
+    GstElement *bin;
     struct gst_info *info = NULL;
 
     info = pa_xnew0(struct gst_info, 1);
@@ -422,10 +413,10 @@ static void *init_common(enum a2dp_codec_type codec_type, bool for_encoding, boo
     } else
         pa_assert_not_reached();
 
-    if (!gst_init_aptx(info, sample_spec, for_encoding))
+    if (!(bin = gst_init_aptx(info, sample_spec, for_encoding)))
         goto fail;
 
-    if (!gst_codec_init(info, for_encoding))
+    if (!gst_codec_init(info, for_encoding, bin))
         goto fail;
 
     return info;
@@ -483,7 +474,7 @@ static size_t reduce_encoder_bitrate(void *codec_info, size_t write_link_mtu) {
 static size_t encode_buffer(void *codec_info, uint32_t timestamp, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed) {
     size_t written;
 
-    written = gst_encode_buffer(codec_info, timestamp, input_buffer, input_size, output_buffer, output_size, processed);
+    written = gst_transcode_buffer(codec_info, input_buffer, input_size, output_buffer, output_size, processed);
     if (PA_UNLIKELY(*processed == 0 || *processed != input_size))
         pa_log_error("aptX encoding error");
 
@@ -519,7 +510,7 @@ static size_t encode_buffer_hd(void *codec_info, uint32_t timestamp, const uint8
 static size_t decode_buffer(void *codec_info, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed) {
     size_t written;
 
-    written = gst_decode_buffer(codec_info, input_buffer, input_size, output_buffer, output_size, processed);
+    written = gst_transcode_buffer(codec_info, input_buffer, input_size, output_buffer, output_size, processed);
 
     /* Due to aptX latency, aptx_decode starts filling output buffer after 90 input samples.
      * If input buffer contains less than 90 samples, aptx_decode returns zero (=no output)

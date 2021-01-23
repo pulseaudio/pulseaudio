@@ -198,14 +198,15 @@ static uint8_t fill_preferred_configuration(const pa_sample_spec *default_sample
     return sizeof(*config);
 }
 
-bool gst_init_ldac(struct gst_info *info, pa_sample_spec *ss, bool for_encoding) {
+GstElement *gst_init_ldac(struct gst_info *info, pa_sample_spec *ss, bool for_encoding) {
+    GstElement *bin;
     GstElement *rtpldacpay;
     GstElement *enc;
     GstPad *pad;
 
     if (!for_encoding) {
         pa_log_error("LDAC does not support decoding");
-        return false;
+        return NULL;
     }
 
     ss->format = PA_SAMPLE_FLOAT32LE;
@@ -269,32 +270,34 @@ bool gst_init_ldac(struct gst_info *info, pa_sample_spec *ss, bool for_encoding)
         goto fail;
     }
 
-    info->enc_bin = gst_bin_new("ldac_enc_bin");
-    pa_assert(info->enc_bin);
+    bin = gst_bin_new("ldac_enc_bin");
+    pa_assert(bin);
 
-    gst_bin_add_many(GST_BIN(info->enc_bin), enc, rtpldacpay, NULL);
+    gst_bin_add_many(GST_BIN(bin), enc, rtpldacpay, NULL);
 
     if (!gst_element_link(enc, rtpldacpay)) {
         pa_log_error("Failed to link LDAC encoder to LDAC RTP payloader");
-        return false;
+        gst_object_unref(bin);
+        return NULL;
     }
 
     pad = gst_element_get_static_pad(enc, "sink");
-    pa_assert_se(gst_element_add_pad(info->enc_bin, gst_ghost_pad_new("sink", pad)));
+    pa_assert_se(gst_element_add_pad(bin, gst_ghost_pad_new("sink", pad)));
     gst_object_unref(GST_OBJECT(pad));
 
     pad = gst_element_get_static_pad(rtpldacpay, "src");
-    pa_assert_se(gst_element_add_pad(info->enc_bin, gst_ghost_pad_new("src", pad)));
+    pa_assert_se(gst_element_add_pad(bin, gst_ghost_pad_new("src", pad)));
     gst_object_unref(GST_OBJECT(pad));
 
-    return true;
+    return bin;
 
 fail:
     pa_log_error("LDAC encoder initialisation failed");
-    return false;
+    return NULL;
 }
 
 static void *init_common(enum a2dp_codec_type codec_type, bool for_encoding, bool for_backchannel, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *sample_spec, pa_core *core) {
+    GstElement *bin;
     struct gst_info *info = NULL;
 
     if (!for_encoding) {
@@ -312,10 +315,10 @@ static void *init_common(enum a2dp_codec_type codec_type, bool for_encoding, boo
     info->a2dp_codec_t.ldac_config = (const a2dp_ldac_t *) config_buffer;
     pa_assert(config_size == sizeof(*(info->a2dp_codec_t.ldac_config)));
 
-    if (!gst_init_ldac(info, sample_spec, for_encoding))
+    if (!(bin = gst_init_ldac(info, sample_spec, for_encoding)))
         goto fail;
 
-    if (!gst_codec_init(info, for_encoding))
+    if (!gst_codec_init(info, for_encoding, bin))
         goto fail;
 
     return info;
@@ -409,7 +412,7 @@ static size_t reduce_encoder_bitrate(void *codec_info, size_t write_link_mtu) {
 static size_t encode_buffer(void *codec_info, uint32_t timestamp, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed) {
     size_t written;
 
-    written = gst_encode_buffer(codec_info, timestamp, input_buffer, input_size, output_buffer, output_size, processed);
+    written = gst_transcode_buffer(codec_info, input_buffer, input_size, output_buffer, output_size, processed);
     if (PA_UNLIKELY(*processed != input_size))
         pa_log_error("LDAC encoding error");
 
