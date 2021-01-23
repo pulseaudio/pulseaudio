@@ -270,7 +270,7 @@ static uint8_t fill_preferred_configuration_hd(const pa_sample_spec *default_sam
 
 bool gst_init_aptx(struct gst_info *info, pa_sample_spec *ss, bool for_encoding) {
     GstElement *enc, *dec, *capsf;
-    GstCaps *caps = NULL;
+    GstCaps *caps;
     GstPad *pad;
     const char *aptx_codec_media_type;
 
@@ -334,17 +334,18 @@ bool gst_init_aptx(struct gst_info *info, pa_sample_spec *ss, bool for_encoding)
 
     aptx_codec_media_type = info->codec_type == APTX_HD ? "audio/aptx-hd" : "audio/aptx";
 
-    caps = gst_caps_new_simple(aptx_codec_media_type,
-            "rate", G_TYPE_INT, (int) ss->rate,
-            "channels", G_TYPE_INT, (int) ss->channels,
-            NULL);
-
     capsf = gst_element_factory_make("capsfilter", "aptx_capsfilter");
     if (!capsf) {
         pa_log_error("Could not create aptX capsfilter element");
         goto fail;
     }
+
+    caps = gst_caps_new_simple(aptx_codec_media_type,
+            "rate", G_TYPE_INT, (int) ss->rate,
+            "channels", G_TYPE_INT, (int) ss->channels,
+            NULL);
     g_object_set(capsf, "caps", caps, NULL);
+    gst_caps_unref(caps);
 
     if (for_encoding) {
         enc = gst_element_factory_make("openaptxenc", "aptx_encoder");
@@ -390,7 +391,6 @@ bool gst_init_aptx(struct gst_info *info, pa_sample_spec *ss, bool for_encoding)
         gst_object_unref(GST_OBJECT(pad));
     }
 
-    gst_caps_unref(caps);
 
     return true;
 
@@ -398,9 +398,6 @@ fail_enc_dec:
     gst_object_unref(GST_OBJECT(capsf));
 
 fail:
-    if (caps)
-        gst_caps_unref(caps);
-
     pa_log_error("aptX initialisation failed");
     return false;
 }
