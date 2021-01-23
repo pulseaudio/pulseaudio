@@ -500,7 +500,7 @@ static size_t encode_buffer_hd(void *codec_info, uint32_t timestamp, const uint8
         return 0;
     }
 
-    written = gst_encode_buffer(codec_info, timestamp, input_buffer, input_size, output_buffer + sizeof(*header), output_size - sizeof(*header), processed);
+    written = encode_buffer(codec_info, timestamp, input_buffer, input_size, output_buffer + sizeof(*header), output_size - sizeof(*header), processed);
 
     if (PA_LIKELY(written > 0)) {
         header = (struct rtp_header *) output_buffer;
