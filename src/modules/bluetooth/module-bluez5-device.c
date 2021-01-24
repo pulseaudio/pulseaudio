@@ -999,7 +999,6 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
     struct userdata *u = PA_SINK(o)->userdata;
 
     pa_assert(u->sink == PA_SINK(o));
-    pa_assert(u->transport);
 
     switch (code) {
 
@@ -1020,6 +1019,8 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
         }
 
         case PA_SINK_MESSAGE_SETUP_STREAM:
+            pa_assert(u->transport);
+
             /* Skip stream setup if stream_fd has been invalidated.
                This can occur if the stream has already been set up and
                then immediately received POLLHUP. If the stream has
@@ -1668,6 +1669,37 @@ static int start_thread(struct userdata *u) {
     return 0;
 }
 
+static void release_codec(struct userdata *u) {
+    if (u->bt_codec) {
+        if (u->encoder_info) {
+            u->bt_codec->deinit(u->encoder_info);
+            u->encoder_info = NULL;
+        }
+
+        if (u->decoder_info) {
+            u->bt_codec->deinit(u->decoder_info);
+            u->decoder_info = NULL;
+        }
+
+        u->bt_codec = NULL;
+    }
+
+    if (u->encoder_buffer) {
+        pa_xfree(u->encoder_buffer);
+        u->encoder_buffer = NULL;
+    }
+
+    u->encoder_buffer_size = 0;
+    u->encoder_buffer_used = 0;
+
+    if (u->decoder_buffer) {
+        pa_xfree(u->decoder_buffer);
+        u->decoder_buffer = NULL;
+    }
+
+    u->decoder_buffer_size = 0;
+}
+
 /* Run from main thread */
 static void stop_thread(struct userdata *u) {
     pa_assert(u);
@@ -1728,34 +1760,7 @@ static void stop_thread(struct userdata *u) {
         u->read_smoother = NULL;
     }
 
-    if (u->bt_codec) {
-        if (u->encoder_info) {
-            u->bt_codec->deinit(u->encoder_info);
-            u->encoder_info = NULL;
-        }
-
-        if (u->decoder_info) {
-            u->bt_codec->deinit(u->decoder_info);
-            u->decoder_info = NULL;
-        }
-
-        u->bt_codec = NULL;
-    }
-
-    if (u->encoder_buffer) {
-        pa_xfree(u->encoder_buffer);
-        u->encoder_buffer = NULL;
-    }
-
-    u->encoder_buffer_size = 0;
-    u->encoder_buffer_used = 0;
-
-    if (u->decoder_buffer) {
-        pa_xfree(u->decoder_buffer);
-        u->decoder_buffer = NULL;
-    }
-
-    u->decoder_buffer_size = 0;
+    release_codec(u);
 }
 
 /* Run from main thread */
@@ -2165,11 +2170,13 @@ static void handle_transport_state_change(struct userdata *u, struct pa_bluetoot
 
     oldavail = cp->available;
     /*
-     * If codec switching is in progress, transport state change should not
-     * make profile unavailable.
+     * If codec switching is in progress, do not acquire the transport until our
+     * "codec switch complete" callback is called, which calls transport_config
+     * in addition to just acquiring it (through setup_transport). That means it
+     * also has to apply any eventual format changes back to the pa_sink/source.
      */
-    if (!t->device->codec_switching_in_progress)
-        pa_card_profile_set_available(cp, transport_state_to_availability(t->state));
+    if (t->device->codec_switching_in_progress)
+        return;
 
     /* Update port availability */
     pa_assert_se(port = pa_hashmap_get(u->card->ports, u->output_port_name));
@@ -2253,7 +2260,7 @@ static pa_hook_result_t transport_state_changed_cb(pa_bluetooth_discovery *y, pa
     pa_assert(t);
     pa_assert(u);
 
-    if (t == u->transport && t->state <= PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED)
+    if (t == u->transport && t->state <= PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED && !t->device->codec_switching_in_progress)
         pa_assert_se(pa_card_set_profile(u->card, pa_hashmap_get(u->card->profiles, "off"), false) >= 0);
 
     if (t->device == u->device)
@@ -2326,25 +2333,36 @@ static char* make_message_handler_path(const char *name) {
     return pa_sprintf_malloc("/card/%s/bluez", name);
 }
 
-static void switch_codec_cb_handler(bool success, pa_bluetooth_profile_t profile, void *userdata)
-{
+static void switch_codec_cb_handler(bool success, pa_bluetooth_profile_t profile, void *userdata) {
     struct userdata *u = (struct userdata *) userdata;
+    bool is_a2dp_sink;
+    int r;
 
     if (!success)
         goto off;
 
     u->profile = profile;
+    is_a2dp_sink = u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK;
 
-    if (init_profile(u) < 0) {
-        pa_log_info("Failed to initialise profile after codec switching");
-        goto off;
-    }
+    // SUSPEND callbacks release the transport and free the codec, but do not reinitialize it yet.
+    // Acquire the transport (could have been done in the callbacks when leaving SUSPEND) but
+    // _also_ reinitialize the codec with transport_config here:
 
-    if (u->sink || u->source)
-        if (start_thread(u) < 0) {
-            pa_log_info("Failed to start thread after codec switching");
-            goto off;
-        }
+    r = setup_transport(u);
+    pa_assert(!r);
+    // if (r == -EINPROGRESS)
+    //     return 0;
+    // else if (r < 0)
+    //     return -1;
+
+    // TODO: If we were to call this, that'd end in our ->reconfigure handler.
+    // pa_sink_reconfigure()
+    // That's where we need to (eventually) update the current codec and finally commit the rate change
+
+    if (is_a2dp_sink)
+        pa_sink_suspend(u->sink, false, PA_SUSPEND_INTERNAL);
+    else
+        pa_source_suspend(u->source, false, PA_SUSPEND_INTERNAL);
 
     pa_log_info("Codec successfully switched to %s with profile: %s",
             u->bt_codec->name, pa_bluetooth_profile_to_string(u->profile));
@@ -2352,6 +2370,7 @@ static void switch_codec_cb_handler(bool success, pa_bluetooth_profile_t profile
     return;
 
 off:
+    stop_thread(u);
     pa_assert_se(pa_card_set_profile(u->card, pa_hashmap_get(u->card->profiles, "off"), false) >= 0);
 }
 
@@ -2515,7 +2534,14 @@ static int bluez5_device_message_handler(const char *object_path, const char *me
          */
         profile = u->profile;
 
-        stop_thread(u);
+        // Suspending releases the transport
+        if (is_a2dp_sink)
+            pa_sink_suspend(u->sink, true, PA_SUSPEND_INTERNAL);
+        else
+            pa_source_suspend(u->source, true, PA_SUSPEND_INTERNAL);
+
+        // TODO: Can we do this if it's synchronous?
+        release_codec(u);
 
         if (!pa_bluetooth_device_switch_codec(u->device, profile, capabilities_hashmap, endpoint_conf, switch_codec_cb_handler, userdata)
                 && !u->device->codec_switching_in_progress)
@@ -2543,6 +2569,7 @@ static int bluez5_device_message_handler(const char *object_path, const char *me
     return -PA_ERR_NOTIMPLEMENTED;
 
 profile_off:
+    stop_thread(u);
     pa_assert_se(pa_card_set_profile(u->card, pa_hashmap_get(u->card->profiles, "off"), false) >= 0);
 
     return -PA_ERR_IO;
