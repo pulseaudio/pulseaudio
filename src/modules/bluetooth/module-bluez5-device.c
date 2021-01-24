@@ -866,6 +866,24 @@ static int source_set_state_in_io_thread_cb(pa_source *s, pa_source_state_t new_
 }
 
 /* Run from main thread */
+static void source_reconfigure_cb(pa_source *s, pa_sample_spec *spec, bool passthrough) {
+    struct userdata *u;
+
+    pa_assert(s);
+    pa_assert_se(u = s->userdata);
+
+    if (!pa_sample_spec_equal(spec, &u->decoder_sample_spec)) {
+        pa_log_warn("Reconfiguration not yet supported");
+        return;
+    }
+
+    pa_source_set_sample_format(u->source, spec->format);
+    pa_source_set_sample_rate(u->source, spec->rate);
+    // Does not allow reconfiguring channels yet.
+    pa_assert(u->source->sample_spec.channels == spec->channels);
+}
+
+/* Run from main thread */
 static void source_set_volume_cb(pa_source *s) {
     pa_volume_t volume;
     struct userdata *u;
@@ -988,6 +1006,7 @@ static int add_source(struct userdata *u) {
     u->source->userdata = u;
     u->source->parent.process_msg = source_process_msg;
     u->source->set_state_in_io_thread = source_set_state_in_io_thread_cb;
+    u->source->reconfigure = source_reconfigure_cb;
 
     source_setup_volume_callback(u->source);
 
@@ -1080,6 +1099,24 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
     }
 
     return 0;
+}
+
+/* Run from main thread */
+static void sink_reconfigure_cb(pa_sink *s, pa_sample_spec *spec, bool passthrough) {
+    struct userdata *u;
+
+    pa_assert(s);
+    pa_assert_se(u = s->userdata);
+
+    if (!pa_sample_spec_equal(spec, &u->encoder_sample_spec)) {
+        pa_log_warn("Reconfiguration not yet supported");
+        return;
+    }
+
+    pa_sink_set_sample_format(u->sink, spec->format);
+    pa_sink_set_sample_rate(u->sink, spec->rate);
+    // Does not allow reconfiguring channels yet.
+    pa_assert(u->sink->sample_spec.channels == spec->channels);
 }
 
 /* Run from main thread */
@@ -1206,6 +1243,7 @@ static int add_sink(struct userdata *u) {
     u->sink->userdata = u;
     u->sink->parent.process_msg = sink_process_msg;
     u->sink->set_state_in_io_thread = sink_set_state_in_io_thread_cb;
+    u->sink->reconfigure = sink_reconfigure_cb;
 
     sink_setup_volume_callback(u->sink);
 
@@ -2335,6 +2373,7 @@ static char* make_message_handler_path(const char *name) {
 
 static void switch_codec_cb_handler(bool success, pa_bluetooth_profile_t profile, void *userdata) {
     struct userdata *u = (struct userdata *) userdata;
+    pa_sample_spec *spec;
     bool is_a2dp_sink;
     int r;
 
@@ -2355,14 +2394,37 @@ static void switch_codec_cb_handler(bool success, pa_bluetooth_profile_t profile
     // else if (r < 0)
     //     return -1;
 
-    // TODO: If we were to call this, that'd end in our ->reconfigure handler.
-    // pa_sink_reconfigure()
-    // That's where we need to (eventually) update the current codec and finally commit the rate change
+    spec = is_a2dp_sink ? &u->encoder_sample_spec : &u->decoder_sample_spec;
 
-    if (is_a2dp_sink)
+    // Finish off by reconfiguring
+
+    // TODO HACK: Also cork/uncork sources so that the resampler is updated
+
+    if (is_a2dp_sink) {
+        pa_sink_input *i;
+        uint32_t idx;
+        PA_IDXSET_FOREACH(i, u->sink->inputs, idx) {
+            pa_sink_input_cork(i, true);
+        }
+        pa_sink_reconfigure(u->sink, spec, true);
+        PA_IDXSET_FOREACH(i, u->sink->inputs, idx) {
+            pa_sink_input_cork(i, false);
+        }
+
         pa_sink_suspend(u->sink, false, PA_SUSPEND_INTERNAL);
-    else
+    } else {
+        pa_source_output *i;
+        uint32_t idx;
+        PA_IDXSET_FOREACH(i, u->source->outputs, idx) {
+            pa_source_output_cork(i, true);
+        }
+        pa_source_reconfigure(u->source, spec, true);
+        PA_IDXSET_FOREACH(i, u->source->outputs, idx) {
+            pa_source_output_cork(i, false);
+        }
+
         pa_source_suspend(u->source, false, PA_SUSPEND_INTERNAL);
+    }
 
     pa_log_info("Codec successfully switched to %s with profile: %s",
             u->bt_codec->name, pa_bluetooth_profile_to_string(u->profile));
