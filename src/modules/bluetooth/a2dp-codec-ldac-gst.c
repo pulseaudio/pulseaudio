@@ -73,7 +73,7 @@ static bool can_accept_capabilities(const uint8_t *capabilities_buffer, uint8_t 
     return can_accept_capabilities_common(capabilities, LDAC_VENDOR_ID, LDAC_CODEC_ID);
 }
 
-static const char *choose_remote_endpoint(const pa_hashmap *capabilities_hashmap, const pa_sample_spec *default_sample_spec, bool for_encoding) {
+static const char *choose_remote_endpoint(const pa_hashmap *capabilities_hashmap, const pa_sample_spec *spec, bool for_encoding) {
     const pa_a2dp_codec_capabilities *a2dp_capabilities;
     const char *key;
     void *state;
@@ -129,7 +129,7 @@ static bool is_configuration_valid(const uint8_t *config_buffer, uint8_t config_
     return true;
 }
 
-static int fill_preferred_configuration_common(const pa_sample_spec *default_sample_spec, const a2dp_ldac_t *capabilities, a2dp_ldac_t *config, uint32_t vendor_id, uint16_t codec_id) {
+static int fill_preferred_configuration_common(const pa_sample_spec *spec, const a2dp_ldac_t *capabilities, a2dp_ldac_t *config, uint32_t vendor_id, uint16_t codec_id) {
     int i;
 
     static const struct {
@@ -158,7 +158,7 @@ static int fill_preferred_configuration_common(const pa_sample_spec *default_sam
 
     /* Find the lowest freq that is at least as high as the requested sampling rate */
     for (i = 0; (unsigned) i < PA_ELEMENTSOF(freq_table); i++) {
-        if (freq_table[i].rate >= default_sample_spec->rate && (capabilities->frequency & freq_table[i].cap)) {
+        if (freq_table[i].rate >= spec->rate && (capabilities->frequency & freq_table[i].cap)) {
             config->frequency = freq_table[i].cap;
             break;
         }
@@ -181,7 +181,7 @@ static int fill_preferred_configuration_common(const pa_sample_spec *default_sam
     return 0;
 }
 
-static uint8_t fill_preferred_configuration(const pa_sample_spec *default_sample_spec, const uint8_t *capabilities_buffer, uint8_t capabilities_size, uint8_t config_buffer[MAX_A2DP_CAPS_SIZE]) {
+static uint8_t fill_preferred_configuration(const pa_sample_spec *spec, const uint8_t *capabilities_buffer, uint8_t capabilities_size, uint8_t config_buffer[MAX_A2DP_CAPS_SIZE]) {
     a2dp_ldac_t *config = (a2dp_ldac_t *) config_buffer;
     const a2dp_ldac_t *capabilities = (const a2dp_ldac_t *) capabilities_buffer;
 
@@ -192,7 +192,7 @@ static uint8_t fill_preferred_configuration(const pa_sample_spec *default_sample
 
     pa_zero(*config);
 
-    if (fill_preferred_configuration_common(default_sample_spec, capabilities, config, LDAC_VENDOR_ID, LDAC_CODEC_ID) < 0)
+    if (fill_preferred_configuration_common(spec, capabilities, config, LDAC_VENDOR_ID, LDAC_CODEC_ID) < 0)
         return 0;
 
     return sizeof(*config);
