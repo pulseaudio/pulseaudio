@@ -2259,6 +2259,9 @@ static pa_hook_result_t transport_state_changed_cb(pa_bluetooth_discovery *y, pa
     if (t->device == u->device)
         handle_transport_state_change(u, t);
 
+    if (t == u->transport && t->state <= PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED)
+        u->transport = NULL;
+
     return PA_HOOK_OK;
 }
 
