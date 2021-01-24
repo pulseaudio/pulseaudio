@@ -832,6 +832,13 @@ static int source_set_state_in_io_thread_cb(pa_source *s, pa_source_state_t new_
             if (!PA_SOURCE_IS_OPENED(s->thread_info.state))
                 break;
 
+            /* Ignore the transition if the source is suspended for internal reasons
+             * such as external source-output changes resulting in pa_source_reconfigure.
+             * Logic in our handler decides whether to release the transport or not.
+             */
+            if (new_suspend_cause & PA_SUSPEND_INTERNAL)
+                break;
+
             /* Stop the device if the sink is suspended as well */
             if (!u->sink || u->sink->state == PA_SINK_SUSPENDED)
                 transport_release(u);
@@ -844,6 +851,9 @@ static int source_set_state_in_io_thread_cb(pa_source *s, pa_source_state_t new_
         case PA_SOURCE_IDLE:
         case PA_SOURCE_RUNNING:
             if (s->thread_info.state != PA_SOURCE_SUSPENDED)
+                break;
+
+            if (s->suspend_cause & PA_SUSPEND_INTERNAL)
                 break;
 
             /* Resume the device if the sink was suspended as well */
@@ -1071,6 +1081,13 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
             if (!PA_SINK_IS_OPENED(s->thread_info.state))
                 break;
 
+            /* Ignore the transition if the sink is suspended for internal reasons
+             * such as external sink-input changes resulting in pa_sink_reconfigure.
+             * Logic in our handler decides whether to release the transport or not.
+             */
+            if (new_suspend_cause & PA_SUSPEND_INTERNAL)
+                break;
+
             /* Stop the device if the source is suspended as well */
             if (!u->source || u->source->state == PA_SOURCE_SUSPENDED)
                 /* We deliberately ignore whether stopping
@@ -1083,6 +1100,9 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
         case PA_SINK_IDLE:
         case PA_SINK_RUNNING:
             if (s->thread_info.state != PA_SINK_SUSPENDED)
+                break;
+
+            if (s->suspend_cause & PA_SUSPEND_INTERNAL)
                 break;
 
             /* Resume the device if the source was suspended as well */
@@ -2383,10 +2403,7 @@ static void switch_codec_cb_handler(bool success, pa_bluetooth_profile_t profile
     u->profile = profile;
     is_a2dp_sink = u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK;
 
-    // SUSPEND callbacks release the transport and free the codec, but do not reinitialize it yet.
-    // Acquire the transport (could have been done in the callbacks when leaving SUSPEND) but
-    // _also_ reinitialize the codec with transport_config here:
-
+    // Reacquire the transport and configure the codec
     r = setup_transport(u);
     pa_assert(!r);
     // if (r == -EINPROGRESS)
@@ -2398,11 +2415,10 @@ static void switch_codec_cb_handler(bool success, pa_bluetooth_profile_t profile
 
     // Finish off by reconfiguring
 
-    // TODO HACK: Also cork/uncork sources so that the resampler is updated
-
     if (is_a2dp_sink) {
         pa_sink_input *i;
         uint32_t idx;
+
         PA_IDXSET_FOREACH(i, u->sink->inputs, idx) {
             pa_sink_input_cork(i, true);
         }
@@ -2411,10 +2427,13 @@ static void switch_codec_cb_handler(bool success, pa_bluetooth_profile_t profile
             pa_sink_input_cork(i, false);
         }
 
-        pa_sink_suspend(u->sink, false, PA_SUSPEND_INTERNAL);
+        pa_asyncmsgq_send(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), PA_SINK_MESSAGE_SETUP_STREAM, NULL, 0, NULL);
+
+        pa_sink_suspend(u->sink, false, PA_SUSPEND_UNAVAILABLE);
     } else {
         pa_source_output *i;
         uint32_t idx;
+
         PA_IDXSET_FOREACH(i, u->source->outputs, idx) {
             pa_source_output_cork(i, true);
         }
@@ -2423,7 +2442,9 @@ static void switch_codec_cb_handler(bool success, pa_bluetooth_profile_t profile
             pa_source_output_cork(i, false);
         }
 
-        pa_source_suspend(u->source, false, PA_SUSPEND_INTERNAL);
+        pa_asyncmsgq_send(u->source->asyncmsgq, PA_MSGOBJECT(u->source), PA_SOURCE_MESSAGE_SETUP_STREAM, NULL, 0, NULL);
+
+        pa_source_suspend(u->source, false, PA_SUSPEND_UNAVAILABLE);
     }
 
     pa_log_info("Codec successfully switched to %s with profile: %s",
@@ -2597,10 +2618,11 @@ static int bluez5_device_message_handler(const char *object_path, const char *me
         profile = u->profile;
 
         // Suspending releases the transport
+
         if (is_a2dp_sink)
-            pa_sink_suspend(u->sink, true, PA_SUSPEND_INTERNAL);
+            pa_sink_suspend(u->sink, true, PA_SUSPEND_UNAVAILABLE);
         else
-            pa_source_suspend(u->source, true, PA_SUSPEND_INTERNAL);
+            pa_source_suspend(u->source, true, PA_SUSPEND_UNAVAILABLE);
 
         // TODO: Can we do this if it's synchronous?
         release_codec(u);
