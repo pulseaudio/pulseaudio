@@ -2494,7 +2494,7 @@ static int bluez5_device_message_handler(const char *object_path, const char *me
 
         stop_thread(u);
 
-        if (!pa_bluetooth_switch_codec(u->device, profile, capabilities_hashmap, codec, switch_codec_cb_handler, userdata)
+        if (!pa_bluetooth_device_switch_codec(u->device, profile, capabilities_hashmap, codec, switch_codec_cb_handler, userdata)
                 && !u->device->codec_switching_in_progress)
             goto profile_off;
 

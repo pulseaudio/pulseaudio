@@ -305,7 +305,7 @@ struct switch_codec_data {
     void *userdata;
 };
 
-static void pa_bluetooth_switch_codec_reply(DBusPendingCall *pending, void *userdata) {
+static void pa_bluetooth_device_switch_codec_reply(DBusPendingCall *pending, void *userdata) {
     DBusMessage *r;
     pa_dbus_pending *p;
     pa_bluetooth_discovery *y;
@@ -345,7 +345,7 @@ static void pa_bluetooth_switch_codec_reply(DBusPendingCall *pending, void *user
     device->codec_switching_in_progress = false;
 }
 
-bool pa_bluetooth_switch_codec(pa_bluetooth_device *device, pa_bluetooth_profile_t profile,
+bool pa_bluetooth_device_switch_codec(pa_bluetooth_device *device, pa_bluetooth_profile_t profile,
         pa_hashmap *capabilities_hashmap, const pa_a2dp_codec *a2dp_codec,
         void (*codec_switch_cb)(bool, pa_bluetooth_profile_t profile, void *), void *userdata) {
     DBusMessageIter iter, dict;
@@ -409,7 +409,7 @@ bool pa_bluetooth_switch_codec(pa_bluetooth_device *device, pa_bluetooth_profile
     data->cb = codec_switch_cb;
     data->userdata = userdata;
 
-    send_and_add_to_pending(device->discovery, m, pa_bluetooth_switch_codec_reply, data);
+    send_and_add_to_pending(device->discovery, m, pa_bluetooth_device_switch_codec_reply, data);
 
     return true;
 }
