@@ -8,16 +8,17 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-01-22 09:11+0200\n"
-"PO-Revision-Date: 2019-08-19 11:14+0300\n"
+"PO-Revision-Date: 2021-01-27 18:40+0000\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
-"Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
+"Language-Team: Ukrainian <https://translate.fedoraproject.org/projects/"
+"pulseaudio/pulseaudio/uk/>\n"
 "Language: uk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Lokalize 19.11.70\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Weblate 4.4.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -706,9 +707,8 @@ msgid "Analog Output"
 msgstr "Аналогове відтворення"
 
 #: src/modules/alsa/alsa-mixer.c:2808
-#, fuzzy
 msgid "Headphones 2"
-msgstr "Аналогові навушники"
+msgstr "Навушники 2"
 
 #: src/modules/alsa/alsa-mixer.c:2809
 msgid "Headphones Mono Output"
@@ -755,28 +755,24 @@ msgid "Chat Output"
 msgstr "Вихід спілкування"
 
 #: src/modules/alsa/alsa-mixer.c:2821
-#, fuzzy
 msgid "Chat Input"
-msgstr "Вихід спілкування"
+msgstr "Вхід спілкування"
 
 #: src/modules/alsa/alsa-mixer.c:2822
-#, fuzzy
 msgid "Virtual Surround 7.1"
-msgstr "Віртуальний навколишній приймач"
+msgstr "Віртуальний об'ємний звук 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4562
 msgid "Analog Mono"
 msgstr "Аналогове моно"
 
 #: src/modules/alsa/alsa-mixer.c:4563
-#, fuzzy
 msgid "Analog Mono (Left)"
-msgstr "Аналогове моно"
+msgstr "Аналогове моно (лівий)"
 
 #: src/modules/alsa/alsa-mixer.c:4564
-#, fuzzy
 msgid "Analog Mono (Right)"
-msgstr "Аналогове моно"
+msgstr "Аналогове моно (правий)"
 
 #. Note: Not translated to "Analog Stereo Input", because the source
 #. * name gets "Input" appended to it automatically, so adding "Input"
@@ -803,7 +799,6 @@ msgid "Headset"
 msgstr "Гарнітура"
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
-#, fuzzy
 msgid "Speakerphone"
 msgstr "Гучномовець"
 
@@ -881,11 +876,11 @@ msgstr "Цифровий об’ємний 5.1 (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4596
 msgid "Chat"
-msgstr ""
+msgstr "Спілкування"
 
 #: src/modules/alsa/alsa-mixer.c:4597
 msgid "Game"
-msgstr ""
+msgstr "Гра"
 
 #: src/modules/alsa/alsa-mixer.c:4731
 msgid "Analog Mono Duplex"
@@ -909,7 +904,7 @@ msgstr "Двобічне стерео"
 
 #: src/modules/alsa/alsa-mixer.c:4738
 msgid "Mono Chat + 7.1 Surround"
-msgstr ""
+msgstr "Моно, спілкування + об'ємний 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4739 src/modules/alsa/module-alsa-card.c:197
 #: src/modules/bluetooth/module-bluez5-device.c:2083
@@ -1256,7 +1251,6 @@ msgid "Virtual surround sink"
 msgstr "Віртуальний навколишній приймач"
 
 #: src/modules/module-virtual-surround-sink.c:54
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "master=<name of sink to filter> sink_master=<name of sink to filter> "
@@ -1271,8 +1265,9 @@ msgstr ""
 "фільтрування> format=<формат фрагмента> rate=<частота дискретизації> "
 "channels=<кількість каналів> channel_map=<карта каналів> "
 "use_volume_sharing=<yes або no> force_flat_volume=<yes або no> hrir=/шлях/до/"
-"лівого_hrir.wav autoloaded=<встановіть, якщо цей модуль завантажується "
-"автоматично> "
+"лівого_hrir.wav hrir_left=/шлях/до/лівого_hrir.wav "
+"hrir_right=/шлях/до/необов'язкового/правого_hrir.wav autoloaded=<встановіть, "
+"якщо цей модуль завантажується автоматично> "
 
 #: src/modules/raop/module-raop-discover.c:295
 msgid "Unknown device model"
@@ -1917,7 +1912,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "Помилка pa_stream_update_timing_info(): %s"
 
 #: src/utils/pacat.c:676
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "%s\n"
@@ -2004,12 +1999,11 @@ msgstr ""
 "у діапазоні 0...65536\n"
 "      --rate=ЧАСТОТА ДИСКРЕТИЗАЦІЇ      Частота дискретизації у Гц (типовою "
 "є 44100)\n"
-"      --format=ФОРМАТ ДАНИХ             Тип даних, варіанти: s16le, s16be, "
-"u8, float32le,\n"
-"                                        float32be, ulaw, alaw, s32le, s32be, "
-"s24le, s24be,\n"
-"                                        s24-32le, s24-32be (типовим є "
-"s16ne)\n"
+"      --format=ФОРМАТ ДАНИХ             Формат даних, див. можливі значення "
+"на сторінці\n"
+"https://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/"
+"SupportedAudioFormats/\n"
+"                                        (типовим є s16ne)\n"
 "      --channels=КІЛЬКІСТЬ КАНАЛІВ      Кількість каналів, 1 — моно, 2 — "
 "стерео\n"
 "                                        (типове значення — 2)\n"
@@ -2309,7 +2303,7 @@ msgstr "БЛОКИ"
 
 #: src/utils/pacmd.c:80 src/utils/pactl.c:1709
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
-msgstr ""
+msgstr "ОТРИМУВАЧ ПОВІДОМЛЕННЯ [ПАРАМЕТРИ_ПОВІДОМЛЕННЯ]"
 
 #: src/utils/pacmd.c:82
 #, c-format
@@ -2452,72 +2446,67 @@ msgstr ""
 
 #: src/utils/pactl.c:242
 msgid "availability unknown"
-msgstr ""
+msgstr "невідома доступність"
 
 #: src/utils/pactl.c:243
 msgid "available"
-msgstr ""
+msgstr "доступний"
 
 #: src/utils/pactl.c:244
 msgid "not available"
-msgstr ""
+msgstr "недоступний"
 
 #: src/utils/pactl.c:253 src/utils/pactl.c:277
-#, fuzzy
 msgid "Unknown"
-msgstr "невідомий"
+msgstr "Невідомий"
 
 #: src/utils/pactl.c:254
 msgid "Aux"
-msgstr ""
+msgstr "Доп."
 
 #: src/utils/pactl.c:257
-#, fuzzy
 msgid "Line"
-msgstr "Лінійний вхід"
+msgstr "Лінійний"
 
 #: src/utils/pactl.c:258
 msgid "Mic"
-msgstr ""
+msgstr "Мікрофон"
 
 #: src/utils/pactl.c:260
-#, fuzzy
 msgid "Handset"
-msgstr "Гарнітура"
+msgstr "Трубка"
 
 #: src/utils/pactl.c:261
 msgid "Earpiece"
-msgstr ""
+msgstr "Навушник"
 
 #: src/utils/pactl.c:262
 msgid "SPDIF"
-msgstr ""
+msgstr "SPDIF"
 
 #: src/utils/pactl.c:263
 msgid "HDMI"
-msgstr ""
+msgstr "HDMI"
 
 #: src/utils/pactl.c:264
 msgid "TV"
-msgstr ""
+msgstr "ТБ"
 
 #: src/utils/pactl.c:267
 msgid "USB"
-msgstr ""
+msgstr "USB"
 
 #: src/utils/pactl.c:268
-#, fuzzy
 msgid "Bluetooth"
-msgstr "Bluetooth (вхід)"
+msgstr "Bluetooth"
 
 #: src/utils/pactl.c:274
 msgid "Network"
-msgstr ""
+msgstr "Мережа"
 
 #: src/utils/pactl.c:275
-#, fuzzy
 msgid "Analog"
-msgstr "Аналогове моно"
+msgstr "Аналоговий"
 
 #: src/utils/pactl.c:299 src/utils/pactl.c:1020 src/utils/pactl.c:1098
 #, c-format
@@ -2569,13 +2558,13 @@ msgid "\tPorts:\n"
 msgstr "\tПорти:\n"
 
 #: src/utils/pactl.c:371 src/utils/pactl.c:479
-#, fuzzy, c-format
+#, c-format
 msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
-msgstr "\t\t%s: %s (приймачів: %u, джерел: %u, пріоритет: %u, доступно: %s)\n"
+msgstr "\t\t%s: %s (тип: %s, пріоритетність: %u%s%s, %s)\n"
 
 #: src/utils/pactl.c:373 src/utils/pactl.c:481 src/utils/pactl.c:645
 msgid ", availability group: "
-msgstr ""
+msgstr ", група доступності: "
 
 #: src/utils/pactl.c:378 src/utils/pactl.c:486
 #, c-format
@@ -2723,6 +2712,8 @@ msgstr "\tАктивний профіль: %s\n"
 msgid ""
 "\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s, %s)\n"
 msgstr ""
+"\t\t%s: %s (тип: %s, пріоритетність: %u, зсув латентності: %<PRId64> "
+"мкс%s%s, %s)\n"
 
 #: src/utils/pactl.c:649
 #, c-format
@@ -2866,18 +2857,18 @@ msgid "Failure: %s"
 msgstr "Помилка: %s"
 
 #: src/utils/pactl.c:889
-#, fuzzy, c-format
+#, c-format
 msgid "Send message failed: %s"
-msgstr "Спроба виконання read() завершилася невдало: %s"
+msgstr "Не вдалося надіслати повідомлення: %s"
 
 #: src/utils/pactl.c:906
 #, c-format
 msgid "list-handlers message failed: %s"
-msgstr ""
+msgstr "помилка обробки повідомлення list-handlers: %s"
 
 #: src/utils/pactl.c:912 src/utils/pactl.c:947
 msgid "list-handlers message response could not be parsed correctly"
-msgstr ""
+msgstr "не вдалося обробити належним чином повідомлення-відповідь list-handlers"
 
 #: src/utils/pactl.c:984
 #, c-format
@@ -3058,8 +3049,9 @@ msgstr ""
 "\n"
 "  -h, --help                            Показати цю довідку\n"
 "      --version                         Показати відомості щодо версії\n"
-"  -s, --server=СЕРВЕР                   Назва сервера, з яким слід "
-"з’єднатися\n"
+"\n"
+"  -s, --server=СЕРВЕР                   Назва сервера, з яким слід з’"
+"єднатися\n"
 "  -n, --client-name=НАЗВА               Назва цього клієнта на сервері\n"
 
 #: src/utils/pactl.c:1755
@@ -3221,15 +3213,16 @@ msgid "Invalid source output index specification"
 msgstr "Некоректна специфікація номера джерела відтворення"
 
 #: src/utils/pactl.c:2150
-#, fuzzy
 msgid "You have to specify at least an object path and a message name"
-msgstr "Вам слід вказати назву/номер приймача і назву порту"
+msgstr "Вам слід вказати принаймні шлях до об'єкта і назву повідомлення"
 
 #: src/utils/pactl.c:2160
 msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
 msgstr ""
+"Надано зайві аргументи — їх буде проігноровано. Зауважте, що усі параметри "
+"повідомлення має бути надано у форматі одного рядка."
 
 #: src/utils/pactl.c:2170
 msgid ""
