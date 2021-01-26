@@ -56,8 +56,11 @@ PA_MODULE_AUTHOR("João Paulo Rechi Vita");
 PA_MODULE_DESCRIPTION("BlueZ 5 Bluetooth audio sink and source");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(false);
-PA_MODULE_USAGE("path=<device object path>"
-                "autodetect_mtu=<boolean>");
+PA_MODULE_USAGE(
+    "path=<device object path>"
+    "autodetect_mtu=<boolean>"
+    "output_rate_refresh_interval_ms=<interval between attempts to improve output rate in milliseconds>"
+);
 
 #define FIXED_LATENCY_PLAYBACK_A2DP (25 * PA_USEC_PER_MSEC)
 #define FIXED_LATENCY_PLAYBACK_SCO  (25 * PA_USEC_PER_MSEC)
@@ -66,11 +69,10 @@ PA_MODULE_USAGE("path=<device object path>"
 
 #define HSP_MAX_GAIN 15
 
-#define DEFAULT_OUTPUT_RATE_REFRESH_INTERVAL_MS 500
-
 static const char* const valid_modargs[] = {
     "path",
     "autodetect_mtu",
+    "output_rate_refresh_interval_ms",
     NULL
 };
 
@@ -2508,7 +2510,7 @@ int pa__init(pa_module* m) {
     pa_modargs *ma;
     bool autodetect_mtu;
     char *message_handler_path;
-    uint32_t output_rate_refresh_interval_ms = DEFAULT_OUTPUT_RATE_REFRESH_INTERVAL_MS;
+    uint32_t output_rate_refresh_interval_ms;
 
     pa_assert(m);
 
@@ -2547,8 +2549,9 @@ int pa__init(pa_module* m) {
 
     u->device->autodetect_mtu = autodetect_mtu;
 
-    if (pa_modargs_get_value_u32(ma, "output-rate-refresh-interval-ms", &output_rate_refresh_interval_ms) < 0) {
-        pa_log("Invalid output_rate_refresh_interval.");
+    output_rate_refresh_interval_ms = DEFAULT_OUTPUT_RATE_REFRESH_INTERVAL_MS;
+    if (pa_modargs_get_value_u32(ma, "output_rate_refresh_interval_ms", &output_rate_refresh_interval_ms) < 0) {
+        pa_log("Invalid value for output_rate_refresh_interval parameter.");
         goto fail_free_modargs;
     }
 

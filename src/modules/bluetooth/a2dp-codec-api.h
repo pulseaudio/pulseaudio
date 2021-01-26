@@ -23,6 +23,7 @@
 #include <pulsecore/core.h>
 
 #define MAX_A2DP_CAPS_SIZE 254
+#define DEFAULT_OUTPUT_RATE_REFRESH_INTERVAL_MS 500
 
 typedef struct pa_a2dp_codec_capabilities {
     uint8_t size;

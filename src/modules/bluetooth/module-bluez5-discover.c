@@ -37,11 +37,13 @@ PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE(
     "headset=ofono|native|auto"
     "autodetect_mtu=<boolean>"
+    "output_rate_refresh_interval_ms=<interval between attempts to improve output rate in milliseconds>"
 );
 
 static const char* const valid_modargs[] = {
     "headset",
     "autodetect_mtu",
+    "output_rate_refresh_interval_ms",
     NULL
 };
 
@@ -52,6 +54,7 @@ struct userdata {
     pa_hook_slot *device_connection_changed_slot;
     pa_bluetooth_discovery *discovery;
     bool autodetect_mtu;
+    uint32_t output_rate_refresh_interval_ms;
 };
 
 static pa_hook_result_t device_connection_changed_cb(pa_bluetooth_discovery *y, const pa_bluetooth_device *d, struct userdata *u) {
@@ -74,7 +77,8 @@ static pa_hook_result_t device_connection_changed_cb(pa_bluetooth_discovery *y, 
     if (!module_loaded && pa_bluetooth_device_any_transport_connected(d)) {
         /* a new device has been connected */
         pa_module *m;
-        char *args = pa_sprintf_malloc("path=%s autodetect_mtu=%i", d->path, (int)u->autodetect_mtu);
+        char *args = pa_sprintf_malloc("path=%s autodetect_mtu=%i output_rate_refresh_interval_ms=%u",
+                                       d->path, (int)u->autodetect_mtu, u->output_rate_refresh_interval_ms);
 
         pa_log_debug("Loading module-bluez5-device %s", args);
         pa_module_load(&m, u->module->core, "module-bluez5-device", args);
@@ -105,6 +109,7 @@ int pa__init(pa_module *m) {
     const char *headset_str;
     int headset_backend;
     bool autodetect_mtu;
+    uint32_t output_rate_refresh_interval_ms;
 
     pa_assert(m);
 
@@ -131,10 +136,17 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
+    output_rate_refresh_interval_ms = DEFAULT_OUTPUT_RATE_REFRESH_INTERVAL_MS;
+    if (pa_modargs_get_value_u32(ma, "output_rate_refresh_interval_ms", &output_rate_refresh_interval_ms) < 0) {
+        pa_log("Invalid value for output_rate_refresh_interval parameter.");
+        goto fail;
+    }
+
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->module = m;
     u->core = m->core;
     u->autodetect_mtu = autodetect_mtu;
+    u->output_rate_refresh_interval_ms = output_rate_refresh_interval_ms;
     u->loaded_device_paths = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
     if (!(u->discovery = pa_bluetooth_discovery_get(u->core, headset_backend)))
