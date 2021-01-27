@@ -10,7 +10,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-01-22 09:11+0200\n"
-"PO-Revision-Date: 2021-01-19 13:36+0000\n"
+"PO-Revision-Date: 2021-01-28 19:40+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/fi/>\n"
@@ -382,9 +382,9 @@ msgid "Path: %s\n"
 msgstr "Polku: %s\n"
 
 #: src/daemon/ltdl-bind-now.c:75
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to open module %s: %s"
-msgstr "Tiedoston ”%s” avaaminen epäonnistui\n"
+msgstr "Moduulin %s: %s avaaminen epäonnistui"
 
 #: src/daemon/ltdl-bind-now.c:126
 msgid "Failed to find original lt_dlopen loader."
@@ -485,30 +485,26 @@ msgid ""
 msgstr ""
 
 #: src/daemon/main.c:729
-#, fuzzy
 msgid "Running in system mode, but --disallow-exit not set."
 msgstr ""
-"Suoritetaan järjestelmätilassa, mutta --disallow-exit ei ole asetettuna!"
+"Suoritetaan järjestelmätilassa, mutta --disallow-exit ei ole asetettuna."
 
 #: src/daemon/main.c:732
-#, fuzzy
 msgid "Running in system mode, but --disallow-module-loading not set."
 msgstr ""
 "Suoritetaan järjestelmätilassa, mutta --disallow-module-loading ei ole "
-"asetettuna!"
+"asetettuna."
 
 #: src/daemon/main.c:735
-#, fuzzy
 msgid "Running in system mode, forcibly disabling SHM mode."
 msgstr ""
-"Suoritetaan järjestelmätilassa, otetaan SHM-tila pakotetusti pois käytöstä!"
+"Suoritetaan järjestelmätilassa, otetaan SHM-tila pakotetusti pois käytöstä."
 
 #: src/daemon/main.c:740
-#, fuzzy
 msgid "Running in system mode, forcibly disabling exit idle time."
 msgstr ""
 "Suoritetaan järjestelmätilassa, otetaan poistumisen joutenoloaika "
-"pakotetusti pois käytöstä!"
+"pakotetusti pois käytöstä."
 
 #: src/daemon/main.c:773
 msgid "Failed to acquire stdio."
@@ -543,7 +539,6 @@ msgid "Failed to get machine ID"
 msgstr "Konetunnisteen nouto epäonnistui"
 
 #: src/daemon/main.c:996
-#, fuzzy
 msgid ""
 "OK, so you are running PA in system mode. Please make sure that you actually "
 "do want to do that.\n"
@@ -566,9 +561,8 @@ msgid "pa_core_new() failed."
 msgstr "pa_core_new() epäonnistui."
 
 #: src/daemon/main.c:1119
-#, fuzzy
 msgid "command line arguments"
-msgstr "Liian monta argumenttia."
+msgstr "komentorivin argumentteja"
 
 #: src/daemon/main.c:1126
 #, c-format
@@ -964,7 +958,7 @@ msgstr ""
 "kuitenkin 0 tai jonkin muun arvon, on < min_avail."
 
 #: src/modules/alsa/alsa-util.c:1183 src/modules/alsa/alsa-util.c:1277
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu byte (%lu "
 "ms).\n"
@@ -985,7 +979,7 @@ msgstr[1] ""
 "ongelmasta ALSA-kehittäjille."
 
 #: src/modules/alsa/alsa-util.c:1249
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li byte (%s"
 "%lu ms).\n"
@@ -997,13 +991,13 @@ msgid_plural ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr[0] ""
-"snd_pcm_delay() palautti poikkeuksellisen suuren arvon: %li tavua (%s%lu "
-"ms).\n"
+"snd_pcm_delay() palautti poikkeuksellisen suuren arvon: %li tavua (%s%lu ms)."
+"\n"
 "Tämä on todennäköisesti ohjelmavirhe ALSA-ajurissa ”%s”. Ilmoita tästä "
 "ongelmasta ALSA-kehittäjille."
 msgstr[1] ""
-"snd_pcm_delay() palautti poikkeuksellisen suuren arvon: %li tavua (%s%lu "
-"ms).\n"
+"snd_pcm_delay() palautti poikkeuksellisen suuren arvon: %li tavua (%s%lu ms)."
+"\n"
 "Tämä on todennäköisesti ohjelmavirhe ALSA-ajurissa ”%s”. Ilmoita tästä "
 "ongelmasta ALSA-kehittäjille."
 
@@ -1021,7 +1015,7 @@ msgstr ""
 "ongelmasta ALSA-kehittäjille."
 
 #: src/modules/alsa/alsa-util.c:1339
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu byte "
 "(%lu ms).\n"
@@ -1563,9 +1557,9 @@ msgid "Cannot access autospawn lock."
 msgstr "Automaattisen käynnistyksen lukkoa ei voida käyttää."
 
 #: src/pulsecore/log.c:165
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to open target file '%s'."
-msgstr "Tiedoston ”%s” avaaminen epäonnistui\n"
+msgstr "Kohdetiedoston ”%s” avaaminen epäonnistui."
 
 #: src/pulsecore/log.c:188
 #, c-format
@@ -2279,20 +2273,17 @@ msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
 msgstr ""
 
 #: src/utils/pacmd.c:82
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "  -h, --help                            Show this help\n"
 "      --version                         Show version\n"
 "When no command is given pacmd starts in the interactive mode.\n"
 msgstr ""
-"%s [valitsimet] ... \n"
 "\n"
 "  -h, --help                            Näytä tämä ohje\n"
 "      --version                         Näytä versio\n"
-"  -s, --server=PALVELIN                 Sen palvelimen nimi, johon "
-"yhdistetään\n"
-"\n"
+"Ilman komentoa pacmd käynnistyy interaktiivisessa tilassa.\n"
 
 #: src/utils/pacmd.c:129
 #, fuzzy, c-format
@@ -2350,14 +2341,14 @@ msgid "Failed to get statistics: %s"
 msgstr "Tilastojen selvittäminen epäonnistui: %s"
 
 #: src/utils/pactl.c:175
-#, fuzzy, c-format
+#, c-format
 msgid "Currently in use: %u block containing %s bytes total.\n"
 msgid_plural "Currently in use: %u blocks containing %s bytes total.\n"
 msgstr[0] "Nyt käytössä: %u lohkoa sisältäen yhteensä %s tavua.\n"
 msgstr[1] "Nyt käytössä: %u lohkoa sisältäen yhteensä %s tavua.\n"
 
 #: src/utils/pactl.c:181
-#, fuzzy, c-format
+#, c-format
 msgid "Allocated during whole lifetime: %u block containing %s bytes total.\n"
 msgid_plural ""
 "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
@@ -2929,14 +2920,12 @@ msgid "Volume outside permissible range.\n"
 msgstr ""
 
 #: src/utils/pactl.c:1647
-#, fuzzy
 msgid "Invalid number of volume specifications.\n"
-msgstr "Virheellinen äänenvoimakkuuden määritys"
+msgstr "Virheellinen äänenvoimakkuuden määritys.\n"
 
 #: src/utils/pactl.c:1659
-#, fuzzy
 msgid "Inconsistent volume specification.\n"
-msgstr "Virheellinen äänenvoimakkuuden määritys"
+msgstr "Virheellinen äänenvoimakkuuden määritys.\n"
 
 #: src/utils/pactl.c:1689 src/utils/pactl.c:1690 src/utils/pactl.c:1691
 #: src/utils/pactl.c:1692 src/utils/pactl.c:1693 src/utils/pactl.c:1694
@@ -3071,9 +3060,8 @@ msgid ""
 msgstr "Ei voi antaa enempää kuin yhden nielun. Totuusarvo on annettava."
 
 #: src/utils/pactl.c:1941 src/utils/pactl.c:1961
-#, fuzzy
 msgid "Invalid suspend specification."
-msgstr "Virheellinen näytemääritys"
+msgstr "Virheellinen äänenvaimennuksen määritys."
 
 #: src/utils/pactl.c:1956
 msgid ""
