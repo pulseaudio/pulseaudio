@@ -38,12 +38,14 @@ PA_MODULE_USAGE(
     "headset=ofono|native|auto"
     "autodetect_mtu=<boolean>"
     "output_rate_refresh_interval_ms=<interval between attempts to improve output rate in milliseconds>"
+    "enable_native_hfp_hf=<boolean, enable HFP support in native backend>"
 );
 
 static const char* const valid_modargs[] = {
     "headset",
     "autodetect_mtu",
     "output_rate_refresh_interval_ms",
+    "enable_native_hfp_hf",
     NULL
 };
 
