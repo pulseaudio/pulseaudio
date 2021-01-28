@@ -2003,10 +2003,7 @@ static pa_card_profile *create_card_profile(struct userdata *u, pa_bluetooth_pro
 
     *p = profile;
 
-    if (u->device->transports[*p])
-        cp->available = transport_state_to_availability(u->device->transports[*p]->state);
-    else
-        cp->available = PA_AVAILABLE_NO;
+    cp->available = device_supports_profile(u->device, profile) ? PA_AVAILABLE_YES : PA_AVAILABLE_NO;
 
     return cp;
 }
@@ -2190,13 +2187,8 @@ static void handle_transport_state_change(struct userdata *u, struct pa_bluetoot
     pa_assert(t);
     pa_assert_se(cp = pa_hashmap_get(u->card->profiles, pa_bluetooth_profile_to_string(t->profile)));
 
+    // TODO: Makes no sense to check this anymore, but maybe that breaks the boolean?
     oldavail = cp->available;
-    /*
-     * If codec switching is in progress, transport state change should not
-     * make profile unavailable.
-     */
-    if (!t->device->codec_switching_in_progress)
-        pa_card_profile_set_available(cp, transport_state_to_availability(t->state));
 
     /* Update port availability */
     pa_assert_se(port = pa_hashmap_get(u->card->ports, u->output_port_name));

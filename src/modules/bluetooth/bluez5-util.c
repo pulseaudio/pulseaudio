@@ -214,7 +214,7 @@ static const char *transport_state_to_string(pa_bluetooth_transport_state_t stat
     return "invalid";
 }
 
-static bool device_supports_profile(pa_bluetooth_device *device, pa_bluetooth_profile_t profile) {
+bool device_supports_profile(pa_bluetooth_device *device, pa_bluetooth_profile_t profile) {
     bool show_hfp, show_hsp;
 
     if (device->enable_hfp_hf) {
