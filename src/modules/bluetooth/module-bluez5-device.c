@@ -1289,6 +1289,8 @@ static int setup_transport(struct userdata *u) {
             return -1; /* We need to fail here until the interactions with module-suspend-on-idle and alike get improved */
     }
 
+    pa_assert_se(pa_card_set_profile(u->card, pa_hashmap_get(u->card->profiles, pa_bluetooth_profile_to_string(t->profile)), false) >= 0);
+
     return transport_config(u);
 }
 
@@ -2020,6 +2022,11 @@ static int set_profile_cb(pa_card *c, pa_card_profile *new_profile) {
     pa_assert_se(u = c->userdata);
 
     p = *(pa_bluetooth_profile_t *)PA_CARD_PROFILE_DATA(new_profile);
+
+    if (p == u->profile) {
+        pa_log_debug("Profile %s already selected", pa_bluetooth_profile_to_string(p));
+        return 0;
+    }
 
     stop_thread(u);
 
