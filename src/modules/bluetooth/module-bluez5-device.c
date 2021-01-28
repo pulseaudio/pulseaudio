@@ -1945,7 +1945,7 @@ static pa_card_profile *create_card_profile(struct userdata *u, pa_bluetooth_pro
         break;
 
     case PA_BLUETOOTH_PROFILE_HSP_HS:
-        cp = pa_card_profile_new(name, _("Headset Head Unit (HSP)"), sizeof(pa_bluetooth_profile_t));
+        cp = pa_card_profile_new(name, _("Headset Head Unit (HSP/HFP)"), sizeof(pa_bluetooth_profile_t));
         cp->priority = 30;
         cp->n_sinks = 1;
         cp->n_sources = 1;

@@ -41,6 +41,7 @@ struct pa_bluetooth_backend {
   pa_dbus_connection *connection;
   pa_bluetooth_discovery *discovery;
   bool enable_hs_role;
+  bool enable_hfp_hf;
 
   PA_LLIST_HEAD(pa_dbus_pending, pending);
 };
@@ -782,15 +783,24 @@ static void profile_done(pa_bluetooth_backend *b, pa_bluetooth_profile_t profile
     }
 }
 
+static void native_backend_apply_profile_registration_change(pa_bluetooth_backend *native_backend, bool enable_hs_role) {
+    if (enable_hs_role) {
+        profile_init(native_backend, PA_BLUETOOTH_PROFILE_HFP_AG);
+        if (native_backend->enable_hfp_hf)
+            profile_init(native_backend, PA_BLUETOOTH_PROFILE_HFP_HF);
+    } else {
+        profile_done(native_backend, PA_BLUETOOTH_PROFILE_HFP_AG);
+        if (native_backend->enable_hfp_hf)
+            profile_done(native_backend, PA_BLUETOOTH_PROFILE_HFP_HF);
+    }
+}
+
 void pa_bluetooth_native_backend_enable_hs_role(pa_bluetooth_backend *native_backend, bool enable_hs_role) {
 
    if (enable_hs_role == native_backend->enable_hs_role)
        return;
 
-   if (enable_hs_role)
-       profile_init(native_backend, PA_BLUETOOTH_PROFILE_HFP_AG);
-   else
-       profile_done(native_backend, PA_BLUETOOTH_PROFILE_HFP_AG);
+   native_backend_apply_profile_registration_change(native_backend, enable_hs_role);
 
    native_backend->enable_hs_role = enable_hs_role;
 }
@@ -814,12 +824,12 @@ pa_bluetooth_backend *pa_bluetooth_native_backend_new(pa_core *c, pa_bluetooth_d
 
     backend->discovery = y;
     backend->enable_hs_role = enable_hs_role;
+    backend->enable_hfp_hf = pa_bluetooth_discovery_get_enable_native_hfp_hf(y);
 
-    if (enable_hs_role)
-       profile_init(backend, PA_BLUETOOTH_PROFILE_HFP_AG);
+    if (backend->enable_hs_role)
+        native_backend_apply_profile_registration_change(backend, true);
+
     profile_init(backend, PA_BLUETOOTH_PROFILE_HSP_HS);
-    if (pa_bluetooth_discovery_get_enable_native_hfp_hf(y))
-        profile_init(backend, PA_BLUETOOTH_PROFILE_HFP_HF);
 
     return backend;
 }
@@ -830,10 +840,9 @@ void pa_bluetooth_native_backend_free(pa_bluetooth_backend *backend) {
     pa_dbus_free_pending_list(&backend->pending);
 
     if (backend->enable_hs_role)
-       profile_done(backend, PA_BLUETOOTH_PROFILE_HFP_AG);
+        native_backend_apply_profile_registration_change(backend, false);
+
     profile_done(backend, PA_BLUETOOTH_PROFILE_HSP_HS);
-    if (pa_bluetooth_discovery_get_enable_native_hfp_hf(backend->discovery))
-      profile_done(backend, PA_BLUETOOTH_PROFILE_HFP_HF);
 
     pa_dbus_connection_unref(backend->connection);
 

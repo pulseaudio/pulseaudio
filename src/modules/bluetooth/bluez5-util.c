@@ -1466,14 +1466,16 @@ void pa_bluetooth_discovery_set_ofono_running(pa_bluetooth_discovery *y, bool is
     if (y->headset_backend != HEADSET_BACKEND_AUTO)
         return;
 
-    /* If ofono starts running, all devices that might be connected to the HS role
+    pa_bluetooth_native_backend_enable_hs_role(y->native_backend, !is_running);
+
+    /* If ofono starts running, all devices that might be connected to the HS roles or HFP AG role
      * need to be disconnected, so that the devices can be handled by ofono */
     if (is_running) {
         void *state;
         pa_bluetooth_device *d;
 
         PA_HASHMAP_FOREACH(d, y->devices, state) {
-            if (device_supports_profile(d, PA_BLUETOOTH_PROFILE_HFP_AG)) {
+            if (device_supports_profile(d, PA_BLUETOOTH_PROFILE_HFP_AG) || device_supports_profile(d, PA_BLUETOOTH_PROFILE_HFP_HF)) {
                 DBusMessage *m;
 
                 pa_assert_se(m = dbus_message_new_method_call(BLUEZ_SERVICE, d->path, BLUEZ_DEVICE_INTERFACE, "Disconnect"));
@@ -1483,8 +1485,6 @@ void pa_bluetooth_discovery_set_ofono_running(pa_bluetooth_discovery *y, bool is
             }
         }
     }
-
-    pa_bluetooth_native_backend_enable_hs_role(y->native_backend, !is_running);
 }
 
 static void get_managed_objects_reply(DBusPendingCall *pending, void *userdata) {
