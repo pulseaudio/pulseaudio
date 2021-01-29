@@ -2103,16 +2103,6 @@ static int add_card(struct userdata *u) {
     PA_HASHMAP_FOREACH(uuid, d->uuids, state) {
         pa_bluetooth_profile_t profile;
 
-        if (!enable_native_hfp_hf && pa_streq(uuid, PA_BLUETOOTH_UUID_HFP_HF)) {
-            pa_log_info("device supports HFP but disabling profile as requested");
-            continue;
-        }
-
-        if (has_both && pa_streq(uuid, PA_BLUETOOTH_UUID_HSP_HS)) {
-            pa_log_info("device support HSP and HFP, selecting HFP only");
-            continue;
-        }
-
         if (uuid_to_profile(uuid, &profile) < 0)
             continue;
 
