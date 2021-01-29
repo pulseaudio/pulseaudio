@@ -337,7 +337,7 @@ static void hf_audio_agent_card_found(pa_bluetooth_backend *backend, const char 
             card->local_address = pa_xstrdup(value);
         } else if (pa_streq(key, "Type")) {
             if (pa_streq(value, "gateway"))
-                p = PA_BLUETOOTH_PROFILE_HSP_HS;
+                p = PA_BLUETOOTH_PROFILE_HFP_HF;
         }
 
         pa_log_debug("%s: %s", key, value);

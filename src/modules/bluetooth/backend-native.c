@@ -562,7 +562,7 @@ static void set_speaker_gain(pa_bluetooth_transport *t, uint16_t gain) {
     /* If we are in the AG role, we send a command to the head set to change
      * the speaker gain. In the HS role, source and sink are swapped, so
      * in this case we notify the AG that the microphone gain has changed */
-    if (t->profile == PA_BLUETOOTH_PROFILE_HSP_HS) {
+    if (t->profile == PA_BLUETOOTH_PROFILE_HSP_HS || t->profile == PA_BLUETOOTH_PROFILE_HFP_HF) {
         len = sprintf(buf, "\r\n+VGS=%d\r\n", gain);
         pa_log_debug("RFCOMM >> +VGS=%d", gain);
     } else {
@@ -589,7 +589,7 @@ static void set_microphone_gain(pa_bluetooth_transport *t, uint16_t gain) {
     /* If we are in the AG role, we send a command to the head set to change
      * the microphone gain. In the HS role, source and sink are swapped, so
      * in this case we notify the AG that the speaker gain has changed */
-    if (t->profile == PA_BLUETOOTH_PROFILE_HSP_HS) {
+    if (t->profile == PA_BLUETOOTH_PROFILE_HSP_HS || t->profile == PA_BLUETOOTH_PROFILE_HFP_HF) {
         len = sprintf(buf, "\r\n+VGM=%d\r\n", gain);
         pa_log_debug("RFCOMM >> +VGM=%d", gain);
     } else {
@@ -624,7 +624,7 @@ static DBusMessage *profile_new_connection(DBusConnection *conn, DBusMessage *m,
     if (pa_streq(handler, HSP_AG_PROFILE)) {
         p = PA_BLUETOOTH_PROFILE_HSP_HS;
     } else if (pa_streq(handler, HSP_HS_PROFILE)) {
-        p = PA_BLUETOOTH_PROFILE_HFP_AG;
+        p = PA_BLUETOOTH_PROFILE_HSP_AG;
     } else if (pa_streq(handler, HFP_AG_PROFILE)) {
         p = PA_BLUETOOTH_PROFILE_HFP_HF;
     } else {
@@ -757,7 +757,7 @@ static void profile_init(pa_bluetooth_backend *b, pa_bluetooth_profile_t profile
             object_name = HSP_AG_PROFILE;
             uuid = PA_BLUETOOTH_UUID_HSP_AG;
             break;
-        case PA_BLUETOOTH_PROFILE_HFP_AG:
+        case PA_BLUETOOTH_PROFILE_HSP_AG:
             object_name = HSP_HS_PROFILE;
             uuid = PA_BLUETOOTH_UUID_HSP_HS;
             break;
@@ -781,7 +781,7 @@ static void profile_done(pa_bluetooth_backend *b, pa_bluetooth_profile_t profile
         case PA_BLUETOOTH_PROFILE_HSP_HS:
             dbus_connection_unregister_object_path(pa_dbus_connection_get(b->connection), HSP_AG_PROFILE);
             break;
-        case PA_BLUETOOTH_PROFILE_HFP_AG:
+        case PA_BLUETOOTH_PROFILE_HSP_AG:
             dbus_connection_unregister_object_path(pa_dbus_connection_get(b->connection), HSP_HS_PROFILE);
             break;
         case PA_BLUETOOTH_PROFILE_HFP_HF:
@@ -795,11 +795,11 @@ static void profile_done(pa_bluetooth_backend *b, pa_bluetooth_profile_t profile
 
 static void native_backend_apply_profile_registration_change(pa_bluetooth_backend *native_backend, bool enable_hs_role) {
     if (enable_hs_role) {
-        profile_init(native_backend, PA_BLUETOOTH_PROFILE_HFP_AG);
+        profile_init(native_backend, PA_BLUETOOTH_PROFILE_HSP_AG);
         if (native_backend->enable_hfp_hf)
             profile_init(native_backend, PA_BLUETOOTH_PROFILE_HFP_HF);
     } else {
-        profile_done(native_backend, PA_BLUETOOTH_PROFILE_HFP_AG);
+        profile_done(native_backend, PA_BLUETOOTH_PROFILE_HSP_AG);
         if (native_backend->enable_hfp_hf)
             profile_done(native_backend, PA_BLUETOOTH_PROFILE_HFP_HF);
     }

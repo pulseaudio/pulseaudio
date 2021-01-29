@@ -216,11 +216,12 @@ static bool device_supports_profile(pa_bluetooth_device *device, pa_bluetooth_pr
             return show_hsp
                 && ( !!pa_hashmap_get(device->uuids, PA_BLUETOOTH_UUID_HSP_HS)
                   || !!pa_hashmap_get(device->uuids, PA_BLUETOOTH_UUID_HSP_HS_ALT));
+        case PA_BLUETOOTH_PROFILE_HSP_AG:
+            return !!pa_hashmap_get(device->uuids, PA_BLUETOOTH_UUID_HSP_AG);
         case PA_BLUETOOTH_PROFILE_HFP_HF:
             return show_hfp && !!pa_hashmap_get(device->uuids, PA_BLUETOOTH_UUID_HFP_HF);
         case PA_BLUETOOTH_PROFILE_HFP_AG:
-            return !!pa_hashmap_get(device->uuids, PA_BLUETOOTH_UUID_HSP_AG)
-                || !!pa_hashmap_get(device->uuids, PA_BLUETOOTH_UUID_HFP_AG);
+            return !!pa_hashmap_get(device->uuids, PA_BLUETOOTH_UUID_HFP_AG);
         case PA_BLUETOOTH_PROFILE_OFF:
             pa_assert_not_reached();
     }
@@ -1725,10 +1726,12 @@ const char *pa_bluetooth_profile_to_string(pa_bluetooth_profile_t profile) {
             return "a2dp_source";
         case PA_BLUETOOTH_PROFILE_HSP_HS:
             return "headset_head_unit";
-        case PA_BLUETOOTH_PROFILE_HFP_HF:
-            return "headset_handsfree";
-        case PA_BLUETOOTH_PROFILE_HFP_AG:
+        case PA_BLUETOOTH_PROFILE_HSP_AG:
             return "headset_audio_gateway";
+        case PA_BLUETOOTH_PROFILE_HFP_HF:
+            return "handsfree_head_unit";
+        case PA_BLUETOOTH_PROFILE_HFP_AG:
+            return "handsfree_audio_gateway";
         case PA_BLUETOOTH_PROFILE_OFF:
             return "off";
     }
