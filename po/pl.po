@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-01-22 09:11+0200\n"
-"PO-Revision-Date: 2021-01-30 12:38+0000\n"
+"PO-Revision-Date: 2021-01-30 12:54+0000\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/pl/>\n"
@@ -1885,7 +1885,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() się nie powiodło: %s"
 
 #: src/utils/pacat.c:676
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "%s\n"
@@ -1973,10 +1973,12 @@ msgstr ""
 "                                        0…65536\n"
 "      --rate=CZĘSTOTLIWOŚĆPRÓBKI        Częstotliwość próbki w Hz\n"
 "                                        (domyślnie 44100)\n"
-"      --format=FORMATPRÓBKI             Typ próbki, jeden z s16le, s16be,\n"
-"                                        u8, float32le, float32be, ulaw,\n"
-"                                        alaw, s32le, s32be, s24le, s24be,\n"
-"                                        s24-32le, s24-32be (domyślnie\n"
+"      --format=FORMATPRÓBKI             Format próbki, https://www."
+"freedesktop.org/wiki/\n"
+"                                        Software/PulseAudio/Documentation/"
+"User/SupportedAudioFormats/\n"
+"                                        zawiera listę możliwych wartości ("
+"domyślnie\n"
 "                                        s16ne)\n"
 "      --channels=KANAŁY                 Liczba kanałów, 1 dla mono, 2 dla\n"
 "                                        stereo\n"
@@ -2278,7 +2280,7 @@ msgstr "RAMKI"
 
 #: src/utils/pacmd.c:80 src/utils/pactl.c:1709
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
-msgstr ""
+msgstr "ODBIORCA KOMUNIKAT [PARAMETRY_KOMUNIKATU]"
 
 #: src/utils/pacmd.c:82
 #, c-format
@@ -2423,72 +2425,67 @@ msgstr ""
 
 #: src/utils/pactl.c:242
 msgid "availability unknown"
-msgstr ""
+msgstr "dostępność jest nieznana"
 
 #: src/utils/pactl.c:243
 msgid "available"
-msgstr ""
+msgstr "dostępne"
 
 #: src/utils/pactl.c:244
 msgid "not available"
-msgstr ""
+msgstr "niedostępne"
 
 #: src/utils/pactl.c:253 src/utils/pactl.c:277
-#, fuzzy
 msgid "Unknown"
-msgstr "nieznany"
+msgstr "Nieznany"
 
 #: src/utils/pactl.c:254
 msgid "Aux"
-msgstr ""
+msgstr "Pomocniczy"
 
 #: src/utils/pactl.c:257
-#, fuzzy
 msgid "Line"
-msgstr "Wejście liniowe"
+msgstr "Liniowy"
 
 #: src/utils/pactl.c:258
 msgid "Mic"
-msgstr ""
+msgstr "Mikrofon"
 
 #: src/utils/pactl.c:260
-#, fuzzy
 msgid "Handset"
-msgstr "Słuchawki z mikrofonem"
+msgstr "Słuchawka telefonu"
 
 #: src/utils/pactl.c:261
 msgid "Earpiece"
-msgstr ""
+msgstr "Słuchawka douszna"
 
 #: src/utils/pactl.c:262
 msgid "SPDIF"
-msgstr ""
+msgstr "S/PDIF"
 
 #: src/utils/pactl.c:263
 msgid "HDMI"
-msgstr ""
+msgstr "HDMI"
 
 #: src/utils/pactl.c:264
 msgid "TV"
-msgstr ""
+msgstr "Telewizor"
 
 #: src/utils/pactl.c:267
 msgid "USB"
-msgstr ""
+msgstr "USB"
 
 #: src/utils/pactl.c:268
-#, fuzzy
 msgid "Bluetooth"
-msgstr "Wejście Bluetooth"
+msgstr "Bluetooth"
 
 #: src/utils/pactl.c:274
 msgid "Network"
-msgstr ""
+msgstr "Sieć"
 
 #: src/utils/pactl.c:275
-#, fuzzy
 msgid "Analog"
-msgstr "Analogowe mono"
+msgstr "Analogowe"
 
 #: src/utils/pactl.c:299 src/utils/pactl.c:1020 src/utils/pactl.c:1098
 #, c-format
@@ -2540,13 +2537,13 @@ msgid "\tPorts:\n"
 msgstr "\tPorty:\n"
 
 #: src/utils/pactl.c:371 src/utils/pactl.c:479
-#, fuzzy, c-format
+#, c-format
 msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
-msgstr "\t\t%s: %s (odpływy: %u, źródła: %u, priorytet: %u, dostępne: %s)\n"
+msgstr "\t\t%s: %s (typ: %s, priorytet: %u%s%s, %s)\n"
 
 #: src/utils/pactl.c:373 src/utils/pactl.c:481 src/utils/pactl.c:645
 msgid ", availability group: "
-msgstr ""
+msgstr ", grupa dostępności: "
 
 #: src/utils/pactl.c:378 src/utils/pactl.c:486
 #, c-format
@@ -2694,6 +2691,8 @@ msgstr "\tAktywny profil: %s\n"
 msgid ""
 "\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s, %s)\n"
 msgstr ""
+"\t\t%s: %s (typ: %s, priorytet: %u, offset opóźnienia: %<PRId64> us%s%s, %s)"
+"\n"
 
 #: src/utils/pactl.c:649
 #, c-format
@@ -2837,18 +2836,18 @@ msgid "Failure: %s"
 msgstr "Niepowodzenie: %s"
 
 #: src/utils/pactl.c:889
-#, fuzzy, c-format
+#, c-format
 msgid "Send message failed: %s"
-msgstr "read() się nie powiodło: %s"
+msgstr "Komunikat wysłania się nie powiódł: %s"
 
 #: src/utils/pactl.c:906
 #, c-format
 msgid "list-handlers message failed: %s"
-msgstr ""
+msgstr "Komunikat „list-handlers” się nie powiódł: %s"
 
 #: src/utils/pactl.c:912 src/utils/pactl.c:947
 msgid "list-handlers message response could not be parsed correctly"
-msgstr ""
+msgstr "Nie można poprawnie przetworzyć odpowiedzi komunikatu „list-handlers”"
 
 #: src/utils/pactl.c:984
 #, c-format
@@ -3187,15 +3186,16 @@ msgid "Invalid source output index specification"
 msgstr "Nieprawidłowe określenie indeksu wyjścia źródła"
 
 #: src/utils/pactl.c:2150
-#, fuzzy
 msgid "You have to specify at least an object path and a message name"
-msgstr "Należy podać nazwę odpływu/indeks i nazwę portu"
+msgstr "Należy podać co najmniej ścieżkę do obiektu i nazwę komunikatu"
 
 #: src/utils/pactl.c:2160
 msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
 msgstr ""
+"Podano nadmiarowe parametry, które zostaną zignorowane. Proszę pamiętać, że "
+"wszystkie parametry komunikatu muszą być podawane jako jeden ciąg."
 
 #: src/utils/pactl.c:2170
 msgid ""
