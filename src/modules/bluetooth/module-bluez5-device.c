@@ -978,6 +978,7 @@ static int add_source(struct userdata *u) {
     if (u->bt_codec)
         pa_proplist_sets(data.proplist, PA_PROP_BLUETOOTH_CODEC, u->bt_codec->name);
     pa_source_new_data_set_sample_spec(&data, &u->decoder_sample_spec);
+    pa_source_new_data_set_avoid_resampling(&data, true);
     if (u->profile == PA_BLUETOOTH_PROFILE_HSP_HS
         || u->profile == PA_BLUETOOTH_PROFILE_HFP_HF)
         pa_proplist_sets(data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
@@ -1224,6 +1225,7 @@ static int add_sink(struct userdata *u) {
     if (u->bt_codec)
         pa_proplist_sets(data.proplist, PA_PROP_BLUETOOTH_CODEC, u->bt_codec->name);
     pa_sink_new_data_set_sample_spec(&data, &u->encoder_sample_spec);
+    pa_sink_new_data_set_avoid_resampling(&data, true);
     if (u->profile == PA_BLUETOOTH_PROFILE_HSP_HS
         || u->profile == PA_BLUETOOTH_PROFILE_HFP_HF)
         pa_proplist_sets(data.proplist, PA_PROP_DEVICE_INTENDED_ROLES, "phone");
@@ -2422,7 +2424,7 @@ static void switch_codec_cb_handler(bool success, pa_bluetooth_profile_t profile
         PA_IDXSET_FOREACH(i, u->sink->inputs, idx) {
             pa_sink_input_cork(i, true);
         }
-        pa_sink_reconfigure(u->sink, spec, true);
+        pa_sink_reconfigure(u->sink, spec, false);
         PA_IDXSET_FOREACH(i, u->sink->inputs, idx) {
             pa_sink_input_cork(i, false);
         }
@@ -2437,7 +2439,7 @@ static void switch_codec_cb_handler(bool success, pa_bluetooth_profile_t profile
         PA_IDXSET_FOREACH(i, u->source->outputs, idx) {
             pa_source_output_cork(i, true);
         }
-        pa_source_reconfigure(u->source, spec, true);
+        pa_source_reconfigure(u->source, spec, false);
         PA_IDXSET_FOREACH(i, u->source->outputs, idx) {
             pa_source_output_cork(i, false);
         }
