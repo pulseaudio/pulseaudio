@@ -2398,6 +2398,9 @@ static void switch_codec_cb_handler(bool success, pa_bluetooth_profile_t profile
     pa_sample_spec *spec;
     bool is_a2dp_sink;
     int r;
+    pa_sink_input *i;
+    pa_source_output *o;
+    uint32_t idx;
 
     if (!success)
         goto off;
@@ -2418,31 +2421,41 @@ static void switch_codec_cb_handler(bool success, pa_bluetooth_profile_t profile
     // Finish off by reconfiguring
 
     if (is_a2dp_sink) {
-        pa_sink_input *i;
-        uint32_t idx;
-
-        PA_IDXSET_FOREACH(i, u->sink->inputs, idx) {
+        PA_IDXSET_FOREACH(i, u->sink->inputs, idx)
             pa_sink_input_cork(i, true);
+        if (u->sink->monitor_source) {
+            pa_source_suspend(u->sink->monitor_source, true, PA_SUSPEND_INTERNAL);
+            PA_IDXSET_FOREACH(o, u->sink->monitor_source->outputs, idx)
+                pa_source_output_cork(o, true);
         }
         pa_sink_reconfigure(u->sink, spec, false);
-        PA_IDXSET_FOREACH(i, u->sink->inputs, idx) {
-            pa_sink_input_cork(i, false);
+        if (u->sink->monitor_source) {
+            PA_IDXSET_FOREACH(o, u->sink->monitor_source->outputs, idx)
+                pa_source_output_cork(o, false);
+            pa_source_suspend(u->sink->monitor_source, false, PA_SUSPEND_INTERNAL);
         }
+        PA_IDXSET_FOREACH(i, u->sink->inputs, idx)
+            pa_sink_input_cork(i, false);
 
         pa_asyncmsgq_send(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), PA_SINK_MESSAGE_SETUP_STREAM, NULL, 0, NULL);
 
         pa_sink_suspend(u->sink, false, PA_SUSPEND_UNAVAILABLE);
     } else {
-        pa_source_output *i;
-        uint32_t idx;
-
-        PA_IDXSET_FOREACH(i, u->source->outputs, idx) {
-            pa_source_output_cork(i, true);
+        PA_IDXSET_FOREACH(o, u->source->outputs, idx)
+            pa_source_output_cork(o, true);
+        if (u->source->monitor_of) {
+            pa_sink_suspend(u->source->monitor_of, true, PA_SUSPEND_INTERNAL);
+            PA_IDXSET_FOREACH(i, u->source->monitor_of->inputs, idx)
+                pa_sink_input_cork(i, true);
         }
         pa_source_reconfigure(u->source, spec, false);
-        PA_IDXSET_FOREACH(i, u->source->outputs, idx) {
-            pa_source_output_cork(i, false);
+        if (u->source->monitor_of) {
+            PA_IDXSET_FOREACH(i, u->source->monitor_of->inputs, idx)
+                pa_sink_input_cork(i, false);
+            pa_sink_suspend(u->source->monitor_of, false, PA_SUSPEND_INTERNAL);
         }
+        PA_IDXSET_FOREACH(o, u->source->outputs, idx)
+            pa_source_output_cork(o, false);
 
         pa_asyncmsgq_send(u->source->asyncmsgq, PA_MSGOBJECT(u->source), PA_SOURCE_MESSAGE_SETUP_STREAM, NULL, 0, NULL);
 
