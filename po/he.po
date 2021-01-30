@@ -7,14 +7,16 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-01-22 09:11+0200\n"
-"PO-Revision-Date: 2012-01-30 09:53+0000\n"
-"Last-Translator: Elad <el.il@doom.co.il>\n"
-"Language-Team: Hebrew <fedora-he-list@redhat.com>\n"
+"PO-Revision-Date: 2021-01-31 23:40+0000\n"
+"Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
+"Language-Team: Hebrew <https://translate.fedoraproject.org/projects/"
+"pulseaudio/pulseaudio/he/>\n"
 "Language: he\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Weblate 4.4.2\n"
 "X-Poedit-Language: Hebrew\n"
 "X-Poedit-Country: Israel\n"
 
@@ -473,25 +475,23 @@ msgstr "מערכת הקול PulseAudio"
 
 #: src/daemon/pulseaudio.desktop.in:5
 msgid "Start the PulseAudio Sound System"
-msgstr "התחל את מערכת הקול PulseAudio"
+msgstr "הפעלת מערכת הקול PulseAudio"
 
 #: src/modules/alsa/alsa-mixer.c:2708
 msgid "Input"
-msgstr "פלט"
+msgstr "קלט"
 
 #: src/modules/alsa/alsa-mixer.c:2709
 msgid "Docking Station Input"
-msgstr "קלט של תחנת עגינה"
+msgstr "קלט מתחנת עגינה"
 
 #: src/modules/alsa/alsa-mixer.c:2710
-#, fuzzy
 msgid "Docking Station Microphone"
-msgstr "מיקרופון של תחנת עגינה"
+msgstr "מיקרופון מתחנת עגינה"
 
 #: src/modules/alsa/alsa-mixer.c:2711
-#, fuzzy
 msgid "Docking Station Line In"
-msgstr "קלט של תחנת עגינה"
+msgstr "קו נכנס מתחנת עגינה"
 
 #: src/modules/alsa/alsa-mixer.c:2712 src/modules/alsa/alsa-mixer.c:2803
 msgid "Line In"
@@ -503,14 +503,12 @@ msgid "Microphone"
 msgstr "מיקרופון"
 
 #: src/modules/alsa/alsa-mixer.c:2714 src/modules/alsa/alsa-mixer.c:2798
-#, fuzzy
 msgid "Front Microphone"
-msgstr "מיקרופון של תחנת עגינה"
+msgstr "מיקרופון קדמי"
 
 #: src/modules/alsa/alsa-mixer.c:2715 src/modules/alsa/alsa-mixer.c:2799
-#, fuzzy
 msgid "Rear Microphone"
-msgstr "מיקרופון"
+msgstr "מיקרופון אחורי"
 
 #: src/modules/alsa/alsa-mixer.c:2716
 msgid "External Microphone"
@@ -581,51 +579,44 @@ msgid "Dock Microphone"
 msgstr "מיקרופון של תחנת עגינה"
 
 #: src/modules/alsa/alsa-mixer.c:2802
-#, fuzzy
 msgid "Headset Microphone"
-msgstr "מיקרופון"
+msgstr "מיקרופון באוזניות"
 
 #: src/modules/alsa/alsa-mixer.c:2806
 msgid "Analog Output"
 msgstr "פלט אנלוגי"
 
 #: src/modules/alsa/alsa-mixer.c:2808
-#, fuzzy
 msgid "Headphones 2"
-msgstr "אוזניות אנלוגיות"
+msgstr "אוזניות 2"
 
 #: src/modules/alsa/alsa-mixer.c:2809
-#, fuzzy
 msgid "Headphones Mono Output"
-msgstr "פלט מונו אנלוגי"
+msgstr "פלט מונו לאוזניות"
 
 #: src/modules/alsa/alsa-mixer.c:2810
-#, fuzzy
 msgid "Line Out"
-msgstr "קו נכנס"
+msgstr "קו יוצא"
 
 #: src/modules/alsa/alsa-mixer.c:2811
 msgid "Analog Mono Output"
 msgstr "פלט מונו אנלוגי"
 
 #: src/modules/alsa/alsa-mixer.c:2812
-#, fuzzy
 msgid "Speakers"
-msgstr "סטראו אנלוגי"
+msgstr "רמקולים"
 
 #: src/modules/alsa/alsa-mixer.c:2813
 msgid "HDMI / DisplayPort"
 msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:2814
-#, fuzzy
 msgid "Digital Output (S/PDIF)"
-msgstr "סטראו דיגיטלי (HDMI)"
+msgstr "פלט דיגיטלי (S/PDIF)"
 
 #: src/modules/alsa/alsa-mixer.c:2815
-#, fuzzy
 msgid "Digital Input (S/PDIF)"
-msgstr "סטראו דיגיטלי (HDMI)"
+msgstr "קלט דיגיטלי (S/PDIF)"
 
 #: src/modules/alsa/alsa-mixer.c:2816
 msgid "Multichannel Input"
@@ -636,38 +627,32 @@ msgid "Multichannel Output"
 msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:2818
-#, fuzzy
 msgid "Game Output"
-msgstr "פלט אנלוגי"
+msgstr "פלט משחק"
 
 #: src/modules/alsa/alsa-mixer.c:2819 src/modules/alsa/alsa-mixer.c:2820
-#, fuzzy
 msgid "Chat Output"
-msgstr "פלט אנלוגי"
+msgstr "פלט צ׳אט"
 
 #: src/modules/alsa/alsa-mixer.c:2821
-#, fuzzy
 msgid "Chat Input"
-msgstr "פלט"
+msgstr "קלט צ׳אט"
 
 #: src/modules/alsa/alsa-mixer.c:2822
-#, fuzzy
 msgid "Virtual Surround 7.1"
-msgstr "סראונד אנלוגי 7.1"
+msgstr "סראונד וירטואלי 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4562
 msgid "Analog Mono"
 msgstr "מונו אנלוגי"
 
 #: src/modules/alsa/alsa-mixer.c:4563
-#, fuzzy
 msgid "Analog Mono (Left)"
-msgstr "מונו אנלוגי"
+msgstr "מונו אנלוגי (שמאל)"
 
 #: src/modules/alsa/alsa-mixer.c:4564
-#, fuzzy
 msgid "Analog Mono (Right)"
-msgstr "מונו אנלוגי"
+msgstr "מונו אנלוגי (ימין)"
 
 #. Note: Not translated to "Analog Stereo Input", because the source
 #. * name gets "Input" appended to it automatically, so adding "Input"
@@ -677,7 +662,7 @@ msgstr "מונו אנלוגי"
 #: src/modules/alsa/alsa-mixer.c:4565 src/modules/alsa/alsa-mixer.c:4573
 #: src/modules/alsa/alsa-mixer.c:4574
 msgid "Analog Stereo"
-msgstr "סטראו אנלוגי"
+msgstr "סטריאו אנלוגי"
 
 #: src/modules/alsa/alsa-mixer.c:4566 src/pulse/channelmap.c:103
 #: src/pulse/channelmap.c:771
@@ -686,7 +671,7 @@ msgstr "מונו"
 
 #: src/modules/alsa/alsa-mixer.c:4567 src/pulse/channelmap.c:775
 msgid "Stereo"
-msgstr "סטראו"
+msgstr "סטריאו"
 
 #: src/modules/alsa/alsa-mixer.c:4575 src/modules/alsa/alsa-mixer.c:4733
 #: src/modules/bluetooth/module-bluez5-device.c:1810 src/utils/pactl.c:259
@@ -694,9 +679,8 @@ msgid "Headset"
 msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
-#, fuzzy
 msgid "Speakerphone"
-msgstr "סטראו אנלוגי"
+msgstr "דיבורית לחדר ישיבות"
 
 #: src/modules/alsa/alsa-mixer.c:4577 src/modules/alsa/alsa-mixer.c:4578
 msgid "Multichannel"
@@ -748,7 +732,7 @@ msgstr "סראונד אנלוגי 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4590
 msgid "Digital Stereo (IEC958)"
-msgstr "סטראו דיגיטלי (IEC958)"
+msgstr "סטריאו דיגיטלי (IEC958)"
 
 #: src/modules/alsa/alsa-mixer.c:4591
 msgid "Digital Surround 4.0 (IEC958/AC3)"
@@ -759,18 +743,16 @@ msgid "Digital Surround 5.1 (IEC958/AC3)"
 msgstr "סראונד דיגיטלי 5.1 (IEC958/AC3)"
 
 #: src/modules/alsa/alsa-mixer.c:4593
-#, fuzzy
 msgid "Digital Surround 5.1 (IEC958/DTS)"
-msgstr "סראונד דיגיטלי 5.1 (IEC958/AC3)"
+msgstr "סראונד דיגיטלי 5.1 (IEC958/DTS)"
 
 #: src/modules/alsa/alsa-mixer.c:4594
 msgid "Digital Stereo (HDMI)"
-msgstr "סטראו דיגיטלי (HDMI)"
+msgstr "סטריאו דיגיטלי (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4595
-#, fuzzy
 msgid "Digital Surround 5.1 (HDMI)"
-msgstr "סראונד דיגיטלי 5.1 (IEC958/AC3)"
+msgstr "סראונד דיגיטלי 5.1 (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4596
 msgid "Chat"
@@ -786,20 +768,19 @@ msgstr "מונו אנלוגי משולב"
 
 #: src/modules/alsa/alsa-mixer.c:4732
 msgid "Analog Stereo Duplex"
-msgstr "סטראו אנלוגי משולב"
+msgstr "סטריאו אנלוגי משולב"
 
 #: src/modules/alsa/alsa-mixer.c:4735
 msgid "Digital Stereo Duplex (IEC958)"
-msgstr "סטראו דיגיטלי משולב (IEC958)"
+msgstr "סטריאו דיגיטלי משולב (IEC958)"
 
 #: src/modules/alsa/alsa-mixer.c:4736
 msgid "Multichannel Duplex"
 msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:4737
-#, fuzzy
 msgid "Stereo Duplex"
-msgstr "סטראו אנלוגי משולב"
+msgstr "סטריאו משולב"
 
 #: src/modules/alsa/alsa-mixer.c:4738
 msgid "Mono Chat + 7.1 Surround"
@@ -811,14 +792,14 @@ msgid "Off"
 msgstr "מכובה"
 
 #: src/modules/alsa/alsa-mixer.c:4839
-#, fuzzy, c-format
+#, c-format
 msgid "%s Output"
-msgstr "פלט אנלוגי"
+msgstr "פלט %s"
 
 #: src/modules/alsa/alsa-mixer.c:4847
-#, fuzzy, c-format
+#, c-format
 msgid "%s Input"
-msgstr "פלט"
+msgstr "קלט %s"
 
 #: src/modules/alsa/alsa-sink.c:652 src/modules/alsa/alsa-sink.c:842
 #, c-format
@@ -904,26 +885,24 @@ msgstr ""
 
 #: src/modules/bluetooth/module-bluez5-device.c:1804
 #: src/modules/bluetooth/module-bluez5-device.c:1823
-#, fuzzy
 msgid "Bluetooth Output"
-msgstr "פלט אנלוגי"
+msgstr "פלט בלוטות׳"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1816 src/utils/pactl.c:270
 msgid "Handsfree"
 msgstr ""
 
 #: src/modules/bluetooth/module-bluez5-device.c:1837
-#, fuzzy
 msgid "Headphone"
-msgstr "אוזניות אנלוגיות"
+msgstr "אוזניה"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1843 src/utils/pactl.c:269
 msgid "Portable"
-msgstr ""
+msgstr "נייד"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1849 src/utils/pactl.c:271
 msgid "Car"
-msgstr ""
+msgstr "מכונית"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1855 src/utils/pactl.c:272
 msgid "HiFi"
@@ -931,7 +910,7 @@ msgstr ""
 
 #: src/modules/bluetooth/module-bluez5-device.c:1861 src/utils/pactl.c:273
 msgid "Phone"
-msgstr ""
+msgstr "טלפון"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1908
 msgid "High Fidelity Playback (A2DP Sink)"
@@ -971,7 +950,7 @@ msgstr ""
 #: src/modules/module-allow-passthrough.c:71
 #: src/modules/module-always-sink.c:80
 msgid "Dummy Output"
-msgstr ""
+msgstr "פלט מדומה"
 
 #: src/modules/module-always-sink.c:34
 msgid "Always keeps at least one sink loaded even if it's a null one"
@@ -1079,9 +1058,8 @@ msgid ""
 msgstr ""
 
 #: src/modules/raop/module-raop-discover.c:295
-#, fuzzy
 msgid "Unknown device model"
-msgstr "קוד שגיאה לא מוכר"
+msgstr "דגם התקן לא ידוע"
 
 #: src/modules/raop/raop-sink.c:655
 msgid "RAOP standard profile"
@@ -1345,23 +1323,20 @@ msgid "Received message for unknown extension '%s'"
 msgstr ""
 
 #: src/pulse/direction.c:37
-#, fuzzy
 msgid "input"
-msgstr "פלט"
+msgstr "קלט"
 
 #: src/pulse/direction.c:39
-#, fuzzy
 msgid "output"
-msgstr "פלט אנלוגי"
+msgstr "פלט"
 
 #: src/pulse/direction.c:41
 msgid "bidirectional"
 msgstr ""
 
 #: src/pulse/direction.c:43
-#, fuzzy
 msgid "invalid"
-msgstr "(לא תקף)"
+msgstr "שגוי"
 
 #: src/pulsecore/core-util.c:1780
 #, c-format
@@ -1376,9 +1351,8 @@ msgid "yes"
 msgstr ""
 
 #: src/pulsecore/core-util.h:97
-#, fuzzy
 msgid "no"
-msgstr "מונו"
+msgstr "לא"
 
 #: src/pulsecore/lock-autospawn.c:141 src/pulsecore/lock-autospawn.c:227
 msgid "Cannot access autospawn lock."
@@ -1634,7 +1608,7 @@ msgstr ""
 
 #: src/utils/pacat.c:393
 msgid "not "
-msgstr "לא"
+msgstr "לא "
 
 #: src/utils/pacat.c:400
 #, c-format
@@ -2150,28 +2124,27 @@ msgstr ""
 
 #: src/utils/pactl.c:243
 msgid "available"
-msgstr ""
+msgstr "זמין"
 
 #: src/utils/pactl.c:244
 msgid "not available"
-msgstr ""
+msgstr "לא זמין"
 
 #: src/utils/pactl.c:253 src/utils/pactl.c:277
 msgid "Unknown"
-msgstr ""
+msgstr "לא ידוע"
 
 #: src/utils/pactl.c:254
 msgid "Aux"
 msgstr ""
 
 #: src/utils/pactl.c:257
-#, fuzzy
 msgid "Line"
-msgstr "קו נכנס"
+msgstr "קו"
 
 #: src/utils/pactl.c:258
 msgid "Mic"
-msgstr ""
+msgstr "מיקרופון"
 
 #: src/utils/pactl.c:260
 msgid "Handset"
@@ -2183,11 +2156,11 @@ msgstr ""
 
 #: src/utils/pactl.c:262
 msgid "SPDIF"
-msgstr ""
+msgstr "SPDIF"
 
 #: src/utils/pactl.c:263
 msgid "HDMI"
-msgstr ""
+msgstr "HDMI"
 
 #: src/utils/pactl.c:264
 msgid "TV"
@@ -2203,12 +2176,11 @@ msgstr ""
 
 #: src/utils/pactl.c:274
 msgid "Network"
-msgstr ""
+msgstr "רשת"
 
 #: src/utils/pactl.c:275
-#, fuzzy
 msgid "Analog"
-msgstr "מונו אנלוגי"
+msgstr "אנלוגי"
 
 #: src/utils/pactl.c:299 src/utils/pactl.c:1020 src/utils/pactl.c:1098
 #, c-format
