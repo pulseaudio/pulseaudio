@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-01-22 09:11+0200\n"
-"PO-Revision-Date: 2020-07-04 10:50+0000\n"
+"PO-Revision-Date: 2021-01-30 12:38+0000\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/pl/>\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 4.1.1\n"
+"X-Generator: Weblate 4.4.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -693,9 +693,8 @@ msgid "Analog Output"
 msgstr "Wyjście analogowe"
 
 #: src/modules/alsa/alsa-mixer.c:2808
-#, fuzzy
 msgid "Headphones 2"
-msgstr "Słuchawki"
+msgstr "Słuchawki 2"
 
 #: src/modules/alsa/alsa-mixer.c:2809
 msgid "Headphones Mono Output"
@@ -742,28 +741,24 @@ msgid "Chat Output"
 msgstr "Wyjście rozmowy"
 
 #: src/modules/alsa/alsa-mixer.c:2821
-#, fuzzy
 msgid "Chat Input"
-msgstr "Wyjście rozmowy"
+msgstr "Wejście rozmowy"
 
 #: src/modules/alsa/alsa-mixer.c:2822
-#, fuzzy
 msgid "Virtual Surround 7.1"
-msgstr "Wirtualny odpływ wielokanałowy"
+msgstr "Wirtualne przestrzenne 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4562
 msgid "Analog Mono"
 msgstr "Analogowe mono"
 
 #: src/modules/alsa/alsa-mixer.c:4563
-#, fuzzy
 msgid "Analog Mono (Left)"
-msgstr "Analogowe mono"
+msgstr "Analogowe mono (lewy)"
 
 #: src/modules/alsa/alsa-mixer.c:4564
-#, fuzzy
 msgid "Analog Mono (Right)"
-msgstr "Analogowe mono"
+msgstr "Analogowe mono (prawy)"
 
 #. Note: Not translated to "Analog Stereo Input", because the source
 #. * name gets "Input" appended to it automatically, so adding "Input"
@@ -790,9 +785,8 @@ msgid "Headset"
 msgstr "Słuchawki z mikrofonem"
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
-#, fuzzy
 msgid "Speakerphone"
-msgstr "Głośnik"
+msgstr "Telefon głośnomówiący"
 
 #: src/modules/alsa/alsa-mixer.c:4577 src/modules/alsa/alsa-mixer.c:4578
 msgid "Multichannel"
@@ -868,11 +862,11 @@ msgstr "Cyfrowe przestrzenne 5.1 (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4596
 msgid "Chat"
-msgstr ""
+msgstr "Rozmowa"
 
 #: src/modules/alsa/alsa-mixer.c:4597
 msgid "Game"
-msgstr ""
+msgstr "Gra"
 
 #: src/modules/alsa/alsa-mixer.c:4731
 msgid "Analog Mono Duplex"
@@ -896,7 +890,7 @@ msgstr "Dupleks stereo"
 
 #: src/modules/alsa/alsa-mixer.c:4738
 msgid "Mono Chat + 7.1 Surround"
-msgstr ""
+msgstr "Rozmowa mono + przestrzenne 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4739 src/modules/alsa/module-alsa-card.c:197
 #: src/modules/bluetooth/module-bluez5-device.c:2083
@@ -1231,10 +1225,9 @@ msgstr "Tunel do %s/%s"
 
 #: src/modules/module-virtual-surround-sink.c:50
 msgid "Virtual surround sink"
-msgstr "Wirtualny odpływ wielokanałowy"
+msgstr "Wirtualny odpływ przestrzenny"
 
 #: src/modules/module-virtual-surround-sink.c:54
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "master=<name of sink to filter> sink_master=<name of sink to filter> "
@@ -1249,7 +1242,9 @@ msgstr ""
 "filtrowania> format=<format próbki> rate=<częstotliwość próbki> "
 "channels=<liczba kanałów> channel_map=<mapa kanałów> use_volume_sharing=<yes "
 "lub no> force_flat_volume=<yes lub no> hrir=/ścieżka/do/pliku/left_hrir.wav "
-"autoloaded=<należy ustawić, jeśli ten moduł jest wczytywany automatycznie> "
+"hrir_left=/ścieżka/do/pliku/left_hrir.wav hrir_right=/ścieżka/do/"
+"opcjonalnego/pliku/right_hrir.wav autoloaded=<należy ustawić, jeśli ten "
+"moduł jest wczytywany automatycznie> "
 
 #: src/modules/raop/module-raop-discover.c:295
 msgid "Unknown device model"
