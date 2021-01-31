@@ -128,6 +128,8 @@ static void source_update_requested_latency_cb(pa_source *s) {
 
     if (u->block_usec == (pa_usec_t)-1)
         u->block_usec = u->source->thread_info.max_latency;
+
+    pa_source_set_max_rewind_within_thread(s, pa_usec_to_bytes(u->block_usec, &u->source->sample_spec));
 }
 
 static void thread_func(void *userdata) {
