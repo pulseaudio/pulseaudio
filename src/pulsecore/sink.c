@@ -784,6 +784,10 @@ void pa_sink_unlink(pa_sink* s) {
         j = i;
     }
 
+    /* Unlink monitor source before unlinking the sink */
+    if (s->monitor_source)
+        pa_source_unlink(s->monitor_source);
+
     if (linked)
         /* It's important to keep the suspend cause unchanged when unlinking,
          * because if we remove the SESSION suspend cause here, the alsa sink
@@ -794,9 +798,6 @@ void pa_sink_unlink(pa_sink* s) {
         s->state = PA_SINK_UNLINKED;
 
     reset_callbacks(s);
-
-    if (s->monitor_source)
-        pa_source_unlink(s->monitor_source);
 
     if (linked) {
         pa_subscription_post(s->core, PA_SUBSCRIPTION_EVENT_SINK | PA_SUBSCRIPTION_EVENT_REMOVE, s->index);
