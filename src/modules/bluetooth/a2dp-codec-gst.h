@@ -45,6 +45,7 @@ struct gst_info {
 
     GstElement *app_sink;
     GstElement *pipeline;
+    GstPad *pad_sink;
 
     uint16_t seq_num;
 };

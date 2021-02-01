@@ -150,7 +150,7 @@ bool gst_codec_init(struct gst_info *info, bool for_encoding, GstElement *transc
     // Expose sink pad through `info->pipeline`
     pad = gst_element_get_static_pad(transcoder, "sink");
     pa_assert_se(gst_element_add_pad(info->pipeline, gst_ghost_pad_new("sink", pad)));
-    gst_object_unref(GST_OBJECT(pad));
+    info->pad_sink = pad;
 
     if (gst_element_set_state(info->pipeline, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
         pa_log_error("Could not start pipeline");
@@ -195,8 +195,9 @@ size_t gst_transcode_buffer(void *codec_info, const uint8_t *input_buffer, size_
     GstBuffer *in_buf;
     GstFlowReturn ret;
     size_t written = 0;
-    GstPad *in_pad;
     GstSample *sample;
+
+    pa_assert(info->pad_sink);
 
     // pa_log_debug("%s thread %p", __func__, pa_thread_mq_get());
 
@@ -207,12 +208,8 @@ size_t gst_transcode_buffer(void *codec_info, const uint8_t *input_buffer, size_
             (gpointer)input_buffer, input_size, 0, input_size, NULL, NULL);
     pa_assert(in_buf);
 
-    in_pad = gst_element_get_static_pad(info->pipeline, "sink");
-    pa_assert(in_pad);
-
     // pa_log_debug("Pushing %d new bytes", input_size);
-    ret = gst_pad_chain(in_pad, in_buf);
-    gst_object_unref(GST_OBJECT(in_pad));
+    ret = gst_pad_chain(info->pad_sink, in_buf);
     // pa_log_debug("Flow %d", ret);
     if (ret != GST_FLOW_OK) {
         pa_log_error("failed to push buffer for transcoding %d", ret);
@@ -257,6 +254,9 @@ void gst_codec_deinit(void *codec_info) {
         gst_element_set_state(info->pipeline, GST_STATE_NULL);
         gst_object_unref(info->pipeline);
     }
+
+    if (info->pad_sink)
+        gst_object_unref(GST_OBJECT(info->pad_sink));
 
     pa_xfree(info);
 }
