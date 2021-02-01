@@ -67,7 +67,7 @@ bool gst_init_common(struct gst_info *info) {
     adapter = gst_adapter_new();
     pa_assert(adapter);
 
-    pipeline = gst_pipeline_new(NULL);
+    pipeline = gst_bin_new(NULL);
     pa_assert(pipeline);
 
     info->app_sink = appsink;
