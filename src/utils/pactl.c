@@ -1849,7 +1849,7 @@ static void help(const char *argv0) {
     printf("%s %s %s %s\n", argv0, _("[options]"), "move-(sink-input|source-output)", _("#N SINK|SOURCE"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "suspend-(sink|source)", _("NAME|#N 1|0"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-card-profile ", _("CARD PROFILE"));
-    printf("%s %s %s %s\n", argv0, _("[options]"), "get-default-(sink|source)", _("NAME"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "get-default-(sink|source)");
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-default-(sink|source)", _("NAME"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink|source)-port", _("NAME|#N PORT"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "get-(sink|source)-volume", _("NAME|#N"));
