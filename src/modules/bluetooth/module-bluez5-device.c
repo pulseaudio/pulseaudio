@@ -2090,7 +2090,6 @@ static int add_card(struct userdata *u) {
     pa_bluetooth_profile_t *p;
     const char *uuid;
     void *state;
-    bool enable_native_hfp_hf, has_both;
 
     pa_assert(u);
     pa_assert(u->device);
@@ -2121,9 +2120,6 @@ static int add_card(struct userdata *u) {
 
     create_card_ports(u, data.ports);
 
-    enable_native_hfp_hf = pa_bluetooth_discovery_get_enable_native_hfp_hf(u->discovery);
-
-    has_both = enable_native_hfp_hf && pa_hashmap_get(d->uuids, PA_BLUETOOTH_UUID_HFP_HF) && pa_hashmap_get(d->uuids, PA_BLUETOOTH_UUID_HSP_HS);
     PA_HASHMAP_FOREACH(uuid, d->uuids, state) {
         pa_bluetooth_profile_t profile;
 

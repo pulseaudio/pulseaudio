@@ -120,6 +120,7 @@ struct pa_bluetooth_device {
     pa_bluetooth_discovery *discovery;
     pa_bluetooth_adapter *adapter;
 
+    bool enable_hfp_hf;
     bool properties_received;
     bool tried_to_link_with_adapter;
     bool valid;

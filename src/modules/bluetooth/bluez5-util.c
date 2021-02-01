@@ -195,11 +195,9 @@ static const char *transport_state_to_string(pa_bluetooth_transport_state_t stat
 }
 
 static bool device_supports_profile(pa_bluetooth_device *device, pa_bluetooth_profile_t profile) {
-    bool show_hfp, show_hsp, enable_native_hfp_hf;
+    bool show_hfp, show_hsp;
 
-    enable_native_hfp_hf = pa_bluetooth_discovery_get_enable_native_hfp_hf(device->discovery);
-
-    if (enable_native_hfp_hf) {
+    if (device->enable_hfp_hf) {
         show_hfp = pa_hashmap_get(device->uuids, PA_BLUETOOTH_UUID_HFP_HF);
         show_hsp = !show_hfp;
     } else {
@@ -727,6 +725,7 @@ static pa_bluetooth_device* device_create(pa_bluetooth_discovery *y, const char 
 
     d = pa_xnew0(pa_bluetooth_device, 1);
     d->discovery = y;
+    d->enable_hfp_hf = pa_bluetooth_discovery_get_enable_native_hfp_hf(y);
     d->path = pa_xstrdup(path);
     d->uuids = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, pa_xfree);
     d->a2dp_sink_endpoints = pa_hashmap_new_full(pa_a2dp_codec_id_hash_func, pa_a2dp_codec_id_compare_func, pa_xfree, (pa_free_cb_t)pa_hashmap_free);

@@ -641,7 +641,7 @@ static DBusMessage *profile_new_connection(DBusConnection *conn, DBusMessage *m,
         goto fail;
     }
 
-    if (pa_bluetooth_discovery_get_enable_native_hfp_hf(b->discovery)) {
+    if (d->enable_hfp_hf) {
         if (p == PA_BLUETOOTH_PROFILE_HSP_HS && pa_hashmap_get(d->uuids, PA_BLUETOOTH_UUID_HFP_HF)) {
             /* If peer connecting to HSP Audio Gateway supports HFP HF profile
              * reject this connection to force it to connect to HSP Audio Gateway instead.
