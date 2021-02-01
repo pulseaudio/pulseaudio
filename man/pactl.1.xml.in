@@ -212,7 +212,8 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     </option>
 
     <option>
-      <p><opt>get-source-volume</opt> <arg>SINK</arg></p>
+      <p><opt>get-source-volume</opt> <arg>SOURCE</arg></p>
+```
       <optdesc><p>Get the volume of the specified source (identified by its symbolic name or numerical index) displayed in the same format as the `info` command.</p></optdesc>
     </option>
 
