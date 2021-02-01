@@ -2210,7 +2210,7 @@ int main(int argc, char *argv[]) {
                 goto quit;
             }
 
-            sink_name = pa_xstrdup(argv[optind+1]);
+            source_name = pa_xstrdup(argv[optind+1]);
 
         } else if (pa_streq(argv[optind], "set-source-volume")) {
             action = SET_SOURCE_VOLUME;
