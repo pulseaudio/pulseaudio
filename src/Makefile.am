@@ -1413,6 +1413,9 @@ dist_alsapaths_DATA = \
 		modules/alsa/mixer/paths/hdmi-output-5.conf \
 		modules/alsa/mixer/paths/hdmi-output-6.conf \
 		modules/alsa/mixer/paths/hdmi-output-7.conf \
+		modules/alsa/mixer/paths/hdmi-output-8.conf \
+		modules/alsa/mixer/paths/hdmi-output-9.conf \
+		modules/alsa/mixer/paths/hdmi-output-10.conf \
 		modules/alsa/mixer/paths/steelseries-arctis-output-chat-common.conf \
 		modules/alsa/mixer/paths/steelseries-arctis-output-game-common.conf \
 		modules/alsa/mixer/paths/usb-gaming-headset-input.conf \
