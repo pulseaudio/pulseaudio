@@ -9,14 +9,16 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-01-22 09:11+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2021-02-05 01:40+0000\n"
+"Last-Translator: Carmen Bianca Bakker <carmen@carmenbianca.eu>\n"
+"Language-Team: Esperanto <https://translate.fedoraproject.org/projects/"
+"pulseaudio/pulseaudio/eo/>\n"
 "Language: eo\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.4.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -234,32 +236,32 @@ msgstr ""
 #: src/daemon/dumpmodules.c:57
 #, c-format
 msgid "Name: %s\n"
-msgstr ""
+msgstr "Nomo: %s\n"
 
 #: src/daemon/dumpmodules.c:60
 #, c-format
 msgid "No module information available\n"
-msgstr ""
+msgstr "Neniuj modul-informoj disponeblas\n"
 
 #: src/daemon/dumpmodules.c:63
 #, c-format
 msgid "Version: %s\n"
-msgstr ""
+msgstr "Versio: %s\n"
 
 #: src/daemon/dumpmodules.c:65
 #, c-format
 msgid "Description: %s\n"
-msgstr ""
+msgstr "Priskribo: %s\n"
 
 #: src/daemon/dumpmodules.c:67
 #, c-format
 msgid "Author: %s\n"
-msgstr ""
+msgstr "Aŭtoro: %s\n"
 
 #: src/daemon/dumpmodules.c:69
 #, c-format
 msgid "Usage: %s\n"
-msgstr ""
+msgstr "Uzado: %s\n"
 
 #: src/daemon/dumpmodules.c:70
 #, c-format
@@ -454,23 +456,23 @@ msgstr ""
 
 #: src/daemon/pulseaudio.desktop.in:4
 msgid "PulseAudio Sound System"
-msgstr ""
+msgstr "PulseAudio-sonsistemo"
 
 #: src/daemon/pulseaudio.desktop.in:5
 msgid "Start the PulseAudio Sound System"
-msgstr ""
+msgstr "Startigi la PulseAudio-sonsistemon"
 
 #: src/modules/alsa/alsa-mixer.c:2708
 msgid "Input"
-msgstr ""
+msgstr "Enigo"
 
 #: src/modules/alsa/alsa-mixer.c:2709
 msgid "Docking Station Input"
-msgstr ""
+msgstr "Doka enigo"
 
 #: src/modules/alsa/alsa-mixer.c:2710
 msgid "Docking Station Microphone"
-msgstr ""
+msgstr "Doka mikrofono"
 
 #: src/modules/alsa/alsa-mixer.c:2711
 msgid "Docking Station Line In"
@@ -483,33 +485,33 @@ msgstr ""
 #: src/modules/alsa/alsa-mixer.c:2713 src/modules/alsa/alsa-mixer.c:2797
 #: src/modules/bluetooth/module-bluez5-device.c:1822
 msgid "Microphone"
-msgstr ""
+msgstr "Mikrofono"
 
 #: src/modules/alsa/alsa-mixer.c:2714 src/modules/alsa/alsa-mixer.c:2798
 msgid "Front Microphone"
-msgstr ""
+msgstr "Antaŭa mikrofono"
 
 #: src/modules/alsa/alsa-mixer.c:2715 src/modules/alsa/alsa-mixer.c:2799
 msgid "Rear Microphone"
-msgstr ""
+msgstr "Malantaŭa mikrofono"
 
 #: src/modules/alsa/alsa-mixer.c:2716
 msgid "External Microphone"
-msgstr ""
+msgstr "Ekstera mikrofono"
 
 #: src/modules/alsa/alsa-mixer.c:2717 src/modules/alsa/alsa-mixer.c:2801
 msgid "Internal Microphone"
-msgstr ""
+msgstr "Interna mikrofono"
 
 #: src/modules/alsa/alsa-mixer.c:2718 src/modules/alsa/alsa-mixer.c:2804
 #: src/utils/pactl.c:265
 msgid "Radio"
-msgstr ""
+msgstr "Radio"
 
 #: src/modules/alsa/alsa-mixer.c:2719 src/modules/alsa/alsa-mixer.c:2805
 #: src/utils/pactl.c:266
 msgid "Video"
-msgstr ""
+msgstr "Video"
 
 #: src/modules/alsa/alsa-mixer.c:2720
 msgid "Automatic Gain Control"
@@ -529,11 +531,11 @@ msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:2724
 msgid "Amplifier"
-msgstr ""
+msgstr "Amplifilo"
 
 #: src/modules/alsa/alsa-mixer.c:2725
 msgid "No Amplifier"
-msgstr ""
+msgstr "Neniu amplifilo"
 
 #: src/modules/alsa/alsa-mixer.c:2726
 msgid "Bass Boost"
@@ -546,36 +548,36 @@ msgstr ""
 #: src/modules/alsa/alsa-mixer.c:2728 src/modules/bluetooth/module-bluez5-device.c:1830
 #: src/utils/pactl.c:255
 msgid "Speaker"
-msgstr ""
+msgstr "Laŭtparolilo"
 
 #: src/modules/alsa/alsa-mixer.c:2729 src/modules/alsa/alsa-mixer.c:2807
 #: src/utils/pactl.c:256
 msgid "Headphones"
-msgstr ""
+msgstr "Kapaŭskultilo"
 
 #: src/modules/alsa/alsa-mixer.c:2796
 msgid "Analog Input"
-msgstr ""
+msgstr "Analoga enigo"
 
 #: src/modules/alsa/alsa-mixer.c:2800
 msgid "Dock Microphone"
-msgstr ""
+msgstr "Doka mikrofono"
 
 #: src/modules/alsa/alsa-mixer.c:2802
 msgid "Headset Microphone"
-msgstr ""
+msgstr "Kaptelefona mikrofono"
 
 #: src/modules/alsa/alsa-mixer.c:2806
 msgid "Analog Output"
-msgstr ""
+msgstr "Analoga eligo"
 
 #: src/modules/alsa/alsa-mixer.c:2808
 msgid "Headphones 2"
-msgstr ""
+msgstr "Kapaŭskultilo 2"
 
 #: src/modules/alsa/alsa-mixer.c:2809
 msgid "Headphones Mono Output"
-msgstr ""
+msgstr "Kapaŭskultila mono-eligo"
 
 #: src/modules/alsa/alsa-mixer.c:2810
 msgid "Line Out"
@@ -583,59 +585,59 @@ msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:2811
 msgid "Analog Mono Output"
-msgstr ""
+msgstr "Analoga mono-eligo"
 
 #: src/modules/alsa/alsa-mixer.c:2812
 msgid "Speakers"
-msgstr ""
+msgstr "Laŭtparoliloj"
 
 #: src/modules/alsa/alsa-mixer.c:2813
 msgid "HDMI / DisplayPort"
-msgstr ""
+msgstr "HDMI / DisplayPort"
 
 #: src/modules/alsa/alsa-mixer.c:2814
 msgid "Digital Output (S/PDIF)"
-msgstr ""
+msgstr "Cifera eligo (S/PDIF)"
 
 #: src/modules/alsa/alsa-mixer.c:2815
 msgid "Digital Input (S/PDIF)"
-msgstr ""
+msgstr "Cifera enigo (S/PDIF)"
 
 #: src/modules/alsa/alsa-mixer.c:2816
 msgid "Multichannel Input"
-msgstr ""
+msgstr "Plurkanala enigo"
 
 #: src/modules/alsa/alsa-mixer.c:2817
 msgid "Multichannel Output"
-msgstr ""
+msgstr "Plurkanala eligo"
 
 #: src/modules/alsa/alsa-mixer.c:2818
 msgid "Game Output"
-msgstr ""
+msgstr "Lud-eligo"
 
 #: src/modules/alsa/alsa-mixer.c:2819 src/modules/alsa/alsa-mixer.c:2820
 msgid "Chat Output"
-msgstr ""
+msgstr "Babil-eligo"
 
 #: src/modules/alsa/alsa-mixer.c:2821
 msgid "Chat Input"
-msgstr ""
+msgstr "Babil-enigo"
 
 #: src/modules/alsa/alsa-mixer.c:2822
 msgid "Virtual Surround 7.1"
-msgstr ""
+msgstr "Virtuala ĉirkaŭa sono 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4562
 msgid "Analog Mono"
-msgstr ""
+msgstr "Analoga mono"
 
 #: src/modules/alsa/alsa-mixer.c:4563
 msgid "Analog Mono (Left)"
-msgstr ""
+msgstr "Analoga mono (maldekstra)"
 
 #: src/modules/alsa/alsa-mixer.c:4564
 msgid "Analog Mono (Right)"
-msgstr ""
+msgstr "Analoga mono (dekstra)"
 
 #. Note: Not translated to "Analog Stereo Input", because the source
 #. * name gets "Input" appended to it automatically, so adding "Input"
@@ -645,21 +647,21 @@ msgstr ""
 #: src/modules/alsa/alsa-mixer.c:4565 src/modules/alsa/alsa-mixer.c:4573
 #: src/modules/alsa/alsa-mixer.c:4574
 msgid "Analog Stereo"
-msgstr ""
+msgstr "Analoga stereo"
 
 #: src/modules/alsa/alsa-mixer.c:4566 src/pulse/channelmap.c:103
 #: src/pulse/channelmap.c:771
 msgid "Mono"
-msgstr ""
+msgstr "Mono"
 
 #: src/modules/alsa/alsa-mixer.c:4567 src/pulse/channelmap.c:775
 msgid "Stereo"
-msgstr ""
+msgstr "Stereo"
 
 #: src/modules/alsa/alsa-mixer.c:4575 src/modules/alsa/alsa-mixer.c:4733
 #: src/modules/bluetooth/module-bluez5-device.c:1810 src/utils/pactl.c:259
 msgid "Headset"
-msgstr ""
+msgstr "Kaptelefono"
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
 msgid "Speakerphone"
@@ -667,122 +669,122 @@ msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:4577 src/modules/alsa/alsa-mixer.c:4578
 msgid "Multichannel"
-msgstr ""
+msgstr "Plurkanala"
 
 #: src/modules/alsa/alsa-mixer.c:4579
 msgid "Analog Surround 2.1"
-msgstr ""
+msgstr "Analoga ĉirkaŭa sono 2.1"
 
 #: src/modules/alsa/alsa-mixer.c:4580
 msgid "Analog Surround 3.0"
-msgstr ""
+msgstr "Analoga ĉirkaŭa sono 3.0"
 
 #: src/modules/alsa/alsa-mixer.c:4581
 msgid "Analog Surround 3.1"
-msgstr ""
+msgstr "Analoga ĉirkaŭa sono 3.1"
 
 #: src/modules/alsa/alsa-mixer.c:4582
 msgid "Analog Surround 4.0"
-msgstr ""
+msgstr "Analoga ĉirkaŭa sono 4.0"
 
 #: src/modules/alsa/alsa-mixer.c:4583
 msgid "Analog Surround 4.1"
-msgstr ""
+msgstr "Analoga ĉirkaŭa sono 4.1"
 
 #: src/modules/alsa/alsa-mixer.c:4584
 msgid "Analog Surround 5.0"
-msgstr ""
+msgstr "Analoga ĉirkaŭa sono 5.0"
 
 #: src/modules/alsa/alsa-mixer.c:4585
 msgid "Analog Surround 5.1"
-msgstr ""
+msgstr "Analoga ĉirkaŭa sono 5.1"
 
 #: src/modules/alsa/alsa-mixer.c:4586
 msgid "Analog Surround 6.0"
-msgstr ""
+msgstr "Analoga ĉirkaŭa sono 6.0"
 
 #: src/modules/alsa/alsa-mixer.c:4587
 msgid "Analog Surround 6.1"
-msgstr ""
+msgstr "Analoga ĉirkaŭa sono 6.1"
 
 #: src/modules/alsa/alsa-mixer.c:4588
 msgid "Analog Surround 7.0"
-msgstr ""
+msgstr "Analoga ĉirkaŭa sono 7.0"
 
 #: src/modules/alsa/alsa-mixer.c:4589
 msgid "Analog Surround 7.1"
-msgstr ""
+msgstr "Analoga ĉirkaŭa sono 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4590
 msgid "Digital Stereo (IEC958)"
-msgstr ""
+msgstr "Cifera stereo (IEC958)"
 
 #: src/modules/alsa/alsa-mixer.c:4591
 msgid "Digital Surround 4.0 (IEC958/AC3)"
-msgstr ""
+msgstr "Cifera ĉirkaŭa sono 4.0 (IEC958/AC3)"
 
 #: src/modules/alsa/alsa-mixer.c:4592
 msgid "Digital Surround 5.1 (IEC958/AC3)"
-msgstr ""
+msgstr "Cifera ĉirkaŭa sono 5.1 (IEC958/AC3)"
 
 #: src/modules/alsa/alsa-mixer.c:4593
 msgid "Digital Surround 5.1 (IEC958/DTS)"
-msgstr ""
+msgstr "Cifera ĉirkaŭa sono 5.1 (IEC958/DTS)"
 
 #: src/modules/alsa/alsa-mixer.c:4594
 msgid "Digital Stereo (HDMI)"
-msgstr ""
+msgstr "Cifera stereo (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4595
 msgid "Digital Surround 5.1 (HDMI)"
-msgstr ""
+msgstr "Cifera ĉirkaŭa sono 5.1 (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4596
 msgid "Chat"
-msgstr ""
+msgstr "Babilo"
 
 #: src/modules/alsa/alsa-mixer.c:4597
 msgid "Game"
-msgstr ""
+msgstr "Ludo"
 
 #: src/modules/alsa/alsa-mixer.c:4731
 msgid "Analog Mono Duplex"
-msgstr ""
+msgstr "Analoga mono-dupleksa"
 
 #: src/modules/alsa/alsa-mixer.c:4732
 msgid "Analog Stereo Duplex"
-msgstr ""
+msgstr "Analoga stereo-dupleksa"
 
 #: src/modules/alsa/alsa-mixer.c:4735
 msgid "Digital Stereo Duplex (IEC958)"
-msgstr ""
+msgstr "Cifera stereo-dupleksa (IEC958)"
 
 #: src/modules/alsa/alsa-mixer.c:4736
 msgid "Multichannel Duplex"
-msgstr ""
+msgstr "Plurkanala dupleksa"
 
 #: src/modules/alsa/alsa-mixer.c:4737
 msgid "Stereo Duplex"
-msgstr ""
+msgstr "Stereo-dupleksa"
 
 #: src/modules/alsa/alsa-mixer.c:4738
 msgid "Mono Chat + 7.1 Surround"
-msgstr ""
+msgstr "Mono-babilo + 7.1 ĉirkaŭa sono"
 
 #: src/modules/alsa/alsa-mixer.c:4739 src/modules/alsa/module-alsa-card.c:197
 #: src/modules/bluetooth/module-bluez5-device.c:2083
 msgid "Off"
-msgstr ""
+msgstr "Malŝaltita"
 
 #: src/modules/alsa/alsa-mixer.c:4839
 #, c-format
 msgid "%s Output"
-msgstr ""
+msgstr "%s-eligo"
 
 #: src/modules/alsa/alsa-mixer.c:4847
 #, c-format
 msgid "%s Input"
-msgstr ""
+msgstr "%s-enigo"
 
 #: src/modules/alsa/alsa-sink.c:652 src/modules/alsa/alsa-sink.c:842
 #, c-format
@@ -857,20 +859,20 @@ msgstr[1] ""
 #: src/modules/bluetooth/module-bluez5-device.c:1829
 #: src/modules/bluetooth/module-bluez5-device.c:1836
 msgid "Bluetooth Input"
-msgstr ""
+msgstr "Bludenta enigo"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1804
 #: src/modules/bluetooth/module-bluez5-device.c:1823
 msgid "Bluetooth Output"
-msgstr ""
+msgstr "Bludenta eligo"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1816 src/utils/pactl.c:270
 msgid "Handsfree"
-msgstr ""
+msgstr "Libermana"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1837
 msgid "Headphone"
-msgstr ""
+msgstr "Kapaŭskultilo"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1843 src/utils/pactl.c:269
 msgid "Portable"
@@ -878,31 +880,31 @@ msgstr ""
 
 #: src/modules/bluetooth/module-bluez5-device.c:1849 src/utils/pactl.c:271
 msgid "Car"
-msgstr ""
+msgstr "Aŭto"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1855 src/utils/pactl.c:272
 msgid "HiFi"
-msgstr ""
+msgstr "HiFi"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1861 src/utils/pactl.c:273
 msgid "Phone"
-msgstr ""
+msgstr "Telefono"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1908
 msgid "High Fidelity Playback (A2DP Sink)"
-msgstr ""
+msgstr "Altfidela ludado (A2DP-celo)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1920
 msgid "High Fidelity Capture (A2DP Source)"
-msgstr ""
+msgstr "Altfidela kaptado (A2DP-fonto)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1932
 msgid "Headset Head Unit (HSP/HFP)"
-msgstr ""
+msgstr "Kaptelefona unuo (HSP/HFP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1945
 msgid "Headset Audio Gateway (HSP/HFP)"
-msgstr ""
+msgstr "Kaptelefona sonkluzo (HSP/HFP)"
 
 #: src/modules/echo-cancel/module-echo-cancel.c:59
 msgid ""
@@ -920,11 +922,11 @@ msgstr ""
 #. add on profile
 #: src/modules/macosx/module-coreaudio-device.c:825
 msgid "On"
-msgstr ""
+msgstr "Ŝaltita"
 
 #: src/modules/module-allow-passthrough.c:71 src/modules/module-always-sink.c:80
 msgid "Dummy Output"
-msgstr ""
+msgstr "Lokokupa eligo"
 
 #: src/modules/module-always-sink.c:34
 msgid "Always keeps at least one sink loaded even if it's a null one"
@@ -987,32 +989,32 @@ msgstr ""
 #: src/modules/module-rygel-media-server.c:506 src/modules/module-rygel-media-server.c:544
 #: src/modules/module-rygel-media-server.c:903
 msgid "Output Devices"
-msgstr ""
+msgstr "Eligaj aparatoj"
 
 #: src/modules/module-rygel-media-server.c:507 src/modules/module-rygel-media-server.c:545
 #: src/modules/module-rygel-media-server.c:904
 msgid "Input Devices"
-msgstr ""
+msgstr "Enigaj aparatoj"
 
 #: src/modules/module-rygel-media-server.c:1061
 msgid "Audio on @HOSTNAME@"
-msgstr ""
+msgstr "Sono sur @HOSTNAME@"
 
 #. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
 #. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
 #: src/modules/module-tunnel-sink-new.c:320 src/modules/module-tunnel-source-new.c:305
 #, c-format
 msgid "Tunnel for %s@%s"
-msgstr ""
+msgstr "Tunelo por %s@%s"
 
 #: src/modules/module-tunnel-sink-new.c:564 src/modules/module-tunnel-source-new.c:540
 #, c-format
 msgid "Tunnel to %s/%s"
-msgstr ""
+msgstr "Tunelo al %s/%s"
 
 #: src/modules/module-virtual-surround-sink.c:50
 msgid "Virtual surround sink"
-msgstr ""
+msgstr "Cifera ĉirkaŭa sona celo"
 
 #: src/modules/module-virtual-surround-sink.c:54
 msgid ""
@@ -1038,47 +1040,47 @@ msgstr ""
 
 #: src/pulse/channelmap.c:105
 msgid "Front Center"
-msgstr ""
+msgstr "Antaŭ-centro"
 
 #: src/pulse/channelmap.c:106
 msgid "Front Left"
-msgstr ""
+msgstr "Antaŭ-maldekstro"
 
 #: src/pulse/channelmap.c:107
 msgid "Front Right"
-msgstr ""
+msgstr "Antaŭ-dekstro"
 
 #: src/pulse/channelmap.c:109
 msgid "Rear Center"
-msgstr ""
+msgstr "Malantaŭ-centro"
 
 #: src/pulse/channelmap.c:110
 msgid "Rear Left"
-msgstr ""
+msgstr "Malantaŭ-maldekstro"
 
 #: src/pulse/channelmap.c:111
 msgid "Rear Right"
-msgstr ""
+msgstr "Malantaŭ-dekstro"
 
 #: src/pulse/channelmap.c:113
 msgid "Subwoofer"
-msgstr ""
+msgstr "Baso"
 
 #: src/pulse/channelmap.c:115
 msgid "Front Left-of-center"
-msgstr ""
+msgstr "Antaŭ-maldekstre-de-centro"
 
 #: src/pulse/channelmap.c:116
 msgid "Front Right-of-center"
-msgstr ""
+msgstr "Antaŭ-dekstre-de-centro"
 
 #: src/pulse/channelmap.c:118
 msgid "Side Left"
-msgstr ""
+msgstr "Flank-maldekstro"
 
 #: src/pulse/channelmap.c:119
 msgid "Side Right"
-msgstr ""
+msgstr "Flank-dekstro"
 
 #: src/pulse/channelmap.c:121
 msgid "Auxiliary 0"
@@ -1210,57 +1212,57 @@ msgstr ""
 
 #: src/pulse/channelmap.c:154
 msgid "Top Center"
-msgstr ""
+msgstr "Supra-centro"
 
 #: src/pulse/channelmap.c:156
 msgid "Top Front Center"
-msgstr ""
+msgstr "Supra-antaŭ-centro"
 
 #: src/pulse/channelmap.c:157
 msgid "Top Front Left"
-msgstr ""
+msgstr "Supra-antaŭ-maldekstro"
 
 #: src/pulse/channelmap.c:158
 msgid "Top Front Right"
-msgstr ""
+msgstr "Supra-antaŭ-dekstro"
 
 #: src/pulse/channelmap.c:160
 msgid "Top Rear Center"
-msgstr ""
+msgstr "Supra-malantaŭ-centro"
 
 #: src/pulse/channelmap.c:161
 msgid "Top Rear Left"
-msgstr ""
+msgstr "Supra-malantaŭ-maldekstro"
 
 #: src/pulse/channelmap.c:162
 msgid "Top Rear Right"
-msgstr ""
+msgstr "Supra-malantaŭ-dekstro"
 
 #: src/pulse/channelmap.c:479 src/pulse/format.c:123 src/pulse/sample.c:177
 #: src/pulse/volume.c:306 src/pulse/volume.c:332 src/pulse/volume.c:352
 #: src/pulse/volume.c:384 src/pulse/volume.c:424 src/pulse/volume.c:443
 msgid "(invalid)"
-msgstr ""
+msgstr "(nevalida)"
 
 #: src/pulse/channelmap.c:780
 msgid "Surround 4.0"
-msgstr ""
+msgstr "Ĉirkaŭa sono 4.0"
 
 #: src/pulse/channelmap.c:786
 msgid "Surround 4.1"
-msgstr ""
+msgstr "Ĉirkaŭa sono 4.1"
 
 #: src/pulse/channelmap.c:792
 msgid "Surround 5.0"
-msgstr ""
+msgstr "Ĉirkaŭa sono 5.0"
 
 #: src/pulse/channelmap.c:798
 msgid "Surround 5.1"
-msgstr ""
+msgstr "Ĉirkaŭa sono 5.1"
 
 #: src/pulse/channelmap.c:805
 msgid "Surround 7.1"
-msgstr ""
+msgstr "Ĉirkaŭa sono 7.1"
 
 #: src/pulse/client-conf-x11.c:61 src/utils/pax11publish.c:97
 msgid "xcb_connect() failed"
@@ -1291,11 +1293,11 @@ msgstr ""
 
 #: src/pulse/direction.c:37
 msgid "input"
-msgstr ""
+msgstr "enigo"
 
 #: src/pulse/direction.c:39
 msgid "output"
-msgstr ""
+msgstr "eligo"
 
 #: src/pulse/direction.c:41
 msgid "bidirectional"
@@ -1315,11 +1317,11 @@ msgstr ""
 
 #: src/pulsecore/core-util.h:97
 msgid "yes"
-msgstr ""
+msgstr "jes"
 
 #: src/pulsecore/core-util.h:97
 msgid "no"
-msgstr ""
+msgstr "ne"
 
 #: src/pulsecore/lock-autospawn.c:141 src/pulsecore/lock-autospawn.c:227
 msgid "Cannot access autospawn lock."
@@ -1341,7 +1343,7 @@ msgstr ""
 
 #: src/pulsecore/sink.c:3534
 msgid "Built-in Audio"
-msgstr ""
+msgstr "Integrita sono"
 
 #: src/pulsecore/sink.c:3539
 msgid "Modem"
@@ -1349,7 +1351,7 @@ msgstr ""
 
 #: src/pulse/error.c:38
 msgid "OK"
-msgstr ""
+msgstr "Bone"
 
 #: src/pulse/error.c:39
 msgid "Access denied"
@@ -1833,11 +1835,11 @@ msgstr ""
 
 #: src/utils/pacat.c:1126
 msgid "recording"
-msgstr ""
+msgstr "registro"
 
 #: src/utils/pacat.c:1126
 msgid "playback"
-msgstr ""
+msgstr "ludado"
 
 #: src/utils/pacat.c:1150
 msgid "Failed to set media name."
@@ -2074,15 +2076,15 @@ msgstr ""
 
 #: src/utils/pactl.c:243
 msgid "available"
-msgstr ""
+msgstr "disponebla"
 
 #: src/utils/pactl.c:244
 msgid "not available"
-msgstr ""
+msgstr "nedisponebla"
 
 #: src/utils/pactl.c:253 src/utils/pactl.c:277
 msgid "Unknown"
-msgstr ""
+msgstr "Nekonata"
 
 #: src/utils/pactl.c:254
 msgid "Aux"
@@ -2094,7 +2096,7 @@ msgstr ""
 
 #: src/utils/pactl.c:258
 msgid "Mic"
-msgstr ""
+msgstr "Mikrofono"
 
 #: src/utils/pactl.c:260
 msgid "Handset"
@@ -2122,15 +2124,15 @@ msgstr ""
 
 #: src/utils/pactl.c:268
 msgid "Bluetooth"
-msgstr ""
+msgstr "Bludento"
 
 #: src/utils/pactl.c:274
 msgid "Network"
-msgstr ""
+msgstr "Reto"
 
 #: src/utils/pactl.c:275
 msgid "Analog"
-msgstr ""
+msgstr "Analoga"
 
 #: src/utils/pactl.c:299 src/utils/pactl.c:1020 src/utils/pactl.c:1098
 #, c-format
