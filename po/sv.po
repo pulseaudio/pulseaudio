@@ -20,7 +20,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-01-22 09:11+0200\n"
-"PO-Revision-Date: 2020-08-14 19:29+0000\n"
+"PO-Revision-Date: 2021-02-07 15:40+0000\n"
 "Last-Translator: Göran Uddeborg <goeran@uddeborg.se>\n"
 "Language-Team: Swedish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/sv/>\n"
@@ -29,10 +29,10 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.1.1\n"
+"X-Generator: Weblate 4.4.2\n"
 
 #: src/daemon/cmdline.c:113
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -116,7 +116,7 @@ msgstr ""
 "minnessegment\n"
 "      --start                           Starta demonen om den inte redan "
 "körs\n"
-"  -k  --kill                            Döda en demon\n"
+"  -k  --kill                            Döda en körande demon\n"
 "      --check                           Kontrollera om det finns någon "
 "körande demon (returnerar bara returkod)\n"
 "\n"
@@ -133,39 +133,39 @@ msgstr ""
 "                                        (bara tillgängligt som root, när "
 "SUID eller\n"
 "                                        med förhöjd RLIMIT_RTPRIO)\n"
-"      --disallow-module-loading[=BOOL]  Förbjud modulanvändning av "
-"användarbegärd\n"
-"                                        inläsning/urläsning efter start\n"
+"      --disallow-module-loading[=BOOL]  Förbjud av användaren begärd "
+"laddning/urladdning\n"
+"                                        av moduler efter start\n"
 "      --disallow-exit[=BOOL]            Förbjud användarbegärt avslut\n"
-"      --exit-idle-time=SECS             Avsluta demonen vid inaktivitet och "
+"      --exit-idle-time=SEK              Avsluta demonen vid inaktivitet och "
 "efter\n"
 "                                        denna tid\n"
-"      --scache-idle-time=SECS           Inaktivera autoinlästa samplingar "
+"      --scache-idle-time=SEK            Inaktivera autoinlästa samplingar "
 "vid inaktivitet och\n"
 "                                        efter denna tid\n"
-"      --log-level[=LEVEL]               Öka eller bestäm informativa nivån\n"
+"      --log-level[=NIVÅ]                Öka eller bestäm informativa nivån\n"
 "  -v  --verbose                         Öka informativa nivån\n"
-"      --log-target={auto,syslog,stderr,file:PATH,newfile:PATH}\n"
+"      --log-target={auto,syslog,stderr,file:SÖKVÄG,newfile:SÖKVÄG}\n"
 "                                        Ange mål för loggen\n"
 "      --log-meta[=BOOL]                 Inkludera kodplats i "
 "loggmeddelanden\n"
 "      --log-time[=BOOL]                 Inkludera tidsstämpel i "
 "loggmeddelanden\n"
-"      --log-backtrace=FRAMES            Inkluderar bakåtspårning i "
+"      --log-backtrace=RAMAR             Inkluderar bakåtspårning i "
 "loggmeddelanden\n"
-"  -p, --dl-search-path=PATH             Ange sökvägen för dynamiskt delade\n"
+"  -p, --dl-search-path=SÖKVÄG           Ange sökvägen för dynamiskt delade\n"
 "                                        objekt (insticksmoduler)\n"
-"      --resample-method=METHOD          Använd den angivna "
+"      --resample-method=METOD           Använd den angivna "
 "omsamplingsmetoden\n"
 "                                        (Se --dump-resample-methods för\n"
 "                                        möjliga värden)\n"
 "      --use-pid-file[=BOOL]             Skapa en PID-fil\n"
 "      --no-cpu-limit[=BOOL]             Installera inte en CPU-"
 "belastningsbegränsare\n"
-"                                        på plattformar som stöder det.\n"
+"                                        på plattformar som stödjer det.\n"
 "      --disable-shm[=BOOL]              Inaktivera stöd för delat minne.\n"
-"      --enable-memfd[=BOOL]             Aktivera stöd för memfd-delat "
-"minne.\n"
+"      --enable-memfd[=BOOL]             Aktivera stöd för memfd-delat minne."
+"\n"
 "\n"
 "STARTSKRIPT:\n"
 "  -L, --load=”MODUL ARGUMENT”           Läs in den angivna insticksmodulen "
@@ -214,13 +214,12 @@ msgid "--use-pid-file expects boolean argument"
 msgstr "--use-pid-file förväntar sig ett booleskt argument"
 
 #: src/daemon/cmdline.c:328
-#, fuzzy
 msgid ""
 "Invalid log target: use either 'syslog', 'journal', 'stderr' or 'auto' or a "
 "valid file name 'file:<path>', 'newfile:<path>'."
 msgstr ""
-"Ogiltigt mål för loggen: använd ”syslog”, ”journal”, ”stderr”, ”auto” eller "
-"ett giltigt filnamn ”file:<sökväg>”, ”newfile:<sökväg>”."
+"Ogiltigt mål för loggen: använd antingen ”syslog”, ”journal”, ”stderr” eller "
+"”auto” eller ett giltigt filnamn ”file:<sökväg>”, ”newfile:<sökväg>”."
 
 #: src/daemon/cmdline.c:330
 msgid ""
@@ -559,9 +558,8 @@ msgid "pa_core_new() failed."
 msgstr "pa_core_new() misslyckades."
 
 #: src/daemon/main.c:1119
-#, fuzzy
 msgid "command line arguments"
-msgstr "För många argument."
+msgstr "kommandoradsargument"
 
 #: src/daemon/main.c:1126
 #, c-format
@@ -569,6 +567,8 @@ msgid ""
 "Failed to initialize daemon due to errors while executing startup commands. "
 "Source of commands: %s"
 msgstr ""
+"Misslyckades att initiera demonen på grund av fel vid körning av "
+"uppstartskommandon. Källa till kommandon: %s"
 
 #: src/daemon/main.c:1131
 msgid "Daemon startup without any loaded modules, refusing to work."
@@ -692,9 +692,8 @@ msgid "Analog Output"
 msgstr "Analog utgång"
 
 #: src/modules/alsa/alsa-mixer.c:2808
-#, fuzzy
 msgid "Headphones 2"
-msgstr "Hörlurar"
+msgstr "Hörlurar 2"
 
 #: src/modules/alsa/alsa-mixer.c:2809
 msgid "Headphones Mono Output"
@@ -741,28 +740,24 @@ msgid "Chat Output"
 msgstr "Chatt-utgång"
 
 #: src/modules/alsa/alsa-mixer.c:2821
-#, fuzzy
 msgid "Chat Input"
-msgstr "Chatt-utgång"
+msgstr "Chatt-ingång"
 
 #: src/modules/alsa/alsa-mixer.c:2822
-#, fuzzy
 msgid "Virtual Surround 7.1"
-msgstr "Virtual surround-mottagare"
+msgstr "Virtual surround 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4562
 msgid "Analog Mono"
 msgstr "Analog mono"
 
 #: src/modules/alsa/alsa-mixer.c:4563
-#, fuzzy
 msgid "Analog Mono (Left)"
-msgstr "Analog mono"
+msgstr "Analog mono (vänster)"
 
 #: src/modules/alsa/alsa-mixer.c:4564
-#, fuzzy
 msgid "Analog Mono (Right)"
-msgstr "Analog mono"
+msgstr "Analog mono (höger)"
 
 #. Note: Not translated to "Analog Stereo Input", because the source
 #. * name gets "Input" appended to it automatically, so adding "Input"
@@ -789,9 +784,8 @@ msgid "Headset"
 msgstr "Headset"
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
-#, fuzzy
 msgid "Speakerphone"
-msgstr "Högtalare"
+msgstr "Högtalartelefon"
 
 #: src/modules/alsa/alsa-mixer.c:4577 src/modules/alsa/alsa-mixer.c:4578
 msgid "Multichannel"
