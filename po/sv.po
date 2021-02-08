@@ -20,7 +20,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-01-22 09:11+0200\n"
-"PO-Revision-Date: 2021-02-07 15:40+0000\n"
+"PO-Revision-Date: 2021-02-09 17:40+0000\n"
 "Last-Translator: Göran Uddeborg <goeran@uddeborg.se>\n"
 "Language-Team: Swedish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/sv/>\n"
@@ -861,11 +861,11 @@ msgstr "Digital surround 5.1 (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4596
 msgid "Chat"
-msgstr ""
+msgstr "Chatt"
 
 #: src/modules/alsa/alsa-mixer.c:4597
 msgid "Game"
-msgstr ""
+msgstr "Spel"
 
 #: src/modules/alsa/alsa-mixer.c:4731
 msgid "Analog Mono Duplex"
@@ -889,7 +889,7 @@ msgstr "Stereo duplex"
 
 #: src/modules/alsa/alsa-mixer.c:4738
 msgid "Mono Chat + 7.1 Surround"
-msgstr ""
+msgstr "Mono Chatt + 7.1 Surround"
 
 #: src/modules/alsa/alsa-mixer.c:4739 src/modules/alsa/module-alsa-card.c:197
 #: src/modules/bluetooth/module-bluez5-device.c:2083
@@ -1217,7 +1217,6 @@ msgid "Virtual surround sink"
 msgstr "Virtual surround-mottagare"
 
 #: src/modules/module-virtual-surround-sink.c:54
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "master=<name of sink to filter> sink_master=<name of sink to filter> "
@@ -1230,8 +1229,9 @@ msgstr ""
 "sink_name=<namn för mottagaren> sink_properties=<egenskaper för mottagaren> "
 "master=<namn på mottagare att filtrera> sink_master=<namn på mottagare att "
 "filtrera> format=<samplingsformat> rate=<samplingshastighet> channels=<antal "
-"kanaler> channel_map=<kanalmappning> use_volume_sharing=<ja eller nej> "
-"force_flat_volume=<ja eller nej> hrir=/path/to/left_hrir.wav "
+"kanaler> channel_map=<kanalavbildning> use_volume_sharing=<ja eller nej> "
+"force_flat_volume=<ja eller nej> hrir=/sökväg/till/left_hrir.wav "
+"hrir_left=/sökväg/till/left_hrir.wav hrir=/sökväg/till/right_hrir.wav "
 "autoloaded=<angiven om denna modul läses in automatiskt> "
 
 #: src/modules/raop/module-raop-discover.c:295
@@ -1516,7 +1516,7 @@ msgid "invalid"
 msgstr "ogiltig"
 
 #: src/pulsecore/core-util.c:1780
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "XDG_RUNTIME_DIR (%s) is not owned by us (uid %d), but by uid %d! (This could "
 "e.g. happen if you try to connect to a non-root PulseAudio as a root user, "
@@ -1872,7 +1872,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() misslyckades: %s"
 
 #: src/utils/pacat.c:676
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "%s\n"
@@ -1948,27 +1948,25 @@ msgstr ""
 "\n"
 "  -v, --verbose                         Aktivera informativa åtgärder\n"
 "\n"
-"  -s, --server=SERVER                   Namn på server att ansluta till\n"
+"  -s, --server=SERVER                   Namn på servern att ansluta till\n"
 "  -d, --device=ENHET                    Namn på mottagare/källa att ansluta "
 "till\n"
-"  -n, --client-name=NAMN                Hur denna klient ska anropas på "
+"  -n, --client-name=NAMN                Hur denna klient ska namnges på "
 "servern\n"
-"      --stream-name=NAMN                Hur denna ström ska anropas på "
+"      --stream-name=NAMN                Hur denna ström ska namnges på "
 "servern\n"
-"      --volume=VOLUM                    Ange initiala (linjära) volymen i "
-"intervallet 0...65536\n"
+"      --volume=VOLYM                    Ange initiala (linjära) volymen i "
+"intervallet 0…65536\n"
 "      --rate=SAMPLINGSFREKVENS          Samplingsfrekvens i Hz (standard "
 "44100)\n"
-"      --format=SAMPLINGSFORMAT          Samplingstyp, en av s16le, s16be, "
-"u8, float32le,\n"
-"                                        float32be, ulaw, alaw, s32le, s32be, "
-"s24le, s24be,\n"
-"                                        s24-32le, s24-32be (defaults to "
-"s16ne)\n"
+"      --format=SAMPLINGSFORMAT          Samplingsformat, se\n"
+"                                        https://www.freedesktop.org/wiki/"
+"Software/PulseAudio/Documentation/User/SupportedAudioFormats/\n"
+"                                        för möjliga värden (standard s16ne)\n"
 "      --channels=KANALER                Antalet kanaler, 1 för mono, 2 för "
 "stereo\n"
 "                                        (standard 2)\n"
-"      --channel-map=KANALMAPPNING       Kanalmappning att använda istället "
+"      --channel-map=KANALAVBILDNING     Kanalavbildning att använda istället "
 "för standard\n"
 "      --fix-format                      Ta samplingsformatet från mottagaren/"
 "källan strömmen är\n"
@@ -1977,12 +1975,12 @@ msgstr ""
 "mottagaren/källan strömmen är\n"
 "                                        ansluten till.\n"
 "      --fix-channels                    Ta antalet kanaler och "
-"kanalmappning\n"
+"kanalavbildning\n"
 "                                        från mottagaren/källan strömmen är "
 "ansluten till.\n"
-"      --no-remix                        Mixa inte ner eller upp kanaler.\n"
-"      --no-remap                        Mappa kanaler med index istället för "
-"med namn.\n"
+"      --no-remix                        Mixa inte upp eller ner kanaler.\n"
+"      --no-remap                        Avbilda kanaler med index istället "
+"för med namn.\n"
 "      --latency=BYTE                    Begär angiven latens i byte.\n"
 "      --process-time=BYTE               Begär angiven processtid per begäran "
 "i byte.\n"
@@ -1991,10 +1989,9 @@ msgstr ""
 "i ms.\n"
 "      --property=EGENSKAP=VÄRDE         Sätt angiven egenskap till angivet "
 "värde.\n"
-"      --raw                             Spela in/spela upp rå PCM-data.\n"
+"      --raw                             Spela in/upp rå PCM-data.\n"
 "      --passthrough                     Genomströmningsdata.\n"
-"      --file-format[=FFORMAT]           Spela in/spela upp formaterad PCM-"
-"data.\n"
+"      --file-format[=FFORMAT]           Spela in/upp formaterad PCM-data.\n"
 "      --list-file-formats               Lista tillgängliga filformat.\n"
 "      --monitor-stream=INDEX            Spela in från mottagaringången med "
 "index INDEX.\n"
@@ -2260,7 +2257,7 @@ msgstr "LJUDRUTOR"
 
 #: src/utils/pacmd.c:80 src/utils/pactl.c:1709
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
-msgstr ""
+msgstr "MOTTAGARE MEDDELANDE [MOTTAGARPARAMETRAR]"
 
 #: src/utils/pacmd.c:82
 #, c-format
@@ -2397,15 +2394,15 @@ msgstr ""
 
 #: src/utils/pactl.c:242
 msgid "availability unknown"
-msgstr ""
+msgstr "tillgänglighet okänd"
 
 #: src/utils/pactl.c:243
 msgid "available"
-msgstr ""
+msgstr "tillgänglig"
 
 #: src/utils/pactl.c:244
 msgid "not available"
-msgstr ""
+msgstr "inte tillgänglig"
 
 #: src/utils/pactl.c:253 src/utils/pactl.c:277
 #, fuzzy
