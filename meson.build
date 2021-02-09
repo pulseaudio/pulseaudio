@@ -655,6 +655,11 @@ if systemd_dep.found() and systemduserunitdir == ''
   systemduserunitdir = systemd_dep.get_pkgconfig_variable('systemduserunitdir')
 endif
 
+tcpwrap_dep = cc.find_library('wrap', required: get_option('tcpwrap'))
+if cc.has_header('tcpd.h') and cc.has_function('hosts_access', dependencies : tcpwrap_dep)
+  cdata.set('HAVE_LIBWRAP', 1)
+endif
+
 x11_dep = dependency('x11-xcb', required : get_option('x11'))
 if x11_dep.found()
   xcb_dep  = dependency('xcb',  required : true, version : '>= 1.6')
@@ -894,7 +899,7 @@ summary = [
   'Enable udev:                   @0@'.format(udev_dep.found()),
   '  Enable HAL->udev compat:     @0@'.format(get_option('hal-compat')),
   'Enable systemd:                @0@'.format(libsystemd_dep.found()),
-#  'Enable TCP Wrappers:           @0@'.format(${ENABLE_TCPWRAP}),
+  'Enable TCP Wrappers:           @0@'.format(tcpwrap_dep.found()),
   'Enable libsamplerate:          @0@'.format(samplerate_dep.found()),
   'Enable IPv6:                   @0@'.format(get_option('ipv6')),
   'Enable OpenSSL (for Airtunes): @0@'.format(openssl_dep.found()),

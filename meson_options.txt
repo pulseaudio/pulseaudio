@@ -141,6 +141,9 @@ option('speex',
 option('systemd',
        type : 'feature', value : 'auto',
        description : 'Optional systemd support')
+option('tcpwrap',
+       type : 'feature', value : 'auto',
+       description : 'Optional TCP wrappers support')
 option('udev',
        type : 'feature', value : 'auto',
        description : 'Optional udev support')
