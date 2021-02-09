@@ -14,7 +14,6 @@ daemon.conf
 default.pa
 echo-cancel-test
 esdcompat
-gconf-helper
 gsettings-helper
 org.freedesktop.pulseaudio.gschema.valid
 pacat

@@ -127,17 +127,6 @@ load-module module-gsettings
 .endif
 ])dnl
 
-ifelse(@HAVE_GCONF@, 1, [dnl
-### Load additional modules from GConf settings. This can be configured with the paprefs tool.
-### Please keep in mind that the modules configured by paprefs might conflict with manually
-### loaded modules.
-.ifexists module-gconf@PA_SOEXT@
-.nofail
-load-module module-gconf
-.fail
-.endif
-])dnl
-
 ### Automatically restore the default sink/source when changed by the user
 ### during runtime
 ### NOTE: This should be loaded as early as possible so that subsequent modules

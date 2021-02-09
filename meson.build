@@ -880,7 +880,6 @@ summary = [
 #  'Enable Solaris:                @0@'.format(${ENABLE_SOLARIS}),
 #  'Enable WaveOut:                @0@'.format(${ENABLE_WAVEOUT}),
   'Enable GLib 2:                 @0@'.format(glib_dep.found()),
-#  'Enable GConf:                  @0@'.format(${ENABLE_GCONF}),
   'Enable GSettings:              @0@'.format(gio_dep.found()),
   'Enable Gtk+ 3:                 @0@'.format(gtk_dep.found()),
   'Enable Avahi:                  @0@'.format(avahi_dep.found()),

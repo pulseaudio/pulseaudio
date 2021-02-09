@@ -28,7 +28,6 @@ all_modules = [
 #  [ 'module-esound-sink', 'module-esound-sink.c' ],
   [ 'module-filter-apply', 'module-filter-apply.c' ],
   [ 'module-filter-heuristics', 'module-filter-heuristics.c' ],
-#  [ 'module-gconf', 'gconf/module-gconf.c' ],
   [ 'module-http-protocol-tcp', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_HTTP', '-DUSE_TCP_SOCKETS'], [], libprotocol_http ],
   [ 'module-http-protocol-unix', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_HTTP', '-DUSE_UNIX_SOCKETS'], [], libprotocol_http ],
   [ 'module-intended-roles', 'module-intended-roles.c' ],

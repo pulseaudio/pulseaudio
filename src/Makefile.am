@@ -1461,14 +1461,6 @@ endif
 
 endif
 
-if HAVE_GCONF
-modlibexec_LTLIBRARIES += \
-		module-gconf.la
-
-pulselibexec_PROGRAMS += \
-		gconf-helper
-endif
-
 if HAVE_GSETTINGS
 modlibexec_LTLIBRARIES += \
 		module-gsettings.la
@@ -2121,20 +2113,6 @@ module_systemd_login_la_SOURCES = modules/module-systemd-login.c
 module_systemd_login_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_systemd_login_la_LIBADD = $(MODULE_LIBADD) $(SYSTEMD_LIBS) $(SYSTEMDLOGIN_LIBS)
 module_systemd_login_la_CFLAGS = $(AM_CFLAGS) $(SYSTEMD_CFLAGS) $(SYSTEMDLOGIN_CFLAGS) -DPA_MODULE_NAME=module_systemd_login
-
-# GConf support
-module_gconf_la_SOURCES = \
-		 modules/stdin-util.c modules/stdin-util.h \
-		 modules/gconf/module-gconf.c
-
-module_gconf_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_gconf_la_LIBADD = $(MODULE_LIBADD)
-module_gconf_la_CFLAGS = $(AM_CFLAGS) -DPA_GCONF_HELPER=\"$(pulselibexecdir)/gconf-helper\" -DPA_MODULE_NAME=module_gconf
-
-gconf_helper_SOURCES = modules/gconf/gconf-helper.c
-gconf_helper_LDADD = $(AM_LDADD) libpulsecore-@PA_MAJORMINOR@.la libpulsecommon-@PA_MAJORMINOR@.la libpulse.la $(GCONF_LIBS)
-gconf_helper_CFLAGS = $(AM_CFLAGS) $(GCONF_CFLAGS)
-gconf_helper_LDFLAGS = $(AM_LDFLAGS) $(BINLDFLAGS)
 
 # GSettings support
 module_gsettings_la_SOURCES = \
