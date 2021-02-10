@@ -20,7 +20,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-01-22 09:11+0200\n"
-"PO-Revision-Date: 2021-02-09 17:40+0000\n"
+"PO-Revision-Date: 2021-02-12 14:40+0000\n"
 "Last-Translator: Göran Uddeborg <goeran@uddeborg.se>\n"
 "Language-Team: Swedish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/sv/>\n"
@@ -2405,61 +2405,56 @@ msgid "not available"
 msgstr "inte tillgänglig"
 
 #: src/utils/pactl.c:253 src/utils/pactl.c:277
-#, fuzzy
 msgid "Unknown"
-msgstr "okänd"
+msgstr "Okänd"
 
 #: src/utils/pactl.c:254
 msgid "Aux"
-msgstr ""
+msgstr "Aux"
 
 #: src/utils/pactl.c:257
-#, fuzzy
 msgid "Line"
-msgstr "Linje in"
+msgstr "Linje"
 
 #: src/utils/pactl.c:258
 msgid "Mic"
-msgstr ""
+msgstr "Mik"
 
 #: src/utils/pactl.c:260
-#, fuzzy
 msgid "Handset"
-msgstr "Headset"
+msgstr "Lur"
 
 #: src/utils/pactl.c:261
 msgid "Earpiece"
-msgstr ""
+msgstr "Hörlur"
 
 #: src/utils/pactl.c:262
 msgid "SPDIF"
-msgstr ""
+msgstr "SPDIF"
 
 #: src/utils/pactl.c:263
 msgid "HDMI"
-msgstr ""
+msgstr "HDMI"
 
 #: src/utils/pactl.c:264
 msgid "TV"
-msgstr ""
+msgstr "TV"
 
 #: src/utils/pactl.c:267
 msgid "USB"
-msgstr ""
+msgstr "USB"
 
 #: src/utils/pactl.c:268
-#, fuzzy
 msgid "Bluetooth"
-msgstr "Bluetooth-ingång"
+msgstr "Blåtand"
 
 #: src/utils/pactl.c:274
 msgid "Network"
-msgstr ""
+msgstr "Nätverk"
 
 #: src/utils/pactl.c:275
-#, fuzzy
 msgid "Analog"
-msgstr "Analog mono"
+msgstr "Analog"
 
 #: src/utils/pactl.c:299 src/utils/pactl.c:1020 src/utils/pactl.c:1098
 #, c-format
@@ -2511,14 +2506,13 @@ msgid "\tPorts:\n"
 msgstr "\tPortar:\n"
 
 #: src/utils/pactl.c:371 src/utils/pactl.c:479
-#, fuzzy, c-format
+#, c-format
 msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
-msgstr ""
-"\t\t%s: %s (mottagare: %u, källor: %u, prioritet: %u, tillgängliga: %s)\n"
+msgstr "\t\t%s: %s (typ: %s, prioritet: %u%s%s, %s)\n"
 
 #: src/utils/pactl.c:373 src/utils/pactl.c:481 src/utils/pactl.c:645
 msgid ", availability group: "
-msgstr ""
+msgstr ", tillgänglighetsgrupp: "
 
 #: src/utils/pactl.c:378 src/utils/pactl.c:486
 #, c-format
@@ -2667,6 +2661,7 @@ msgstr "\tAktiv profil: %s\n"
 msgid ""
 "\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s, %s)\n"
 msgstr ""
+"\t\t%s: %s (typ: %s, prioritet: %u, latensavstånd: %<PRId64> µs%s%s, %s)\n"
 
 #: src/utils/pactl.c:649
 #, c-format
@@ -2810,18 +2805,18 @@ msgid "Failure: %s"
 msgstr "Misslyckande: %s"
 
 #: src/utils/pactl.c:889
-#, fuzzy, c-format
+#, c-format
 msgid "Send message failed: %s"
-msgstr "read() misslyckades: %s"
+msgstr "Att skicka ett meddelande misslyckades: %s"
 
 #: src/utils/pactl.c:906
 #, c-format
 msgid "list-handlers message failed: %s"
-msgstr ""
+msgstr "listhanterares meddelande misslyckades: %s"
 
 #: src/utils/pactl.c:912 src/utils/pactl.c:947
 msgid "list-handlers message response could not be parsed correctly"
-msgstr ""
+msgstr "listhanterares meddelandesvar kunde inte tolkas korrekt"
 
 #: src/utils/pactl.c:984
 #, c-format
@@ -2829,7 +2824,7 @@ msgid "Failed to unload module: Module %s not loaded"
 msgstr "Misslyckades med att stänga modul: Modulen %s är inte aktiv"
 
 #: src/utils/pactl.c:1002
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Failed to set volume: You tried to set volumes for %d channel, whereas "
 "channel(s) supported = %d\n"
@@ -2837,11 +2832,11 @@ msgid_plural ""
 "Failed to set volume: You tried to set volumes for %d channels, whereas "
 "channel(s) supported = %d\n"
 msgstr[0] ""
-"Misslyckades att sätta volym: Du försökte att sätta volymer för %d kanal, "
-"medan antalet kanaler som stöds = %d\n"
+"Misslyckades att sätta volym: du försökte att sätta volymer för %d kanal, "
+"medan antalet kanaler som stödjs = %d\n"
 msgstr[1] ""
-"Misslyckades att sätta volym: Du försökte att sätta volymer för %d kanaler, "
-"medan antalet kanaler som stöds = %d\n"
+"Misslyckades att sätta volym: du försökte att sätta volymer för %d kanaler, "
+"medan antalet kanaler som stödjs = %d\n"
 
 #: src/utils/pactl.c:1213
 #, c-format
@@ -3158,15 +3153,16 @@ msgid "Invalid source output index specification"
 msgstr "Ogiltig specificering av källutgångsindex"
 
 #: src/utils/pactl.c:2150
-#, fuzzy
 msgid "You have to specify at least an object path and a message name"
-msgstr "Du måste ange ett mottagarnamn/-index och ett portnamn"
+msgstr "Du måste ange åtminstone en objektsökväg och ett meddelandenamn"
 
 #: src/utils/pactl.c:2160
 msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
 msgstr ""
+"Överflödiga argument givna, de kommer ignoreras. Observera att alla "
+"meddelandeparametrar måste ges som en enda sträng."
 
 #: src/utils/pactl.c:2170
 msgid ""
@@ -3229,7 +3225,7 @@ msgid "WARNING: Child process terminated by signal %u\n"
 msgstr "VARNING: Underordnad process avslutad av signalen %u\n"
 
 #: src/utils/pasuspender.c:228
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] -- PROGRAM [ARGUMENTS ...]\n"
 "\n"
@@ -3241,7 +3237,9 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
-"%s [flaggor] … \n"
+"%s [flaggor] -- PROGRAM [ARGUMENT …]\n"
+"\n"
+"Stäng tillfälligt av PulseAudio medan PROGRAM kör.\n"
 "\n"
 "  -h, --help                            Visa denna hjälp\n"
 "      --version                         Visa version\n"
