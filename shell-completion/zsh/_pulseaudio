@@ -34,6 +34,7 @@ _devices() {
         case $words[$((CURRENT - 2))] in
             move-sink-input) cmd=('sinks');;
             move-source-output) cmd=('sources');;
+            play-sample) cmd=('sinks');;
         esac
 
     elif [[ $service == (pacat|paplay|parec|parecord) ]]; then
@@ -156,6 +157,13 @@ _ports() {
     done
 
     _describe 'port list' _port_list
+}
+
+_sample_names() {
+    local -a _sample_names
+    sample_names=(${${${(f)"$(_call_program samples_tag "pactl $remote list samples short 2> /dev/null")"}##[[:digit:]]#[[:blank:]]#}%%[[:blank:]]*})
+
+    _wanted pactl-samples expl 'sample list' compadd $sample_names
 }
 
 _cards(){
@@ -306,10 +314,10 @@ _pactl_completion() {
         _play_sample_parameter() {
             if ((CURRENT == 2)); then
                 # We're completing the first parameter after "play-sample".
-                # TODO: Implement sample name completion.
+                _sample_names
             elif ((CURRENT == 3)); then
                 # We're completing the second parameter after "play-sample".
-                # TODO: Implement sink name completion.
+                _devices
             fi
         }
 
@@ -472,7 +480,7 @@ _pactl_completion() {
             list)                                  _list_parameter;;
             upload-sample)                         if ((CURRENT == 2)); then _files; fi;;
             play-sample)                           _play_sample_parameter;;
-            remove-sample)                         ;; # TODO: Implement sample name completion.
+            remove-sample)                         if ((CURRENT == 2)); then _sample_names; fi;;
             load-module)                           _load_module_parameter;;
             unload-module)                         if ((CURRENT == 2)); then _loaded_modules; fi;;
             move-sink-input)                       _move_sink_input_parameter;;
