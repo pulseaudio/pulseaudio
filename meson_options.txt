@@ -93,6 +93,9 @@ option('bluez5-ofono-headset',
 option('dbus',
        type : 'feature', value : 'auto',
        description : 'Optional D-Bus support')
+option('elogind',
+       type : 'feature', value : 'auto',
+       description : 'Optional elogind support')
 option('fftw',
        type : 'feature', value : 'auto',
        description : 'Optional FFTW support')
