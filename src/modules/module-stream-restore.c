@@ -1490,8 +1490,10 @@ static pa_hook_result_t sink_input_new_hook_callback(pa_core *c, pa_sink_input_n
     if (!(name = pa_proplist_get_stream_group(new_data->proplist, "sink-input", IDENTIFICATION_PROPERTY)))
         return PA_HOOK_OK;
 
-    if (new_data->sink)
+    if (new_data->sink) {
         pa_log_debug("Not restoring device for stream %s, because already set to '%s'.", name, new_data->sink->name);
+        new_data->preferred_sink = pa_xstrdup(new_data->sink->name);
+    }
     else if (new_data->origin_sink)
         pa_log_debug("Not restoring device for stream %s, because it connects a filter to the master sink.", name);
     else if ((e = entry_read(u, name))) {
@@ -1597,8 +1599,10 @@ static pa_hook_result_t source_output_new_hook_callback(pa_core *c, pa_source_ou
     if (!(name = pa_proplist_get_stream_group(new_data->proplist, "source-output", IDENTIFICATION_PROPERTY)))
         return PA_HOOK_OK;
 
-    if (new_data->source)
+    if (new_data->source) {
         pa_log_debug("Not restoring device for stream %s, because already set", name);
+        new_data->preferred_source = pa_xstrdup(new_data->source->name);
+    }
     else if (new_data->destination_source)
         pa_log_debug("Not restoring device for stream %s, because it connects a filter to the master source.", name);
     else if ((e = entry_read(u, name))) {
