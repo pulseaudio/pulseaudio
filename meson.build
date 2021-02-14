@@ -655,6 +655,11 @@ if systemd_dep.found() and systemduserunitdir == ''
   systemduserunitdir = systemd_dep.get_pkgconfig_variable('systemduserunitdir')
 endif
 
+libelogind_dep = dependency('libelogind', required : get_option('elogind'))
+if libelogind_dep.found()
+  cdata.set('HAVE_SYSTEMD_LOGIN', 1)
+endif
+
 tcpwrap_dep = cc.find_library('wrap', required: get_option('tcpwrap'))
 if cc.has_header('tcpd.h') and cc.has_function('hosts_access', dependencies : tcpwrap_dep)
   cdata.set('HAVE_LIBWRAP', 1)
@@ -899,6 +904,7 @@ summary = [
   'Enable udev:                   @0@'.format(udev_dep.found()),
   '  Enable HAL->udev compat:     @0@'.format(get_option('hal-compat')),
   'Enable systemd:                @0@'.format(libsystemd_dep.found()),
+  'Enable elogind:                @0@'.format(libelogind_dep.found()),
   'Enable TCP Wrappers:           @0@'.format(tcpwrap_dep.found()),
   'Enable libsamplerate:          @0@'.format(samplerate_dep.found()),
   'Enable IPv6:                   @0@'.format(get_option('ipv6')),
