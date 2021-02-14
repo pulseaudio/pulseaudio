@@ -10,8 +10,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-01-22 09:11+0200\n"
-"PO-Revision-Date: 2021-02-12 14:40+0000\n"
-"Last-Translator: Ricky Tigg <ricky.tigg@gmail.com>\n"
+"PO-Revision-Date: 2021-02-15 18:40+0000\n"
+"Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/fi/>\n"
 "Language: fi\n"
@@ -211,13 +211,12 @@ msgid "--use-pid-file expects boolean argument"
 msgstr "--use-pid-file vaatii totuusarvoisen argumentin"
 
 #: src/daemon/cmdline.c:328
-#, fuzzy
 msgid ""
 "Invalid log target: use either 'syslog', 'journal', 'stderr' or 'auto' or a "
 "valid file name 'file:<path>', 'newfile:<path>'."
 msgstr ""
-"Virheellinen lokikirjoituksen kohde: käytä jotain seuraavista: ”syslog”, "
-"”stderr” tai ”auto” tai laillista tiedostonimeä 'file:<path>'."
+"Virheellinen lokikohde: käytä jotain seuraavista: 'syslog', 'stderr' tai "
+"'auto' tai kelvollista tiedostonimeä 'file:<polku>', 'newfile:<polku>'."
 
 #: src/daemon/cmdline.c:330
 msgid ""
@@ -918,7 +917,7 @@ msgid "%s Input"
 msgstr "%s Sisääntulo"
 
 #: src/modules/alsa/alsa-sink.c:652 src/modules/alsa/alsa-sink.c:842
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
 "nothing to write.\n"
@@ -935,7 +934,7 @@ msgstr ""
 "kuitenkin 0 tai jonkin muun arvon, joka on < min_avail."
 
 #: src/modules/alsa/alsa-source.c:611 src/modules/alsa/alsa-source.c:777
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
 "nothing to read.\n"
@@ -2397,7 +2396,7 @@ msgstr "saatavilla"
 
 #: src/utils/pactl.c:244
 msgid "not available"
-msgstr ""
+msgstr "Ei käytettävissä"
 
 #: src/utils/pactl.c:253 src/utils/pactl.c:277
 msgid "Unknown"
