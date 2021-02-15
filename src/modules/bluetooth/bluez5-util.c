@@ -1169,7 +1169,6 @@ finish:
         register_legacy_sbc_endpoint(y, a2dp_codec_sbc, path, A2DP_SOURCE_ENDPOINT "/sbc",
                 PA_BLUETOOTH_UUID_A2DP_SOURCE);
         pa_log_warn("Only SBC codec is available for A2DP profiles");
-        a->application_registered = false;
     }
 
     pa_xfree(path);
