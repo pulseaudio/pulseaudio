@@ -148,7 +148,7 @@ _ports() {
                 if [[ $line != [[:blank:]] &&
                     $line != (*Part?of*|*Properties:*|*device.icon_name*) ]]; then
                     _port_name=${line%%: *}
-                    _port_name=${_port_name//[[:blank:]]/}
+                    _port_name=${_port_name##[[:blank:]]#}
                     _port_description=${line#*: }
                     _port_list+=($_port_name:$_port_description)
                 fi
