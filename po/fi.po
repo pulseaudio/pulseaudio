@@ -10,7 +10,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-01-22 09:11+0200\n"
-"PO-Revision-Date: 2021-02-15 18:40+0000\n"
+"PO-Revision-Date: 2021-02-17 19:40+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/fi/>\n"
@@ -22,7 +22,7 @@ msgstr ""
 "X-Generator: Weblate 4.4.2\n"
 
 #: src/daemon/cmdline.c:113
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -98,25 +98,22 @@ msgstr ""
 "  -h, --help                            Näytä tämä ohje\n"
 "      --version                         Näytä versio\n"
 "      --dump-conf                       Tulosta oletusasetukset\n"
-"      --dump-modules                    Tulosta saatavilla olevien\n"
-"                                        moduulien luettelo\n"
-"      --dump-resample-methods           Tulosta saatavilla\n"
-"                                        olevat\n"
-"                                        uudelleennäytteistystavat\n"
-"      --cleanup-shm                     Puhdista vanhentuneet jaetun\n"
-"                                        muistin segmentit\n"
-"      --start                           Käynnistä taustaprosessi, jos se\n"
-"                                        ei ole käynnissä\n"
+"      --dump-modules                    Tulosta saatavilla olevien moduulien "
+"luettelo\n"
+"      --dump-resample-methods           Tulosta saatavilla olevat "
+"uudelleennäytteistystavat\n"
+"      --cleanup-shm                     Puhdista vanhentuneet jaetun muistin "
+"segmentit\n"
+"      --start                           Käynnistä taustaprosessi, jos se ei "
+"ole käynnissä\n"
 "  -k  --kill                            Tapa suoritettava taustaprosessi\n"
-"      --check                           Tarkista onko\n"
-"                                        taustaprosessi suoritettavana\n"
-"                                        (palauttaa vain lopetuskoodin)\n"
+"      --check                           Tarkista onko taustaprosessi "
+"suoritettavana (palauttaa vain lopetuskoodin)\n"
 "\n"
 "VALITSIMET:\n"
 "      --system[=BOOL]                   Suorita järjestelmänlaajuisena\n"
-"  -D, --daemonize[=BOOL]                Vaihda\n"
-"                                        taustaprosessiksi käynnistyksen\n"
-"                                        jälkeen\n"
+"  -D, --daemonize[=BOOL]                Vaihda taustaprosessiksi "
+"käynnistyksen jälkeen\n"
 "      --fail[=BOOL]                     Lopeta kun käynnistys epäonnistuu\n"
 "      --high-priority[=BOOL]            Yritä asettaa korkea nice-taso\n"
 "                                        (käytettävissä vain root-\n"
@@ -127,42 +124,43 @@ msgstr ""
 "                                        root-käyttäjänä, SUIDilla tai\n"
 "                                        kohotetulla RLIMIT_RTPRIO-arvolla)\n"
 "      --disallow-module-loading[=BOOL]  Kiellä käyttäjän pyytämä moduulin\n"
-"                                        lataus tai poisto käynnistyksen\n"
-"                                        jälkeen\n"
-"      --disallow-exit[=BOOL]            Kiellä käyttäjän pyytämä\n"
-"                                        lopettaminen\n"
+"                                        lataus tai poisto käynnistyksen "
+"jälkeen\n"
+"      --disallow-exit[=BOOL]            Kiellä käyttäjän pyytämä "
+"lopettaminen\n"
 "      --exit-idle-time=SEK              Lopeta taustaprosessi, kun se on\n"
-"                                        toimettomana ja tämä aika on\n"
-"                                        kulunut\n"
+"                                        toimettomana ja tämä aika on "
+"kulunut\n"
 "      --module-idle-time=SEK            Poista automaattisesti ladatut\n"
 "                                        moduulit, kun taustaprosessi on\n"
-"                                        toimettomana ja tämä aika on\n"
-"                                        kulunut\n"
+"                                        toimettomana ja tämä aika on "
+"kulunut\n"
 "      --scache-idle-time=SEK            Poista automaattisesti ladatut\n"
 "                                        näytteet, kun taustaprosessi on\n"
-"                                        toimettomana ja tämä aika on\n"
-"                                        kulunut\n"
-"      --log-level[=TASO]                Aseta tai kasvata\n"
-"                                        lokikirjoituksen tasoa\n"
-"  -v                                    Kasvata tulosteiden\n"
-"                                        yksityiskohtaisuutta\n"
-"      --log-target={auto,syslog,stderr} Aseta lokikirjoituksen kohde\n"
-"      --log-meta[=BOOL]                 Lisää koodikohta\n"
-"                                        lokiviesteihin\n"
+"                                        toimettomana ja tämä aika on "
+"kulunut\n"
+"      --log-level[=TASO]                Aseta tai kasvata lokikirjoituksen "
+"tasoa\n"
+"  -v  --verbose                         Kasvata tulosteiden "
+"yksityiskohtaisuutta\n"
+"      --log-target={auto,syslog,stderr,file:POLKU,newfile:POLKU} \n"
+"      \t\t\t\t\tAseta lokikirjoituksen kohde\n"
+"      --log-meta[=BOOL]                 Lisää koodikohta lokiviesteihin\n"
 "      --log-time[=BOOL]                 Lisää aikaleima lokiviesteihin\n"
 "      --log-backtrace=KEHYKSET          Lisää pinolistaus lokiviesteihin\n"
 "  -p, --dl-search-path=POLKU            Aseta dynaamisten jaettujen\n"
-"                                        objektien (liitännäisten)\n"
-"                                        hakupolku\n"
+"                                        objektien (liitännäisten) hakupolku\n"
 "      --resample-method=TAPA            Käytä määritettyä\n"
 "                                        uudelleennäytteistyksen tapaa\n"
 "                                        (--dump-resample-methods\n"
 "                                        luetteloi mahdolliset arvot)\n"
 "      --use-pid-file[=BOOL]             Luo PID-tiedosto\n"
-"      --no-cpu-limit[=BOOL]             Älä asenna suoritinkuorman\n"
-"                                        rajoitinta alustoilla, jotka\n"
-"                                        tukevat sitä\n"
+"      --no-cpu-limit[=BOOL]             Älä asenna suoritinkuorman "
+"rajoitinta \n"
+"      \t\t\t\t\talustoilla, jotka tukevat sitä\n"
 "      --disable-shm[=BOOL]              Poista jaetun muistin tuki käytöstä\n"
+"      --enable-memfd[=BOOL]             Ota käyttöön memfd jaetun muistin "
+"tuki.\n"
 "\n"
 "ALOITUSKOMENTOSARJA:\n"
 "  -L, --load=\"MODUULIN ARGUMENTIT\"    Lataa liitännäismoduuli annetulla\n"
@@ -171,8 +169,8 @@ msgstr ""
 "  -C                                    Avaa komentokehote nykyiseen\n"
 "                                        päätteeseen käynnistyksen jälkeen\n"
 "\n"
-"  -n                                    Älä lataa oletuskomentosarja-\n"
-"                                        tiedostoa\n"
+"  -n                                    Älä lataa oletuskomentosarja-"
+"tiedostoa\n"
 
 #: src/daemon/cmdline.c:246
 msgid "--daemonize expects boolean argument"
@@ -683,9 +681,8 @@ msgid "Dock Microphone"
 msgstr "Telakan mikrofoni"
 
 #: src/modules/alsa/alsa-mixer.c:2802
-#, fuzzy
 msgid "Headset Microphone"
-msgstr "takamikrofoni"
+msgstr "Kuulokkeiden mikrofoni"
 
 #: src/modules/alsa/alsa-mixer.c:2806
 msgid "Analog Output"
@@ -696,9 +693,8 @@ msgid "Headphones 2"
 msgstr "Kuulokkeet 2"
 
 #: src/modules/alsa/alsa-mixer.c:2809
-#, fuzzy
 msgid "Headphones Mono Output"
-msgstr "Analoginen monoulostulo"
+msgstr "Kuulokkeiden monoulostulo"
 
 #: src/modules/alsa/alsa-mixer.c:2810
 msgid "Line Out"
@@ -729,43 +725,36 @@ msgid "Multichannel Input"
 msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:2817
-#, fuzzy
 msgid "Multichannel Output"
-msgstr "Tyhjä ulostulo"
+msgstr "Monikanavainen ulostulo"
 
 #: src/modules/alsa/alsa-mixer.c:2818
-#, fuzzy
 msgid "Game Output"
-msgstr "%s Ulostulo"
+msgstr "Peli ulostulo"
 
 #: src/modules/alsa/alsa-mixer.c:2819 src/modules/alsa/alsa-mixer.c:2820
-#, fuzzy
 msgid "Chat Output"
-msgstr "%s Ulostulo"
+msgstr "Chatti ulostulo"
 
 #: src/modules/alsa/alsa-mixer.c:2821
-#, fuzzy
 msgid "Chat Input"
-msgstr "%s Sisääntulo"
+msgstr "Chatti sisääntulo"
 
 #: src/modules/alsa/alsa-mixer.c:2822
-#, fuzzy
 msgid "Virtual Surround 7.1"
-msgstr "Analoginen tilaääni 7.1"
+msgstr "Virtuaalinen tilaääni 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4562
 msgid "Analog Mono"
 msgstr "Analoginen mono"
 
 #: src/modules/alsa/alsa-mixer.c:4563
-#, fuzzy
 msgid "Analog Mono (Left)"
-msgstr "Analoginen mono"
+msgstr "Analoginen mono (vasen)"
 
 #: src/modules/alsa/alsa-mixer.c:4564
-#, fuzzy
 msgid "Analog Mono (Right)"
-msgstr "Analoginen mono"
+msgstr "Analoginen mono (oikea)"
 
 #. Note: Not translated to "Analog Stereo Input", because the source
 #. * name gets "Input" appended to it automatically, so adding "Input"
@@ -792,9 +781,8 @@ msgid "Headset"
 msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
-#, fuzzy
 msgid "Speakerphone"
-msgstr "Kaiutin"
+msgstr "Kaiutinpuhelin"
 
 #: src/modules/alsa/alsa-mixer.c:4577 src/modules/alsa/alsa-mixer.c:4578
 msgid "Multichannel"
@@ -893,9 +881,8 @@ msgid "Multichannel Duplex"
 msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:4737
-#, fuzzy
 msgid "Stereo Duplex"
-msgstr "Analoginen stereo, molemmat suunnat"
+msgstr "Stereo, molemmat suunnat"
 
 #: src/modules/alsa/alsa-mixer.c:4738
 msgid "Mono Chat + 7.1 Surround"
@@ -1038,9 +1025,8 @@ msgstr ""
 
 #: src/modules/bluetooth/module-bluez5-device.c:1804
 #: src/modules/bluetooth/module-bluez5-device.c:1823
-#, fuzzy
 msgid "Bluetooth Output"
-msgstr "Analoginen ulostulo"
+msgstr "Bluetooth ulostulo"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1816 src/utils/pactl.c:270
 msgid "Handsfree"
@@ -1217,9 +1203,8 @@ msgid "Tunnel to %s/%s"
 msgstr ""
 
 #: src/modules/module-virtual-surround-sink.c:50
-#, fuzzy
 msgid "Virtual surround sink"
-msgstr "Virtuaalinen LADSPA-nielu"
+msgstr "Virtuaalinen ympäristö-nielu"
 
 #: src/modules/module-virtual-surround-sink.c:54
 #, fuzzy
@@ -1240,9 +1225,8 @@ msgstr ""
 "syötteenhallinta-arvoja> "
 
 #: src/modules/raop/module-raop-discover.c:295
-#, fuzzy
 msgid "Unknown device model"
-msgstr "Tuntematon virhekoodi"
+msgstr "Tuntematon laitemalli"
 
 #: src/modules/raop/raop-sink.c:655
 msgid "RAOP standard profile"
@@ -1510,18 +1494,16 @@ msgid "input"
 msgstr "sisääntulo"
 
 #: src/pulse/direction.c:39
-#, fuzzy
 msgid "output"
-msgstr "%s Ulostulo"
+msgstr "ulostulo"
 
 #: src/pulse/direction.c:41
 msgid "bidirectional"
 msgstr ""
 
 #: src/pulse/direction.c:43
-#, fuzzy
 msgid "invalid"
-msgstr "(virheellinen)"
+msgstr "virheellinen"
 
 #: src/pulsecore/core-util.c:1780
 #, c-format
@@ -1555,9 +1537,8 @@ msgid ""
 msgstr ""
 
 #: src/pulsecore/log.c:651
-#, fuzzy
 msgid "Invalid log target."
-msgstr "[%s:%u] Virheellinen lokikirjoituksen kohde ”%s”."
+msgstr "Virheellinen lokikirjoituksen kohde."
 
 #: src/pulsecore/sink.c:3534
 msgid "Built-in Audio"
@@ -1753,9 +1734,9 @@ msgid "Using sample spec '%s', channel map '%s'."
 msgstr "Käytetään näytemäärittelyä ”%s”, kanavakarttaa ”%s”."
 
 #: src/utils/pacat.c:342
-#, fuzzy, c-format
+#, c-format
 msgid "Connected to device %s (index: %u, suspended: %s)."
-msgstr "Yhdistetty laitteeseen %s (%u, %ssuspended)."
+msgstr "Yhdistetty laitteeseen %s (indeksi:%u, keskeytetty: %s)."
 
 #: src/utils/pacat.c:352
 #, c-format
@@ -1829,9 +1810,9 @@ msgid "pa_stream_connect_playback() failed: %s"
 msgstr "pa_stream_connect_playback() epäonnistui: %s"
 
 #: src/utils/pacat.c:497
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to set monitor stream: %s"
-msgstr "Virran tyhjentäminen epäonnistui: %s"
+msgstr "Monitorin virran asettaminen epäonnistui: %s"
 
 #: src/utils/pacat.c:501
 #, c-format
@@ -2164,9 +2145,8 @@ msgid "NAME [ARGS ...]"
 msgstr "NIMI [ARGUMENTIT...]"
 
 #: src/utils/pacmd.c:52 src/utils/pacmd.c:60 src/utils/pactl.c:1697
-#, fuzzy
 msgid "NAME|#N"
-msgstr "NIMI|#N 1|0"
+msgstr "NIMI|#N"
 
 #: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:1695
 #: src/utils/pactl.c:1701
@@ -2190,9 +2170,8 @@ msgid "#N 1|0"
 msgstr "#N 1|0"
 
 #: src/utils/pacmd.c:58
-#, fuzzy
 msgid "NAME|#N KEY=VALUE"
-msgstr "NIMI|#N VOLUUMI"
+msgstr "NIMI|#N AVAIN=ARVO"
 
 #: src/utils/pacmd.c:59
 msgid "#N KEY=VALUE"
@@ -2203,33 +2182,28 @@ msgid "#N"
 msgstr "#N"
 
 #: src/utils/pacmd.c:62
-#, fuzzy
 msgid "NAME SINK|#N"
-msgstr "NIMI|#N 1|0"
+msgstr "NIMI NIELU|#N"
 
 #: src/utils/pacmd.c:64 src/utils/pacmd.c:65
-#, fuzzy
 msgid "NAME FILENAME"
-msgstr "TIEDOSTONIMI [NIMI]"
+msgstr "TIEDOSTONIMI"
 
 #: src/utils/pacmd.c:66
-#, fuzzy
 msgid "PATHNAME"
-msgstr "NIMI"
+msgstr "POLKU"
 
 #: src/utils/pacmd.c:67
-#, fuzzy
 msgid "FILENAME SINK|#N"
-msgstr "TIEDOSTONIMI [NIMI]"
+msgstr "TIEDOSTONIMI NIELU|#N"
 
 #: src/utils/pacmd.c:69 src/utils/pactl.c:1698
 msgid "#N SINK|SOURCE"
 msgstr ""
 
 #: src/utils/pacmd.c:71 src/utils/pacmd.c:77 src/utils/pacmd.c:78
-#, fuzzy
 msgid "1|0"
-msgstr "#N 1|0"
+msgstr "1|0"
 
 #: src/utils/pacmd.c:72 src/utils/pactl.c:1700
 msgid "CARD PROFILE"
@@ -2273,13 +2247,13 @@ msgstr ""
 "Ilman komentoa pacmd käynnistyy interaktiivisessa tilassa.\n"
 
 #: src/utils/pacmd.c:129
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "pacmd %s\n"
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
-"pacat %s\n"
+"pacmd %s\n"
 "Käännetty libpulsen versiolle %s\n"
 "Linkitetty libpulsen versiolle %s\n"
 
@@ -2407,9 +2381,8 @@ msgid "Aux"
 msgstr ""
 
 #: src/utils/pactl.c:257
-#, fuzzy
 msgid "Line"
-msgstr "Linjasisääntulo"
+msgstr "Linja"
 
 #: src/utils/pactl.c:258
 msgid "Mic"
@@ -2448,9 +2421,8 @@ msgid "Network"
 msgstr "Verkko"
 
 #: src/utils/pactl.c:275
-#, fuzzy
 msgid "Analog"
-msgstr "Analoginen mono"
+msgstr "Analoginen"
 
 #: src/utils/pactl.c:299 src/utils/pactl.c:1020 src/utils/pactl.c:1098
 #, c-format
@@ -2797,9 +2769,9 @@ msgid "Failure: %s"
 msgstr "Epäonnistuminen: %s"
 
 #: src/utils/pactl.c:889
-#, fuzzy, c-format
+#, c-format
 msgid "Send message failed: %s"
-msgstr "read() epäonnistui: %s"
+msgstr "Viestin lähetys epäonnistui: %s"
 
 #: src/utils/pactl.c:906
 #, c-format
@@ -2811,9 +2783,9 @@ msgid "list-handlers message response could not be parsed correctly"
 msgstr ""
 
 #: src/utils/pactl.c:984
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to unload module: Module %s not loaded"
-msgstr "Näytteen lähettäminen epäonnistui: %s"
+msgstr "Modulin purku epäonnistui: Moduuli %s ei ole ladattu"
 
 #: src/utils/pactl.c:1002
 #, c-format
@@ -2936,23 +2908,20 @@ msgid "NAME [SINK]"
 msgstr ""
 
 #: src/utils/pactl.c:1703
-#, fuzzy
 msgid "NAME|#N VOLUME [VOLUME ...]"
-msgstr "NIMI|#N VOLUUMI"
+msgstr "NIMI|#N VOLUUMI [VOLUUMI ...]"
 
 #: src/utils/pactl.c:1704
 msgid "#N VOLUME [VOLUME ...]"
 msgstr ""
 
 #: src/utils/pactl.c:1705
-#, fuzzy
 msgid "NAME|#N 1|0|toggle"
-msgstr "NIMI|#N 1|0"
+msgstr "NIMI|#N 1|0|vaihda"
 
 #: src/utils/pactl.c:1706
-#, fuzzy
 msgid "#N 1|0|toggle"
-msgstr "#N 1|0"
+msgstr "#N 1|0|vaihda"
 
 #: src/utils/pactl.c:1707
 msgid "#N FORMATS"
@@ -3062,18 +3031,16 @@ msgid "You have to specify a sink name/index and a port name"
 msgstr "Nielun nimi/indeksi ja portin nimi on annettava"
 
 #: src/utils/pactl.c:1995
-#, fuzzy
 msgid "You have to specify a sink name"
-msgstr "Soitettavan näytteen nimi on annettava"
+msgstr "Nielun nimi on annettava"
 
 #: src/utils/pactl.c:2005
 msgid "You have to specify a source name/index and a port name"
 msgstr "Lähteen nimi/indeksi ja portin nimi on annettava"
 
 #: src/utils/pactl.c:2016
-#, fuzzy
 msgid "You have to specify a source name"
-msgstr "Moduulin indeksi on annettava"
+msgstr "Lähteen nimi on annettava"
 
 #: src/utils/pactl.c:2026
 msgid "You have to specify a sink name/index and a volume"
@@ -3100,10 +3067,11 @@ msgid "Invalid source output index"
 msgstr "Virheellinen lähteen ulostuloindeksi"
 
 #: src/utils/pactl.c:2084
-#, fuzzy
 msgid ""
 "You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"
-msgstr "Nielun nimi/indeksi ja vaimennuksen totuusarvo on annettava"
+msgstr ""
+"Nielun nimi/indeksi ja vaimennuksen toiminto (0, 1, tai \"vaihda\") on "
+"annettava"
 
 #: src/utils/pactl.c:2089 src/utils/pactl.c:2104 src/utils/pactl.c:2124
 #: src/utils/pactl.c:2142
@@ -3111,36 +3079,38 @@ msgid "Invalid mute specification"
 msgstr "Ei kelvollinen mykistysmääritys"
 
 #: src/utils/pactl.c:2099
-#, fuzzy
 msgid ""
 "You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
-msgstr "Lähteen nimi/indeksi ja vaimennuksen totuusarvo on annettava"
+msgstr ""
+"Lähteen nimi/indeksi ja vaimennuksen toiminto (0, 1, tai \"vaihda\") on "
+"annettava"
 
 #: src/utils/pactl.c:2114
-#, fuzzy
 msgid ""
 "You have to specify a sink input index and a mute action (0, 1, or 'toggle')"
-msgstr "Nielun syöteindeksi ja vaimennuksen totuusarvo on annettava"
+msgstr ""
+"Nielun syöteindeksi ja vaimennuksen toiminto (0, 1, tai \"vaihda\") on "
+"annettava"
 
 #: src/utils/pactl.c:2119
 msgid "Invalid sink input index specification"
 msgstr "Virheellinen nielun syöteindeksin määritys"
 
 #: src/utils/pactl.c:2132
-#, fuzzy
 msgid ""
 "You have to specify a source output index and a mute action (0, 1, or "
 "'toggle')"
-msgstr "Lähteen ulostuloindeksi ja vaimennuksen totuusarvo on annettava"
+msgstr ""
+"Lähteen ulostuloindeksi ja vaimennuksen toiminto (0, 1, tai \"vaihda\") on "
+"annettava"
 
 #: src/utils/pactl.c:2137
 msgid "Invalid source output index specification"
 msgstr "Ei kelvollinen lähteen ulostulon indeksin määritys"
 
 #: src/utils/pactl.c:2150
-#, fuzzy
 msgid "You have to specify at least an object path and a message name"
-msgstr "Nielun nimi/indeksi ja portin nimi on annettava"
+msgstr "Vähintään objektin polku ja viestin nimi on annettava"
 
 #: src/utils/pactl.c:2160
 msgid ""
@@ -3149,16 +3119,16 @@ msgid ""
 msgstr ""
 
 #: src/utils/pactl.c:2170
-#, fuzzy
 msgid ""
 "You have to specify a sink index and a semicolon-separated list of supported "
 "formats"
-msgstr "Nielun nimi/indeksi ja vaimennuksen totuusarvo on annettava"
+msgstr ""
+"Nielun indeksi ja puolipilkulla eroteltu lista tuetuista formaateista on "
+"annettava"
 
 #: src/utils/pactl.c:2182
-#, fuzzy
 msgid "You have to specify a card name/index, a port name and a latency offset"
-msgstr "Kortin nimi/indeksi ja profiilin nimi on annettava"
+msgstr "Kortin nimi/indeksi ja portin nimi ja viivästysasetus on annettava"
 
 #: src/utils/pactl.c:2189
 msgid "Could not parse latency offset"
