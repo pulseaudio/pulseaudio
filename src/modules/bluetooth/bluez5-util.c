@@ -1466,7 +1466,7 @@ void pa_bluetooth_discovery_set_ofono_running(pa_bluetooth_discovery *y, bool is
     if (y->headset_backend != HEADSET_BACKEND_AUTO)
         return;
 
-    pa_bluetooth_native_backend_enable_hs_role(y->native_backend, !is_running);
+    pa_bluetooth_native_backend_enable_shared_profiles(y->native_backend, !is_running);
 
     /* If ofono starts running, all devices that might be connected to the HS roles or HFP AG role
      * need to be disconnected, so that the devices can be handled by ofono */

@@ -164,15 +164,15 @@ static inline void pa_bluetooth_ofono_backend_free(pa_bluetooth_backend *b) {}
 #endif
 
 #ifdef HAVE_BLUEZ_5_NATIVE_HEADSET
-pa_bluetooth_backend *pa_bluetooth_native_backend_new(pa_core *c, pa_bluetooth_discovery *y, bool enable_hs_role);
+pa_bluetooth_backend *pa_bluetooth_native_backend_new(pa_core *c, pa_bluetooth_discovery *y, bool enable_shared_profiles);
 void pa_bluetooth_native_backend_free(pa_bluetooth_backend *b);
-void pa_bluetooth_native_backend_enable_hs_role(pa_bluetooth_backend *b, bool enable_hs_role);
+void pa_bluetooth_native_backend_enable_shared_profiles(pa_bluetooth_backend *b, bool enable);
 #else
-static inline pa_bluetooth_backend *pa_bluetooth_native_backend_new(pa_core *c, pa_bluetooth_discovery *y, bool enable_hs_role) {
+static inline pa_bluetooth_backend *pa_bluetooth_native_backend_new(pa_core *c, pa_bluetooth_discovery *y, bool enable_shared_profiles) {
     return NULL;
 }
 static inline void pa_bluetooth_native_backend_free(pa_bluetooth_backend *b) {}
-static inline void pa_bluetooth_native_backend_enable_hs_role(pa_bluetooth_backend *b, bool enable_hs_role) {}
+static inline void pa_bluetooth_native_backend_enable_shared_profiles(pa_bluetooth_backend *b, bool enable) {}
 #endif
 
 pa_bluetooth_transport *pa_bluetooth_transport_new(pa_bluetooth_device *d, const char *owner, const char *path,

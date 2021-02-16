@@ -40,7 +40,7 @@ struct pa_bluetooth_backend {
   pa_core *core;
   pa_dbus_connection *connection;
   pa_bluetooth_discovery *discovery;
-  bool enable_hs_role;
+  bool enable_shared_profiles;
   bool enable_hfp_hf;
 
   PA_LLIST_HEAD(pa_dbus_pending, pending);
@@ -793,8 +793,8 @@ static void profile_done(pa_bluetooth_backend *b, pa_bluetooth_profile_t profile
     }
 }
 
-static void native_backend_apply_profile_registration_change(pa_bluetooth_backend *native_backend, bool enable_hs_role) {
-    if (enable_hs_role) {
+static void native_backend_apply_profile_registration_change(pa_bluetooth_backend *native_backend, bool enable_shared_profiles) {
+    if (enable_shared_profiles) {
         profile_init(native_backend, PA_BLUETOOTH_PROFILE_HSP_AG);
         if (native_backend->enable_hfp_hf)
             profile_init(native_backend, PA_BLUETOOTH_PROFILE_HFP_HF);
@@ -805,17 +805,17 @@ static void native_backend_apply_profile_registration_change(pa_bluetooth_backen
     }
 }
 
-void pa_bluetooth_native_backend_enable_hs_role(pa_bluetooth_backend *native_backend, bool enable_hs_role) {
+void pa_bluetooth_native_backend_enable_shared_profiles(pa_bluetooth_backend *native_backend, bool enable) {
 
-   if (enable_hs_role == native_backend->enable_hs_role)
+   if (enable == native_backend->enable_shared_profiles)
        return;
 
-   native_backend_apply_profile_registration_change(native_backend, enable_hs_role);
+   native_backend_apply_profile_registration_change(native_backend, enable);
 
-   native_backend->enable_hs_role = enable_hs_role;
+   native_backend->enable_shared_profiles = enable;
 }
 
-pa_bluetooth_backend *pa_bluetooth_native_backend_new(pa_core *c, pa_bluetooth_discovery *y, bool enable_hs_role) {
+pa_bluetooth_backend *pa_bluetooth_native_backend_new(pa_core *c, pa_bluetooth_discovery *y, bool enable_shared_profiles) {
     pa_bluetooth_backend *backend;
     DBusError err;
 
@@ -833,10 +833,10 @@ pa_bluetooth_backend *pa_bluetooth_native_backend_new(pa_core *c, pa_bluetooth_d
     }
 
     backend->discovery = y;
-    backend->enable_hs_role = enable_hs_role;
+    backend->enable_shared_profiles = enable_shared_profiles;
     backend->enable_hfp_hf = pa_bluetooth_discovery_get_enable_native_hfp_hf(y);
 
-    if (backend->enable_hs_role)
+    if (backend->enable_shared_profiles)
         native_backend_apply_profile_registration_change(backend, true);
 
     profile_init(backend, PA_BLUETOOTH_PROFILE_HSP_HS);
@@ -849,7 +849,7 @@ void pa_bluetooth_native_backend_free(pa_bluetooth_backend *backend) {
 
     pa_dbus_free_pending_list(&backend->pending);
 
-    if (backend->enable_hs_role)
+    if (backend->enable_shared_profiles)
         native_backend_apply_profile_registration_change(backend, false);
 
     profile_done(backend, PA_BLUETOOTH_PROFILE_HSP_HS);
