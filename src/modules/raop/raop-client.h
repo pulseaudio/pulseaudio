@@ -82,5 +82,7 @@ ssize_t pa_raop_client_send_audio_packet(pa_raop_client *c, pa_memchunk *block, 
 
 typedef void (*pa_raop_client_state_cb_t)(pa_raop_state_t state, void *userdata);
 void pa_raop_client_set_state_callback(pa_raop_client *c, pa_raop_client_state_cb_t callback, void *userdata);
+void pa_raop_client_set_tport(pa_raop_client *c, int udp_tport);
+void pa_raop_client_send_progress (pa_raop_client *c);
 
 #endif
