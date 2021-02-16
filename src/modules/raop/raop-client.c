@@ -130,6 +130,8 @@ struct pa_raop_client {
 
     pa_raop_client_state_cb_t state_callback;
     void *state_userdata;
+
+    pa_volume_t initial_volume;
 };
 
 /* Audio TCP packet header [16x8] (cf. rfc4571):
@@ -1200,6 +1202,13 @@ connect_finish:
         case STATE_SET_PARAMETER: {
             pa_log_debug("RAOP: SET_PARAMETER");
 
+            if (c->initial_volume != 0){
+                c->initial_volume = 0;
+                // We just have set initial volume, so raise PA_RAOP_VOLUME_INIT to chain
+                if (c->state_callback)
+                    c->state_callback((int) PA_RAOP_VOLUME_INIT, c->state_userdata);
+            }
+
             break;
         }
 
@@ -1251,6 +1260,7 @@ connect_finish:
             /* Polling sockets will be closed by sink */
             c->udp_cfd = c->udp_tfd = c->udp_tport = -1;
             c->tcp_sfd = -1;
+            c->initial_volume = 0;
 
             pa_log_error("RTSP control channel closed (disconnected)");
 
@@ -1508,6 +1518,7 @@ pa_raop_client* pa_raop_client_new(pa_core *core, const char *host, pa_raop_prot
     c->udp_cfd = -1;
     c->udp_tfd = -1;
     c->udp_tport = -1;
+    c->initial_volume = 0;
 
     c->secret = NULL;
     if (c->encryption != PA_RAOP_ENCRYPTION_NONE)
@@ -1689,6 +1700,10 @@ int pa_raop_client_stream(pa_raop_client *c) {
     }
 
     return rv;
+}
+
+void pa_raop_client_set_initial_volume(pa_raop_client *c, pa_volume_t initial_volume) {
+    c->initial_volume = initial_volume;
 }
 
 int pa_raop_client_set_volume(pa_raop_client *c, pa_volume_t volume) {
