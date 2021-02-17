@@ -35,6 +35,7 @@
 #include <bluetooth/sco.h>
 
 #include "bluez5-util.h"
+#include "bt-codec-msbc.h"
 
 #define HSP_MAX_GAIN 15
 
@@ -59,6 +60,7 @@ struct transport_data {
 struct hfp_config {
     uint32_t capabilities;
     int state;
+    bool support_msbc;
 };
 
 /*
@@ -91,7 +93,7 @@ enum hfp_ag_features {
 /* gateway features we support, which is as little as we can get away with */
 static uint32_t hfp_features =
     /* HFP 1.6 requires this */
-    (1 << HFP_AG_ESTATUS );
+    (1 << HFP_AG_ESTATUS ) | (1 << HFP_AG_CODECS);
 
 #define HSP_AG_PROFILE "/Profile/HSPAGProfile"
 #define HFP_AG_PROFILE "/Profile/HFPAGProfile"
@@ -219,6 +221,20 @@ static void rfcomm_write_response(int fd, const char *fmt, ...)
     va_end(ap);
 }
 
+static int sco_setsockopt_enable_bt_voice(pa_bluetooth_transport *t, int fd) {
+    /* the mSBC codec requires a special transparent eSCO connection */
+    struct bt_voice voice;
+
+    memset(&voice, 0, sizeof(voice));
+    voice.setting = BT_VOICE_TRANSPARENT;
+    if (setsockopt(fd, SOL_BLUETOOTH, BT_VOICE, &voice, sizeof(voice)) < 0) {
+        pa_log_error("sockopt(): %s", pa_cstrerror(errno));
+        return -1;
+    }
+    pa_log_info("Enabled BT_VOICE_TRANSPARENT connection for mSBC");
+    return 0;
+}
+
 static int sco_do_connect(pa_bluetooth_transport *t) {
     pa_bluetooth_device *d = t->device;
     struct sockaddr_sco addr;
@@ -253,6 +269,9 @@ static int sco_do_connect(pa_bluetooth_transport *t) {
         pa_log_error("bind(): %s", pa_cstrerror(errno));
         goto fail_close;
     }
+
+    if (t->setsockopt && t->setsockopt(t, sock) < 0)
+        goto fail_close;
 
     memset(&addr, 0, len);
     addr.sco_family = AF_BLUETOOTH;
@@ -322,6 +341,11 @@ static int sco_acquire_cb(pa_bluetooth_transport *t, bool optional, size_t *imtu
             if (omtu) *omtu = sco_opt.mtu;
         }
     }
+
+    /* read/decode machinery only works if we get at most one MSBC encoded packet at a time
+     * when it is fixed to process stream of packets, lift this assertion */
+    pa_assert(*imtu <= MSBC_PACKET_SIZE);
+    pa_assert(*omtu <= MSBC_PACKET_SIZE);
 
     return sock;
 
@@ -526,6 +550,7 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
 {
     struct hfp_config *c = t->config;
     int val;
+    char str[5];
 
     /* stateful negotiation */
     if (c->state == 0 && sscanf(buf, "AT+BRSF=%d", &val) == 1) {
@@ -533,6 +558,13 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
         pa_log_info("HFP capabilities returns 0x%x", val);
         rfcomm_write_response(fd, "+BRSF: %d", hfp_features);
         c->state = 1;
+
+        return true;
+    } else if (c->state == 1 && sscanf(buf, "AT+BAC=%3s", str) == 1) {
+        if (strncmp(str, "1,2", 3) == 0)
+            c->support_msbc = true;
+        else
+            c->support_msbc = false;
 
         return true;
     } else if (c->state == 1 && pa_startswith(buf, "AT+CIND=?")) {
@@ -543,21 +575,52 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
                      "(\"call\",(0-1)),"
                      "(\"callheld\",(0-2))");
         c->state = 2;
+
         return true;
     } else if (c->state == 2 && pa_startswith(buf, "AT+CIND?")) {
         rfcomm_write_response(fd, "+CIND: 0,0");
         c->state = 3;
+
         return true;
     } else if ((c->state == 2 || c->state == 3) && pa_startswith(buf, "AT+CMER=")) {
         rfcomm_write_response(fd, "OK");
-        c->state = 4;
-        t->bt_codec = pa_bluetooth_get_hf_codec("CVSD");
-        transport_put(t);
+
+        if (c->support_msbc) {
+            rfcomm_write_response(fd, "+BCS:2");
+            c->state = 4;
+        } else {
+            c->state = 5;
+            t->bt_codec = pa_bluetooth_get_hf_codec("CVSD");
+            t->setsockopt = NULL;
+            transport_put(t);
+        }
+
         return false;
+    } else if (sscanf(buf, "AT+BCS=%d", &val)) {
+        if (val == 1) {
+            t->bt_codec = pa_bluetooth_get_hf_codec("CVSD");
+            t->setsockopt = NULL;
+        } else if (val == 2) {
+            t->bt_codec = pa_bluetooth_get_hf_codec("mSBC");
+            t->setsockopt = sco_setsockopt_enable_bt_voice;
+        } else
+            pa_assert_not_reached();
+
+        if (c->state == 4) {
+            c->state = 5;
+            pa_log_info("HFP negotiated codec %s", t->bt_codec->name);
+            transport_put(t);
+        }
+
+        return true;
+    } if (c->state == 4) {
+        /* the ack for the codec setting may take a while. we need
+         * to reply OK to everything else until then */
+        return true;
     }
 
     /* if we get here, negotiation should be complete */
-    if (c->state != 4) {
+    if (c->state != 5) {
         pa_log_error("HFP negotiation failed in state %d with inbound %s\n",
                      c->state, buf);
         rfcomm_write_response(fd, "ERROR");
