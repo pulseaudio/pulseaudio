@@ -29,12 +29,14 @@
 
 #include "a2dp-codec-util.h"
 
+extern const pa_a2dp_codec pa_bt_codec_msbc;
 extern const pa_a2dp_codec pa_bt_codec_cvsd;
 
 /* List of HSP/HFP codecs.
  */
 static const pa_a2dp_codec *pa_hf_codecs[] = {
     &pa_bt_codec_cvsd,
+    &pa_bt_codec_msbc,
 };
 
 extern const pa_a2dp_codec pa_a2dp_codec_sbc;
