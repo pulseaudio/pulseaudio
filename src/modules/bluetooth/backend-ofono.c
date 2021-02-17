@@ -90,6 +90,10 @@ static ssize_t sco_transport_write(pa_bluetooth_transport *t, int fd, const void
 
     pa_assert(t);
 
+    /* since SCO setup is symmetric, fix write MTU to be size of last read packet */
+    if (t->last_read_size)
+        write_mtu = PA_MIN(t->last_read_size, write_mtu);
+
     /* if encoder buffer has less data than required to make complete packet */
     if (size < write_mtu)
         return 0;
@@ -109,6 +113,11 @@ static ssize_t sco_transport_write(pa_bluetooth_transport *t, int fd, const void
         if (errno == EAGAIN) {
             /* Hmm, apparently the socket was not writable, give up for now */
             pa_log_debug("Got EAGAIN on write() after POLLOUT, probably there is a temporary connection loss.");
+            /* Drain write buffer */
+            written = size;
+        } else if (errno == EINVAL && t->last_read_size == 0) {
+            /* Likely write_link_mtu is still wrong, retry after next successful read */
+            pa_log_debug("got write EINVAL, next successful read should fix MTU");
             /* Drain write buffer */
             written = size;
         } else {

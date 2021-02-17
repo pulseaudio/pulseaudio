@@ -103,6 +103,7 @@ struct pa_bluetooth_transport {
 
     const pa_a2dp_codec *bt_codec;
     int stream_write_type;
+    size_t last_read_size;
 
     pa_volume_t source_volume;
     pa_volume_t sink_volume;

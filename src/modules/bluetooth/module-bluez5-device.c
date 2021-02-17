@@ -413,6 +413,9 @@ static ssize_t bt_transport_read(pa_bluetooth_transport *t, int fd, void *buffer
 
         pa_assert((size_t) received <= size);
 
+        /* allow write side to find out size of last read packet */
+        t->last_read_size = received;
+
         if (p_timestamp) {
             /* TODO: get timestamp from rtp */
 
