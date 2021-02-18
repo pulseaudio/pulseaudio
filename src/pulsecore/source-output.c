@@ -1512,6 +1512,16 @@ static void update_volume_due_to_moving(pa_source_output *o, pa_source *dest) {
             pa_source_output_set_volume_direct(o, &o->reference_ratio);
             o->real_ratio = o->reference_ratio;
             pa_sw_cvolume_multiply(&o->soft_volume, &o->real_ratio, &o->volume_factor);
+
+            /* If this is a virtual source stream, we have to apply the source volume
+             * to the source output. */
+            if (o->destination_source) {
+                pa_cvolume vol;
+
+                vol = o->destination_source->real_volume;
+                pa_cvolume_remap(&vol, &o->destination_source->channel_map, &o->channel_map);
+                pa_source_output_set_volume(o, &vol, o->destination_source->save_volume, true);
+            }
         }
     }
 
