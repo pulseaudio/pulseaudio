@@ -28,6 +28,7 @@ SystemCallFilter=@system-service
 # Note that notify will only work if --daemonize=no
 Type=notify
 UMask=0077
+Slice=session.slice
 
 [Install]
 Also=pulseaudio.socket
