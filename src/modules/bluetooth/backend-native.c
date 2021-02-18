@@ -139,25 +139,26 @@ static pa_dbus_pending* send_and_add_to_pending(pa_bluetooth_backend *backend, D
     return p;
 }
 
-static void rfcomm_write(int fd, const char *str)
+static void rfcomm_write(int fd, const char *fmt, ...)
 {
+    va_list ap;
     size_t len;
     char buf[512];
+    char command[512];
 
-    pa_log_debug("RFCOMM >> %s", str);
-    sprintf(buf, "\r\n%s\r\n", str);
-    len = write(fd, buf, strlen(buf));
+    va_start(ap, fmt);
+    pa_vsnprintf(command, sizeof(command), fmt, ap);
+    va_end(ap);
 
-    if (len != strlen(buf))
+    pa_log_debug("RFCOMM >> %s", command);
+
+    len = pa_snprintf(buf, sizeof(buf), "\r\n%s\r\n", command);
+
+    /* we ignore any errors, it's not critical and real errors should
+     * be caught with the HANGUP and ERROR events handled above */
+
+    if ((size_t)write(fd, buf, len) != len)
         pa_log_error("RFCOMM write error: %s", pa_cstrerror(errno));
-}
-
-static void hfp_send_features(int fd)
-{
-    char buf[512];
-
-    sprintf(buf, "+BRSF: %d", hfp_features);
-    rfcomm_write(fd, buf);
 }
 
 static int sco_do_connect(pa_bluetooth_transport *t) {
@@ -423,7 +424,7 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
     if (c->state == 0 && sscanf(buf, "AT+BRSF=%d", &val) == 1) {
           c->capabilities = val;
           pa_log_info("HFP capabilities returns 0x%x", val);
-          hfp_send_features(fd);
+          rfcomm_write(fd, "+BRSF: %d", hfp_features);
           c->state = 1;
           return true;
     } else if (c->state == 1 && pa_startswith(buf, "AT+CIND=?")) {
@@ -440,7 +441,7 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
         c->state = 3;
         return true;
     } else if ((c->state == 2 || c->state == 3) && pa_startswith(buf, "AT+CMER=")) {
-        rfcomm_write(fd, "\r\nOK\r\n");
+        rfcomm_write(fd, "OK");
         c->state = 4;
         transport_put(t);
         return false;
@@ -514,16 +515,8 @@ static void rfcomm_io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_i
             do_reply = false;
         }
 
-        if (do_reply) {
-            pa_log_debug("RFCOMM >> OK");
-
-            len = write(fd, "\r\nOK\r\n", 6);
-
-            /* we ignore any errors, it's not critical and real errors should
-             * be caught with the HANGUP and ERROR events handled above */
-            if (len < 0)
-                pa_log_error("RFCOMM write error: %s", pa_cstrerror(errno));
-        }
+        if (do_reply)
+            rfcomm_write(fd, "OK");
     }
 
     return;
@@ -551,8 +544,6 @@ static void transport_destroy(pa_bluetooth_transport *t) {
 
 static void set_speaker_gain(pa_bluetooth_transport *t, uint16_t gain) {
     struct transport_data *trd = t->userdata;
-    char buf[512];
-    ssize_t len, written;
 
     if (t->speaker_gain == gain)
       return;
@@ -563,23 +554,14 @@ static void set_speaker_gain(pa_bluetooth_transport *t, uint16_t gain) {
      * the speaker gain. In the HS role, source and sink are swapped, so
      * in this case we notify the AG that the microphone gain has changed */
     if (t->profile == PA_BLUETOOTH_PROFILE_HSP_HS || t->profile == PA_BLUETOOTH_PROFILE_HFP_HF) {
-        len = sprintf(buf, "\r\n+VGS=%d\r\n", gain);
-        pa_log_debug("RFCOMM >> +VGS=%d", gain);
+        rfcomm_write(trd->rfcomm_fd, "+VGS=%d", gain);
     } else {
-        len = sprintf(buf, "\r\nAT+VGM=%d\r\n", gain);
-        pa_log_debug("RFCOMM >> AT+VGM=%d", gain);
+        rfcomm_write(trd->rfcomm_fd, "AT+VGM=%d", gain);
     }
-
-    written = write(trd->rfcomm_fd, buf, len);
-
-    if (written != len)
-        pa_log_error("RFCOMM write error: %s", pa_cstrerror(errno));
 }
 
 static void set_microphone_gain(pa_bluetooth_transport *t, uint16_t gain) {
     struct transport_data *trd = t->userdata;
-    char buf[512];
-    ssize_t len, written;
 
     if (t->microphone_gain == gain)
       return;
@@ -590,17 +572,10 @@ static void set_microphone_gain(pa_bluetooth_transport *t, uint16_t gain) {
      * the microphone gain. In the HS role, source and sink are swapped, so
      * in this case we notify the AG that the speaker gain has changed */
     if (t->profile == PA_BLUETOOTH_PROFILE_HSP_HS || t->profile == PA_BLUETOOTH_PROFILE_HFP_HF) {
-        len = sprintf(buf, "\r\n+VGM=%d\r\n", gain);
-        pa_log_debug("RFCOMM >> +VGM=%d", gain);
+        rfcomm_write(trd->rfcomm_fd, "+VGM=%d", gain);
     } else {
-        len = sprintf(buf, "\r\nAT+VGS=%d\r\n", gain);
-        pa_log_debug("RFCOMM >> AT+VGS=%d", gain);
+        rfcomm_write(trd->rfcomm_fd, "AT+VGS=%d", gain);
     }
-
-    written = write (trd->rfcomm_fd, buf, len);
-
-    if (written != len)
-        pa_log_error("RFCOMM write error: %s", pa_cstrerror(errno));
 }
 
 static DBusMessage *profile_new_connection(DBusConnection *conn, DBusMessage *m, void *userdata) {
