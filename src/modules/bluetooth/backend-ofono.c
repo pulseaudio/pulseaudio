@@ -227,8 +227,7 @@ static int card_acquire(struct hf_audio_card *card) {
             close(fd);
             return -1;
         }
-        card->transport->bt_codec = pa_bluetooth_get_hf_codec("CVSD");
-        card->transport->setsockopt = NULL;
+        pa_bluetooth_transport_reconfigure(card->transport, pa_bluetooth_get_hf_codec("CVSD"), sco_transport_write, NULL);
         card->fd = fd;
         return 0;
     }
@@ -410,8 +409,8 @@ static void hf_audio_agent_card_found(pa_bluetooth_backend *backend, const char 
     card->transport = pa_bluetooth_transport_new(d, backend->ofono_bus_id, path, p, NULL, 0);
     card->transport->acquire = hf_audio_agent_transport_acquire;
     card->transport->release = hf_audio_agent_transport_release;
-    card->transport->write = sco_transport_write;
     card->transport->userdata = card;
+    pa_bluetooth_transport_reconfigure(card->transport, pa_bluetooth_get_hf_codec("CVSD"), sco_transport_write, NULL);
 
     pa_bluetooth_transport_put(card->transport);
     pa_hashmap_put(backend->cards, card->path, card);
@@ -696,8 +695,7 @@ static DBusMessage *hf_audio_agent_new_connection(DBusConnection *c, DBusMessage
 
     card->connecting = false;
     card->fd = fd;
-    card->transport->bt_codec = pa_bluetooth_get_hf_codec("CVSD");
-    card->transport->setsockopt = NULL;
+    pa_bluetooth_transport_reconfigure(card->transport, pa_bluetooth_get_hf_codec("CVSD"), sco_transport_write, NULL);
 
     pa_bluetooth_transport_set_state(card->transport, PA_BLUETOOTH_TRANSPORT_STATE_PLAYING);
 

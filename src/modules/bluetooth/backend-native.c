@@ -599,19 +599,16 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
             c->state = 4;
         } else {
             c->state = 5;
-            t->bt_codec = pa_bluetooth_get_hf_codec("CVSD");
-            t->setsockopt = NULL;
+            pa_bluetooth_transport_reconfigure(t, pa_bluetooth_get_hf_codec("CVSD"), sco_transport_write, NULL);
             transport_put(t);
         }
 
         return false;
     } else if (sscanf(buf, "AT+BCS=%d", &val)) {
         if (val == 1) {
-            t->bt_codec = pa_bluetooth_get_hf_codec("CVSD");
-            t->setsockopt = NULL;
+            pa_bluetooth_transport_reconfigure(t, pa_bluetooth_get_hf_codec("CVSD"), sco_transport_write, NULL);
         } else if (val == 2) {
-            t->bt_codec = pa_bluetooth_get_hf_codec("mSBC");
-            t->setsockopt = sco_setsockopt_enable_bt_voice;
+            pa_bluetooth_transport_reconfigure(t, pa_bluetooth_get_hf_codec("mSBC"), sco_transport_write, sco_setsockopt_enable_bt_voice);
         } else
             pa_assert_not_reached();
 
@@ -849,8 +846,6 @@ static DBusMessage *profile_new_connection(DBusConnection *conn, DBusMessage *m,
 
     t->acquire = sco_acquire_cb;
     t->release = sco_release_cb;
-    t->write = sco_transport_write;
-    t->bt_codec = pa_bluetooth_get_hf_codec("CVSD");
     t->destroy = transport_destroy;
 
     /* If PA is the HF/HS we are in control of volume attenuation and
@@ -871,6 +866,8 @@ static DBusMessage *profile_new_connection(DBusConnection *conn, DBusMessage *m,
         t->set_sink_volume = set_sink_volume;
         t->set_source_volume = set_source_volume;
     }
+
+    pa_bluetooth_transport_reconfigure(t, pa_bluetooth_get_hf_codec("CVSD"), sco_transport_write, NULL);
 
     trd = pa_xnew0(struct transport_data, 1);
     trd->rfcomm_fd = fd;

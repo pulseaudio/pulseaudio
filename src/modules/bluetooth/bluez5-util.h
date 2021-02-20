@@ -182,6 +182,9 @@ static inline void pa_bluetooth_native_backend_enable_shared_profiles(pa_bluetoo
 pa_bluetooth_transport *pa_bluetooth_transport_new(pa_bluetooth_device *d, const char *owner, const char *path,
                                                    pa_bluetooth_profile_t p, const uint8_t *config, size_t size);
 
+void pa_bluetooth_transport_reconfigure(pa_bluetooth_transport *t, const pa_a2dp_codec *bt_codec,
+                                        pa_bluetooth_transport_write_cb write_cb, pa_bluetooth_transport_setsockopt_cb setsockopt_cb);
+
 void pa_bluetooth_transport_set_state(pa_bluetooth_transport *t, pa_bluetooth_transport_state_t state);
 void pa_bluetooth_transport_put(pa_bluetooth_transport *t);
 void pa_bluetooth_transport_unlink(pa_bluetooth_transport *t);

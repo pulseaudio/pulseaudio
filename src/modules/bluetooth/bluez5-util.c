@@ -184,6 +184,22 @@ pa_bluetooth_transport *pa_bluetooth_transport_new(pa_bluetooth_device *d, const
     return t;
 }
 
+void pa_bluetooth_transport_reconfigure(pa_bluetooth_transport *t, const pa_a2dp_codec *bt_codec,
+                                        pa_bluetooth_transport_write_cb write_cb, pa_bluetooth_transport_setsockopt_cb setsockopt_cb) {
+    pa_assert(t);
+
+    t->bt_codec = bt_codec;
+
+    t->write = write_cb;
+    t->setsockopt = setsockopt_cb;
+
+    /* reset stream write type hint */
+    t->stream_write_type = 0;
+
+    /* reset SCO MTU adjustment hint */
+    t->last_read_size = 0;
+}
+
 static const char *transport_state_to_string(pa_bluetooth_transport_state_t state) {
     switch(state) {
         case PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED:
@@ -1945,10 +1961,9 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
     dbus_message_unref(r);
 
     t = pa_bluetooth_transport_new(d, sender, path, p, config, size);
-    t->bt_codec = a2dp_codec;
     t->acquire = bluez5_transport_acquire_cb;
     t->release = bluez5_transport_release_cb;
-    t->write = a2dp_transport_write;
+    pa_bluetooth_transport_reconfigure(t, a2dp_codec, a2dp_transport_write, NULL);
     pa_bluetooth_transport_put(t);
 
     pa_log_debug("Transport %s available for profile %s", t->path, pa_bluetooth_profile_to_string(t->profile));
