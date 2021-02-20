@@ -58,7 +58,7 @@ typedef struct pa_rtp_context {
     pa_memchunk memchunk;
 } pa_rtp_context;
 
-pa_rtp_context* pa_rtp_context_new_send(int fd, uint8_t payload, size_t mtu, const pa_sample_spec *ss) {
+pa_rtp_context* pa_rtp_context_new_send(int fd, uint8_t payload, size_t mtu, const pa_sample_spec *ss, bool enable_opus) {
     pa_rtp_context *c;
 
     pa_assert(fd >= 0);
@@ -171,7 +171,7 @@ int pa_rtp_send(pa_rtp_context *c, pa_memblockq *q) {
     return 0;
 }
 
-pa_rtp_context* pa_rtp_context_new_recv(int fd, uint8_t payload, const pa_sample_spec *ss) {
+pa_rtp_context* pa_rtp_context_new_recv(int fd, uint8_t payload, const pa_sample_spec *ss, bool enable_opus) {
     pa_rtp_context *c;
 
     pa_log_info("Initialising native RTP backend for receive");

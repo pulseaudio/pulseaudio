@@ -45,6 +45,14 @@
 #define MAKE_ELEMENT(v, e) MAKE_ELEMENT_NAMED((v), (e), NULL)
 #define RTP_HEADER_SIZE    12
 
+/*
+ * As per RFC 7587, the RTP payload type for OPUS is to be assigned
+ * dynamically. Considering that pa_rtp_payload_from_sample_spec uses
+ * 127 for anything other than format == S16BE and rate == 44.1 KHz,
+ * we use 127 for OPUS here as rate == 48 KHz for OPUS.
+ */
+#define RTP_OPUS_PAYLOAD_TYPE 127
+
 struct pa_rtp_context {
     pa_fdsem *fdsem;
     pa_sample_spec ss;
@@ -61,20 +69,21 @@ struct pa_rtp_context {
     size_t mtu;
 };
 
-static GstCaps* caps_from_sample_spec(const pa_sample_spec *ss) {
-    if (ss->format != PA_SAMPLE_S16BE)
+static GstCaps* caps_from_sample_spec(const pa_sample_spec *ss, bool enable_opus) {
+    if (ss->format != PA_SAMPLE_S16BE && ss->format != PA_SAMPLE_S16LE)
         return NULL;
 
     return gst_caps_new_simple("audio/x-raw",
-            "format", G_TYPE_STRING, "S16BE",
+            "format", G_TYPE_STRING, enable_opus ? "S16LE" : "S16BE",
             "rate", G_TYPE_INT, (int) ss->rate,
             "channels", G_TYPE_INT, (int) ss->channels,
             "layout", G_TYPE_STRING, "interleaved",
             NULL);
 }
 
-static bool init_send_pipeline(pa_rtp_context *c, int fd, uint8_t payload, size_t mtu, const pa_sample_spec *ss) {
+static bool init_send_pipeline(pa_rtp_context *c, int fd, uint8_t payload, size_t mtu, const pa_sample_spec *ss, bool enable_opus) {
     GstElement *appsrc = NULL, *pay = NULL, *capsf = NULL, *rtpbin = NULL, *sink = NULL;
+    GstElement *opusenc = NULL;
     GstCaps *caps;
     GSocket *socket;
     GInetSocketAddress *addr;
@@ -83,7 +92,12 @@ static bool init_send_pipeline(pa_rtp_context *c, int fd, uint8_t payload, size_
     gchar *addr_str;
 
     MAKE_ELEMENT(appsrc, "appsrc");
-    MAKE_ELEMENT(pay, "rtpL16pay");
+    if (enable_opus) {
+        MAKE_ELEMENT(opusenc, "opusenc");
+        MAKE_ELEMENT(pay, "rtpopuspay");
+    } else {
+        MAKE_ELEMENT(pay, "rtpL16pay");
+    }
     MAKE_ELEMENT(capsf, "capsfilter");
     MAKE_ELEMENT(rtpbin, "rtpbin");
     MAKE_ELEMENT(sink, "udpsink");
@@ -92,7 +106,10 @@ static bool init_send_pipeline(pa_rtp_context *c, int fd, uint8_t payload, size_
 
     gst_bin_add_many(GST_BIN(c->pipeline), appsrc, pay, capsf, rtpbin, sink, NULL);
 
-    caps = caps_from_sample_spec(ss);
+    if (enable_opus)
+        gst_bin_add_many(GST_BIN(c->pipeline), opusenc, NULL);
+
+    caps = caps_from_sample_spec(ss, enable_opus);
     if (!caps) {
         pa_log("Unsupported format to payload");
         goto fail;
@@ -125,17 +142,33 @@ static bool init_send_pipeline(pa_rtp_context *c, int fd, uint8_t payload, size_
     gst_caps_unref(caps);
 
     /* Force the payload type that we want */
-    caps = gst_caps_new_simple("application/x-rtp", "payload", G_TYPE_INT, (int) payload, NULL);
+    if (enable_opus)
+        caps = gst_caps_new_simple("application/x-rtp", "payload", G_TYPE_INT, (int) RTP_OPUS_PAYLOAD_TYPE, "encoding-name", G_TYPE_STRING, "OPUS", NULL);
+    else
+        caps = gst_caps_new_simple("application/x-rtp", "payload", G_TYPE_INT, (int) payload, "encoding-name", G_TYPE_STRING, "L16", NULL);
+
     g_object_set(capsf, "caps", caps, NULL);
     gst_caps_unref(caps);
 
-    if (!gst_element_link(appsrc, pay) ||
-        !gst_element_link(pay, capsf) ||
-        !gst_element_link_pads(capsf, "src", rtpbin, "send_rtp_sink_0") ||
-        !gst_element_link_pads(rtpbin, "send_rtp_src_0", sink, "sink")) {
+    if (enable_opus) {
+        if (!gst_element_link(appsrc, opusenc) ||
+            !gst_element_link(opusenc, pay) ||
+            !gst_element_link(pay, capsf) ||
+            !gst_element_link_pads(capsf, "src", rtpbin, "send_rtp_sink_0") ||
+            !gst_element_link_pads(rtpbin, "send_rtp_src_0", sink, "sink")) {
 
-        pa_log("Could not set up send pipeline");
-        goto fail;
+            pa_log("Could not set up send pipeline");
+            goto fail;
+        }
+    } else {
+        if (!gst_element_link(appsrc, pay) ||
+            !gst_element_link(pay, capsf) ||
+            !gst_element_link_pads(capsf, "src", rtpbin, "send_rtp_sink_0") ||
+            !gst_element_link_pads(rtpbin, "send_rtp_src_0", sink, "sink")) {
+
+            pa_log("Could not set up send pipeline");
+            goto fail;
+        }
     }
 
     if (gst_element_set_state(c->pipeline, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
@@ -154,6 +187,8 @@ fail:
         /* These weren't yet added to pipeline, so we still have a ref */
         if (appsrc)
             gst_object_unref(appsrc);
+        if (opusenc)
+            gst_object_unref(opusenc);
         if (pay)
             gst_object_unref(pay);
         if (capsf)
@@ -167,13 +202,16 @@ fail:
     return false;
 }
 
-pa_rtp_context* pa_rtp_context_new_send(int fd, uint8_t payload, size_t mtu, const pa_sample_spec *ss) {
+pa_rtp_context* pa_rtp_context_new_send(int fd, uint8_t payload, size_t mtu, const pa_sample_spec *ss, bool enable_opus) {
     pa_rtp_context *c = NULL;
     GError *error = NULL;
 
     pa_assert(fd >= 0);
 
     pa_log_info("Initialising GStreamer RTP backend for send");
+
+    if (enable_opus)
+        pa_log_info("Using OPUS encoding for RTP send");
 
     c = pa_xnew0(pa_rtp_context, 1);
 
@@ -187,7 +225,7 @@ pa_rtp_context* pa_rtp_context_new_send(int fd, uint8_t payload, size_t mtu, con
         goto fail;
     }
 
-    if (!init_send_pipeline(c, fd, payload, mtu, ss))
+    if (!init_send_pipeline(c, fd, payload, mtu, ss, enable_opus))
         goto fail;
 
     return c;
@@ -313,9 +351,17 @@ int pa_rtp_send(pa_rtp_context *c, pa_memblockq *q) {
     return 0;
 }
 
-static GstCaps* rtp_caps_from_sample_spec(const pa_sample_spec *ss) {
-    if (ss->format != PA_SAMPLE_S16BE)
+static GstCaps* rtp_caps_from_sample_spec(const pa_sample_spec *ss, bool enable_opus) {
+    if (ss->format != PA_SAMPLE_S16BE && ss->format != PA_SAMPLE_S16LE)
         return NULL;
+
+    if (enable_opus)
+        return gst_caps_new_simple("application/x-rtp",
+                "media", G_TYPE_STRING, "audio",
+                "encoding-name", G_TYPE_STRING, "OPUS",
+                "clock-rate", G_TYPE_INT, (int) 48000,
+                "payload", G_TYPE_INT, (int) RTP_OPUS_PAYLOAD_TYPE,
+                NULL);
 
     return gst_caps_new_simple("application/x-rtp",
             "media", G_TYPE_STRING, "audio",
@@ -373,21 +419,31 @@ static GstPadProbeReturn udpsrc_buffer_probe(GstPad *pad, GstPadProbeInfo *info,
     return GST_PAD_PROBE_OK;
 }
 
-static bool init_receive_pipeline(pa_rtp_context *c, int fd, const pa_sample_spec *ss) {
+static bool init_receive_pipeline(pa_rtp_context *c, int fd, const pa_sample_spec *ss, bool enable_opus) {
     GstElement *udpsrc = NULL, *rtpbin = NULL, *depay = NULL, *appsink = NULL;
-    GstCaps *caps;
+    GstElement *resample = NULL, *opusdec = NULL;
+    GstCaps *caps, *sink_caps;
     GstPad *pad;
     GSocket *socket;
     GError *error = NULL;
 
     MAKE_ELEMENT(udpsrc, "udpsrc");
     MAKE_ELEMENT(rtpbin, "rtpbin");
-    MAKE_ELEMENT_NAMED(depay, "rtpL16depay", "depay");
+    if (enable_opus) {
+        MAKE_ELEMENT_NAMED(depay, "rtpopusdepay", "depay");
+        MAKE_ELEMENT(opusdec, "opusdec");
+        MAKE_ELEMENT(resample, "audioresample");
+    } else {
+        MAKE_ELEMENT_NAMED(depay, "rtpL16depay", "depay");
+    }
     MAKE_ELEMENT(appsink, "appsink");
 
     c->pipeline = gst_pipeline_new(NULL);
 
     gst_bin_add_many(GST_BIN(c->pipeline), udpsrc, rtpbin, depay, appsink, NULL);
+
+    if (enable_opus)
+        gst_bin_add_many(GST_BIN(c->pipeline), opusdec, resample, NULL);
 
     socket = g_socket_new_from_fd(fd, &error);
     if (error) {
@@ -396,7 +452,7 @@ static bool init_receive_pipeline(pa_rtp_context *c, int fd, const pa_sample_spe
         goto fail;
     }
 
-    caps = rtp_caps_from_sample_spec(ss);
+    caps = rtp_caps_from_sample_spec(ss, enable_opus);
     if (!caps) {
         pa_log("Unsupported format to payload");
         goto fail;
@@ -406,14 +462,37 @@ static bool init_receive_pipeline(pa_rtp_context *c, int fd, const pa_sample_spe
     g_object_set(rtpbin, "latency", 0, "buffer-mode", 0 /* none */, NULL);
     g_object_set(appsink, "sync", FALSE, "enable-last-sample", FALSE, NULL);
 
+    if (enable_opus) {
+        sink_caps = gst_caps_new_simple("audio/x-raw",
+                "format", G_TYPE_STRING, "S16LE",
+                "layout", G_TYPE_STRING, "interleaved",
+                "clock-rate", G_TYPE_INT, (int) ss->rate,
+                "channels", G_TYPE_INT, (int) ss->channels,
+                NULL);
+        g_object_set(appsink, "caps", sink_caps, NULL);
+        g_object_set(opusdec, "plc", TRUE, NULL);
+        gst_caps_unref(sink_caps);
+    }
+
     gst_caps_unref(caps);
     g_object_unref(socket);
 
-    if (!gst_element_link_pads(udpsrc, "src", rtpbin, "recv_rtp_sink_0") ||
-        !gst_element_link(depay, appsink)) {
+    if (enable_opus) {
+        if (!gst_element_link_pads(udpsrc, "src", rtpbin, "recv_rtp_sink_0") ||
+            !gst_element_link(depay, opusdec) ||
+            !gst_element_link(opusdec, resample) ||
+            !gst_element_link(resample, appsink)) {
 
-        pa_log("Could not set up receive pipeline");
-        goto fail;
+            pa_log("Could not set up receive pipeline");
+            goto fail;
+        }
+    } else {
+        if (!gst_element_link_pads(udpsrc, "src", rtpbin, "recv_rtp_sink_0") ||
+            !gst_element_link(depay, appsink)) {
+
+            pa_log("Could not set up receive pipeline");
+            goto fail;
+        }
     }
 
     g_signal_connect(G_OBJECT(rtpbin), "pad-added", G_CALLBACK(on_pad_added), c);
@@ -446,6 +525,10 @@ fail:
             gst_object_unref(depay);
         if (rtpbin)
             gst_object_unref(rtpbin);
+        if (opusdec)
+            gst_object_unref(opusdec);
+        if (resample)
+            gst_object_unref(resample);
         if (appsink)
             gst_object_unref(appsink);
     }
@@ -469,7 +552,7 @@ static GstFlowReturn appsink_new_sample(GstAppSink *appsink, gpointer userdata) 
     return GST_FLOW_OK;
 }
 
-pa_rtp_context* pa_rtp_context_new_recv(int fd, uint8_t payload, const pa_sample_spec *ss) {
+pa_rtp_context* pa_rtp_context_new_recv(int fd, uint8_t payload, const pa_sample_spec *ss, bool enable_opus) {
     pa_rtp_context *c = NULL;
     GstAppSinkCallbacks callbacks = { 0, };
     GError *error = NULL;
@@ -477,6 +560,9 @@ pa_rtp_context* pa_rtp_context_new_recv(int fd, uint8_t payload, const pa_sample
     pa_assert(fd >= 0);
 
     pa_log_info("Initialising GStreamer RTP backend for receive");
+
+    if (enable_opus)
+        pa_log_info("Using OPUS encoding for RTP recv");
 
     c = pa_xnew0(pa_rtp_context, 1);
 
@@ -491,7 +577,7 @@ pa_rtp_context* pa_rtp_context_new_recv(int fd, uint8_t payload, const pa_sample
         goto fail;
     }
 
-    if (!init_receive_pipeline(c, fd, ss))
+    if (!init_receive_pipeline(c, fd, ss, enable_opus))
         goto fail;
 
     callbacks.eos = appsink_eos;

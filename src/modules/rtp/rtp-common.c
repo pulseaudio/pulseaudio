@@ -52,6 +52,12 @@ pa_sample_spec *pa_rtp_sample_spec_from_payload(uint8_t payload, pa_sample_spec 
             ss->rate = 44100;
             break;
 
+        case 127:
+            ss->channels = 2;
+            ss->format = PA_SAMPLE_S16LE;
+            ss->rate = 48000;
+            break;
+
         default:
             return NULL;
     }
@@ -59,10 +65,12 @@ pa_sample_spec *pa_rtp_sample_spec_from_payload(uint8_t payload, pa_sample_spec 
     return ss;
 }
 
-pa_sample_spec *pa_rtp_sample_spec_fixup(pa_sample_spec * ss) {
+pa_sample_spec *pa_rtp_sample_spec_fixup(pa_sample_spec * ss, bool enable_opus) {
     pa_assert(ss);
 
-    if (!pa_rtp_sample_spec_valid(ss))
+    if (!pa_rtp_sample_spec_valid(ss) && enable_opus)
+        ss->format = PA_SAMPLE_S16LE;
+    else if (!pa_rtp_sample_spec_valid(ss) || !enable_opus)
         ss->format = PA_SAMPLE_S16BE;
 
     pa_assert(pa_rtp_sample_spec_valid(ss));
@@ -75,22 +83,25 @@ int pa_rtp_sample_spec_valid(const pa_sample_spec *ss) {
     if (!pa_sample_spec_valid(ss))
         return 0;
 
-    return ss->format == PA_SAMPLE_S16BE;
+    return ss->format == PA_SAMPLE_S16BE || ss->format == PA_SAMPLE_S16LE;
 }
 
 const char* pa_rtp_format_to_string(pa_sample_format_t f) {
     switch (f) {
         case PA_SAMPLE_S16BE:
+        case PA_SAMPLE_S16LE:
             return "L16";
         default:
             return NULL;
     }
 }
 
-pa_sample_format_t pa_rtp_string_to_format(const char *s) {
+pa_sample_format_t pa_rtp_string_to_format(const char *s, bool enable_opus) {
     pa_assert(s);
 
-    if (pa_streq(s, "L16"))
+    if (pa_streq(s, "L16") && enable_opus)
+        return PA_SAMPLE_S16LE;
+    else if (pa_streq(s, "L16"))
         return PA_SAMPLE_S16BE;
     else
         return PA_SAMPLE_INVALID;
