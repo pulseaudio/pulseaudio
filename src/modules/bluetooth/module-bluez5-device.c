@@ -2361,29 +2361,47 @@ static char *list_codecs(struct userdata *u) {
     bool is_a2dp_sink;
     void *state;
 
-    is_a2dp_sink = u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK;
-
-    a2dp_endpoints = is_a2dp_sink ? u->device->a2dp_sink_endpoints : u->device->a2dp_source_endpoints;
-
     encoder = pa_json_encoder_new();
 
     pa_json_encoder_begin_element_array(encoder);
 
-    PA_HASHMAP_FOREACH_KV(key, a2dp_capabilities, a2dp_endpoints, state) {
-        for (i = 0; i < pa_bluetooth_a2dp_codec_count(); i++) {
-            const pa_a2dp_codec *a2dp_codec;
+    if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK || u->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE) {
+        is_a2dp_sink = u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK;
 
-            a2dp_codec = pa_bluetooth_a2dp_codec_iter(i);
+        a2dp_endpoints = is_a2dp_sink ? u->device->a2dp_sink_endpoints : u->device->a2dp_source_endpoints;
 
-            if (memcmp(key, &a2dp_codec->id, sizeof(pa_a2dp_codec_id)) == 0) {
-                if (a2dp_codec->can_be_supported(is_a2dp_sink)) {
-                    pa_json_encoder_begin_element_object(encoder);
+        PA_HASHMAP_FOREACH_KV(key, a2dp_capabilities, a2dp_endpoints, state) {
+            for (i = 0; i < pa_bluetooth_a2dp_codec_count(); i++) {
+                const pa_a2dp_codec *a2dp_codec;
 
-                    pa_json_encoder_add_member_string(encoder, "name", a2dp_codec->name);
-                    pa_json_encoder_add_member_string(encoder, "description", a2dp_codec->description);
+                a2dp_codec = pa_bluetooth_a2dp_codec_iter(i);
 
-                    pa_json_encoder_end_object(encoder);
+                if (memcmp(key, &a2dp_codec->id, sizeof(pa_a2dp_codec_id)) == 0) {
+                    if (a2dp_codec->can_be_supported(is_a2dp_sink)) {
+                        pa_json_encoder_begin_element_object(encoder);
+
+                        pa_json_encoder_add_member_string(encoder, "name", a2dp_codec->name);
+                        pa_json_encoder_add_member_string(encoder, "description", a2dp_codec->description);
+
+                        pa_json_encoder_end_object(encoder);
+                    }
                 }
+            }
+        }
+    } else {
+        /* find out active codec selection from device profile */
+        for (i = 0; i < pa_bluetooth_hf_codec_count(); i++) {
+            const pa_a2dp_codec *hf_codec;
+
+            hf_codec = pa_bluetooth_hf_codec_iter(i);
+
+            if (true) {
+                pa_json_encoder_begin_element_object(encoder);
+
+                pa_json_encoder_add_member_string(encoder, "name", hf_codec->name);
+                pa_json_encoder_add_member_string(encoder, "description", hf_codec->description);
+
+                pa_json_encoder_end_object(encoder);
             }
         }
     }
@@ -2428,13 +2446,15 @@ static int bluez5_device_message_handler(const char *object_path, const char *me
     if (u->profile == PA_BLUETOOTH_PROFILE_OFF) {
         pa_log_info("Bluetooth profile is off. Message cannot be handled.");
         return -PA_ERR_INVALID;
-    } else if (u->profile != PA_BLUETOOTH_PROFILE_A2DP_SINK &&
-            u->profile != PA_BLUETOOTH_PROFILE_A2DP_SOURCE) {
-        pa_log_info("Listing or switching codecs only allowed for A2DP sink or source");
-        return -PA_ERR_INVALID;
     }
 
     if (pa_streq(message, "switch-codec")) {
+        if (u->profile != PA_BLUETOOTH_PROFILE_A2DP_SINK &&
+            u->profile != PA_BLUETOOTH_PROFILE_A2DP_SOURCE) {
+            pa_log_info("Switching codecs only allowed for A2DP sink or source");
+            return -PA_ERR_INVALID;
+        }
+
         if (!parameters) {
             pa_log_info("Codec switching operation requires codec name string parameter");
             return -PA_ERR_INVALID;

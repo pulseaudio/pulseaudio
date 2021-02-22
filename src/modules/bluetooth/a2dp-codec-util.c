@@ -80,6 +80,15 @@ const pa_a2dp_codec *pa_bluetooth_a2dp_codec_iter(unsigned int i) {
     return pa_a2dp_codecs[i];
 }
 
+unsigned int pa_bluetooth_hf_codec_count(void) {
+    return PA_ELEMENTSOF(pa_hf_codecs);
+}
+
+const pa_a2dp_codec *pa_bluetooth_hf_codec_iter(unsigned int i) {
+    pa_assert(i < pa_bluetooth_hf_codec_count());
+    return pa_hf_codecs[i];
+}
+
 const pa_a2dp_codec *pa_bluetooth_get_hf_codec(const char *name) {
     unsigned int i;
 
