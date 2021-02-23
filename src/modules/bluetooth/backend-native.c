@@ -597,13 +597,15 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
         rfcomm_write_response(fd, "+CIND: "
                      /* many indicators can be supported, only call and
                       * callheld are mandatory, so that's all we repy */
+                     "(\"service\",(0-1)),"
                      "(\"call\",(0-1)),"
+                     "(\"callsetup\",(0-3)),"
                      "(\"callheld\",(0-2))");
         c->state = 2;
 
         return true;
     } else if (c->state == 2 && pa_startswith(buf, "AT+CIND?")) {
-        rfcomm_write_response(fd, "+CIND: 0,0");
+        rfcomm_write_response(fd, "+CIND: 0,0,0,0");
         c->state = 3;
 
         return true;
