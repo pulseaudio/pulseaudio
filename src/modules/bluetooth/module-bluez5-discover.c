@@ -38,12 +38,14 @@ PA_MODULE_USAGE(
     "headset=ofono|native|auto"
     "autodetect_mtu=<boolean>"
     "output_rate_refresh_interval_ms=<interval between attempts to improve output rate in milliseconds>"
+    "enable_native_hfp_hf=<boolean, enable HFP support in native backend>"
 );
 
 static const char* const valid_modargs[] = {
     "headset",
     "autodetect_mtu",
     "output_rate_refresh_interval_ms",
+    "enable_native_hfp_hf",
     NULL
 };
 
@@ -98,7 +100,7 @@ static pa_hook_result_t device_connection_changed_cb(pa_bluetooth_discovery *y, 
 }
 
 #ifdef HAVE_BLUEZ_5_NATIVE_HEADSET
-const char *default_headset_backend = "auto";
+const char *default_headset_backend = "native";
 #else
 const char *default_headset_backend = "ofono";
 #endif
@@ -110,6 +112,7 @@ int pa__init(pa_module *m) {
     int headset_backend;
     bool autodetect_mtu;
     uint32_t output_rate_refresh_interval_ms;
+    bool enable_native_hfp_hf = true;
 
     pa_assert(m);
 
@@ -130,9 +133,15 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
+    /* default value if no module parameter */
+    enable_native_hfp_hf = (headset_backend == HEADSET_BACKEND_NATIVE);
+
     autodetect_mtu = false;
     if (pa_modargs_get_value_boolean(ma, "autodetect_mtu", &autodetect_mtu) < 0) {
         pa_log("Invalid boolean value for autodetect_mtu parameter");
+    }
+    if (pa_modargs_get_value_boolean(ma, "enable_native_hfp_hf", &enable_native_hfp_hf) < 0) {
+        pa_log("enable_native_hfp_hf must be true or false");
         goto fail;
     }
 
@@ -149,7 +158,7 @@ int pa__init(pa_module *m) {
     u->output_rate_refresh_interval_ms = output_rate_refresh_interval_ms;
     u->loaded_device_paths = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
-    if (!(u->discovery = pa_bluetooth_discovery_get(u->core, headset_backend)))
+    if (!(u->discovery = pa_bluetooth_discovery_get(u->core, headset_backend, enable_native_hfp_hf)))
         goto fail;
 
     u->device_connection_changed_slot =

@@ -38,7 +38,7 @@ PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE(
         "auto_switch=<Switch between hsp and a2dp profile? (0 - never, 1 - media.role=phone, 2 - heuristic> "
         "a2dp_source=<Handle a2dp_source card profile (sink role)?> "
-        "ag=<Handle headset_audio_gateway card profile (headset role)?> ");
+        "ag=<Handle headset_audio_gateway or handsfree_audio_gateway card profile (headset role)?> ");
 
 static const char* const valid_modargs[] = {
     "auto_switch",
@@ -86,7 +86,7 @@ static pa_hook_result_t source_put_hook_callback(pa_core *c, pa_source *source, 
 
     if (u->enable_a2dp_source && pa_streq(s, "a2dp_source"))
         role = "music";
-    else if (u->enable_ag && pa_streq(s, "headset_audio_gateway"))
+    else if (u->enable_ag && (pa_streq(s, "headset_audio_gateway") || pa_streq(s, "handsfree_audio_gateway")))
         role = "phone";
     else {
         pa_log_debug("Profile %s cannot be selected for loopback", s);
@@ -125,7 +125,7 @@ static pa_hook_result_t sink_put_hook_callback(pa_core *c, pa_sink *sink, void *
     if (!s)
         return PA_HOOK_OK;
 
-    if (u->enable_ag && pa_streq(s, "headset_audio_gateway"))
+    if (u->enable_ag && (pa_streq(s, "headset_audio_gateway") || pa_streq(s, "handsfree_audio_gateway")))
         role = "phone";
     else {
         pa_log_debug("Profile %s cannot be selected for loopback", s);
@@ -156,7 +156,7 @@ static void card_set_profile(struct userdata *u, pa_card *card, bool revert_to_a
             if (!pa_streq(profile->name, "a2dp_sink"))
                 continue;
         } else {
-            if (!pa_streq(profile->name, "headset_head_unit"))
+            if (!pa_streq(profile->name, "headset_head_unit") && !pa_streq(profile->name, "handsfree_head_unit"))
                 continue;
         }
 
@@ -190,8 +190,8 @@ static void switch_profile(pa_card *card, bool revert_to_a2dp, void *userdata) {
         if (!pa_hashmap_remove(u->will_need_revert_card_map, card))
             return;
 
-        /* Skip card if does not have active hsp profile */
-        if (!pa_streq(card->active_profile->name, "headset_head_unit"))
+        /* Skip card if does not have active headset profile */
+        if (!pa_streq(card->active_profile->name, "headset_head_unit") && !pa_streq(card->active_profile->name, "handsfree_head_unit"))
             return;
 
         /* Skip card if already has active a2dp profile */
@@ -202,8 +202,8 @@ static void switch_profile(pa_card *card, bool revert_to_a2dp, void *userdata) {
         if (!pa_streq(card->active_profile->name, "a2dp_sink"))
             return;
 
-        /* Skip card if already has active hsp profile */
-        if (pa_streq(card->active_profile->name, "headset_head_unit"))
+        /* Skip card if already has active headset profile */
+        if (pa_streq(card->active_profile->name, "headset_head_unit") || pa_streq(card->active_profile->name, "handsfree_head_unit"))
             return;
     }
 
@@ -358,7 +358,9 @@ static pa_hook_result_t profile_available_hook_callback(pa_core *c, pa_card_prof
         return PA_HOOK_OK;
 
     /* Do not automatically switch profiles for headsets, just in case */
-    if (pa_streq(profile->name, "a2dp_sink") || pa_streq(profile->name, "headset_head_unit"))
+    if (pa_streq(profile->name, "a2dp_sink") ||
+        pa_streq(profile->name, "headset_head_unit") ||
+        pa_streq(profile->name, "handsfree_head_unit"))
         return PA_HOOK_OK;
 
     is_active_profile = card->active_profile == profile;
