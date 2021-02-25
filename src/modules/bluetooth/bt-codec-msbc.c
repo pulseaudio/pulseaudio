@@ -287,9 +287,11 @@ static size_t decode_buffer(void *codec_info, const uint8_t *input_buffer, size_
 
     if (PA_UNLIKELY(decoded <= 0)) {
         pa_log_error("mSBC decoding error (%li)", (long) decoded);
-        *processed = 0;
-        return 0;
+        pa_silence_memory(output_buffer, sbc_info->codesize, &sbc_info->sample_spec);
+        decoded = sbc_info->frame_length;
+        written = sbc_info->codesize;
     }
+
     pa_assert_fp((size_t)decoded == sbc_info->frame_length);
     pa_assert_fp((size_t)written == sbc_info->codesize);
 
