@@ -60,7 +60,9 @@ struct transport_data {
 struct hfp_config {
     uint32_t capabilities;
     int state;
+    bool support_codec_negotiation;
     bool support_msbc;
+    int selected_codec;
 };
 
 /*
@@ -561,6 +563,10 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
     int val;
     char str[5];
 
+    /* first-time initialize selected codec to CVSD */
+    if (c->selected_codec == 0)
+        c->selected_codec = 1;
+
     /* stateful negotiation */
     if (c->state == 0 && sscanf(buf, "AT+BRSF=%d", &val) == 1) {
         c->capabilities = val;
@@ -569,15 +575,25 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
         c->state = 1;
 
         return true;
-    } else if (c->state == 1 && sscanf(buf, "AT+BAC=%3s", str) == 1) {
+    } else if (sscanf(buf, "AT+BAC=%3s", str) == 1) {
         if (strncmp(str, "1,2", 3) == 0)
             c->support_msbc = true;
         else
             c->support_msbc = false;
 
+        c->support_codec_negotiation = true;
+
+        if (c->state == 1) {
+            /* initial list of codecs supported by HF */
+        } else {
+            /* HF sent updated list of codecs */
+        }
+
+        /* no state change */
+
         return true;
     } else if (c->state == 1 && pa_startswith(buf, "AT+CIND=?")) {
-          /* we declare minimal no indicators */
+        /* we declare minimal no indicators */
         rfcomm_write_response(fd, "+CIND: "
                      /* many indicators can be supported, only call and
                       * callheld are mandatory, so that's all we repy */
@@ -594,9 +610,14 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
     } else if ((c->state == 2 || c->state == 3) && pa_startswith(buf, "AT+CMER=")) {
         rfcomm_write_response(fd, "OK");
 
-        if (c->support_msbc) {
-            rfcomm_write_response(fd, "+BCS:2");
-            c->state = 4;
+        if (c->support_codec_negotiation) {
+            if (c->support_msbc) {
+                rfcomm_write_response(fd, "+BCS:2");
+                c->state = 4;
+            } else {
+                rfcomm_write_response(fd, "+BCS:1");
+                c->state = 4;
+            }
         } else {
             c->state = 5;
             pa_bluetooth_transport_reconfigure(t, pa_bluetooth_get_hf_codec("CVSD"), sco_transport_write, NULL);
@@ -609,8 +630,13 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
             pa_bluetooth_transport_reconfigure(t, pa_bluetooth_get_hf_codec("CVSD"), sco_transport_write, NULL);
         } else if (val == 2) {
             pa_bluetooth_transport_reconfigure(t, pa_bluetooth_get_hf_codec("mSBC"), sco_transport_write, sco_setsockopt_enable_bt_voice);
-        } else
-            pa_assert_not_reached();
+        } else {
+            pa_assert_fp(val != 1 && val != 2);
+            rfcomm_write_response(fd, "ERROR");
+            return false;
+        }
+
+        c->selected_codec = val;
 
         if (c->state == 4) {
             c->state = 5;
