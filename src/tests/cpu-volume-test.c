@@ -187,7 +187,7 @@ END_TEST
 
 START_TEST (svolume_orc_test) {
     pa_do_volume_func_t orig_func, orc_func;
-    pa_cpu_info cpu_info;
+    pa_cpu_info cpu_info = { PA_CPU_UNDEFINED, {}, false };
     int i, j;
 
 #if defined (__i386__) || defined (__amd64__)
