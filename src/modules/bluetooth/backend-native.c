@@ -612,7 +612,7 @@ static DBusMessage *profile_new_connection(DBusConnection *conn, DBusMessage *m,
 
     d = pa_bluetooth_discovery_get_device_by_path(b->discovery, path);
     if (d == NULL) {
-        pa_log_error("Device doesnt exist for %s", path);
+        pa_log_error("Device doesn't exist for %s", path);
         goto fail;
     }
 

@@ -202,7 +202,7 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     <option>
       <p><opt>--process-time-msec</opt><arg>=MSEC</arg></p>
       <optdesc><p>Explicitly configure the process time, with a time
-      specified in miliseconds. If left out the server will pick the
+      specified in milliseconds. If left out the server will pick the
       process time. Use either this option or <opt>--process-time</opt>,
       but not both.</p></optdesc>
     </option>
