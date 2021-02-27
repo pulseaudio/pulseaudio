@@ -691,7 +691,7 @@ static char *modifier_name_to_role(const char *mod_name, bool *is_sink) {
 
     if (!sub || !*sub) {
         pa_xfree(sub);
-        pa_log_warn("Can't match media roles for modifer %s", mod_name);
+        pa_log_warn("Can't match media roles for modifier %s", mod_name);
         return NULL;
     }
 

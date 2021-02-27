@@ -347,7 +347,7 @@ static void hf_audio_agent_card_found(pa_bluetooth_backend *backend, const char 
 
     d = pa_bluetooth_discovery_get_device_by_address(backend->discovery, card->remote_address, card->local_address);
     if (!d) {
-        pa_log_error("Device doesnt exist for %s", path);
+        pa_log_error("Device doesn't exist for %s", path);
         goto fail;
     }
 
