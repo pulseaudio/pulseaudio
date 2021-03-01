@@ -8,7 +8,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-01-22 09:11+0200\n"
-"PO-Revision-Date: 2020-09-21 13:29+0000\n"
+"PO-Revision-Date: 2021-02-07 15:40+0000\n"
 "Last-Translator: Karl Ove Hufthammer <karl@huftis.org>\n"
 "Language-Team: Norwegian Nynorsk <https://translate.fedoraproject.org/"
 "projects/pulseaudio/pulseaudio/nn/>\n"
@@ -17,10 +17,10 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.2.2\n"
+"X-Generator: Weblate 4.4.2\n"
 
 #: src/daemon/cmdline.c:113
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -97,8 +97,8 @@ msgstr ""
 "      --version                         Vis versjonsinformasjon.\n"
 "      --dump-conf                       Vis standardoppsett.\n"
 "      --dump-modules                    Vis tilgjengelege modular.\n"
-"      --dump-resample-methods           Vis tilgjengelege "
-"resamplingsmetodar.\n"
+"      --dump-resample-methods           Vis tilgjengelege resamplingsmetodar."
+"\n"
 "      --cleanup-shm                     Rydd opp i utdaterte segment i delt "
 "minne.\n"
 "      --start                           Start tenesta viss ho ikkje køyrer.\n"
@@ -113,8 +113,8 @@ msgstr ""
 "      --high-priority[=BOOL]            Prøv å bruka høgt «nice»-nivå\n"
 "                                        (berre tilgjengeleg som rotbrukar, "
 "viss SUID\n"
-"                                        eller med forhøga RLIMIT_NICE-"
-"verdi).\n"
+"                                        eller med forhøga RLIMIT_NICE-verdi)."
+"\n"
 "      --realtime[=BOOL]                 Prøv å bruka sanntids "
 "oppgåvestyring\n"
 "                                        (berre tilgjengeleg som rotbrukar, "
@@ -133,8 +133,8 @@ msgstr ""
 "  -v  --verbose                         Vis meir detaljerte meldingar.\n"
 "      --log-target={auto,syslog,stderr,file:ADRESSE,newfile:ADRESSE}\n"
 "                                        Vel mål for logg.\n"
-"      --log-meta[=BOOL]                 Ta med kodeposisjon i "
-"loggmeldingar.\n"
+"      --log-meta[=BOOL]                 Ta med kodeposisjon i loggmeldingar."
+"\n"
 "      --log-time[=BOOL]                 Ta med tidsinformasjon i "
 "loggmeldingar.\n"
 "      --log-backtrace=RAMMER            Ta med tilbakespor i loggmeldingar.\n"
@@ -197,7 +197,6 @@ msgid "--use-pid-file expects boolean argument"
 msgstr "«--use-pid-file» forventar boolsk argument"
 
 #: src/daemon/cmdline.c:328
-#, fuzzy
 msgid ""
 "Invalid log target: use either 'syslog', 'journal', 'stderr' or 'auto' or a "
 "valid file name 'file:<path>', 'newfile:<path>'."
@@ -548,9 +547,8 @@ msgid "pa_core_new() failed."
 msgstr "Mislukka pa_core_new()."
 
 #: src/daemon/main.c:1119
-#, fuzzy
 msgid "command line arguments"
-msgstr "For mange oppgjevne argument."
+msgstr "kommandolinjeargument"
 
 #: src/daemon/main.c:1126
 #, c-format
@@ -558,6 +556,8 @@ msgid ""
 "Failed to initialize daemon due to errors while executing startup commands. "
 "Source of commands: %s"
 msgstr ""
+"Klarte ikkje starta tenesta, grunna feil ved køyring av oppstarts­"
+"kommandoar. Kjelde til kommandoane: %s"
 
 #: src/daemon/main.c:1131
 msgid "Daemon startup without any loaded modules, refusing to work."
@@ -681,14 +681,12 @@ msgid "Analog Output"
 msgstr "Analog utlyd"
 
 #: src/modules/alsa/alsa-mixer.c:2808
-#, fuzzy
 msgid "Headphones 2"
-msgstr "Hovudtelefonar"
+msgstr "Hovudtelefonar 2"
 
 #: src/modules/alsa/alsa-mixer.c:2809
-#, fuzzy
 msgid "Headphones Mono Output"
-msgstr "Analog mono-utlyd"
+msgstr "Hovudtelefonar monolyd"
 
 #: src/modules/alsa/alsa-mixer.c:2810
 msgid "Line Out"
@@ -723,38 +721,32 @@ msgid "Multichannel Output"
 msgstr "Multikanals utlyd"
 
 #: src/modules/alsa/alsa-mixer.c:2818
-#, fuzzy
 msgid "Game Output"
-msgstr "%s utlyd"
+msgstr "Spellyd"
 
 #: src/modules/alsa/alsa-mixer.c:2819 src/modules/alsa/alsa-mixer.c:2820
-#, fuzzy
 msgid "Chat Output"
-msgstr "%s utlyd"
+msgstr "Nettprat utlyd"
 
 #: src/modules/alsa/alsa-mixer.c:2821
-#, fuzzy
 msgid "Chat Input"
-msgstr "%s innlyd"
+msgstr "Nettprat innlyd"
 
 #: src/modules/alsa/alsa-mixer.c:2822
-#, fuzzy
 msgid "Virtual Surround 7.1"
-msgstr "Virtuelt kringlyd-sluk"
+msgstr "Virtuell kringlyd 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4562
 msgid "Analog Mono"
 msgstr "Analog mono"
 
 #: src/modules/alsa/alsa-mixer.c:4563
-#, fuzzy
 msgid "Analog Mono (Left)"
-msgstr "Analog mono"
+msgstr "Analog mono (venstre)"
 
 #: src/modules/alsa/alsa-mixer.c:4564
-#, fuzzy
 msgid "Analog Mono (Right)"
-msgstr "Analog mono"
+msgstr "Analog mono (høgre)"
 
 #. Note: Not translated to "Analog Stereo Input", because the source
 #. * name gets "Input" appended to it automatically, so adding "Input"
@@ -781,9 +773,8 @@ msgid "Headset"
 msgstr "Hovudsett"
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
-#, fuzzy
 msgid "Speakerphone"
-msgstr "Høgtalar"
+msgstr "Høgtalartelefon"
 
 #: src/modules/alsa/alsa-mixer.c:4577 src/modules/alsa/alsa-mixer.c:4578
 msgid "Multichannel"
@@ -859,11 +850,11 @@ msgstr "Digital kringlyd 5.1 (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4596
 msgid "Chat"
-msgstr ""
+msgstr "Nettprat"
 
 #: src/modules/alsa/alsa-mixer.c:4597
 msgid "Game"
-msgstr ""
+msgstr "Spel"
 
 #: src/modules/alsa/alsa-mixer.c:4731
 msgid "Analog Mono Duplex"
@@ -887,7 +878,7 @@ msgstr "Stereo dupleks"
 
 #: src/modules/alsa/alsa-mixer.c:4738
 msgid "Mono Chat + 7.1 Surround"
-msgstr ""
+msgstr "Mono-nettprat + 7.1-kringlyd"
 
 #: src/modules/alsa/alsa-mixer.c:4739 src/modules/alsa/module-alsa-card.c:197
 #: src/modules/bluetooth/module-bluez5-device.c:2083
@@ -939,7 +930,7 @@ msgstr ""
 "snd_pcm_avail()-kall gav verdien 0 eller ein annan verdi < min_avail."
 
 #: src/modules/alsa/alsa-util.c:1183 src/modules/alsa/alsa-util.c:1277
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu byte (%lu "
 "ms).\n"
@@ -960,7 +951,7 @@ msgstr[1] ""
 "til ALSA-utviklarane."
 
 #: src/modules/alsa/alsa-util.c:1249
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li byte (%s"
 "%lu ms).\n"
@@ -994,7 +985,7 @@ msgstr ""
 "til ALSA-utviklarane."
 
 #: src/modules/alsa/alsa-util.c:1339
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu byte "
 "(%lu ms).\n"
@@ -1104,13 +1095,12 @@ msgid "Always keeps at least one sink loaded even if it's a null one"
 msgstr "Held alltid minst eitt sluk lasta, sjølv om det er eit null-sluk"
 
 #: src/modules/module-always-source.c:35
-#, fuzzy
 msgid "Always keeps at least one source loaded even if it's a null one"
-msgstr "Held alltid minst eitt sluk lasta, sjølv om det er eit null-sluk"
+msgstr "Held alltid minst éi kjelde lasta, sjølv om det er ei null-kjelde"
 
 #: src/modules/module-equalizer-sink.c:68
 msgid "General Purpose Equalizer"
-msgstr "Generell lydbalansekontroll"
+msgstr "Generell lydbalanse­kontroll"
 
 #: src/modules/module-equalizer-sink.c:72
 msgid ""
@@ -1128,7 +1118,7 @@ msgstr ""
 #: src/modules/module-equalizer-sink.c:1217
 #, c-format
 msgid "FFT based equalizer on %s"
-msgstr ""
+msgstr "FFT-basert lydbalanse­kontroll på %s"
 
 #: src/modules/module-filter-apply.c:47
 msgid "autoclean=<automatically unload unused filters?>"
@@ -1139,7 +1129,6 @@ msgid "Virtual LADSPA sink"
 msgstr "Virtuelt LADSPA-sluk"
 
 #: src/modules/module-ladspa-sink.c:54
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "sink_input_properties=<properties for the sink input> master=<name of sink "
@@ -1151,9 +1140,10 @@ msgid ""
 "separated list of output LADSPA port names> autoloaded=<set if this module "
 "is being loaded automatically> "
 msgstr ""
-"sink_name=<namn på sluk> sink_properties=<eigenskapar for sluk> master=<namn "
-"på sluk å filtrera> sink_master=<namn på sluk å filtrera> "
-"format=<samplingsformat> rate=<samplingsrate> channels=<talet på kanalar> "
+"sink_name=<namn på sluk> sink_properties=<eigenskapar for sluk> "
+"sink_input_properties=<eigenskapar for sluk-inndata> master=<namn på sluk å "
+"filtrera> sink_master=<namn på sluk å filtrera> format=<samplingsformat> "
+"rate=<samplingsrate> channels=<talet på kanalar> "
 "channel_map=<kanaldefinisjon for inndata> plugin=<namn på LADSPA-tillegg> "
 "label=<skildring av LADSPA-tillegg> control=<kommadelt liste med "
 "kontrollverdiar for inndata> input_ladspaport_map=<kommadelt liste med "
@@ -1209,7 +1199,6 @@ msgid "Virtual surround sink"
 msgstr "Virtuelt kringlyd-sluk"
 
 #: src/modules/module-virtual-surround-sink.c:54
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "master=<name of sink to filter> sink_master=<name of sink to filter> "
@@ -1223,17 +1212,17 @@ msgstr ""
 "på sluk å filtrera> sink_master=<namn på sluk å filtrera> "
 "format=<samplingsformat> rate=<samplingsrate> channels=<talet på kanalar> "
 "channel_map=<kanaldefinisjon> use_volume_sharing=<yes eller no> "
-"force_flat_volume=<yes eller no> hrir=/adresse/til/left_hrir.wav "
-"autoloaded=<vel dette viss modulen vert lasta automatisk> "
+"force_flat_volume=<yes eller no> hrir=/adresse/til/left_hrir.wav left=/"
+"adresse/til/left_hrir.wav hrir_right=/adresse/til/ikkje-obligatorisk/"
+"right_hrir.wav autoloaded=<vel dette viss modulen vert lasta automatisk> "
 
 #: src/modules/raop/module-raop-discover.c:295
-#, fuzzy
 msgid "Unknown device model"
-msgstr "Ukjend feilkode"
+msgstr "Ukjend einingsmodell"
 
 #: src/modules/raop/raop-sink.c:655
 msgid "RAOP standard profile"
-msgstr ""
+msgstr "RAOP-standardprofil"
 
 #: src/modules/reserve-wrap.c:149
 msgid "PulseAudio Sound Server"
@@ -1510,7 +1499,7 @@ msgid "invalid"
 msgstr "ugyldig"
 
 #: src/pulsecore/core-util.c:1780
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "XDG_RUNTIME_DIR (%s) is not owned by us (uid %d), but by uid %d! (This could "
 "e.g. happen if you try to connect to a non-root PulseAudio as a root user, "
@@ -1874,7 +1863,7 @@ msgstr "Feil ved pa_stream_update_timing_info()-kall: %s"
 
 # «How to call» ser ut til å vera feil på engelsk. Det er snakk om *kva*, ikkje *korleis*, ein skal kalla klienten og straumen.
 #: src/utils/pacat.c:676
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "%s\n"
@@ -1946,28 +1935,27 @@ msgstr ""
 "      --version                         Vis versjonsinformasjon.\n"
 "\n"
 "  -r, --record                          Opprett tilkopling for lydopptak.\n"
-"  -p, --playback                        Opprett tilkopling for "
-"lydavspeling.\n"
+"  -p, --playback                        Opprett tilkopling for lydavspeling."
+"\n"
 "\n"
 "  -v, --verbose                         Vis meir detaljerte meldingar.\n"
 "\n"
 "  -s, --server=TENAR                    Namnet på tenaren å kopla til.\n"
-"  -d, --device=EINING                   Namnet på sluket/kjelda å kopla "
-"til.\n"
-"  -n, --client-name=NAMN                Kva klienten skal kallast på "
-"tenaren.\n"
-"      --stream-name=NAMN                Kva straumen skal kallast på "
-"tenaren.\n"
-"      --volume=LYDSTYRKE                Vel startlydstyrke (lineær). "
-"Verdiar: 0–65536.\n"
-"      --rate=SAMPLINGSRATE              Samplingsrate i Hz (standard: "
-"44100).\n"
-"      --format=SAMPLINGSFORMAT          Samplingsformat: s16le, s16be, u8, "
-"float32le,\n"
-"                                        float32be, ulaw, alaw, s32le, s32be, "
-"s24le, s24be,\n"
-"                                        s24-32le eller s24-32be (standard er "
-"s16ne).\n"
+"  -d, --device=EINING                   Namnet på sluket/kjelda å kopla til."
+"\n"
+"  -n, --client-name=NAMN                Kva klienten skal kallast på tenaren."
+"\n"
+"      --stream-name=NAMN                Kva straumen skal kallast på tenaren."
+"\n"
+"      --volume=LYDSTYRKE                Vel startlydstyrke (lineær). Verdiar:"
+" 0–65536.\n"
+"      --rate=SAMPLINGSRATE              Samplingsrate i Hz (standard: 44100)."
+"\n"
+"      --format=SAMPLEFORMAT             Samplingsformat. Sjå\n"
+"                                        https://www.freedesktop.org/wiki/"
+"Software/PulseAudio/Documentation/User/SupportedAudioFormats/\n"
+"                                        for moglege verdiar (standard er "
+"s16ne)\n"
 "      --channels=KANALAR                Talet på kanalar: 1 for mono, 2 for "
 "stereo\n"
 "                                        (standard er 2).\n"
@@ -1983,8 +1971,8 @@ msgstr ""
 "frå\n"
 "                                        sluket/kjelda som straumen vert "
 "kopla til.\n"
-"      --no-remix                        Ikkje oppmiks eller nedmiks "
-"kanalar.\n"
+"      --no-remix                        Ikkje oppmiks eller nedmiks kanalar."
+"\n"
 "      --no-remap                        Definer kanalar etter indeks, ikkje "
 "etter namn.\n"
 "      --latency=BYTE                    Be om valt latenstid, målt i byte.\n"
@@ -1998,8 +1986,8 @@ msgstr ""
 "verdi.\n"
 "      --raw                             Ta opp / spel av rå PCM-data.\n"
 "      --passthrough                     Vidaresend lyddata.\n"
-"      --file-format[=FFORMAT]           Ta opp / spel av formatert PCM-"
-"data.\n"
+"      --file-format[=FFORMAT]           Ta opp / spel av formatert PCM-data."
+"\n"
 "      --list-file-formats               Vis tilgjengelege filformat.\n"
 "      --monitor-stream=INDEKS           Ta opp frå sluk-inndata med indeksen "
 "INDEKS.\n"
@@ -2266,7 +2254,7 @@ msgstr "RAMMER"
 
 #: src/utils/pacmd.c:80 src/utils/pactl.c:1709
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
-msgstr ""
+msgstr "MOTTAKAR MELDING [MELDINGSPARAMETRAR]"
 
 #: src/utils/pacmd.c:82
 #, c-format
@@ -2335,21 +2323,19 @@ msgid "Failed to get statistics: %s"
 msgstr "Klarte ikkje henta statistikk: %s"
 
 #: src/utils/pactl.c:175
-#, fuzzy, c-format
+#, c-format
 msgid "Currently in use: %u block containing %s bytes total.\n"
 msgid_plural "Currently in use: %u blocks containing %s bytes total.\n"
-msgstr[0] "I bruk: %u blokker med til saman %s byte.\n"
+msgstr[0] "I bruk: %u blokk med til saman %s byte.\n"
 msgstr[1] "I bruk: %u blokker med til saman %s byte.\n"
 
 #: src/utils/pactl.c:181
-#, fuzzy, c-format
+#, c-format
 msgid "Allocated during whole lifetime: %u block containing %s bytes total.\n"
 msgid_plural ""
 "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
-msgstr[0] ""
-"Reservert gjennom heile levetida: %u blokker med til saman %s byte.\n"
-msgstr[1] ""
-"Reservert gjennom heile levetida: %u blokker med til saman %s byte.\n"
+msgstr[0] "Reservert gjennom heile levetida: %u blokk med til saman %s byte.\n"
+msgstr[1] "Reservert gjennom heile levetida: %u blokker med til saman %s byte.\n"
 
 # https://freedesktop.org/software/pulseaudio/doxygen/scache.html
 #: src/utils/pactl.c:187
@@ -2404,72 +2390,67 @@ msgstr ""
 
 #: src/utils/pactl.c:242
 msgid "availability unknown"
-msgstr ""
+msgstr "ukjend tilgjengestatus"
 
 #: src/utils/pactl.c:243
 msgid "available"
-msgstr ""
+msgstr "tilgjengeleg"
 
 #: src/utils/pactl.c:244
 msgid "not available"
-msgstr ""
+msgstr "ikkje tilgjengeleg"
 
 #: src/utils/pactl.c:253 src/utils/pactl.c:277
-#, fuzzy
 msgid "Unknown"
-msgstr "ukjend"
+msgstr "Ukjend"
 
 #: src/utils/pactl.c:254
 msgid "Aux"
-msgstr ""
+msgstr "Aux"
 
 #: src/utils/pactl.c:257
-#, fuzzy
 msgid "Line"
-msgstr "Linje inn"
+msgstr "Linje"
 
 #: src/utils/pactl.c:258
 msgid "Mic"
-msgstr ""
+msgstr "Mikrofon"
 
 #: src/utils/pactl.c:260
-#, fuzzy
 msgid "Handset"
-msgstr "Hovudsett"
+msgstr "Telefonrøyr"
 
 #: src/utils/pactl.c:261
 msgid "Earpiece"
-msgstr ""
+msgstr "Øretelefon"
 
 #: src/utils/pactl.c:262
 msgid "SPDIF"
-msgstr ""
+msgstr "SPDIF"
 
 #: src/utils/pactl.c:263
 msgid "HDMI"
-msgstr ""
+msgstr "HDMI"
 
 #: src/utils/pactl.c:264
 msgid "TV"
-msgstr ""
+msgstr "TV"
 
 #: src/utils/pactl.c:267
 msgid "USB"
-msgstr ""
+msgstr "USB"
 
 #: src/utils/pactl.c:268
-#, fuzzy
 msgid "Bluetooth"
-msgstr "Bluetooth-innlyd"
+msgstr "Bluetooth"
 
 #: src/utils/pactl.c:274
 msgid "Network"
-msgstr ""
+msgstr "Nettverk"
 
 #: src/utils/pactl.c:275
-#, fuzzy
 msgid "Analog"
-msgstr "Analog mono"
+msgstr "Analog"
 
 #: src/utils/pactl.c:299 src/utils/pactl.c:1020 src/utils/pactl.c:1098
 #, c-format
@@ -2521,13 +2502,13 @@ msgid "\tPorts:\n"
 msgstr "\tPortar:\n"
 
 #: src/utils/pactl.c:371 src/utils/pactl.c:479
-#, fuzzy, c-format
+#, c-format
 msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
-msgstr "\t\t%s: %s (sluk: %u, kjelder: %u, prioritet: %u, tilgjengeleg: %s)\n"
+msgstr "\t\t%s: %s (type: %s, prioritet: %u%s%s, %s)\n"
 
 #: src/utils/pactl.c:373 src/utils/pactl.c:481 src/utils/pactl.c:645
 msgid ", availability group: "
-msgstr ""
+msgstr ", tilgjengegruppe: "
 
 #: src/utils/pactl.c:378 src/utils/pactl.c:486
 #, c-format
@@ -2675,6 +2656,8 @@ msgstr "\tAktiv profil: %s\n"
 msgid ""
 "\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s, %s)\n"
 msgstr ""
+"\t\t%s: %s (type: %s, prioritet: %u, latens­forskyving: %<PRId64> µs%s%s, %s)"
+"\n"
 
 #: src/utils/pactl.c:649
 #, c-format
@@ -2818,18 +2801,18 @@ msgid "Failure: %s"
 msgstr "Feil: %s"
 
 #: src/utils/pactl.c:889
-#, fuzzy, c-format
+#, c-format
 msgid "Send message failed: %s"
-msgstr "Feil ved read()-kall: %s"
+msgstr "Feil ved sending av melding: %s"
 
 #: src/utils/pactl.c:906
 #, c-format
 msgid "list-handlers message failed: %s"
-msgstr ""
+msgstr "Feil ved «list-handlers»-melding: %s"
 
 #: src/utils/pactl.c:912 src/utils/pactl.c:947
 msgid "list-handlers message response could not be parsed correctly"
-msgstr ""
+msgstr "Klarte ikkje tolka «list-handlers»-meldinga"
 
 #: src/utils/pactl.c:984
 #, c-format
@@ -2837,7 +2820,7 @@ msgid "Failed to unload module: Module %s not loaded"
 msgstr "Klarte ikkje lasta ut modul: Modulen %s er ikkje lasta"
 
 #: src/utils/pactl.c:1002
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Failed to set volume: You tried to set volumes for %d channel, whereas "
 "channel(s) supported = %d\n"
@@ -2845,11 +2828,11 @@ msgid_plural ""
 "Failed to set volume: You tried to set volumes for %d channels, whereas "
 "channel(s) supported = %d\n"
 msgstr[0] ""
-"Klarte ikkje stilla lydstyrken: Du prøvde å stilla lydstyrken for %d "
-"kanalar, men det finst berre %d kanalar.\n"
+"Klarte ikkje stilla lydstyrken: Du prøvde å stilla lydstyrken for %d kanal, "
+"men støtta kanaltal er berre: %d\n"
 msgstr[1] ""
 "Klarte ikkje stilla lydstyrken: Du prøvde å stilla lydstyrken for %d "
-"kanalar, men det finst berre %d kanalar.\n"
+"kanalar, men støtta kanaltal er berre: %d\n"
 
 #: src/utils/pactl.c:1213
 #, c-format
@@ -3166,15 +3149,16 @@ msgid "Invalid source output index specification"
 msgstr "Ugyldig spesifikasjon av indeks til kjelde-utdata"
 
 #: src/utils/pactl.c:2150
-#, fuzzy
 msgid "You have to specify at least an object path and a message name"
-msgstr "Du må velja eit sluknamn / ein slukindeks og eit portnamn"
+msgstr "Du må oppgje minst ei objektadresse og eit meldingsnamn"
 
 #: src/utils/pactl.c:2160
 msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
 msgstr ""
+"Eventuelle ekstraargument ved ignorerte. Merk at alle meldings­parametrane "
+"må skrivast som éin tekststreng."
 
 #: src/utils/pactl.c:2170
 msgid ""
@@ -3238,7 +3222,7 @@ msgid "WARNING: Child process terminated by signal %u\n"
 msgstr "ÅTVARING: Underprosess avslutta av signalet %u.\n"
 
 #: src/utils/pasuspender.c:228
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] -- PROGRAM [ARGUMENTS ...]\n"
 "\n"
@@ -3250,7 +3234,9 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
-"%s [val] ... \n"
+"%s [val] -- PROGRAM [ARGUMENT ...]\n"
+"\n"
+"Set PulseAudio mellombels på pause mens PROGRAM køyrer.\n"
 "\n"
 "  -h, --help                            Vis denne hjelpeteksten.\n"
 "      --version                         Vis versjonsinformasjon.\n"

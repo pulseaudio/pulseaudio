@@ -1,5 +1,7 @@
-#
-# Elad <el.il@doom.co.il>, 2012.
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the pulseaudio package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 msgid ""
 msgstr ""
@@ -7,18 +9,16 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-01-22 09:11+0200\n"
-"PO-Revision-Date: 2021-01-31 23:40+0000\n"
-"Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
-"Language-Team: Hebrew <https://translate.fedoraproject.org/projects/"
-"pulseaudio/pulseaudio/he/>\n"
-"Language: he\n"
+"PO-Revision-Date: 2021-02-05 01:40+0000\n"
+"Last-Translator: Carmen Bianca Bakker <carmen@carmenbianca.eu>\n"
+"Language-Team: Esperanto <https://translate.fedoraproject.org/projects/"
+"pulseaudio/pulseaudio/eo/>\n"
+"Language: eo\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Generator: Weblate 4.4.2\n"
-"X-Poedit-Language: Hebrew\n"
-"X-Poedit-Country: Israel\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -31,45 +31,37 @@ msgid ""
 "      --dump-conf                       Dump default configuration\n"
 "      --dump-modules                    Dump list of available modules\n"
 "      --dump-resample-methods           Dump available resample methods\n"
-"      --cleanup-shm                     Cleanup stale shared memory "
-"segments\n"
-"      --start                           Start the daemon if it is not "
-"running\n"
+"      --cleanup-shm                     Cleanup stale shared memory segments\n"
+"      --start                           Start the daemon if it is not running\n"
 "  -k  --kill                            Kill a running daemon\n"
-"      --check                           Check for a running daemon (only "
-"returns exit code)\n"
+"      --check                           Check for a running daemon (only returns exit "
+"code)\n"
 "\n"
 "OPTIONS:\n"
 "      --system[=BOOL]                   Run as system-wide instance\n"
 "  -D, --daemonize[=BOOL]                Daemonize after startup\n"
 "      --fail[=BOOL]                     Quit when startup fails\n"
 "      --high-priority[=BOOL]            Try to set high nice level\n"
-"                                        (only available as root, when SUID "
-"or\n"
+"                                        (only available as root, when SUID or\n"
 "                                        with elevated RLIMIT_NICE)\n"
 "      --realtime[=BOOL]                 Try to enable realtime scheduling\n"
-"                                        (only available as root, when SUID "
-"or\n"
+"                                        (only available as root, when SUID or\n"
 "                                        with elevated RLIMIT_RTPRIO)\n"
 "      --disallow-module-loading[=BOOL]  Disallow user requested module\n"
 "                                        loading/unloading after startup\n"
 "      --disallow-exit[=BOOL]            Disallow user requested exit\n"
-"      --exit-idle-time=SECS             Terminate the daemon when idle and "
-"this\n"
+"      --exit-idle-time=SECS             Terminate the daemon when idle and this\n"
 "                                        time passed\n"
-"      --scache-idle-time=SECS           Unload autoloaded samples when idle "
-"and\n"
+"      --scache-idle-time=SECS           Unload autoloaded samples when idle and\n"
 "                                        this time passed\n"
 "      --log-level[=LEVEL]               Increase or set verbosity level\n"
 "  -v  --verbose                         Increase the verbosity level\n"
 "      --log-target={auto,syslog,stderr,file:PATH,newfile:PATH}\n"
 "                                        Specify the log target\n"
-"      --log-meta[=BOOL]                 Include code location in log "
-"messages\n"
+"      --log-meta[=BOOL]                 Include code location in log messages\n"
 "      --log-time[=BOOL]                 Include timestamps in log messages\n"
 "      --log-backtrace=FRAMES            Include a backtrace in log messages\n"
-"  -p, --dl-search-path=PATH             Set the search path for dynamic "
-"shared\n"
+"  -p, --dl-search-path=PATH             Set the search path for dynamic shared\n"
 "                                        objects (plugins)\n"
 "      --resample-method=METHOD          Use the specified resampling method\n"
 "                                        (See --dump-resample-methods for\n"
@@ -81,12 +73,10 @@ msgid ""
 "      --enable-memfd[=BOOL]             Enable memfd shared memory support.\n"
 "\n"
 "STARTUP SCRIPT:\n"
-"  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module "
-"with\n"
+"  -L, --load=\"MODULE ARGUMENTS\"         Load the specified plugin module with\n"
 "                                        the specified argument\n"
 "  -F, --file=FILENAME                   Run the specified script\n"
-"  -C                                    Open a command line on the running "
-"TTY\n"
+"  -C                                    Open a command line on the running TTY\n"
 "                                        after startup\n"
 "\n"
 "  -n                                    Don't load default script file\n"
@@ -102,8 +92,8 @@ msgstr ""
 
 #: src/daemon/cmdline.c:265
 msgid ""
-"--log-level expects log level argument (either numeric in range 0..4 or one "
-"of debug, info, notice, warn, error)."
+"--log-level expects log level argument (either numeric in range 0..4 or one of debug, "
+"info, notice, warn, error)."
 msgstr ""
 
 #: src/daemon/cmdline.c:277
@@ -128,14 +118,14 @@ msgstr ""
 
 #: src/daemon/cmdline.c:328
 msgid ""
-"Invalid log target: use either 'syslog', 'journal', 'stderr' or 'auto' or a "
-"valid file name 'file:<path>', 'newfile:<path>'."
+"Invalid log target: use either 'syslog', 'journal', 'stderr' or 'auto' or a valid file "
+"name 'file:<path>', 'newfile:<path>'."
 msgstr ""
 
 #: src/daemon/cmdline.c:330
 msgid ""
-"Invalid log target: use either 'syslog', 'stderr' or 'auto' or a valid file "
-"name 'file:<path>', 'newfile:<path>'."
+"Invalid log target: use either 'syslog', 'stderr' or 'auto' or a valid file name 'file:"
+"<path>', 'newfile:<path>'."
 msgstr ""
 
 #: src/daemon/cmdline.c:338
@@ -234,8 +224,8 @@ msgstr ""
 
 #: src/daemon/daemon-conf.c:701
 msgid ""
-"The specified default channel map has a different number of channels than "
-"the specified default number of channels."
+"The specified default channel map has a different number of channels than the specified "
+"default number of channels."
 msgstr ""
 
 #: src/daemon/daemon-conf.c:788
@@ -246,32 +236,32 @@ msgstr ""
 #: src/daemon/dumpmodules.c:57
 #, c-format
 msgid "Name: %s\n"
-msgstr ""
+msgstr "Nomo: %s\n"
 
 #: src/daemon/dumpmodules.c:60
 #, c-format
 msgid "No module information available\n"
-msgstr ""
+msgstr "Neniuj modul-informoj disponeblas\n"
 
 #: src/daemon/dumpmodules.c:63
 #, c-format
 msgid "Version: %s\n"
-msgstr ""
+msgstr "Versio: %s\n"
 
 #: src/daemon/dumpmodules.c:65
 #, c-format
 msgid "Description: %s\n"
-msgstr ""
+msgstr "Priskribo: %s\n"
 
 #: src/daemon/dumpmodules.c:67
 #, c-format
 msgid "Author: %s\n"
-msgstr ""
+msgstr "Aŭtoro: %s\n"
 
 #: src/daemon/dumpmodules.c:69
 #, c-format
 msgid "Usage: %s\n"
-msgstr ""
+msgstr "Uzado: %s\n"
 
 #: src/daemon/dumpmodules.c:70
 #, c-format
@@ -355,8 +345,7 @@ msgstr ""
 
 #: src/daemon/main.c:540
 msgid ""
-"System mode refused for non-root user. Only starting the D-Bus server lookup "
-"service."
+"System mode refused for non-root user. Only starting the D-Bus server lookup service."
 msgstr ""
 
 #: src/daemon/main.c:639
@@ -365,9 +354,7 @@ msgid "Failed to kill daemon: %s"
 msgstr ""
 
 #: src/daemon/main.c:668
-msgid ""
-"This program is not intended to be run as root (unless --system is "
-"specified)."
+msgid "This program is not intended to be run as root (unless --system is specified)."
 msgstr ""
 
 #: src/daemon/main.c:671
@@ -385,8 +372,7 @@ msgstr ""
 
 #: src/daemon/main.c:724
 #, c-format
-msgid ""
-"User-configured server at %s, which appears to be local. Probing deeper."
+msgid "User-configured server at %s, which appears to be local. Probing deeper."
 msgstr ""
 
 #: src/daemon/main.c:729
@@ -439,11 +425,10 @@ msgstr ""
 
 #: src/daemon/main.c:996
 msgid ""
-"OK, so you are running PA in system mode. Please make sure that you actually "
-"do want to do that.\n"
-"Please read http://www.freedesktop.org/wiki/Software/PulseAudio/"
-"Documentation/User/WhatIsWrongWithSystemWide/ for an explanation why system "
-"mode is usually a bad idea."
+"OK, so you are running PA in system mode. Please make sure that you actually do want to "
+"do that.\n"
+"Please read http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/"
+"WhatIsWrongWithSystemWide/ for an explanation why system mode is usually a bad idea."
 msgstr ""
 
 #: src/daemon/main.c:1012
@@ -461,8 +446,8 @@ msgstr ""
 #: src/daemon/main.c:1126
 #, c-format
 msgid ""
-"Failed to initialize daemon due to errors while executing startup commands. "
-"Source of commands: %s"
+"Failed to initialize daemon due to errors while executing startup commands. Source of "
+"commands: %s"
 msgstr ""
 
 #: src/daemon/main.c:1131
@@ -471,62 +456,62 @@ msgstr ""
 
 #: src/daemon/pulseaudio.desktop.in:4
 msgid "PulseAudio Sound System"
-msgstr "מערכת הקול PulseAudio"
+msgstr "PulseAudio-sonsistemo"
 
 #: src/daemon/pulseaudio.desktop.in:5
 msgid "Start the PulseAudio Sound System"
-msgstr "הפעלת מערכת הקול PulseAudio"
+msgstr "Startigi la PulseAudio-sonsistemon"
 
 #: src/modules/alsa/alsa-mixer.c:2708
 msgid "Input"
-msgstr "קלט"
+msgstr "Enigo"
 
 #: src/modules/alsa/alsa-mixer.c:2709
 msgid "Docking Station Input"
-msgstr "קלט מתחנת עגינה"
+msgstr "Doka enigo"
 
 #: src/modules/alsa/alsa-mixer.c:2710
 msgid "Docking Station Microphone"
-msgstr "מיקרופון מתחנת עגינה"
+msgstr "Doka mikrofono"
 
 #: src/modules/alsa/alsa-mixer.c:2711
 msgid "Docking Station Line In"
-msgstr "קו נכנס מתחנת עגינה"
+msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:2712 src/modules/alsa/alsa-mixer.c:2803
 msgid "Line In"
-msgstr "קו נכנס"
+msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:2713 src/modules/alsa/alsa-mixer.c:2797
 #: src/modules/bluetooth/module-bluez5-device.c:1822
 msgid "Microphone"
-msgstr "מיקרופון"
+msgstr "Mikrofono"
 
 #: src/modules/alsa/alsa-mixer.c:2714 src/modules/alsa/alsa-mixer.c:2798
 msgid "Front Microphone"
-msgstr "מיקרופון קדמי"
+msgstr "Antaŭa mikrofono"
 
 #: src/modules/alsa/alsa-mixer.c:2715 src/modules/alsa/alsa-mixer.c:2799
 msgid "Rear Microphone"
-msgstr "מיקרופון אחורי"
+msgstr "Malantaŭa mikrofono"
 
 #: src/modules/alsa/alsa-mixer.c:2716
 msgid "External Microphone"
-msgstr "מיקרופון חיצוני"
+msgstr "Ekstera mikrofono"
 
 #: src/modules/alsa/alsa-mixer.c:2717 src/modules/alsa/alsa-mixer.c:2801
 msgid "Internal Microphone"
-msgstr "מיקרופון פנימי"
+msgstr "Interna mikrofono"
 
 #: src/modules/alsa/alsa-mixer.c:2718 src/modules/alsa/alsa-mixer.c:2804
 #: src/utils/pactl.c:265
 msgid "Radio"
-msgstr "רדיו"
+msgstr "Radio"
 
 #: src/modules/alsa/alsa-mixer.c:2719 src/modules/alsa/alsa-mixer.c:2805
 #: src/utils/pactl.c:266
 msgid "Video"
-msgstr "וידאו"
+msgstr "Video"
 
 #: src/modules/alsa/alsa-mixer.c:2720
 msgid "Automatic Gain Control"
@@ -546,11 +531,11 @@ msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:2724
 msgid "Amplifier"
-msgstr "מגבר"
+msgstr "Amplifilo"
 
 #: src/modules/alsa/alsa-mixer.c:2725
 msgid "No Amplifier"
-msgstr "אין מגבר"
+msgstr "Neniu amplifilo"
 
 #: src/modules/alsa/alsa-mixer.c:2726
 msgid "Bass Boost"
@@ -560,99 +545,99 @@ msgstr ""
 msgid "No Bass Boost"
 msgstr ""
 
-#: src/modules/alsa/alsa-mixer.c:2728
-#: src/modules/bluetooth/module-bluez5-device.c:1830 src/utils/pactl.c:255
+#: src/modules/alsa/alsa-mixer.c:2728 src/modules/bluetooth/module-bluez5-device.c:1830
+#: src/utils/pactl.c:255
 msgid "Speaker"
-msgstr ""
+msgstr "Laŭtparolilo"
 
 #: src/modules/alsa/alsa-mixer.c:2729 src/modules/alsa/alsa-mixer.c:2807
 #: src/utils/pactl.c:256
 msgid "Headphones"
-msgstr "אוזניות אנלוגיות"
+msgstr "Kapaŭskultilo"
 
 #: src/modules/alsa/alsa-mixer.c:2796
 msgid "Analog Input"
-msgstr "קלט אנלוגי"
+msgstr "Analoga enigo"
 
 #: src/modules/alsa/alsa-mixer.c:2800
 msgid "Dock Microphone"
-msgstr "מיקרופון של תחנת עגינה"
+msgstr "Doka mikrofono"
 
 #: src/modules/alsa/alsa-mixer.c:2802
 msgid "Headset Microphone"
-msgstr "מיקרופון באוזניות"
+msgstr "Kaptelefona mikrofono"
 
 #: src/modules/alsa/alsa-mixer.c:2806
 msgid "Analog Output"
-msgstr "פלט אנלוגי"
+msgstr "Analoga eligo"
 
 #: src/modules/alsa/alsa-mixer.c:2808
 msgid "Headphones 2"
-msgstr "אוזניות 2"
+msgstr "Kapaŭskultilo 2"
 
 #: src/modules/alsa/alsa-mixer.c:2809
 msgid "Headphones Mono Output"
-msgstr "פלט מונו לאוזניות"
+msgstr "Kapaŭskultila mono-eligo"
 
 #: src/modules/alsa/alsa-mixer.c:2810
 msgid "Line Out"
-msgstr "קו יוצא"
+msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:2811
 msgid "Analog Mono Output"
-msgstr "פלט מונו אנלוגי"
+msgstr "Analoga mono-eligo"
 
 #: src/modules/alsa/alsa-mixer.c:2812
 msgid "Speakers"
-msgstr "רמקולים"
+msgstr "Laŭtparoliloj"
 
 #: src/modules/alsa/alsa-mixer.c:2813
 msgid "HDMI / DisplayPort"
-msgstr ""
+msgstr "HDMI / DisplayPort"
 
 #: src/modules/alsa/alsa-mixer.c:2814
 msgid "Digital Output (S/PDIF)"
-msgstr "פלט דיגיטלי (S/PDIF)"
+msgstr "Cifera eligo (S/PDIF)"
 
 #: src/modules/alsa/alsa-mixer.c:2815
 msgid "Digital Input (S/PDIF)"
-msgstr "קלט דיגיטלי (S/PDIF)"
+msgstr "Cifera enigo (S/PDIF)"
 
 #: src/modules/alsa/alsa-mixer.c:2816
 msgid "Multichannel Input"
-msgstr ""
+msgstr "Plurkanala enigo"
 
 #: src/modules/alsa/alsa-mixer.c:2817
 msgid "Multichannel Output"
-msgstr ""
+msgstr "Plurkanala eligo"
 
 #: src/modules/alsa/alsa-mixer.c:2818
 msgid "Game Output"
-msgstr "פלט משחק"
+msgstr "Lud-eligo"
 
 #: src/modules/alsa/alsa-mixer.c:2819 src/modules/alsa/alsa-mixer.c:2820
 msgid "Chat Output"
-msgstr "פלט צ׳אט"
+msgstr "Babil-eligo"
 
 #: src/modules/alsa/alsa-mixer.c:2821
 msgid "Chat Input"
-msgstr "קלט צ׳אט"
+msgstr "Babil-enigo"
 
 #: src/modules/alsa/alsa-mixer.c:2822
 msgid "Virtual Surround 7.1"
-msgstr "סראונד וירטואלי 7.1"
+msgstr "Virtuala ĉirkaŭa sono 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4562
 msgid "Analog Mono"
-msgstr "מונו אנלוגי"
+msgstr "Analoga mono"
 
 #: src/modules/alsa/alsa-mixer.c:4563
 msgid "Analog Mono (Left)"
-msgstr "מונו אנלוגי (שמאל)"
+msgstr "Analoga mono (maldekstra)"
 
 #: src/modules/alsa/alsa-mixer.c:4564
 msgid "Analog Mono (Right)"
-msgstr "מונו אנלוגי (ימין)"
+msgstr "Analoga mono (dekstra)"
 
 #. Note: Not translated to "Analog Stereo Input", because the source
 #. * name gets "Input" appended to it automatically, so adding "Input"
@@ -662,218 +647,211 @@ msgstr "מונו אנלוגי (ימין)"
 #: src/modules/alsa/alsa-mixer.c:4565 src/modules/alsa/alsa-mixer.c:4573
 #: src/modules/alsa/alsa-mixer.c:4574
 msgid "Analog Stereo"
-msgstr "סטריאו אנלוגי"
+msgstr "Analoga stereo"
 
 #: src/modules/alsa/alsa-mixer.c:4566 src/pulse/channelmap.c:103
 #: src/pulse/channelmap.c:771
 msgid "Mono"
-msgstr "מונו"
+msgstr "Mono"
 
 #: src/modules/alsa/alsa-mixer.c:4567 src/pulse/channelmap.c:775
 msgid "Stereo"
-msgstr "סטריאו"
+msgstr "Stereo"
 
 #: src/modules/alsa/alsa-mixer.c:4575 src/modules/alsa/alsa-mixer.c:4733
 #: src/modules/bluetooth/module-bluez5-device.c:1810 src/utils/pactl.c:259
 msgid "Headset"
-msgstr ""
+msgstr "Kaptelefono"
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
 msgid "Speakerphone"
-msgstr "דיבורית לחדר ישיבות"
+msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:4577 src/modules/alsa/alsa-mixer.c:4578
 msgid "Multichannel"
-msgstr ""
+msgstr "Plurkanala"
 
 #: src/modules/alsa/alsa-mixer.c:4579
 msgid "Analog Surround 2.1"
-msgstr "סראונד אנלוגי 2.1"
+msgstr "Analoga ĉirkaŭa sono 2.1"
 
 #: src/modules/alsa/alsa-mixer.c:4580
 msgid "Analog Surround 3.0"
-msgstr "סראונד אנלוגי 3.0"
+msgstr "Analoga ĉirkaŭa sono 3.0"
 
 #: src/modules/alsa/alsa-mixer.c:4581
 msgid "Analog Surround 3.1"
-msgstr "סראונד אנלוגי 3.1"
+msgstr "Analoga ĉirkaŭa sono 3.1"
 
 #: src/modules/alsa/alsa-mixer.c:4582
 msgid "Analog Surround 4.0"
-msgstr "סראונד אנלוגי 4.0"
+msgstr "Analoga ĉirkaŭa sono 4.0"
 
 #: src/modules/alsa/alsa-mixer.c:4583
 msgid "Analog Surround 4.1"
-msgstr "סראונד אנלוגי 4.1"
+msgstr "Analoga ĉirkaŭa sono 4.1"
 
 #: src/modules/alsa/alsa-mixer.c:4584
 msgid "Analog Surround 5.0"
-msgstr "סראונד אנלוגי 5.0"
+msgstr "Analoga ĉirkaŭa sono 5.0"
 
 #: src/modules/alsa/alsa-mixer.c:4585
 msgid "Analog Surround 5.1"
-msgstr "סראונד אנלוגי 5.1"
+msgstr "Analoga ĉirkaŭa sono 5.1"
 
 #: src/modules/alsa/alsa-mixer.c:4586
 msgid "Analog Surround 6.0"
-msgstr "סראונד אנלוגי 6.0"
+msgstr "Analoga ĉirkaŭa sono 6.0"
 
 #: src/modules/alsa/alsa-mixer.c:4587
 msgid "Analog Surround 6.1"
-msgstr "סראונד אנלוגי 6.1"
+msgstr "Analoga ĉirkaŭa sono 6.1"
 
 #: src/modules/alsa/alsa-mixer.c:4588
 msgid "Analog Surround 7.0"
-msgstr "סראונד אנלוגי 7.0"
+msgstr "Analoga ĉirkaŭa sono 7.0"
 
 #: src/modules/alsa/alsa-mixer.c:4589
 msgid "Analog Surround 7.1"
-msgstr "סראונד אנלוגי 7.1"
+msgstr "Analoga ĉirkaŭa sono 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4590
 msgid "Digital Stereo (IEC958)"
-msgstr "סטריאו דיגיטלי (IEC958)"
+msgstr "Cifera stereo (IEC958)"
 
 #: src/modules/alsa/alsa-mixer.c:4591
 msgid "Digital Surround 4.0 (IEC958/AC3)"
-msgstr "סראונד דיגיטלי 4.0 (IEC958/AC3)"
+msgstr "Cifera ĉirkaŭa sono 4.0 (IEC958/AC3)"
 
 #: src/modules/alsa/alsa-mixer.c:4592
 msgid "Digital Surround 5.1 (IEC958/AC3)"
-msgstr "סראונד דיגיטלי 5.1 (IEC958/AC3)"
+msgstr "Cifera ĉirkaŭa sono 5.1 (IEC958/AC3)"
 
 #: src/modules/alsa/alsa-mixer.c:4593
 msgid "Digital Surround 5.1 (IEC958/DTS)"
-msgstr "סראונד דיגיטלי 5.1 (IEC958/DTS)"
+msgstr "Cifera ĉirkaŭa sono 5.1 (IEC958/DTS)"
 
 #: src/modules/alsa/alsa-mixer.c:4594
 msgid "Digital Stereo (HDMI)"
-msgstr "סטריאו דיגיטלי (HDMI)"
+msgstr "Cifera stereo (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4595
 msgid "Digital Surround 5.1 (HDMI)"
-msgstr "סראונד דיגיטלי 5.1 (HDMI)"
+msgstr "Cifera ĉirkaŭa sono 5.1 (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4596
 msgid "Chat"
-msgstr ""
+msgstr "Babilo"
 
 #: src/modules/alsa/alsa-mixer.c:4597
 msgid "Game"
-msgstr ""
+msgstr "Ludo"
 
 #: src/modules/alsa/alsa-mixer.c:4731
 msgid "Analog Mono Duplex"
-msgstr "מונו אנלוגי משולב"
+msgstr "Analoga mono-dupleksa"
 
 #: src/modules/alsa/alsa-mixer.c:4732
 msgid "Analog Stereo Duplex"
-msgstr "סטריאו אנלוגי משולב"
+msgstr "Analoga stereo-dupleksa"
 
 #: src/modules/alsa/alsa-mixer.c:4735
 msgid "Digital Stereo Duplex (IEC958)"
-msgstr "סטריאו דיגיטלי משולב (IEC958)"
+msgstr "Cifera stereo-dupleksa (IEC958)"
 
 #: src/modules/alsa/alsa-mixer.c:4736
 msgid "Multichannel Duplex"
-msgstr ""
+msgstr "Plurkanala dupleksa"
 
 #: src/modules/alsa/alsa-mixer.c:4737
 msgid "Stereo Duplex"
-msgstr "סטריאו משולב"
+msgstr "Stereo-dupleksa"
 
 #: src/modules/alsa/alsa-mixer.c:4738
 msgid "Mono Chat + 7.1 Surround"
-msgstr ""
+msgstr "Mono-babilo + 7.1 ĉirkaŭa sono"
 
 #: src/modules/alsa/alsa-mixer.c:4739 src/modules/alsa/module-alsa-card.c:197
 #: src/modules/bluetooth/module-bluez5-device.c:2083
 msgid "Off"
-msgstr "מכובה"
+msgstr "Malŝaltita"
 
 #: src/modules/alsa/alsa-mixer.c:4839
 #, c-format
 msgid "%s Output"
-msgstr "פלט %s"
+msgstr "%s-eligo"
 
 #: src/modules/alsa/alsa-mixer.c:4847
 #, c-format
 msgid "%s Input"
-msgstr "קלט %s"
+msgstr "%s-enigo"
 
 #: src/modules/alsa/alsa-sink.c:652 src/modules/alsa/alsa-sink.c:842
 #, c-format
 msgid ""
-"ALSA woke us up to write new data to the device, but there was actually "
-"nothing to write.\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers.\n"
-"We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
-"returned 0 or another value < min_avail."
+"ALSA woke us up to write new data to the device, but there was actually nothing to "
+"write.\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA "
+"developers.\n"
+"We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() returned 0 or "
+"another value < min_avail."
 msgstr ""
 
 #: src/modules/alsa/alsa-source.c:611 src/modules/alsa/alsa-source.c:777
 #, c-format
 msgid ""
-"ALSA woke us up to read new data from the device, but there was actually "
-"nothing to read.\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers.\n"
-"We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
-"returned 0 or another value < min_avail."
+"ALSA woke us up to read new data from the device, but there was actually nothing to "
+"read.\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA "
+"developers.\n"
+"We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() returned 0 or "
+"another value < min_avail."
 msgstr ""
 
 #: src/modules/alsa/alsa-util.c:1183 src/modules/alsa/alsa-util.c:1277
 #, c-format
 msgid ""
-"snd_pcm_avail() returned a value that is exceptionally large: %lu byte (%lu "
-"ms).\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers."
+"snd_pcm_avail() returned a value that is exceptionally large: %lu byte (%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA "
+"developers."
 msgid_plural ""
-"snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu "
-"ms).\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers."
+"snd_pcm_avail() returned a value that is exceptionally large: %lu bytes (%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA "
+"developers."
 msgstr[0] ""
 msgstr[1] ""
 
 #: src/modules/alsa/alsa-util.c:1249
 #, c-format
 msgid ""
-"snd_pcm_delay() returned a value that is exceptionally large: %li byte (%s"
-"%lu ms).\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers."
+"snd_pcm_delay() returned a value that is exceptionally large: %li byte (%s%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA "
+"developers."
 msgid_plural ""
-"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s"
-"%lu ms).\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers."
+"snd_pcm_delay() returned a value that is exceptionally large: %li bytes (%s%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA "
+"developers."
 msgstr[0] ""
 msgstr[1] ""
 
 #: src/modules/alsa/alsa-util.c:1296
 #, c-format
 msgid ""
-"snd_pcm_avail_delay() returned strange values: delay %lu is less than avail "
-"%lu.\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers."
+"snd_pcm_avail_delay() returned strange values: delay %lu is less than avail %lu.\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA "
+"developers."
 msgstr ""
 
 #: src/modules/alsa/alsa-util.c:1339
 #, c-format
 msgid ""
-"snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu byte "
-"(%lu ms).\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers."
+"snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu byte (%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA "
+"developers."
 msgid_plural ""
-"snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes "
-"(%lu ms).\n"
-"Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
-"to the ALSA developers."
+"snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu bytes (%lu ms).\n"
+"Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA "
+"developers."
 msgstr[0] ""
 msgstr[1] ""
 
@@ -881,76 +859,74 @@ msgstr[1] ""
 #: src/modules/bluetooth/module-bluez5-device.c:1829
 #: src/modules/bluetooth/module-bluez5-device.c:1836
 msgid "Bluetooth Input"
-msgstr ""
+msgstr "Bludenta enigo"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1804
 #: src/modules/bluetooth/module-bluez5-device.c:1823
 msgid "Bluetooth Output"
-msgstr "פלט בלוטות׳"
+msgstr "Bludenta eligo"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1816 src/utils/pactl.c:270
 msgid "Handsfree"
-msgstr ""
+msgstr "Libermana"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1837
 msgid "Headphone"
-msgstr "אוזניה"
+msgstr "Kapaŭskultilo"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1843 src/utils/pactl.c:269
 msgid "Portable"
-msgstr "נייד"
+msgstr ""
 
 #: src/modules/bluetooth/module-bluez5-device.c:1849 src/utils/pactl.c:271
 msgid "Car"
-msgstr "מכונית"
+msgstr "Aŭto"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1855 src/utils/pactl.c:272
 msgid "HiFi"
-msgstr ""
+msgstr "HiFi"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1861 src/utils/pactl.c:273
 msgid "Phone"
-msgstr "טלפון"
+msgstr "Telefono"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1908
 msgid "High Fidelity Playback (A2DP Sink)"
-msgstr ""
+msgstr "Altfidela ludado (A2DP-celo)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1920
 msgid "High Fidelity Capture (A2DP Source)"
-msgstr ""
+msgstr "Altfidela kaptado (A2DP-fonto)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1932
 msgid "Headset Head Unit (HSP/HFP)"
-msgstr ""
+msgstr "Kaptelefona unuo (HSP/HFP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1945
 msgid "Headset Audio Gateway (HSP/HFP)"
-msgstr ""
+msgstr "Kaptelefona sonkluzo (HSP/HFP)"
 
 #: src/modules/echo-cancel/module-echo-cancel.c:59
 msgid ""
-"source_name=<name for the source> source_properties=<properties for the "
-"source> source_master=<name of source to filter> sink_name=<name for the "
-"sink> sink_properties=<properties for the sink> sink_master=<name of sink to "
-"filter> adjust_time=<how often to readjust rates in s> adjust_threshold=<how "
-"much drift to readjust after in ms> format=<sample format> rate=<sample "
-"rate> channels=<number of channels> channel_map=<channel map> "
-"aec_method=<implementation to use> aec_args=<parameters for the AEC engine> "
-"save_aec=<save AEC data in /tmp> autoloaded=<set if this module is being "
-"loaded automatically> use_volume_sharing=<yes or no> use_master_format=<yes "
-"or no> "
+"source_name=<name for the source> source_properties=<properties for the source> "
+"source_master=<name of source to filter> sink_name=<name for the sink> "
+"sink_properties=<properties for the sink> sink_master=<name of sink to filter> "
+"adjust_time=<how often to readjust rates in s> adjust_threshold=<how much drift to "
+"readjust after in ms> format=<sample format> rate=<sample rate> channels=<number of "
+"channels> channel_map=<channel map> aec_method=<implementation to use> "
+"aec_args=<parameters for the AEC engine> save_aec=<save AEC data in /tmp> "
+"autoloaded=<set if this module is being loaded automatically> use_volume_sharing=<yes "
+"or no> use_master_format=<yes or no> "
 msgstr ""
 
 #. add on profile
 #: src/modules/macosx/module-coreaudio-device.c:825
 msgid "On"
-msgstr ""
+msgstr "Ŝaltita"
 
-#: src/modules/module-allow-passthrough.c:71
-#: src/modules/module-always-sink.c:80
+#: src/modules/module-allow-passthrough.c:71 src/modules/module-always-sink.c:80
 msgid "Dummy Output"
-msgstr "פלט מדומה"
+msgstr "Lokokupa eligo"
 
 #: src/modules/module-always-sink.c:34
 msgid "Always keeps at least one sink loaded even if it's a null one"
@@ -968,12 +944,11 @@ msgstr ""
 msgid ""
 "sink_name=<name of the sink> sink_properties=<properties for the sink> "
 "sink_master=<sink to connect to> format=<sample format> rate=<sample rate> "
-"channels=<number of channels> channel_map=<channel map> autoloaded=<set if "
-"this module is being loaded automatically> use_volume_sharing=<yes or no> "
+"channels=<number of channels> channel_map=<channel map> autoloaded=<set if this module "
+"is being loaded automatically> use_volume_sharing=<yes or no> "
 msgstr ""
 
-#: src/modules/module-equalizer-sink.c:1094
-#: src/modules/module-equalizer-sink.c:1217
+#: src/modules/module-equalizer-sink.c:1094 src/modules/module-equalizer-sink.c:1217
 #, c-format
 msgid "FFT based equalizer on %s"
 msgstr ""
@@ -989,14 +964,13 @@ msgstr ""
 #: src/modules/module-ladspa-sink.c:54
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
-"sink_input_properties=<properties for the sink input> master=<name of sink "
-"to filter> sink_master=<name of sink to filter> format=<sample format> "
-"rate=<sample rate> channels=<number of channels> channel_map=<input channel "
-"map> plugin=<ladspa plugin name> label=<ladspa plugin label> control=<comma "
-"separated list of input control values> input_ladspaport_map=<comma "
-"separated list of input LADSPA port names> output_ladspaport_map=<comma "
-"separated list of output LADSPA port names> autoloaded=<set if this module "
-"is being loaded automatically> "
+"sink_input_properties=<properties for the sink input> master=<name of sink to filter> "
+"sink_master=<name of sink to filter> format=<sample format> rate=<sample rate> "
+"channels=<number of channels> channel_map=<input channel map> plugin=<ladspa plugin "
+"name> label=<ladspa plugin label> control=<comma separated list of input control "
+"values> input_ladspaport_map=<comma separated list of input LADSPA port names> "
+"output_ladspaport_map=<comma separated list of output LADSPA port names> "
+"autoloaded=<set if this module is being loaded automatically> "
 msgstr ""
 
 #: src/modules/module-null-sink.c:46
@@ -1012,54 +986,49 @@ msgstr ""
 msgid "Failed to set format: invalid format string %s"
 msgstr ""
 
-#: src/modules/module-rygel-media-server.c:506
-#: src/modules/module-rygel-media-server.c:544
+#: src/modules/module-rygel-media-server.c:506 src/modules/module-rygel-media-server.c:544
 #: src/modules/module-rygel-media-server.c:903
 msgid "Output Devices"
-msgstr "התקני פלט"
+msgstr "Eligaj aparatoj"
 
-#: src/modules/module-rygel-media-server.c:507
-#: src/modules/module-rygel-media-server.c:545
+#: src/modules/module-rygel-media-server.c:507 src/modules/module-rygel-media-server.c:545
 #: src/modules/module-rygel-media-server.c:904
 msgid "Input Devices"
-msgstr "התקני קלט"
+msgstr "Enigaj aparatoj"
 
 #: src/modules/module-rygel-media-server.c:1061
 msgid "Audio on @HOSTNAME@"
-msgstr ""
+msgstr "Sono sur @HOSTNAME@"
 
 #. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
 #. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
-#: src/modules/module-tunnel-sink-new.c:320
-#: src/modules/module-tunnel-source-new.c:305
+#: src/modules/module-tunnel-sink-new.c:320 src/modules/module-tunnel-source-new.c:305
 #, c-format
 msgid "Tunnel for %s@%s"
-msgstr ""
+msgstr "Tunelo por %s@%s"
 
-#: src/modules/module-tunnel-sink-new.c:564
-#: src/modules/module-tunnel-source-new.c:540
+#: src/modules/module-tunnel-sink-new.c:564 src/modules/module-tunnel-source-new.c:540
 #, c-format
 msgid "Tunnel to %s/%s"
-msgstr ""
+msgstr "Tunelo al %s/%s"
 
 #: src/modules/module-virtual-surround-sink.c:50
 msgid "Virtual surround sink"
-msgstr ""
+msgstr "Cifera ĉirkaŭa sona celo"
 
 #: src/modules/module-virtual-surround-sink.c:54
 msgid ""
-"sink_name=<name for the sink> sink_properties=<properties for the sink> "
-"master=<name of sink to filter> sink_master=<name of sink to filter> "
-"format=<sample format> rate=<sample rate> channels=<number of channels> "
-"channel_map=<channel map> use_volume_sharing=<yes or no> "
-"force_flat_volume=<yes or no> hrir=/path/to/left_hrir.wav hrir_left=/path/to/"
-"left_hrir.wav hrir_right=/path/to/optional/right_hrir.wav autoloaded=<set if "
-"this module is being loaded automatically> "
+"sink_name=<name for the sink> sink_properties=<properties for the sink> master=<name of "
+"sink to filter> sink_master=<name of sink to filter> format=<sample format> "
+"rate=<sample rate> channels=<number of channels> channel_map=<channel map> "
+"use_volume_sharing=<yes or no> force_flat_volume=<yes or no> hrir=/path/to/left_hrir."
+"wav hrir_left=/path/to/left_hrir.wav hrir_right=/path/to/optional/right_hrir.wav "
+"autoloaded=<set if this module is being loaded automatically> "
 msgstr ""
 
 #: src/modules/raop/module-raop-discover.c:295
 msgid "Unknown device model"
-msgstr "דגם התקן לא ידוע"
+msgstr ""
 
 #: src/modules/raop/raop-sink.c:655
 msgid "RAOP standard profile"
@@ -1067,51 +1036,51 @@ msgstr ""
 
 #: src/modules/reserve-wrap.c:149
 msgid "PulseAudio Sound Server"
-msgstr "שרת הקול PulseAudio"
+msgstr ""
 
 #: src/pulse/channelmap.c:105
 msgid "Front Center"
-msgstr "מרכזי קדמי"
+msgstr "Antaŭ-centro"
 
 #: src/pulse/channelmap.c:106
 msgid "Front Left"
-msgstr "שמאלי קדמי"
+msgstr "Antaŭ-maldekstro"
 
 #: src/pulse/channelmap.c:107
 msgid "Front Right"
-msgstr "ימני קדמי"
+msgstr "Antaŭ-dekstro"
 
 #: src/pulse/channelmap.c:109
 msgid "Rear Center"
-msgstr "מרכזי אחורי"
+msgstr "Malantaŭ-centro"
 
 #: src/pulse/channelmap.c:110
 msgid "Rear Left"
-msgstr "שמאלי אחורי"
+msgstr "Malantaŭ-maldekstro"
 
 #: src/pulse/channelmap.c:111
 msgid "Rear Right"
-msgstr "ימני אחורי"
+msgstr "Malantaŭ-dekstro"
 
 #: src/pulse/channelmap.c:113
 msgid "Subwoofer"
-msgstr ""
+msgstr "Baso"
 
 #: src/pulse/channelmap.c:115
 msgid "Front Left-of-center"
-msgstr ""
+msgstr "Antaŭ-maldekstre-de-centro"
 
 #: src/pulse/channelmap.c:116
 msgid "Front Right-of-center"
-msgstr ""
+msgstr "Antaŭ-dekstre-de-centro"
 
 #: src/pulse/channelmap.c:118
 msgid "Side Left"
-msgstr "צד שמאל"
+msgstr "Flank-maldekstro"
 
 #: src/pulse/channelmap.c:119
 msgid "Side Right"
-msgstr "צד ימין"
+msgstr "Flank-dekstro"
 
 #: src/pulse/channelmap.c:121
 msgid "Auxiliary 0"
@@ -1243,57 +1212,57 @@ msgstr ""
 
 #: src/pulse/channelmap.c:154
 msgid "Top Center"
-msgstr "מרכזי עליון"
+msgstr "Supra-centro"
 
 #: src/pulse/channelmap.c:156
 msgid "Top Front Center"
-msgstr "מרכזי עליון קדמי"
+msgstr "Supra-antaŭ-centro"
 
 #: src/pulse/channelmap.c:157
 msgid "Top Front Left"
-msgstr "עליון שמאלי קדמי"
+msgstr "Supra-antaŭ-maldekstro"
 
 #: src/pulse/channelmap.c:158
 msgid "Top Front Right"
-msgstr "עליון ימני קדמי"
+msgstr "Supra-antaŭ-dekstro"
 
 #: src/pulse/channelmap.c:160
 msgid "Top Rear Center"
-msgstr "עליון מרכזי אחורי"
+msgstr "Supra-malantaŭ-centro"
 
 #: src/pulse/channelmap.c:161
 msgid "Top Rear Left"
-msgstr "עליון שמאלי אחורי"
+msgstr "Supra-malantaŭ-maldekstro"
 
 #: src/pulse/channelmap.c:162
 msgid "Top Rear Right"
-msgstr "עליון ימני אחורי"
+msgstr "Supra-malantaŭ-dekstro"
 
 #: src/pulse/channelmap.c:479 src/pulse/format.c:123 src/pulse/sample.c:177
 #: src/pulse/volume.c:306 src/pulse/volume.c:332 src/pulse/volume.c:352
 #: src/pulse/volume.c:384 src/pulse/volume.c:424 src/pulse/volume.c:443
 msgid "(invalid)"
-msgstr "(לא תקף)"
+msgstr "(nevalida)"
 
 #: src/pulse/channelmap.c:780
 msgid "Surround 4.0"
-msgstr "סראונד 4.0"
+msgstr "Ĉirkaŭa sono 4.0"
 
 #: src/pulse/channelmap.c:786
 msgid "Surround 4.1"
-msgstr "סראונד 4.1"
+msgstr "Ĉirkaŭa sono 4.1"
 
 #: src/pulse/channelmap.c:792
 msgid "Surround 5.0"
-msgstr "סראונד 5.0"
+msgstr "Ĉirkaŭa sono 5.0"
 
 #: src/pulse/channelmap.c:798
 msgid "Surround 5.1"
-msgstr "סראונד 5.1"
+msgstr "Ĉirkaŭa sono 5.1"
 
 #: src/pulse/channelmap.c:805
 msgid "Surround 7.1"
-msgstr "סראונד 7.1"
+msgstr "Ĉirkaŭa sono 7.1"
 
 #: src/pulse/client-conf-x11.c:61 src/utils/pax11publish.c:97
 msgid "xcb_connect() failed"
@@ -1324,11 +1293,11 @@ msgstr ""
 
 #: src/pulse/direction.c:37
 msgid "input"
-msgstr "קלט"
+msgstr "enigo"
 
 #: src/pulse/direction.c:39
 msgid "output"
-msgstr "פלט"
+msgstr "eligo"
 
 #: src/pulse/direction.c:41
 msgid "bidirectional"
@@ -1336,23 +1305,23 @@ msgstr ""
 
 #: src/pulse/direction.c:43
 msgid "invalid"
-msgstr "שגוי"
+msgstr ""
 
 #: src/pulsecore/core-util.c:1780
 #, c-format
 msgid ""
-"XDG_RUNTIME_DIR (%s) is not owned by us (uid %d), but by uid %d! (This could "
-"e.g. happen if you try to connect to a non-root PulseAudio as a root user, "
-"over the native protocol. Don't do that.)"
+"XDG_RUNTIME_DIR (%s) is not owned by us (uid %d), but by uid %d! (This could e.g. "
+"happen if you try to connect to a non-root PulseAudio as a root user, over the native "
+"protocol. Don't do that.)"
 msgstr ""
 
 #: src/pulsecore/core-util.h:97
 msgid "yes"
-msgstr ""
+msgstr "jes"
 
 #: src/pulsecore/core-util.h:97
 msgid "no"
-msgstr "לא"
+msgstr "ne"
 
 #: src/pulsecore/lock-autospawn.c:141 src/pulsecore/lock-autospawn.c:227
 msgid "Cannot access autospawn lock."
@@ -1365,8 +1334,7 @@ msgstr ""
 
 #: src/pulsecore/log.c:188
 #, c-format
-msgid ""
-"Tried to open target file '%s', '%s.1', '%s.2' ... '%s.%d', but all failed."
+msgid "Tried to open target file '%s', '%s.1', '%s.2' ... '%s.%d', but all failed."
 msgstr ""
 
 #: src/pulsecore/log.c:651
@@ -1375,19 +1343,19 @@ msgstr ""
 
 #: src/pulsecore/sink.c:3534
 msgid "Built-in Audio"
-msgstr "צליל פנימי"
+msgstr "Integrita sono"
 
 #: src/pulsecore/sink.c:3539
 msgid "Modem"
-msgstr "מודם"
+msgstr ""
 
 #: src/pulse/error.c:38
 msgid "OK"
-msgstr "אישור"
+msgstr "Bone"
 
 #: src/pulse/error.c:39
 msgid "Access denied"
-msgstr "הגישה נדחתה"
+msgstr ""
 
 #: src/pulse/error.c:40
 msgid "Unknown command"
@@ -1407,11 +1375,11 @@ msgstr ""
 
 #: src/pulse/error.c:44
 msgid "Connection refused"
-msgstr "החיבור נדחה"
+msgstr ""
 
 #: src/pulse/error.c:45
 msgid "Protocol error"
-msgstr "שגיאת פרוטוקול"
+msgstr ""
 
 #: src/pulse/error.c:46
 msgid "Timeout"
@@ -1423,7 +1391,7 @@ msgstr ""
 
 #: src/pulse/error.c:48
 msgid "Internal error"
-msgstr "שגיאה פנימית"
+msgstr ""
 
 #: src/pulse/error.c:49
 msgid "Connection terminated"
@@ -1455,15 +1423,15 @@ msgstr ""
 
 #: src/pulse/error.c:56
 msgid "Too large"
-msgstr "גדול מדי"
+msgstr ""
 
 #: src/pulse/error.c:57
 msgid "Not supported"
-msgstr "לא נתמך"
+msgstr ""
 
 #: src/pulse/error.c:58
 msgid "Unknown error code"
-msgstr "קוד שגיאה לא מוכר"
+msgstr ""
 
 #: src/pulse/error.c:59
 msgid "No such extension"
@@ -1483,11 +1451,11 @@ msgstr ""
 
 #: src/pulse/error.c:63
 msgid "Input/Output error"
-msgstr "שגיאת קלט/פלט"
+msgstr ""
 
 #: src/pulse/error.c:64
 msgid "Device or resource busy"
-msgstr "התקן או משאב עסוקים"
+msgstr ""
 
 #: src/pulse/sample.c:179
 #, c-format
@@ -1608,7 +1576,7 @@ msgstr ""
 
 #: src/utils/pacat.c:393
 msgid "not "
-msgstr "לא "
+msgstr ""
 
 #: src/utils/pacat.c:400
 #, c-format
@@ -1704,57 +1672,46 @@ msgid ""
 "\n"
 "  -v, --verbose                         Enable verbose operations\n"
 "\n"
-"  -s, --server=SERVER                   The name of the server to connect "
-"to\n"
-"  -d, --device=DEVICE                   The name of the sink/source to "
-"connect to\n"
-"  -n, --client-name=NAME                How to call this client on the "
-"server\n"
-"      --stream-name=NAME                How to call this stream on the "
-"server\n"
-"      --volume=VOLUME                   Specify the initial (linear) volume "
-"in range 0...65536\n"
-"      --rate=SAMPLERATE                 The sample rate in Hz (defaults to "
-"44100)\n"
+"  -s, --server=SERVER                   The name of the server to connect to\n"
+"  -d, --device=DEVICE                   The name of the sink/source to connect to\n"
+"  -n, --client-name=NAME                How to call this client on the server\n"
+"      --stream-name=NAME                How to call this stream on the server\n"
+"      --volume=VOLUME                   Specify the initial (linear) volume in range "
+"0...65536\n"
+"      --rate=SAMPLERATE                 The sample rate in Hz (defaults to 44100)\n"
 "      --format=SAMPLEFORMAT             The sample format, see\n"
-"                                        https://www.freedesktop.org/wiki/"
-"Software/PulseAudio/Documentation/User/SupportedAudioFormats/\n"
-"                                        for possible values (defaults to "
-"s16ne)\n"
-"      --channels=CHANNELS               The number of channels, 1 for mono, "
-"2 for stereo\n"
+"                                        https://www.freedesktop.org/wiki/Software/"
+"PulseAudio/Documentation/User/SupportedAudioFormats/\n"
+"                                        for possible values (defaults to s16ne)\n"
+"      --channels=CHANNELS               The number of channels, 1 for mono, 2 for "
+"stereo\n"
 "                                        (defaults to 2)\n"
-"      --channel-map=CHANNELMAP          Channel map to use instead of the "
-"default\n"
-"      --fix-format                      Take the sample format from the sink/"
-"source the stream is\n"
+"      --channel-map=CHANNELMAP          Channel map to use instead of the default\n"
+"      --fix-format                      Take the sample format from the sink/source the "
+"stream is\n"
 "                                        being connected to.\n"
-"      --fix-rate                        Take the sampling rate from the sink/"
-"source the stream is\n"
+"      --fix-rate                        Take the sampling rate from the sink/source the "
+"stream is\n"
 "                                        being connected to.\n"
-"      --fix-channels                    Take the number of channels and the "
-"channel map\n"
-"                                        from the sink/source the stream is "
-"being connected to.\n"
+"      --fix-channels                    Take the number of channels and the channel "
+"map\n"
+"                                        from the sink/source the stream is being "
+"connected to.\n"
 "      --no-remix                        Don't upmix or downmix channels.\n"
-"      --no-remap                        Map channels by index instead of "
-"name.\n"
-"      --latency=BYTES                   Request the specified latency in "
-"bytes.\n"
-"      --process-time=BYTES              Request the specified process time "
-"per request in bytes.\n"
-"      --latency-msec=MSEC               Request the specified latency in "
-"msec.\n"
-"      --process-time-msec=MSEC          Request the specified process time "
-"per request in msec.\n"
-"      --property=PROPERTY=VALUE         Set the specified property to the "
-"specified value.\n"
+"      --no-remap                        Map channels by index instead of name.\n"
+"      --latency=BYTES                   Request the specified latency in bytes.\n"
+"      --process-time=BYTES              Request the specified process time per request "
+"in bytes.\n"
+"      --latency-msec=MSEC               Request the specified latency in msec.\n"
+"      --process-time-msec=MSEC          Request the specified process time per request "
+"in msec.\n"
+"      --property=PROPERTY=VALUE         Set the specified property to the specified "
+"value.\n"
 "      --raw                             Record/play raw PCM data.\n"
 "      --passthrough                     Passthrough data.\n"
 "      --file-format[=FFORMAT]           Record/play formatted PCM data.\n"
 "      --list-file-formats               List available file formats.\n"
-"      --monitor-stream=INDEX            Record from the sink input with "
-"index INDEX.\n"
+"      --monitor-stream=INDEX            Record from the sink input with index INDEX.\n"
 msgstr ""
 
 #: src/utils/pacat.c:793
@@ -1762,20 +1719,18 @@ msgid "Play back encoded audio files on a PulseAudio sound server."
 msgstr ""
 
 #: src/utils/pacat.c:797
-msgid ""
-"Capture audio data from a PulseAudio sound server and write it to a file."
+msgid "Capture audio data from a PulseAudio sound server and write it to a file."
 msgstr ""
 
 #: src/utils/pacat.c:801
 msgid ""
-"Capture audio data from a PulseAudio sound server and write it to STDOUT or "
-"the specified file."
+"Capture audio data from a PulseAudio sound server and write it to STDOUT or the "
+"specified file."
 msgstr ""
 
 #: src/utils/pacat.c:805
 msgid ""
-"Play back audio data from STDIN or the specified file on a PulseAudio sound "
-"server."
+"Play back audio data from STDIN or the specified file on a PulseAudio sound server."
 msgstr ""
 
 #: src/utils/pacat.c:819
@@ -1853,8 +1808,8 @@ msgstr ""
 
 #: src/utils/pacat.c:1076
 msgid ""
-"Warning: specified sample specification will be overwritten with "
-"specification from file."
+"Warning: specified sample specification will be overwritten with specification from "
+"file."
 msgstr ""
 
 #: src/utils/pacat.c:1079 src/utils/pactl.c:1840
@@ -1875,17 +1830,16 @@ msgstr ""
 
 #: src/utils/pacat.c:1125
 #, c-format
-msgid ""
-"Opening a %s stream with sample specification '%s' and channel map '%s'."
+msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr ""
 
 #: src/utils/pacat.c:1126
 msgid "recording"
-msgstr "מקליט"
+msgstr "registro"
 
 #: src/utils/pacat.c:1126
 msgid "playback"
-msgstr "נגינה"
+msgstr "ludado"
 
 #: src/utils/pacat.c:1150
 msgid "Failed to set media name."
@@ -1924,8 +1878,7 @@ msgstr ""
 msgid "NAME|#N"
 msgstr ""
 
-#: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:1695
-#: src/utils/pactl.c:1701
+#: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:1695 src/utils/pactl.c:1701
 msgid "NAME"
 msgstr ""
 
@@ -2078,8 +2031,7 @@ msgstr[1] ""
 #: src/utils/pactl.c:181
 #, c-format
 msgid "Allocated during whole lifetime: %u block containing %s bytes total.\n"
-msgid_plural ""
-"Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
+msgid_plural "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -2124,15 +2076,15 @@ msgstr ""
 
 #: src/utils/pactl.c:243
 msgid "available"
-msgstr "זמין"
+msgstr "disponebla"
 
 #: src/utils/pactl.c:244
 msgid "not available"
-msgstr "לא זמין"
+msgstr "nedisponebla"
 
 #: src/utils/pactl.c:253 src/utils/pactl.c:277
 msgid "Unknown"
-msgstr "לא ידוע"
+msgstr "Nekonata"
 
 #: src/utils/pactl.c:254
 msgid "Aux"
@@ -2140,11 +2092,11 @@ msgstr ""
 
 #: src/utils/pactl.c:257
 msgid "Line"
-msgstr "קו"
+msgstr ""
 
 #: src/utils/pactl.c:258
 msgid "Mic"
-msgstr "מיקרופון"
+msgstr "Mikrofono"
 
 #: src/utils/pactl.c:260
 msgid "Handset"
@@ -2156,11 +2108,11 @@ msgstr ""
 
 #: src/utils/pactl.c:262
 msgid "SPDIF"
-msgstr "SPDIF"
+msgstr ""
 
 #: src/utils/pactl.c:263
 msgid "HDMI"
-msgstr "HDMI"
+msgstr ""
 
 #: src/utils/pactl.c:264
 msgid "TV"
@@ -2172,15 +2124,15 @@ msgstr ""
 
 #: src/utils/pactl.c:268
 msgid "Bluetooth"
-msgstr ""
+msgstr "Bludento"
 
 #: src/utils/pactl.c:274
 msgid "Network"
-msgstr "רשת"
+msgstr "Reto"
 
 #: src/utils/pactl.c:275
 msgid "Analog"
-msgstr "אנלוגי"
+msgstr "Analoga"
 
 #: src/utils/pactl.c:299 src/utils/pactl.c:1020 src/utils/pactl.c:1098
 #, c-format
@@ -2260,13 +2212,12 @@ msgid ""
 "\t\t%s\n"
 msgstr ""
 
-#: src/utils/pactl.c:462 src/utils/pactl.c:534 src/utils/pactl.c:577
-#: src/utils/pactl.c:619 src/utils/pactl.c:718 src/utils/pactl.c:719
-#: src/utils/pactl.c:730 src/utils/pactl.c:788 src/utils/pactl.c:789
-#: src/utils/pactl.c:800 src/utils/pactl.c:851 src/utils/pactl.c:852
+#: src/utils/pactl.c:462 src/utils/pactl.c:534 src/utils/pactl.c:577 src/utils/pactl.c:619
+#: src/utils/pactl.c:718 src/utils/pactl.c:719 src/utils/pactl.c:730 src/utils/pactl.c:788
+#: src/utils/pactl.c:789 src/utils/pactl.c:800 src/utils/pactl.c:851 src/utils/pactl.c:852
 #: src/utils/pactl.c:858
 msgid "n/a"
-msgstr "לא זמין"
+msgstr ""
 
 #: src/utils/pactl.c:503 src/utils/pactl.c:977
 #, c-format
@@ -2318,7 +2269,7 @@ msgstr ""
 #: src/utils/pactl.c:627
 #, c-format
 msgid "\tProfiles:\n"
-msgstr "\tפרופילים:\n"
+msgstr ""
 
 #: src/utils/pactl.c:629
 #, c-format
@@ -2332,8 +2283,7 @@ msgstr ""
 
 #: src/utils/pactl.c:643
 #, c-format
-msgid ""
-"\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s, %s)\n"
+msgid "\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s, %s)\n"
 msgstr ""
 
 #: src/utils/pactl.c:649
@@ -2427,7 +2377,7 @@ msgstr ""
 #: src/utils/pactl.c:866 src/utils/pactl.c:876
 #, c-format
 msgid "Failure: %s"
-msgstr "כשל: %s"
+msgstr ""
 
 #: src/utils/pactl.c:889
 #, c-format
@@ -2451,11 +2401,11 @@ msgstr ""
 #: src/utils/pactl.c:1002
 #, c-format
 msgid ""
-"Failed to set volume: You tried to set volumes for %d channel, whereas "
-"channel(s) supported = %d\n"
+"Failed to set volume: You tried to set volumes for %d channel, whereas channel(s) "
+"supported = %d\n"
 msgid_plural ""
-"Failed to set volume: You tried to set volumes for %d channels, whereas "
-"channel(s) supported = %d\n"
+"Failed to set volume: You tried to set volumes for %d channels, whereas channel(s) "
+"supported = %d\n"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -2603,10 +2553,8 @@ msgid ""
 "  -h, --help                            Show this help\n"
 "      --version                         Show version\n"
 "\n"
-"  -s, --server=SERVER                   The name of the server to connect "
-"to\n"
-"  -n, --client-name=NAME                How to call this client on the "
-"server\n"
+"  -s, --server=SERVER                   The name of the server to connect to\n"
+"  -n, --client-name=NAME                How to call this client on the server\n"
 msgstr ""
 
 #: src/utils/pactl.c:1755
@@ -2659,8 +2607,7 @@ msgid "You have to specify a module index or name"
 msgstr ""
 
 #: src/utils/pactl.c:1936
-msgid ""
-"You may not specify more than one sink. You have to specify a boolean value."
+msgid "You may not specify more than one sink. You have to specify a boolean value."
 msgstr ""
 
 #: src/utils/pactl.c:1941 src/utils/pactl.c:1961
@@ -2668,9 +2615,7 @@ msgid "Invalid suspend specification."
 msgstr ""
 
 #: src/utils/pactl.c:1956
-msgid ""
-"You may not specify more than one source. You have to specify a boolean "
-"value."
+msgid "You may not specify more than one source. You have to specify a boolean value."
 msgstr ""
 
 #: src/utils/pactl.c:1973
@@ -2718,8 +2663,7 @@ msgid "Invalid source output index"
 msgstr ""
 
 #: src/utils/pactl.c:2084
-msgid ""
-"You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"
+msgid "You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"
 msgstr ""
 
 #: src/utils/pactl.c:2089 src/utils/pactl.c:2104 src/utils/pactl.c:2124
@@ -2728,13 +2672,11 @@ msgid "Invalid mute specification"
 msgstr ""
 
 #: src/utils/pactl.c:2099
-msgid ""
-"You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
+msgid "You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
 msgstr ""
 
 #: src/utils/pactl.c:2114
-msgid ""
-"You have to specify a sink input index and a mute action (0, 1, or 'toggle')"
+msgid "You have to specify a sink input index and a mute action (0, 1, or 'toggle')"
 msgstr ""
 
 #: src/utils/pactl.c:2119
@@ -2742,9 +2684,7 @@ msgid "Invalid sink input index specification"
 msgstr ""
 
 #: src/utils/pactl.c:2132
-msgid ""
-"You have to specify a source output index and a mute action (0, 1, or "
-"'toggle')"
+msgid "You have to specify a source output index and a mute action (0, 1, or 'toggle')"
 msgstr ""
 
 #: src/utils/pactl.c:2137
@@ -2757,14 +2697,13 @@ msgstr ""
 
 #: src/utils/pactl.c:2160
 msgid ""
-"Excess arguments given, they will be ignored. Note that all message "
-"parameters must be given as a single string."
+"Excess arguments given, they will be ignored. Note that all message parameters must be "
+"given as a single string."
 msgstr ""
 
 #: src/utils/pactl.c:2170
 msgid ""
-"You have to specify a sink index and a semicolon-separated list of supported "
-"formats"
+"You have to specify a sink index and a semicolon-separated list of supported formats"
 msgstr ""
 
 #: src/utils/pactl.c:2182
@@ -2828,8 +2767,7 @@ msgid ""
 "\n"
 "  -h, --help                            Show this help\n"
 "      --version                         Show version\n"
-"  -s, --server=SERVER                   The name of the server to connect "
-"to\n"
+"  -s, --server=SERVER                   The name of the server to connect to\n"
 "\n"
 msgstr ""
 
@@ -2863,8 +2801,8 @@ msgid ""
 "\n"
 " -d    Show current PulseAudio data attached to X11 display (default)\n"
 " -e    Export local PulseAudio data to X11 display\n"
-" -i    Import PulseAudio data from X11 display to local environment "
-"variables and cookie file.\n"
+" -i    Import PulseAudio data from X11 display to local environment variables and "
+"cookie file.\n"
 " -r    Remove PulseAudio data from X11 display\n"
 msgstr ""
 
@@ -2917,38 +2855,3 @@ msgstr ""
 #, c-format
 msgid "Not yet implemented.\n"
 msgstr ""
-
-#~ msgid "Exiting."
-#~ msgstr "יוצא."
-
-#, fuzzy
-#~ msgid "PulseAudio Sound System KDE Routing Policy"
-#~ msgstr "מערכת הקול PulseAudio"
-
-#, fuzzy
-#~ msgid "Start the PulseAudio Sound System with KDE Routing Policy"
-#~ msgstr "התחל את מערכת הקול PulseAudio"
-
-#~ msgid "LFE on Separate Mono Output"
-#~ msgstr "פלט אנלוגי (LFE)"
-
-#, fuzzy
-#~ msgid "Digital Passthrough (S/PDIF)"
-#~ msgstr "סטראו דיגיטלי (HDMI)"
-
-#, fuzzy
-#~ msgid "Digital Passthrough  (IEC958)"
-#~ msgstr "סטראו דיגיטלי (IEC958)"
-
-#, fuzzy
-#~ msgid "%s %s\n"
-#~ msgstr "%s %s"
-
-#~ msgid "%s+%s"
-#~ msgstr "%s+%s"
-
-#~ msgid "%s / %s"
-#~ msgstr "%s / %s"
-
-#~ msgid "Digital Surround 4.0 (IEC958)"
-#~ msgstr "סראונד דיגיטלי 4.0 (IEC958)"

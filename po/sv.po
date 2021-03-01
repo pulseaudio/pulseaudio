@@ -20,7 +20,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-01-22 09:11+0200\n"
-"PO-Revision-Date: 2020-08-14 19:29+0000\n"
+"PO-Revision-Date: 2021-02-12 14:40+0000\n"
 "Last-Translator: Göran Uddeborg <goeran@uddeborg.se>\n"
 "Language-Team: Swedish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/sv/>\n"
@@ -29,10 +29,10 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.1.1\n"
+"X-Generator: Weblate 4.4.2\n"
 
 #: src/daemon/cmdline.c:113
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -116,7 +116,7 @@ msgstr ""
 "minnessegment\n"
 "      --start                           Starta demonen om den inte redan "
 "körs\n"
-"  -k  --kill                            Döda en demon\n"
+"  -k  --kill                            Döda en körande demon\n"
 "      --check                           Kontrollera om det finns någon "
 "körande demon (returnerar bara returkod)\n"
 "\n"
@@ -133,39 +133,39 @@ msgstr ""
 "                                        (bara tillgängligt som root, när "
 "SUID eller\n"
 "                                        med förhöjd RLIMIT_RTPRIO)\n"
-"      --disallow-module-loading[=BOOL]  Förbjud modulanvändning av "
-"användarbegärd\n"
-"                                        inläsning/urläsning efter start\n"
+"      --disallow-module-loading[=BOOL]  Förbjud av användaren begärd "
+"laddning/urladdning\n"
+"                                        av moduler efter start\n"
 "      --disallow-exit[=BOOL]            Förbjud användarbegärt avslut\n"
-"      --exit-idle-time=SECS             Avsluta demonen vid inaktivitet och "
+"      --exit-idle-time=SEK              Avsluta demonen vid inaktivitet och "
 "efter\n"
 "                                        denna tid\n"
-"      --scache-idle-time=SECS           Inaktivera autoinlästa samplingar "
+"      --scache-idle-time=SEK            Inaktivera autoinlästa samplingar "
 "vid inaktivitet och\n"
 "                                        efter denna tid\n"
-"      --log-level[=LEVEL]               Öka eller bestäm informativa nivån\n"
+"      --log-level[=NIVÅ]                Öka eller bestäm informativa nivån\n"
 "  -v  --verbose                         Öka informativa nivån\n"
-"      --log-target={auto,syslog,stderr,file:PATH,newfile:PATH}\n"
+"      --log-target={auto,syslog,stderr,file:SÖKVÄG,newfile:SÖKVÄG}\n"
 "                                        Ange mål för loggen\n"
 "      --log-meta[=BOOL]                 Inkludera kodplats i "
 "loggmeddelanden\n"
 "      --log-time[=BOOL]                 Inkludera tidsstämpel i "
 "loggmeddelanden\n"
-"      --log-backtrace=FRAMES            Inkluderar bakåtspårning i "
+"      --log-backtrace=RAMAR             Inkluderar bakåtspårning i "
 "loggmeddelanden\n"
-"  -p, --dl-search-path=PATH             Ange sökvägen för dynamiskt delade\n"
+"  -p, --dl-search-path=SÖKVÄG           Ange sökvägen för dynamiskt delade\n"
 "                                        objekt (insticksmoduler)\n"
-"      --resample-method=METHOD          Använd den angivna "
+"      --resample-method=METOD           Använd den angivna "
 "omsamplingsmetoden\n"
 "                                        (Se --dump-resample-methods för\n"
 "                                        möjliga värden)\n"
 "      --use-pid-file[=BOOL]             Skapa en PID-fil\n"
 "      --no-cpu-limit[=BOOL]             Installera inte en CPU-"
 "belastningsbegränsare\n"
-"                                        på plattformar som stöder det.\n"
+"                                        på plattformar som stödjer det.\n"
 "      --disable-shm[=BOOL]              Inaktivera stöd för delat minne.\n"
-"      --enable-memfd[=BOOL]             Aktivera stöd för memfd-delat "
-"minne.\n"
+"      --enable-memfd[=BOOL]             Aktivera stöd för memfd-delat minne."
+"\n"
 "\n"
 "STARTSKRIPT:\n"
 "  -L, --load=”MODUL ARGUMENT”           Läs in den angivna insticksmodulen "
@@ -214,13 +214,12 @@ msgid "--use-pid-file expects boolean argument"
 msgstr "--use-pid-file förväntar sig ett booleskt argument"
 
 #: src/daemon/cmdline.c:328
-#, fuzzy
 msgid ""
 "Invalid log target: use either 'syslog', 'journal', 'stderr' or 'auto' or a "
 "valid file name 'file:<path>', 'newfile:<path>'."
 msgstr ""
-"Ogiltigt mål för loggen: använd ”syslog”, ”journal”, ”stderr”, ”auto” eller "
-"ett giltigt filnamn ”file:<sökväg>”, ”newfile:<sökväg>”."
+"Ogiltigt mål för loggen: använd antingen ”syslog”, ”journal”, ”stderr” eller "
+"”auto” eller ett giltigt filnamn ”file:<sökväg>”, ”newfile:<sökväg>”."
 
 #: src/daemon/cmdline.c:330
 msgid ""
@@ -559,9 +558,8 @@ msgid "pa_core_new() failed."
 msgstr "pa_core_new() misslyckades."
 
 #: src/daemon/main.c:1119
-#, fuzzy
 msgid "command line arguments"
-msgstr "För många argument."
+msgstr "kommandoradsargument"
 
 #: src/daemon/main.c:1126
 #, c-format
@@ -569,6 +567,8 @@ msgid ""
 "Failed to initialize daemon due to errors while executing startup commands. "
 "Source of commands: %s"
 msgstr ""
+"Misslyckades att initiera demonen på grund av fel vid körning av "
+"uppstartskommandon. Källa till kommandon: %s"
 
 #: src/daemon/main.c:1131
 msgid "Daemon startup without any loaded modules, refusing to work."
@@ -692,9 +692,8 @@ msgid "Analog Output"
 msgstr "Analog utgång"
 
 #: src/modules/alsa/alsa-mixer.c:2808
-#, fuzzy
 msgid "Headphones 2"
-msgstr "Hörlurar"
+msgstr "Hörlurar 2"
 
 #: src/modules/alsa/alsa-mixer.c:2809
 msgid "Headphones Mono Output"
@@ -741,28 +740,24 @@ msgid "Chat Output"
 msgstr "Chatt-utgång"
 
 #: src/modules/alsa/alsa-mixer.c:2821
-#, fuzzy
 msgid "Chat Input"
-msgstr "Chatt-utgång"
+msgstr "Chatt-ingång"
 
 #: src/modules/alsa/alsa-mixer.c:2822
-#, fuzzy
 msgid "Virtual Surround 7.1"
-msgstr "Virtual surround-mottagare"
+msgstr "Virtual surround 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4562
 msgid "Analog Mono"
 msgstr "Analog mono"
 
 #: src/modules/alsa/alsa-mixer.c:4563
-#, fuzzy
 msgid "Analog Mono (Left)"
-msgstr "Analog mono"
+msgstr "Analog mono (vänster)"
 
 #: src/modules/alsa/alsa-mixer.c:4564
-#, fuzzy
 msgid "Analog Mono (Right)"
-msgstr "Analog mono"
+msgstr "Analog mono (höger)"
 
 #. Note: Not translated to "Analog Stereo Input", because the source
 #. * name gets "Input" appended to it automatically, so adding "Input"
@@ -789,9 +784,8 @@ msgid "Headset"
 msgstr "Headset"
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
-#, fuzzy
 msgid "Speakerphone"
-msgstr "Högtalare"
+msgstr "Högtalartelefon"
 
 #: src/modules/alsa/alsa-mixer.c:4577 src/modules/alsa/alsa-mixer.c:4578
 msgid "Multichannel"
@@ -867,11 +861,11 @@ msgstr "Digital surround 5.1 (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4596
 msgid "Chat"
-msgstr ""
+msgstr "Chatt"
 
 #: src/modules/alsa/alsa-mixer.c:4597
 msgid "Game"
-msgstr ""
+msgstr "Spel"
 
 #: src/modules/alsa/alsa-mixer.c:4731
 msgid "Analog Mono Duplex"
@@ -895,7 +889,7 @@ msgstr "Stereo duplex"
 
 #: src/modules/alsa/alsa-mixer.c:4738
 msgid "Mono Chat + 7.1 Surround"
-msgstr ""
+msgstr "Mono Chatt + 7.1 Surround"
 
 #: src/modules/alsa/alsa-mixer.c:4739 src/modules/alsa/module-alsa-card.c:197
 #: src/modules/bluetooth/module-bluez5-device.c:2083
@@ -1223,7 +1217,6 @@ msgid "Virtual surround sink"
 msgstr "Virtual surround-mottagare"
 
 #: src/modules/module-virtual-surround-sink.c:54
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "master=<name of sink to filter> sink_master=<name of sink to filter> "
@@ -1236,8 +1229,9 @@ msgstr ""
 "sink_name=<namn för mottagaren> sink_properties=<egenskaper för mottagaren> "
 "master=<namn på mottagare att filtrera> sink_master=<namn på mottagare att "
 "filtrera> format=<samplingsformat> rate=<samplingshastighet> channels=<antal "
-"kanaler> channel_map=<kanalmappning> use_volume_sharing=<ja eller nej> "
-"force_flat_volume=<ja eller nej> hrir=/path/to/left_hrir.wav "
+"kanaler> channel_map=<kanalavbildning> use_volume_sharing=<ja eller nej> "
+"force_flat_volume=<ja eller nej> hrir=/sökväg/till/left_hrir.wav "
+"hrir_left=/sökväg/till/left_hrir.wav hrir=/sökväg/till/right_hrir.wav "
 "autoloaded=<angiven om denna modul läses in automatiskt> "
 
 #: src/modules/raop/module-raop-discover.c:295
@@ -1522,7 +1516,7 @@ msgid "invalid"
 msgstr "ogiltig"
 
 #: src/pulsecore/core-util.c:1780
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "XDG_RUNTIME_DIR (%s) is not owned by us (uid %d), but by uid %d! (This could "
 "e.g. happen if you try to connect to a non-root PulseAudio as a root user, "
@@ -1878,7 +1872,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() misslyckades: %s"
 
 #: src/utils/pacat.c:676
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "%s\n"
@@ -1954,27 +1948,25 @@ msgstr ""
 "\n"
 "  -v, --verbose                         Aktivera informativa åtgärder\n"
 "\n"
-"  -s, --server=SERVER                   Namn på server att ansluta till\n"
+"  -s, --server=SERVER                   Namn på servern att ansluta till\n"
 "  -d, --device=ENHET                    Namn på mottagare/källa att ansluta "
 "till\n"
-"  -n, --client-name=NAMN                Hur denna klient ska anropas på "
+"  -n, --client-name=NAMN                Hur denna klient ska namnges på "
 "servern\n"
-"      --stream-name=NAMN                Hur denna ström ska anropas på "
+"      --stream-name=NAMN                Hur denna ström ska namnges på "
 "servern\n"
-"      --volume=VOLUM                    Ange initiala (linjära) volymen i "
-"intervallet 0...65536\n"
+"      --volume=VOLYM                    Ange initiala (linjära) volymen i "
+"intervallet 0…65536\n"
 "      --rate=SAMPLINGSFREKVENS          Samplingsfrekvens i Hz (standard "
 "44100)\n"
-"      --format=SAMPLINGSFORMAT          Samplingstyp, en av s16le, s16be, "
-"u8, float32le,\n"
-"                                        float32be, ulaw, alaw, s32le, s32be, "
-"s24le, s24be,\n"
-"                                        s24-32le, s24-32be (defaults to "
-"s16ne)\n"
+"      --format=SAMPLINGSFORMAT          Samplingsformat, se\n"
+"                                        https://www.freedesktop.org/wiki/"
+"Software/PulseAudio/Documentation/User/SupportedAudioFormats/\n"
+"                                        för möjliga värden (standard s16ne)\n"
 "      --channels=KANALER                Antalet kanaler, 1 för mono, 2 för "
 "stereo\n"
 "                                        (standard 2)\n"
-"      --channel-map=KANALMAPPNING       Kanalmappning att använda istället "
+"      --channel-map=KANALAVBILDNING     Kanalavbildning att använda istället "
 "för standard\n"
 "      --fix-format                      Ta samplingsformatet från mottagaren/"
 "källan strömmen är\n"
@@ -1983,12 +1975,12 @@ msgstr ""
 "mottagaren/källan strömmen är\n"
 "                                        ansluten till.\n"
 "      --fix-channels                    Ta antalet kanaler och "
-"kanalmappning\n"
+"kanalavbildning\n"
 "                                        från mottagaren/källan strömmen är "
 "ansluten till.\n"
-"      --no-remix                        Mixa inte ner eller upp kanaler.\n"
-"      --no-remap                        Mappa kanaler med index istället för "
-"med namn.\n"
+"      --no-remix                        Mixa inte upp eller ner kanaler.\n"
+"      --no-remap                        Avbilda kanaler med index istället "
+"för med namn.\n"
 "      --latency=BYTE                    Begär angiven latens i byte.\n"
 "      --process-time=BYTE               Begär angiven processtid per begäran "
 "i byte.\n"
@@ -1997,10 +1989,9 @@ msgstr ""
 "i ms.\n"
 "      --property=EGENSKAP=VÄRDE         Sätt angiven egenskap till angivet "
 "värde.\n"
-"      --raw                             Spela in/spela upp rå PCM-data.\n"
+"      --raw                             Spela in/upp rå PCM-data.\n"
 "      --passthrough                     Genomströmningsdata.\n"
-"      --file-format[=FFORMAT]           Spela in/spela upp formaterad PCM-"
-"data.\n"
+"      --file-format[=FFORMAT]           Spela in/upp formaterad PCM-data.\n"
 "      --list-file-formats               Lista tillgängliga filformat.\n"
 "      --monitor-stream=INDEX            Spela in från mottagaringången med "
 "index INDEX.\n"
@@ -2266,7 +2257,7 @@ msgstr "LJUDRUTOR"
 
 #: src/utils/pacmd.c:80 src/utils/pactl.c:1709
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
-msgstr ""
+msgstr "MOTTAGARE MEDDELANDE [MOTTAGARPARAMETRAR]"
 
 #: src/utils/pacmd.c:82
 #, c-format
@@ -2403,72 +2394,67 @@ msgstr ""
 
 #: src/utils/pactl.c:242
 msgid "availability unknown"
-msgstr ""
+msgstr "tillgänglighet okänd"
 
 #: src/utils/pactl.c:243
 msgid "available"
-msgstr ""
+msgstr "tillgänglig"
 
 #: src/utils/pactl.c:244
 msgid "not available"
-msgstr ""
+msgstr "inte tillgänglig"
 
 #: src/utils/pactl.c:253 src/utils/pactl.c:277
-#, fuzzy
 msgid "Unknown"
-msgstr "okänd"
+msgstr "Okänd"
 
 #: src/utils/pactl.c:254
 msgid "Aux"
-msgstr ""
+msgstr "Aux"
 
 #: src/utils/pactl.c:257
-#, fuzzy
 msgid "Line"
-msgstr "Linje in"
+msgstr "Linje"
 
 #: src/utils/pactl.c:258
 msgid "Mic"
-msgstr ""
+msgstr "Mik"
 
 #: src/utils/pactl.c:260
-#, fuzzy
 msgid "Handset"
-msgstr "Headset"
+msgstr "Lur"
 
 #: src/utils/pactl.c:261
 msgid "Earpiece"
-msgstr ""
+msgstr "Hörlur"
 
 #: src/utils/pactl.c:262
 msgid "SPDIF"
-msgstr ""
+msgstr "SPDIF"
 
 #: src/utils/pactl.c:263
 msgid "HDMI"
-msgstr ""
+msgstr "HDMI"
 
 #: src/utils/pactl.c:264
 msgid "TV"
-msgstr ""
+msgstr "TV"
 
 #: src/utils/pactl.c:267
 msgid "USB"
-msgstr ""
+msgstr "USB"
 
 #: src/utils/pactl.c:268
-#, fuzzy
 msgid "Bluetooth"
-msgstr "Bluetooth-ingång"
+msgstr "Blåtand"
 
 #: src/utils/pactl.c:274
 msgid "Network"
-msgstr ""
+msgstr "Nätverk"
 
 #: src/utils/pactl.c:275
-#, fuzzy
 msgid "Analog"
-msgstr "Analog mono"
+msgstr "Analog"
 
 #: src/utils/pactl.c:299 src/utils/pactl.c:1020 src/utils/pactl.c:1098
 #, c-format
@@ -2520,14 +2506,13 @@ msgid "\tPorts:\n"
 msgstr "\tPortar:\n"
 
 #: src/utils/pactl.c:371 src/utils/pactl.c:479
-#, fuzzy, c-format
+#, c-format
 msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
-msgstr ""
-"\t\t%s: %s (mottagare: %u, källor: %u, prioritet: %u, tillgängliga: %s)\n"
+msgstr "\t\t%s: %s (typ: %s, prioritet: %u%s%s, %s)\n"
 
 #: src/utils/pactl.c:373 src/utils/pactl.c:481 src/utils/pactl.c:645
 msgid ", availability group: "
-msgstr ""
+msgstr ", tillgänglighetsgrupp: "
 
 #: src/utils/pactl.c:378 src/utils/pactl.c:486
 #, c-format
@@ -2676,6 +2661,7 @@ msgstr "\tAktiv profil: %s\n"
 msgid ""
 "\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s, %s)\n"
 msgstr ""
+"\t\t%s: %s (typ: %s, prioritet: %u, latensavstånd: %<PRId64> µs%s%s, %s)\n"
 
 #: src/utils/pactl.c:649
 #, c-format
@@ -2819,18 +2805,18 @@ msgid "Failure: %s"
 msgstr "Misslyckande: %s"
 
 #: src/utils/pactl.c:889
-#, fuzzy, c-format
+#, c-format
 msgid "Send message failed: %s"
-msgstr "read() misslyckades: %s"
+msgstr "Att skicka ett meddelande misslyckades: %s"
 
 #: src/utils/pactl.c:906
 #, c-format
 msgid "list-handlers message failed: %s"
-msgstr ""
+msgstr "listhanterares meddelande misslyckades: %s"
 
 #: src/utils/pactl.c:912 src/utils/pactl.c:947
 msgid "list-handlers message response could not be parsed correctly"
-msgstr ""
+msgstr "listhanterares meddelandesvar kunde inte tolkas korrekt"
 
 #: src/utils/pactl.c:984
 #, c-format
@@ -2838,7 +2824,7 @@ msgid "Failed to unload module: Module %s not loaded"
 msgstr "Misslyckades med att stänga modul: Modulen %s är inte aktiv"
 
 #: src/utils/pactl.c:1002
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Failed to set volume: You tried to set volumes for %d channel, whereas "
 "channel(s) supported = %d\n"
@@ -2846,11 +2832,11 @@ msgid_plural ""
 "Failed to set volume: You tried to set volumes for %d channels, whereas "
 "channel(s) supported = %d\n"
 msgstr[0] ""
-"Misslyckades att sätta volym: Du försökte att sätta volymer för %d kanal, "
-"medan antalet kanaler som stöds = %d\n"
+"Misslyckades att sätta volym: du försökte att sätta volymer för %d kanal, "
+"medan antalet kanaler som stödjs = %d\n"
 msgstr[1] ""
-"Misslyckades att sätta volym: Du försökte att sätta volymer för %d kanaler, "
-"medan antalet kanaler som stöds = %d\n"
+"Misslyckades att sätta volym: du försökte att sätta volymer för %d kanaler, "
+"medan antalet kanaler som stödjs = %d\n"
 
 #: src/utils/pactl.c:1213
 #, c-format
@@ -3167,15 +3153,16 @@ msgid "Invalid source output index specification"
 msgstr "Ogiltig specificering av källutgångsindex"
 
 #: src/utils/pactl.c:2150
-#, fuzzy
 msgid "You have to specify at least an object path and a message name"
-msgstr "Du måste ange ett mottagarnamn/-index och ett portnamn"
+msgstr "Du måste ange åtminstone en objektsökväg och ett meddelandenamn"
 
 #: src/utils/pactl.c:2160
 msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
 msgstr ""
+"Överflödiga argument givna, de kommer ignoreras. Observera att alla "
+"meddelandeparametrar måste ges som en enda sträng."
 
 #: src/utils/pactl.c:2170
 msgid ""
@@ -3238,7 +3225,7 @@ msgid "WARNING: Child process terminated by signal %u\n"
 msgstr "VARNING: Underordnad process avslutad av signalen %u\n"
 
 #: src/utils/pasuspender.c:228
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] -- PROGRAM [ARGUMENTS ...]\n"
 "\n"
@@ -3250,7 +3237,9 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
-"%s [flaggor] … \n"
+"%s [flaggor] -- PROGRAM [ARGUMENT …]\n"
+"\n"
+"Stäng tillfälligt av PulseAudio medan PROGRAM kör.\n"
 "\n"
 "  -h, --help                            Visa denna hjälp\n"
 "      --version                         Visa version\n"
