@@ -7,7 +7,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-01-22 09:11+0200\n"
-"PO-Revision-Date: 2021-01-31 23:40+0000\n"
+"PO-Revision-Date: 2021-03-02 14:40+0000\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/he/>\n"
@@ -554,16 +554,16 @@ msgstr "אין מגבר"
 
 #: src/modules/alsa/alsa-mixer.c:2726
 msgid "Bass Boost"
-msgstr ""
+msgstr "הגברת באסים"
 
 #: src/modules/alsa/alsa-mixer.c:2727
 msgid "No Bass Boost"
-msgstr ""
+msgstr "ללא הגברת באסים"
 
 #: src/modules/alsa/alsa-mixer.c:2728
 #: src/modules/bluetooth/module-bluez5-device.c:1830 src/utils/pactl.c:255
 msgid "Speaker"
-msgstr ""
+msgstr "רמקול"
 
 #: src/modules/alsa/alsa-mixer.c:2729 src/modules/alsa/alsa-mixer.c:2807
 #: src/utils/pactl.c:256
@@ -608,7 +608,7 @@ msgstr "רמקולים"
 
 #: src/modules/alsa/alsa-mixer.c:2813
 msgid "HDMI / DisplayPort"
-msgstr ""
+msgstr "HDMI / DisplayPort"
 
 #: src/modules/alsa/alsa-mixer.c:2814
 msgid "Digital Output (S/PDIF)"
@@ -620,11 +620,11 @@ msgstr "קלט דיגיטלי (S/PDIF)"
 
 #: src/modules/alsa/alsa-mixer.c:2816
 msgid "Multichannel Input"
-msgstr ""
+msgstr "קלט רב־ערוצי"
 
 #: src/modules/alsa/alsa-mixer.c:2817
 msgid "Multichannel Output"
-msgstr ""
+msgstr "פלט רב־ערוצי"
 
 #: src/modules/alsa/alsa-mixer.c:2818
 msgid "Game Output"
@@ -684,7 +684,7 @@ msgstr "דיבורית לחדר ישיבות"
 
 #: src/modules/alsa/alsa-mixer.c:4577 src/modules/alsa/alsa-mixer.c:4578
 msgid "Multichannel"
-msgstr ""
+msgstr "ערוצים מרובים"
 
 #: src/modules/alsa/alsa-mixer.c:4579
 msgid "Analog Surround 2.1"
@@ -760,7 +760,7 @@ msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:4597
 msgid "Game"
-msgstr ""
+msgstr "משחק"
 
 #: src/modules/alsa/alsa-mixer.c:4731
 msgid "Analog Mono Duplex"
@@ -881,7 +881,7 @@ msgstr[1] ""
 #: src/modules/bluetooth/module-bluez5-device.c:1829
 #: src/modules/bluetooth/module-bluez5-device.c:1836
 msgid "Bluetooth Input"
-msgstr ""
+msgstr "קלט בלוטות׳"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1804
 #: src/modules/bluetooth/module-bluez5-device.c:1823
@@ -890,7 +890,7 @@ msgstr "פלט בלוטות׳"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1816 src/utils/pactl.c:270
 msgid "Handsfree"
-msgstr ""
+msgstr "דיבורית"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1837
 msgid "Headphone"
@@ -1332,7 +1332,7 @@ msgstr "פלט"
 
 #: src/pulse/direction.c:41
 msgid "bidirectional"
-msgstr ""
+msgstr "דו־כיווני"
 
 #: src/pulse/direction.c:43
 msgid "invalid"
@@ -1443,15 +1443,15 @@ msgstr ""
 
 #: src/pulse/error.c:53
 msgid "Bad state"
-msgstr ""
+msgstr "מצב פגום"
 
 #: src/pulse/error.c:54
 msgid "No data"
-msgstr ""
+msgstr "אין נתונים"
 
 #: src/pulse/error.c:55
 msgid "Incompatible protocol version"
-msgstr ""
+msgstr "גרסת הפרוטוקול אינה תואמת"
 
 #: src/pulse/error.c:56
 msgid "Too large"
@@ -1467,15 +1467,15 @@ msgstr "קוד שגיאה לא מוכר"
 
 #: src/pulse/error.c:59
 msgid "No such extension"
-msgstr ""
+msgstr "אין הרחבה כזאת"
 
 #: src/pulse/error.c:60
 msgid "Obsolete functionality"
-msgstr ""
+msgstr "תכונה מיושנת"
 
 #: src/pulse/error.c:61
 msgid "Missing implementation"
-msgstr ""
+msgstr "הטמעה חסרה"
 
 #: src/pulse/error.c:62
 msgid "Client forked"
