@@ -25,6 +25,7 @@ pasuspender
 pax11publish
 pulseaudio
 pulseaudio.service
+pulseaudio-x11.service
 start-pulseaudio-x11
 *-orc-gen.[ch]
 # tests

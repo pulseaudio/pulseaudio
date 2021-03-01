@@ -1586,6 +1586,7 @@ AC_CONFIG_FILES([src/system.pa:src/daemon/system.pa.in],
 AS_IF([test "x$HAVE_SYSTEMD_DAEMON" = "x1"],
     [
         AC_CONFIG_FILES([src/pulseaudio.service:src/daemon/systemd/user/pulseaudio.service.in])
+        AC_CONFIG_FILES([src/pulseaudio-x11.service:src/daemon/systemd/user/pulseaudio-x11.service.in])
     ])
 
 # CMake related ProjectConfig files

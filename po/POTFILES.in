@@ -7,6 +7,7 @@ src/daemon/ltdl-bind-now.c
 src/daemon/main.c
 src/daemon/pulseaudio.desktop.in
 src/daemon/systemd/user/pulseaudio.service.in
+src/daemon/systemd/user/pulseaudio-x11.service.in
 src/modules/alsa/alsa-mixer.c
 src/modules/alsa/alsa-sink.c
 src/modules/alsa/alsa-source.c
