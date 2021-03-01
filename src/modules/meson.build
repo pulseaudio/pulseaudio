@@ -130,7 +130,6 @@ endif
 
 if dbus_dep.found()
   all_modules += [
-    [ 'module-console-kit', 'module-console-kit.c', [], [], [dbus_dep] ],
     [ 'module-dbus-protocol',
       [ 'dbus/iface-card.c', 'dbus/iface-card.h',
 	'dbus/iface-card-profile.c', 'dbus/iface-card-profile.h',

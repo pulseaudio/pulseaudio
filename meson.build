@@ -951,10 +951,10 @@ if host_machine.system() != 'windows'
     message = [
       'You do not have D-Bus support enabled. It is strongly recommended',
       'that you enable D-Bus support if your platform supports it.',
-      'Many parts of PulseAudio use D-Bus, from ConsoleKit interaction',
-      'to the Device Reservation Protocol to speak to JACK, Bluetooth',
-      'support and even a native control protocol for communicating and',
-      'controlling the PulseAudio daemon itself.',
+      'Many parts of PulseAudio use D-Bus, from the Device Reservation',
+      'Protocol to speak to JACK, Bluetooth support and even a native',
+      'control protocol for communicating and controlling the PulseAudio',
+      'daemon itself.',
     ]
     warning('\n' + '\n'.join(message))
   endif

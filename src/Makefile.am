@@ -1224,12 +1224,6 @@ libavahi_wrap_la_LIBADD = $(AM_LIBADD) $(AVAHI_CFLAGS) libpulsecore-@PA_MAJORMIN
 #        Plug-in libraries        #
 ###################################
 
-if HAVE_DBUS
-# Serveral module (e.g. libalsa-util.la)
-modlibexec_LTLIBRARIES += \
-		module-console-kit.la
-endif
-
 modlibexec_LTLIBRARIES += \
 		module-cli.la \
 		module-cli-protocol-tcp.la \
@@ -2106,11 +2100,6 @@ module_udev_detect_la_SOURCES = modules/module-udev-detect.c
 module_udev_detect_la_LDFLAGS = $(MODULE_LDFLAGS)
 module_udev_detect_la_LIBADD = $(MODULE_LIBADD) $(UDEV_LIBS)
 module_udev_detect_la_CFLAGS = $(AM_CFLAGS) $(UDEV_CFLAGS) -DPA_MODULE_NAME=module_udev_detect
-
-module_console_kit_la_SOURCES = modules/module-console-kit.c
-module_console_kit_la_LDFLAGS = $(MODULE_LDFLAGS)
-module_console_kit_la_LIBADD = $(MODULE_LIBADD) $(DBUS_LIBS)
-module_console_kit_la_CFLAGS = $(AM_CFLAGS) $(DBUS_CFLAGS) -DPA_MODULE_NAME=module_console_kit
 
 module_systemd_login_la_SOURCES = modules/module-systemd-login.c
 module_systemd_login_la_LDFLAGS = $(MODULE_LDFLAGS)

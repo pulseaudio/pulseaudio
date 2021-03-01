@@ -24,7 +24,6 @@ src/modules/module-always-sink.c
 src/modules/module-always-source.c
 src/modules/module-cli.c
 src/modules/module-combine.c
-src/modules/module-console-kit.c
 src/modules/module-default-device-restore.c
 src/modules/module-detect.c
 src/modules/module-device-restore.c
