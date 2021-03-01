@@ -6,9 +6,9 @@
 # infrastructure on fd.o GitLab.
 #
 # Once the container stage is done, we move on to the 'build' stage where we
-# run an autotools and meson build in parallel. Currently, tests are also run
-# as part of the build stage as there doesn't seem to be significant value to
-# splitting the stages at the moment.
+# run meson build. Currently, tests are also run as part of the build stage as
+# there doesn't seem to be significant value to splitting the stages at the
+# moment.
 
 stages:
   - container
@@ -19,7 +19,7 @@ variables:
   # CI runs, for example when adding new packages to FDO_DISTRIBUTION_PACKAGES.
   # The tag is an arbitrary string that identifies the exact container
   # contents.
-  FDO_DISTRIBUTION_TAG: '2020-03-07-01'
+  FDO_DISTRIBUTION_TAG: '2021-03-01-02'
   FDO_DISTRIBUTION_VERSION: '18.04'
   FDO_UPSTREAM_REPO: 'pulseaudio/pulseaudio'
   UBUNTU_IMAGE: "$CI_REGISTRY_IMAGE/ubuntu/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG"
@@ -43,8 +43,6 @@ build-container:
     # Otherwise the changes won't have effect since an old container image will
     # be used.
     FDO_DISTRIBUTION_PACKAGES: >-
-      autoconf
-      automake
       autopoint
       bash-completion
       check
@@ -74,7 +72,6 @@ build-container:
       libssl-dev
       libsystemd-dev
       libtdb-dev
-      libtool
       libudev-dev
       libwebrtc-audio-processing-dev
       libwrap0-dev
@@ -83,30 +80,12 @@ build-container:
       libxml-parser-perl
       libxml2-utils
       libxtst-dev
-      make
+      m4
       ninja-build
       pkg-config
       python3-setuptools
       systemd
       wget
-
-build-autotools:
-  stage: build
-  image: $UBUNTU_IMAGE
-  script:
-    - export MAKEFLAGS="-j$(nproc)"
-    - NOCONFIGURE=1 ./bootstrap.sh
-    - mkdir build
-    - cd build
-    - ../configure --localstatedir=/var
-    - make
-    - make check
-    - make check-daemon
-    - ulimit -c 0 # don't dump core files on tests that are supposed to assert
-    - make distcheck
-  artifacts:
-    paths:
-      - build/
 
 build-meson:
   stage: build
