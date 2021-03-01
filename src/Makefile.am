@@ -102,6 +102,7 @@ EXTRA_DIST = \
 		daemon/esdcompat.in \
 		daemon/start-pulseaudio-x11.in \
 		daemon/systemd/user/pulseaudio.service.in \
+		daemon/systemd/user/pulseaudio-x11.service.in \
 		daemon/systemd/user/pulseaudio.socket \
 		utils/padsp.in \
 		utils/qpaeq \
@@ -246,6 +247,7 @@ if HAVE_SYSTEMD_DAEMON
 
 systemduserunit_DATA = \
     pulseaudio.service \
+    pulseaudio-x11.service \
     daemon/systemd/user/pulseaudio.socket
 
 endif
@@ -2212,7 +2214,7 @@ module_allow_passthrough_la_CFLAGS = $(AM_CFLAGS) -DPA_MODULE_NAME=module_allow_
 ###################################
 
 CLEANFILES += daemon/pulseaudio.desktop
-DISTCLEANFILES = esdcompat client.conf default.pa system.pa daemon.conf start-pulseaudio-x11 pulseaudio.service
+DISTCLEANFILES = esdcompat client.conf default.pa system.pa daemon.conf start-pulseaudio-x11 pulseaudio.service pulseaudio-x11.service
 
 if OS_IS_WIN32
 SYMLINK_PROGRAM=cd $(DESTDIR)$(bindir) && cp
