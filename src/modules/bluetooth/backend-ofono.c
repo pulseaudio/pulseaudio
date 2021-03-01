@@ -329,11 +329,14 @@ static int hf_audio_agent_transport_acquire(pa_bluetooth_transport *t, bool opti
      * the Bluetooth adapter and (for adapters in the USB bus) the MxPS
      * value from the Isoc USB endpoint in use by btusb and should be
      * made available to userspace by the Bluetooth kernel subsystem.
-     * Meanwhile the empiric value 48 will be used. */
+     *
+     * Set initial MTU to max size which is reported to be working (60 bytes)
+     * See also pa_bluetooth_transport::last_read_size handling.
+     */
     if (imtu)
-        *imtu = 48;
+        *imtu = 60;
     if (omtu)
-        *omtu = 48;
+        *omtu = 60;
 
     err = socket_accept(card->fd);
     if (err < 0) {

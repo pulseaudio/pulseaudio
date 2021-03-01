@@ -326,8 +326,8 @@ static int sco_acquire_cb(pa_bluetooth_transport *t, bool optional, size_t *imtu
     if (sock < 0)
         goto fail;
 
-    if (imtu) *imtu = 48;
-    if (omtu) *omtu = 48;
+    if (imtu) *imtu = 60;
+    if (omtu) *omtu = 60;
 
     if (t->device->autodetect_mtu) {
         struct sco_options sco_opt;
