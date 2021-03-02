@@ -23,13 +23,13 @@
 #include "a2dp-codec-api.h"
 
 /* Get number of supported A2DP codecs */
-unsigned int pa_bluetooth_a2dp_codec_count(void);
+unsigned int pa_bluetooth_a2dp_endpoint_conf_count(void);
 
 /* Get i-th codec. Codec with higher number has higher priority */
-const pa_a2dp_codec *pa_bluetooth_a2dp_codec_iter(unsigned int i);
+const pa_a2dp_endpoint_conf *pa_bluetooth_a2dp_endpoint_conf_iter(unsigned int i);
 
 /* Get codec by name */
-const pa_a2dp_codec *pa_bluetooth_get_a2dp_codec(const char *name);
+const pa_a2dp_endpoint_conf *pa_bluetooth_get_a2dp_endpoint_conf(const char *name);
 
 /* Check if the given codec can be supported in A2DP_SINK or A2DP_SOURCE */
 bool pa_bluetooth_a2dp_codec_is_available(const pa_a2dp_codec_id *id, bool is_a2dp_sink);
@@ -41,9 +41,9 @@ void pa_bluetooth_a2dp_codec_gst_init(void);
 unsigned int pa_bluetooth_hf_codec_count(void);
 
 /* Get i-th codec. Codec with higher number has higher priority */
-const pa_a2dp_codec *pa_bluetooth_hf_codec_iter(unsigned int i);
+const pa_bt_codec *pa_bluetooth_hf_codec_iter(unsigned int i);
 
 /* Get HSP/HFP codec by name */
-const pa_a2dp_codec *pa_bluetooth_get_hf_codec(const char *name);
+const pa_bt_codec *pa_bluetooth_get_hf_codec(const char *name);
 
 #endif

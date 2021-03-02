@@ -101,7 +101,7 @@ struct pa_bluetooth_transport {
     void *config;
     size_t config_size;
 
-    const pa_a2dp_codec *bt_codec;
+    const pa_bt_codec *bt_codec;
     int stream_write_type;
     size_t last_read_size;
 
@@ -182,7 +182,7 @@ static inline void pa_bluetooth_native_backend_enable_shared_profiles(pa_bluetoo
 pa_bluetooth_transport *pa_bluetooth_transport_new(pa_bluetooth_device *d, const char *owner, const char *path,
                                                    pa_bluetooth_profile_t p, const uint8_t *config, size_t size);
 
-void pa_bluetooth_transport_reconfigure(pa_bluetooth_transport *t, const pa_a2dp_codec *bt_codec,
+void pa_bluetooth_transport_reconfigure(pa_bluetooth_transport *t, const pa_bt_codec *bt_codec,
                                         pa_bluetooth_transport_write_cb write_cb, pa_bluetooth_transport_setsockopt_cb setsockopt_cb);
 
 void pa_bluetooth_transport_set_state(pa_bluetooth_transport *t, pa_bluetooth_transport_state_t state);
@@ -191,7 +191,7 @@ void pa_bluetooth_transport_unlink(pa_bluetooth_transport *t);
 void pa_bluetooth_transport_free(pa_bluetooth_transport *t);
 
 bool pa_bluetooth_device_any_transport_connected(const pa_bluetooth_device *d);
-bool pa_bluetooth_device_switch_codec(pa_bluetooth_device *device, pa_bluetooth_profile_t profile, pa_hashmap *capabilities_hashmap, const pa_a2dp_codec *a2dp_codec, void (*codec_switch_cb)(bool, pa_bluetooth_profile_t profile, void *), void *userdata);
+bool pa_bluetooth_device_switch_codec(pa_bluetooth_device *device, pa_bluetooth_profile_t profile, pa_hashmap *capabilities_hashmap, const pa_a2dp_endpoint_conf *endpoint_conf, void (*codec_switch_cb)(bool, pa_bluetooth_profile_t profile, void *), void *userdata);
 
 pa_bluetooth_device* pa_bluetooth_discovery_get_device_by_path(pa_bluetooth_discovery *y, const char *path);
 pa_bluetooth_device* pa_bluetooth_discovery_get_device_by_address(pa_bluetooth_discovery *y, const char *remote, const char *local);

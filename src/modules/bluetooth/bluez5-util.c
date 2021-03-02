@@ -184,7 +184,7 @@ pa_bluetooth_transport *pa_bluetooth_transport_new(pa_bluetooth_device *d, const
     return t;
 }
 
-void pa_bluetooth_transport_reconfigure(pa_bluetooth_transport *t, const pa_a2dp_codec *bt_codec,
+void pa_bluetooth_transport_reconfigure(pa_bluetooth_transport *t, const pa_bt_codec *bt_codec,
                                         pa_bluetooth_transport_write_cb write_cb, pa_bluetooth_transport_setsockopt_cb setsockopt_cb) {
     pa_assert(t);
 
@@ -365,7 +365,7 @@ static void pa_bluetooth_device_switch_codec_reply(DBusPendingCall *pending, voi
 }
 
 bool pa_bluetooth_device_switch_codec(pa_bluetooth_device *device, pa_bluetooth_profile_t profile,
-        pa_hashmap *capabilities_hashmap, const pa_a2dp_codec *a2dp_codec,
+        pa_hashmap *capabilities_hashmap, const pa_a2dp_endpoint_conf *endpoint_conf,
         void (*codec_switch_cb)(bool, pa_bluetooth_profile_t profile, void *), void *userdata) {
     DBusMessageIter iter, dict;
     DBusMessage *m;
@@ -380,7 +380,7 @@ bool pa_bluetooth_device_switch_codec(pa_bluetooth_device *device, pa_bluetooth_
 
     pa_assert(device);
     pa_assert(capabilities_hashmap);
-    pa_assert(a2dp_codec);
+    pa_assert(endpoint_conf);
 
     if (device->codec_switching_in_progress) {
         pa_log_error("Codec switching operation already in progress");
@@ -391,19 +391,19 @@ bool pa_bluetooth_device_switch_codec(pa_bluetooth_device *device, pa_bluetooth_
 
     all_endpoints = NULL;
     all_endpoints = pa_hashmap_get(is_a2dp_sink ? device->a2dp_sink_endpoints : device->a2dp_source_endpoints,
-            &a2dp_codec->id);
+            &endpoint_conf->id);
     pa_assert(all_endpoints);
 
-    pa_assert_se(endpoint = a2dp_codec->choose_remote_endpoint(capabilities_hashmap, &device->discovery->core->default_sample_spec, is_a2dp_sink));
+    pa_assert_se(endpoint = endpoint_conf->choose_remote_endpoint(capabilities_hashmap, &device->discovery->core->default_sample_spec, is_a2dp_sink));
     pa_assert_se(capabilities = pa_hashmap_get(all_endpoints, endpoint));
 
-    config_size = a2dp_codec->fill_preferred_configuration(&device->discovery->core->default_sample_spec,
+    config_size = endpoint_conf->fill_preferred_configuration(&device->discovery->core->default_sample_spec,
             capabilities->buffer, capabilities->size, config);
     if (config_size == 0)
         return false;
 
     pa_endpoint = pa_sprintf_malloc("%s/%s", is_a2dp_sink ? A2DP_SOURCE_ENDPOINT : A2DP_SINK_ENDPOINT,
-            a2dp_codec->name);
+            endpoint_conf->bt_codec.name);
 
     pa_assert_se(m = dbus_message_new_method_call(BLUEZ_SERVICE, endpoint,
                 BLUEZ_MEDIA_ENDPOINT_INTERFACE, "SetConfiguration"));
@@ -1169,7 +1169,7 @@ finish:
     pa_xfree(endpoint);
 }
 
-static void register_legacy_sbc_endpoint(pa_bluetooth_discovery *y, const pa_a2dp_codec *a2dp_codec, const char *path, const char *endpoint, const char *uuid) {
+static void register_legacy_sbc_endpoint(pa_bluetooth_discovery *y, const pa_a2dp_endpoint_conf *endpoint_conf, const char *path, const char *endpoint, const char *uuid) {
     DBusMessage *m;
     DBusMessageIter i, d;
     uint8_t capabilities[MAX_A2DP_CAPS_SIZE];
@@ -1178,8 +1178,8 @@ static void register_legacy_sbc_endpoint(pa_bluetooth_discovery *y, const pa_a2d
 
     pa_log_debug("Registering %s on adapter %s", endpoint, path);
 
-    codec_id = a2dp_codec->id.codec_id;
-    capabilities_size = a2dp_codec->fill_capabilities(capabilities);
+    codec_id = endpoint_conf->id.codec_id;
+    capabilities_size = endpoint_conf->fill_capabilities(capabilities);
     pa_assert(capabilities_size != 0);
 
     pa_assert_se(m = dbus_message_new_method_call(BLUEZ_SERVICE, path, BLUEZ_MEDIA_INTERFACE, "RegisterEndpoint"));
@@ -1245,12 +1245,12 @@ finish:
 
     if (fallback) {
         /* If bluez does not support RegisterApplication, fallback to old legacy API with just one SBC codec */
-        const pa_a2dp_codec *a2dp_codec_sbc;
-        a2dp_codec_sbc = pa_bluetooth_get_a2dp_codec("sbc");
-        pa_assert(a2dp_codec_sbc);
-        register_legacy_sbc_endpoint(y, a2dp_codec_sbc, path, A2DP_SINK_ENDPOINT "/sbc",
+        const pa_a2dp_endpoint_conf *endpoint_conf;
+        endpoint_conf = pa_bluetooth_get_a2dp_endpoint_conf("sbc");
+        pa_assert(endpoint_conf);
+        register_legacy_sbc_endpoint(y, endpoint_conf, path, A2DP_SINK_ENDPOINT "/sbc",
                 PA_BLUETOOTH_UUID_A2DP_SINK);
-        register_legacy_sbc_endpoint(y, a2dp_codec_sbc, path, A2DP_SOURCE_ENDPOINT "/sbc",
+        register_legacy_sbc_endpoint(y, endpoint_conf, path, A2DP_SOURCE_ENDPOINT "/sbc",
                 PA_BLUETOOTH_UUID_A2DP_SOURCE);
         pa_log_warn("Only SBC codec is available for A2DP profiles");
     }
@@ -1824,7 +1824,7 @@ bool pa_bluetooth_profile_should_attenuate_volume(pa_bluetooth_profile_t peer_pr
     pa_assert_not_reached();
 }
 
-static const pa_a2dp_codec *a2dp_endpoint_to_a2dp_codec(const char *endpoint) {
+static const pa_a2dp_endpoint_conf *a2dp_sep_to_a2dp_endpoint_conf(const char *endpoint) {
     const char *codec_name;
 
     if (pa_startswith(endpoint, A2DP_SINK_ENDPOINT "/"))
@@ -1834,14 +1834,14 @@ static const pa_a2dp_codec *a2dp_endpoint_to_a2dp_codec(const char *endpoint) {
     else
         return NULL;
 
-    return pa_bluetooth_get_a2dp_codec(codec_name);
+    return pa_bluetooth_get_a2dp_endpoint_conf(codec_name);
 }
 
 static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage *m, void *userdata) {
     pa_bluetooth_discovery *y = userdata;
     pa_bluetooth_device *d;
     pa_bluetooth_transport *t;
-    const pa_a2dp_codec *a2dp_codec = NULL;
+    const pa_a2dp_endpoint_conf *endpoint_conf = NULL;
     const char *sender, *path, *endpoint_path, *dev_path = NULL, *uuid = NULL;
     const uint8_t *config = NULL;
     int size = 0;
@@ -1925,17 +1925,17 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
 
             dbus_message_iter_get_fixed_array(&array, &config, &size);
 
-            a2dp_codec = a2dp_endpoint_to_a2dp_codec(endpoint_path);
-            pa_assert(a2dp_codec);
+            endpoint_conf = a2dp_sep_to_a2dp_endpoint_conf(endpoint_path);
+            pa_assert(endpoint_conf);
 
-            if (!a2dp_codec->is_configuration_valid(config, size))
+            if (!endpoint_conf->is_configuration_valid(config, size))
                 goto fail;
         }
 
         dbus_message_iter_next(&props);
     }
 
-    if (!a2dp_codec)
+    if (!endpoint_conf)
         goto fail2;
 
     if ((d = pa_hashmap_get(y->devices, dev_path))) {
@@ -1963,11 +1963,11 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
     t = pa_bluetooth_transport_new(d, sender, path, p, config, size);
     t->acquire = bluez5_transport_acquire_cb;
     t->release = bluez5_transport_release_cb;
-    pa_bluetooth_transport_reconfigure(t, a2dp_codec, a2dp_transport_write, NULL);
+    pa_bluetooth_transport_reconfigure(t, &endpoint_conf->bt_codec, a2dp_transport_write, NULL);
     pa_bluetooth_transport_put(t);
 
     pa_log_debug("Transport %s available for profile %s", t->path, pa_bluetooth_profile_to_string(t->profile));
-    pa_log_info("Selected codec: %s", a2dp_codec->name);
+    pa_log_info("Selected codec: %s", endpoint_conf->bt_codec.name);
 
     return NULL;
 
@@ -1984,7 +1984,7 @@ static DBusMessage *endpoint_select_configuration(DBusConnection *conn, DBusMess
     const char *endpoint_path;
     uint8_t *cap;
     int size;
-    const pa_a2dp_codec *a2dp_codec;
+    const pa_a2dp_endpoint_conf *endpoint_conf;
     uint8_t config[MAX_A2DP_CAPS_SIZE];
     uint8_t *config_ptr = config;
     size_t config_size;
@@ -2001,10 +2001,10 @@ static DBusMessage *endpoint_select_configuration(DBusConnection *conn, DBusMess
         goto fail;
     }
 
-    a2dp_codec = a2dp_endpoint_to_a2dp_codec(endpoint_path);
-    pa_assert(a2dp_codec);
+    endpoint_conf = a2dp_sep_to_a2dp_endpoint_conf(endpoint_path);
+    pa_assert(endpoint_conf);
 
-    config_size = a2dp_codec->fill_preferred_configuration(&y->core->default_sample_spec, cap, size, config);
+    config_size = endpoint_conf->fill_preferred_configuration(&y->core->default_sample_spec, cap, size, config);
     if (config_size == 0)
         goto fail;
 
@@ -2086,7 +2086,7 @@ static DBusHandlerResult endpoint_handler(DBusConnection *c, DBusMessage *m, voi
 
     pa_log_debug("dbus: path=%s, interface=%s, member=%s", path, interface, member);
 
-    if (!a2dp_endpoint_to_a2dp_codec(path))
+    if (!a2dp_sep_to_a2dp_endpoint_conf(path))
         return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 
     if (dbus_message_is_method_call(m, DBUS_INTERFACE_INTROSPECTABLE, "Introspect")) {
@@ -2212,30 +2212,30 @@ static DBusHandlerResult object_manager_handler(DBusConnection *c, DBusMessage *
                                          DBUS_DICT_ENTRY_END_CHAR_AS_STRING,
                                          &array);
 
-        for (i = 0; i < pa_bluetooth_a2dp_codec_count(); i++) {
-            const pa_a2dp_codec *a2dp_codec;
+        for (i = 0; i < pa_bluetooth_a2dp_endpoint_conf_count(); i++) {
+            const pa_a2dp_endpoint_conf *endpoint_conf;
             uint8_t capabilities[MAX_A2DP_CAPS_SIZE];
             uint8_t capabilities_size;
             uint8_t codec_id;
             char *endpoint;
 
-            a2dp_codec = pa_bluetooth_a2dp_codec_iter(i);
+            endpoint_conf = pa_bluetooth_a2dp_endpoint_conf_iter(i);
 
-            codec_id = a2dp_codec->id.codec_id;
+            codec_id = endpoint_conf->id.codec_id;
 
-            if (a2dp_codec->can_be_supported(false)) {
-                capabilities_size = a2dp_codec->fill_capabilities(capabilities);
+            if (endpoint_conf->can_be_supported(false)) {
+                capabilities_size = endpoint_conf->fill_capabilities(capabilities);
                 pa_assert(capabilities_size != 0);
-                endpoint = pa_sprintf_malloc("%s/%s", A2DP_SINK_ENDPOINT, a2dp_codec->name);
+                endpoint = pa_sprintf_malloc("%s/%s", A2DP_SINK_ENDPOINT, endpoint_conf->bt_codec.name);
                 append_a2dp_object(&array, endpoint, PA_BLUETOOTH_UUID_A2DP_SINK, codec_id,
                         capabilities, capabilities_size);
                 pa_xfree(endpoint);
             }
 
-            if (a2dp_codec->can_be_supported(true)) {
-                capabilities_size = a2dp_codec->fill_capabilities(capabilities);
+            if (endpoint_conf->can_be_supported(true)) {
+                capabilities_size = endpoint_conf->fill_capabilities(capabilities);
                 pa_assert(capabilities_size != 0);
-                endpoint = pa_sprintf_malloc("%s/%s", A2DP_SOURCE_ENDPOINT, a2dp_codec->name);
+                endpoint = pa_sprintf_malloc("%s/%s", A2DP_SOURCE_ENDPOINT, endpoint_conf->bt_codec.name);
                 append_a2dp_object(&array, endpoint, PA_BLUETOOTH_UUID_A2DP_SOURCE, codec_id,
                         capabilities, capabilities_size);
                 pa_xfree(endpoint);
@@ -2273,7 +2273,7 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c, int headset_backe
     DBusError err;
     DBusConnection *conn;
     unsigned i, count;
-    const pa_a2dp_codec *a2dp_codec;
+    const pa_a2dp_endpoint_conf *endpoint_conf;
     char *endpoint;
 
     pa_bluetooth_a2dp_codec_gst_init();
@@ -2332,17 +2332,17 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c, int headset_backe
 
     object_manager_init(y);
 
-    count = pa_bluetooth_a2dp_codec_count();
+    count = pa_bluetooth_a2dp_endpoint_conf_count();
     for (i = 0; i < count; i++) {
-        a2dp_codec = pa_bluetooth_a2dp_codec_iter(i);
-        if (a2dp_codec->can_be_supported(false)) {
-            endpoint = pa_sprintf_malloc("%s/%s", A2DP_SINK_ENDPOINT, a2dp_codec->name);
+        endpoint_conf = pa_bluetooth_a2dp_endpoint_conf_iter(i);
+        if (endpoint_conf->can_be_supported(false)) {
+            endpoint = pa_sprintf_malloc("%s/%s", A2DP_SINK_ENDPOINT, endpoint_conf->bt_codec.name);
             endpoint_init(y, endpoint);
             pa_xfree(endpoint);
         }
 
-        if (a2dp_codec->can_be_supported(true)) {
-            endpoint = pa_sprintf_malloc("%s/%s", A2DP_SOURCE_ENDPOINT, a2dp_codec->name);
+        if (endpoint_conf->can_be_supported(true)) {
+            endpoint = pa_sprintf_malloc("%s/%s", A2DP_SOURCE_ENDPOINT, endpoint_conf->bt_codec.name);
             endpoint_init(y, endpoint);
             pa_xfree(endpoint);
         }
@@ -2370,7 +2370,7 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_ref(pa_bluetooth_discovery *y) {
 
 void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
     unsigned i, count;
-    const pa_a2dp_codec *a2dp_codec;
+    const pa_a2dp_endpoint_conf *endpoint_conf;
     char *endpoint;
 
     pa_assert(y);
@@ -2422,18 +2422,18 @@ void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y) {
 
         object_manager_done(y);
 
-        count = pa_bluetooth_a2dp_codec_count();
+        count = pa_bluetooth_a2dp_endpoint_conf_count();
         for (i = 0; i < count; i++) {
-            a2dp_codec = pa_bluetooth_a2dp_codec_iter(i);
+            endpoint_conf = pa_bluetooth_a2dp_endpoint_conf_iter(i);
 
-            if (a2dp_codec->can_be_supported(false)) {
-                endpoint = pa_sprintf_malloc("%s/%s", A2DP_SINK_ENDPOINT, a2dp_codec->name);
+            if (endpoint_conf->can_be_supported(false)) {
+                endpoint = pa_sprintf_malloc("%s/%s", A2DP_SINK_ENDPOINT, endpoint_conf->bt_codec.name);
                 endpoint_done(y, endpoint);
                 pa_xfree(endpoint);
             }
 
-            if (a2dp_codec->can_be_supported(true)) {
-                endpoint = pa_sprintf_malloc("%s/%s", A2DP_SOURCE_ENDPOINT, a2dp_codec->name);
+            if (endpoint_conf->can_be_supported(true)) {
+                endpoint = pa_sprintf_malloc("%s/%s", A2DP_SOURCE_ENDPOINT, endpoint_conf->bt_codec.name);
                 endpoint_done(y, endpoint);
                 pa_xfree(endpoint);
             }

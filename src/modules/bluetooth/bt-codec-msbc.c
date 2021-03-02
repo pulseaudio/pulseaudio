@@ -18,7 +18,8 @@
 #include <config.h>
 #endif
 
-#include "a2dp-codec-api.h"
+#include <pulsecore/core.h>
+#include "bt-codec-api.h"
 
 #include "bt-codec-msbc.h"
 #include <sbc/sbc.h>
@@ -300,7 +301,7 @@ static size_t decode_buffer(void *codec_info, const uint8_t *input_buffer, size_
 }
 
 /* Modified SBC codec for HFP Wideband Speech*/
-const pa_a2dp_codec pa_bt_codec_msbc = {
+const pa_bt_codec pa_bt_codec_msbc = {
     .name = "mSBC",
     .description = "mSBC",
     .init = init,

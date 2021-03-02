@@ -424,9 +424,7 @@ static size_t encode_buffer(void *codec_info, uint32_t timestamp, const uint8_t 
     return written;
 }
 
-const pa_a2dp_codec pa_a2dp_codec_ldac_eqmid_hq = {
-    .name = "ldac_hq",
-    .description = "LDAC (High Quality)",
+const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_ldac_eqmid_hq = {
     .id = { A2DP_CODEC_VENDOR, LDAC_VENDOR_ID, LDAC_CODEC_ID },
     .support_backchannel = false,
     .can_be_supported = can_be_supported,
@@ -435,19 +433,21 @@ const pa_a2dp_codec pa_a2dp_codec_ldac_eqmid_hq = {
     .fill_capabilities = fill_capabilities,
     .is_configuration_valid = is_configuration_valid,
     .fill_preferred_configuration = fill_preferred_configuration,
-    .init = init_hq,
-    .deinit = deinit,
-    .reset = reset,
-    .get_read_block_size = get_block_size,
-    .get_write_block_size = get_block_size,
-    .get_encoded_block_size = get_encoded_block_size,
-    .reduce_encoder_bitrate = reduce_encoder_bitrate,
-    .encode_buffer = encode_buffer,
+    .bt_codec = {
+        .name = "ldac_hq",
+        .description = "LDAC (High Quality)",
+        .init = init_hq,
+        .deinit = deinit,
+        .reset = reset,
+        .get_read_block_size = get_block_size,
+        .get_write_block_size = get_block_size,
+        .get_encoded_block_size = get_encoded_block_size,
+        .reduce_encoder_bitrate = reduce_encoder_bitrate,
+        .encode_buffer = encode_buffer,
+    },
 };
 
-const pa_a2dp_codec pa_a2dp_codec_ldac_eqmid_sq = {
-    .name = "ldac_sq",
-    .description = "LDAC (Standard Quality)",
+const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_ldac_eqmid_sq = {
     .id = { A2DP_CODEC_VENDOR, LDAC_VENDOR_ID, LDAC_CODEC_ID },
     .support_backchannel = false,
     .can_be_supported = can_be_supported,
@@ -456,19 +456,21 @@ const pa_a2dp_codec pa_a2dp_codec_ldac_eqmid_sq = {
     .fill_capabilities = fill_capabilities,
     .is_configuration_valid = is_configuration_valid,
     .fill_preferred_configuration = fill_preferred_configuration,
-    .init = init_sq,
-    .deinit = deinit,
-    .reset = reset,
-    .get_read_block_size = get_block_size,
-    .get_write_block_size = get_block_size,
-    .get_encoded_block_size = get_encoded_block_size,
-    .reduce_encoder_bitrate = reduce_encoder_bitrate,
-    .encode_buffer = encode_buffer,
+    .bt_codec = {
+        .name = "ldac_sq",
+        .description = "LDAC (Standard Quality)",
+        .init = init_sq,
+        .deinit = deinit,
+        .reset = reset,
+        .get_read_block_size = get_block_size,
+        .get_write_block_size = get_block_size,
+        .get_encoded_block_size = get_encoded_block_size,
+        .reduce_encoder_bitrate = reduce_encoder_bitrate,
+        .encode_buffer = encode_buffer,
+    },
 };
 
-const pa_a2dp_codec pa_a2dp_codec_ldac_eqmid_mq = {
-    .name = "ldac_mq",
-    .description = "LDAC (Mobile Quality)",
+const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_ldac_eqmid_mq = {
     .id = { A2DP_CODEC_VENDOR, LDAC_VENDOR_ID, LDAC_CODEC_ID },
     .support_backchannel = false,
     .can_be_supported = can_be_supported,
@@ -477,12 +479,16 @@ const pa_a2dp_codec pa_a2dp_codec_ldac_eqmid_mq = {
     .fill_capabilities = fill_capabilities,
     .is_configuration_valid = is_configuration_valid,
     .fill_preferred_configuration = fill_preferred_configuration,
-    .init = init_mq,
-    .deinit = deinit,
-    .reset = reset,
-    .get_read_block_size = get_block_size,
-    .get_write_block_size = get_block_size,
-    .get_encoded_block_size = get_encoded_block_size,
-    .reduce_encoder_bitrate = reduce_encoder_bitrate,
-    .encode_buffer = encode_buffer,
+    .bt_codec = {
+        .name = "ldac_mq",
+        .description = "LDAC (Mobile Quality)",
+        .init = init_mq,
+        .deinit = deinit,
+        .reset = reset,
+        .get_read_block_size = get_block_size,
+        .get_write_block_size = get_block_size,
+        .get_encoded_block_size = get_encoded_block_size,
+        .reduce_encoder_bitrate = reduce_encoder_bitrate,
+        .encode_buffer = encode_buffer,
+    },
 };

@@ -554,9 +554,7 @@ static size_t decode_buffer_hd(void *codec_info, const uint8_t *input_buffer, si
     return written;
 }
 
-const pa_a2dp_codec pa_a2dp_codec_aptx = {
-    .name = "aptx",
-    .description = "aptX",
+const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_aptx = {
     .id = { A2DP_CODEC_VENDOR, APTX_VENDOR_ID, APTX_CODEC_ID },
     .support_backchannel = false,
     .can_be_supported = can_be_supported,
@@ -565,20 +563,22 @@ const pa_a2dp_codec pa_a2dp_codec_aptx = {
     .fill_capabilities = fill_capabilities,
     .is_configuration_valid = is_configuration_valid,
     .fill_preferred_configuration = fill_preferred_configuration,
-    .init = init,
-    .deinit = deinit,
-    .reset = reset,
-    .get_read_block_size = get_block_size,
-    .get_write_block_size = get_block_size,
-    .get_encoded_block_size = get_encoded_block_size,
-    .reduce_encoder_bitrate = reduce_encoder_bitrate,
-    .encode_buffer = encode_buffer,
-    .decode_buffer = decode_buffer,
+    .bt_codec = {
+        .name = "aptx",
+        .description = "aptX",
+        .init = init,
+        .deinit = deinit,
+        .reset = reset,
+        .get_read_block_size = get_block_size,
+        .get_write_block_size = get_block_size,
+        .get_encoded_block_size = get_encoded_block_size,
+        .reduce_encoder_bitrate = reduce_encoder_bitrate,
+        .encode_buffer = encode_buffer,
+        .decode_buffer = decode_buffer,
+    },
 };
 
-const pa_a2dp_codec pa_a2dp_codec_aptx_hd = {
-    .name = "aptx_hd",
-    .description = "aptX HD",
+const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_aptx_hd = {
     .id = { A2DP_CODEC_VENDOR, APTX_HD_VENDOR_ID, APTX_HD_CODEC_ID },
     .support_backchannel = false,
     .can_be_supported = can_be_supported,
@@ -587,13 +587,17 @@ const pa_a2dp_codec pa_a2dp_codec_aptx_hd = {
     .fill_capabilities = fill_capabilities_hd,
     .is_configuration_valid = is_configuration_valid_hd,
     .fill_preferred_configuration = fill_preferred_configuration_hd,
-    .init = init_hd,
-    .deinit = deinit,
-    .reset = reset_hd,
-    .get_read_block_size = get_block_size_hd,
-    .get_write_block_size = get_block_size_hd,
-    .get_encoded_block_size = get_encoded_block_size_hd,
-    .reduce_encoder_bitrate = reduce_encoder_bitrate,
-    .encode_buffer = encode_buffer_hd,
-    .decode_buffer = decode_buffer_hd,
+    .bt_codec = {
+        .name = "aptx_hd",
+        .description = "aptX HD",
+        .init = init_hd,
+        .deinit = deinit,
+        .reset = reset_hd,
+        .get_read_block_size = get_block_size_hd,
+        .get_write_block_size = get_block_size_hd,
+        .get_encoded_block_size = get_encoded_block_size_hd,
+        .reduce_encoder_bitrate = reduce_encoder_bitrate,
+        .encode_buffer = encode_buffer_hd,
+        .decode_buffer = decode_buffer_hd,
+    },
 };

@@ -18,7 +18,8 @@
 #include <config.h>
 #endif
 
-#include "a2dp-codec-api.h"
+#include <pulsecore/core.h>
+#include "bt-codec-api.h"
 
 typedef struct codec_info {
     pa_sample_spec sample_spec;
@@ -106,7 +107,7 @@ static size_t decode_buffer(void *codec_info, const uint8_t *input_buffer, size_
 }
 
 /* dummy passthrough codec used with HSP/HFP CVSD */
-const pa_a2dp_codec pa_bt_codec_cvsd = {
+const pa_bt_codec pa_bt_codec_cvsd = {
     .name = "CVSD",
     .description = "CVSD",
     .init = init,

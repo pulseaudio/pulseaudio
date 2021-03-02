@@ -138,7 +138,7 @@ struct userdata {
     pa_smoother *read_smoother;
     pa_memchunk write_memchunk;
 
-    const pa_a2dp_codec *bt_codec;
+    const pa_bt_codec *bt_codec;
 
     void *encoder_info;
     pa_sample_spec encoder_sample_spec;
@@ -2371,17 +2371,17 @@ static char *list_codecs(struct userdata *u) {
         a2dp_endpoints = is_a2dp_sink ? u->device->a2dp_sink_endpoints : u->device->a2dp_source_endpoints;
 
         PA_HASHMAP_FOREACH_KV(key, a2dp_capabilities, a2dp_endpoints, state) {
-            for (i = 0; i < pa_bluetooth_a2dp_codec_count(); i++) {
-                const pa_a2dp_codec *a2dp_codec;
+            for (i = 0; i < pa_bluetooth_a2dp_endpoint_conf_count(); i++) {
+                const pa_a2dp_endpoint_conf *endpoint_conf;
 
-                a2dp_codec = pa_bluetooth_a2dp_codec_iter(i);
+                endpoint_conf = pa_bluetooth_a2dp_endpoint_conf_iter(i);
 
-                if (memcmp(key, &a2dp_codec->id, sizeof(pa_a2dp_codec_id)) == 0) {
-                    if (a2dp_codec->can_be_supported(is_a2dp_sink)) {
+                if (memcmp(key, &endpoint_conf->id, sizeof(pa_a2dp_codec_id)) == 0) {
+                    if (endpoint_conf->can_be_supported(is_a2dp_sink)) {
                         pa_json_encoder_begin_element_object(encoder);
 
-                        pa_json_encoder_add_member_string(encoder, "name", a2dp_codec->name);
-                        pa_json_encoder_add_member_string(encoder, "description", a2dp_codec->description);
+                        pa_json_encoder_add_member_string(encoder, "name", endpoint_conf->bt_codec.name);
+                        pa_json_encoder_add_member_string(encoder, "description", endpoint_conf->bt_codec.description);
 
                         pa_json_encoder_end_object(encoder);
                     }
@@ -2391,7 +2391,7 @@ static char *list_codecs(struct userdata *u) {
     } else {
         /* find out active codec selection from device profile */
         for (i = 0; i < pa_bluetooth_hf_codec_count(); i++) {
-            const pa_a2dp_codec *hf_codec;
+            const pa_bt_codec *hf_codec;
 
             hf_codec = pa_bluetooth_hf_codec_iter(i);
 
@@ -2415,7 +2415,7 @@ static int bluez5_device_message_handler(const char *object_path, const char *me
     char *message_handler_path;
     pa_hashmap *capabilities_hashmap;
     pa_bluetooth_profile_t profile;
-    const pa_a2dp_codec *codec;
+    const pa_a2dp_endpoint_conf *endpoint_conf;
     const char *codec_name;
     struct userdata *u;
     bool is_a2dp_sink;
@@ -2472,15 +2472,15 @@ static int bluez5_device_message_handler(const char *object_path, const char *me
             return -PA_ERR_INVALID;
         }
 
-        codec = pa_bluetooth_get_a2dp_codec(codec_name);
-        if (codec == NULL) {
+        endpoint_conf = pa_bluetooth_get_a2dp_endpoint_conf(codec_name);
+        if (endpoint_conf == NULL) {
             pa_log_info("Invalid codec %s specified for switching", codec_name);
             return -PA_ERR_INVALID;
         }
 
         is_a2dp_sink = u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK;
 
-        if (!codec->can_be_supported(is_a2dp_sink)) {
+        if (!endpoint_conf->can_be_supported(is_a2dp_sink)) {
             pa_log_info("Codec not found on system");
             return -PA_ERR_NOTSUPPORTED;
         }
@@ -2496,14 +2496,14 @@ static int bluez5_device_message_handler(const char *object_path, const char *me
             return -PA_ERR_INVALID;
         }
 
-        capabilities_hashmap = pa_hashmap_get(is_a2dp_sink ? u->device->a2dp_sink_endpoints : u->device->a2dp_source_endpoints, &codec->id);
+        capabilities_hashmap = pa_hashmap_get(is_a2dp_sink ? u->device->a2dp_sink_endpoints : u->device->a2dp_source_endpoints, &endpoint_conf->id);
         if (!capabilities_hashmap) {
             pa_log_info("No remote endpoint found for %s codec. Codec not supported by remote endpoint.",
-                    codec->name);
+                    endpoint_conf->bt_codec.name);
             return -PA_ERR_INVALID;
         }
 
-        pa_log_info("Initiating codec switching process to %s", codec->name);
+        pa_log_info("Initiating codec switching process to %s", endpoint_conf->bt_codec.name);
 
         /*
          * The current profile needs to be saved before we stop the thread and
@@ -2514,7 +2514,7 @@ static int bluez5_device_message_handler(const char *object_path, const char *me
 
         stop_thread(u);
 
-        if (!pa_bluetooth_device_switch_codec(u->device, profile, capabilities_hashmap, codec, switch_codec_cb_handler, userdata)
+        if (!pa_bluetooth_device_switch_codec(u->device, profile, capabilities_hashmap, endpoint_conf, switch_codec_cb_handler, userdata)
                 && !u->device->codec_switching_in_progress)
             goto profile_off;
 

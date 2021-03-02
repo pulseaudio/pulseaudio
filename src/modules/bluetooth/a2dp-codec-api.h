@@ -22,6 +22,8 @@
 
 #include <pulsecore/core.h>
 
+#include "bt-codec-api.h"
+
 #define MAX_A2DP_CAPS_SIZE 254
 #define DEFAULT_OUTPUT_RATE_REFRESH_INTERVAL_MS 500
 
@@ -36,13 +38,7 @@ typedef struct pa_a2dp_codec_id {
     uint16_t vendor_codec_id;
 } pa_a2dp_codec_id;
 
-typedef struct pa_a2dp_codec {
-    /* Unique name of the codec, lowercase and without whitespaces, used for
-     * constructing identifier, D-Bus paths, ... */
-    const char *name;
-    /* Human readable codec description */
-    const char *description;
-
+typedef struct pa_a2dp_endpoint_conf {
     /* A2DP codec id */
     pa_a2dp_codec_id id;
 
@@ -67,44 +63,8 @@ typedef struct pa_a2dp_codec {
     /* Fill preferred codec configuration, returns size of filled buffer or 0 on failure */
     uint8_t (*fill_preferred_configuration)(const pa_sample_spec *default_sample_spec, const uint8_t *capabilities_buffer, uint8_t capabilities_size, uint8_t config_buffer[MAX_A2DP_CAPS_SIZE]);
 
-    /* Initialize codec, returns codec info data and set sample_spec,
-     * for_encoding is true when codec_info is used for encoding,
-     * for_backchannel is true when codec_info is used for backchannel */
-    void *(*init)(bool for_encoding, bool for_backchannel, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *sample_spec, pa_core *core);
-    /* Deinitialize and release codec info data in codec_info */
-    void (*deinit)(void *codec_info);
-    /* Reset internal state of codec info data in codec_info, returns
-     * a negative value on failure */
-    int (*reset)(void *codec_info);
-
-    /* Get read block size for codec, it is minimal size of buffer
-     * needed to decode read_link_mtu bytes of encoded data */
-    size_t (*get_read_block_size)(void *codec_info, size_t read_link_mtu);
-    /* Get write block size for codec, it is maximal size of buffer
-     * which can produce at most write_link_mtu bytes of encoded data */
-    size_t (*get_write_block_size)(void *codec_info, size_t write_link_mtu);
-    /* Get encoded block size for codec to hold one encoded frame.
-     * Note HFP mSBC codec encoded block may not fit into one MTU and is sent out in chunks. */
-    size_t (*get_encoded_block_size)(void *codec_info, size_t input_size);
-
-    /* Reduce encoder bitrate for codec, returns new write block size or zero
-     * if not changed, called when socket is not accepting encoded data fast
-     * enough */
-    size_t (*reduce_encoder_bitrate)(void *codec_info, size_t write_link_mtu);
-
-    /* Increase encoder bitrate for codec, returns new write block size or zero
-     * if not changed, called periodically when socket is keeping up with
-     * encoded data */
-    size_t (*increase_encoder_bitrate)(void *codec_info, size_t write_link_mtu);
-
-    /* Encode input_buffer of input_size to output_buffer of output_size,
-     * returns size of filled ouput_buffer and set processed to size of
-     * processed input_buffer */
-    size_t (*encode_buffer)(void *codec_info, uint32_t timestamp, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed);
-    /* Decode input_buffer of input_size to output_buffer of output_size,
-     * returns size of filled ouput_buffer and set processed to size of
-     * processed input_buffer */
-    size_t (*decode_buffer)(void *codec_info, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed);
-} pa_a2dp_codec;
+    /* Bluetooth codec */
+    pa_bt_codec bt_codec;
+} pa_a2dp_endpoint_conf;
 
 #endif

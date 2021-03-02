@@ -896,9 +896,7 @@ static size_t decode_buffer(void *codec_info, const uint8_t *input_buffer, size_
     return d - output_buffer;
 }
 
-const pa_a2dp_codec pa_a2dp_codec_sbc = {
-    .name = "sbc",
-    .description = "SBC",
+const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_sbc = {
     .id = { A2DP_CODEC_SBC, 0, 0 },
     .support_backchannel = false,
     .can_be_supported = can_be_supported,
@@ -907,16 +905,20 @@ const pa_a2dp_codec pa_a2dp_codec_sbc = {
     .fill_capabilities = fill_capabilities,
     .is_configuration_valid = is_configuration_valid,
     .fill_preferred_configuration = fill_preferred_configuration,
-    .init = init,
-    .deinit = deinit,
-    .reset = reset,
-    .get_read_block_size = get_block_size,
-    .get_write_block_size = get_block_size,
-    .get_encoded_block_size = get_encoded_block_size,
-    .reduce_encoder_bitrate = reduce_encoder_bitrate,
-    .increase_encoder_bitrate = increase_encoder_bitrate,
-    .encode_buffer = encode_buffer,
-    .decode_buffer = decode_buffer,
+    .bt_codec = {
+        .name = "sbc",
+        .description = "SBC",
+        .init = init,
+        .deinit = deinit,
+        .reset = reset,
+        .get_read_block_size = get_block_size,
+        .get_write_block_size = get_block_size,
+        .get_encoded_block_size = get_encoded_block_size,
+        .reduce_encoder_bitrate = reduce_encoder_bitrate,
+        .increase_encoder_bitrate = increase_encoder_bitrate,
+        .encode_buffer = encode_buffer,
+        .decode_buffer = decode_buffer,
+    },
 };
 
 /* There are multiple definitions of SBC XQ, but in all cases this is
@@ -932,9 +934,7 @@ const pa_a2dp_codec pa_a2dp_codec_sbc = {
  * we can gain from increased bitrate.
  */
 
-const pa_a2dp_codec pa_a2dp_codec_sbc_xq_453 = {
-    .name = "sbc_xq_453",
-    .description = "SBC XQ 453kbps",
+const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_sbc_xq_453 = {
     .id = { A2DP_CODEC_SBC, 0, 0 },
     .support_backchannel = false,
     .can_be_supported = can_be_supported,
@@ -943,21 +943,23 @@ const pa_a2dp_codec pa_a2dp_codec_sbc_xq_453 = {
     .fill_capabilities = fill_capabilities_xq,
     .is_configuration_valid = is_configuration_valid,
     .fill_preferred_configuration = fill_preferred_configuration_xq_453kbps,
-    .init = init,
-    .deinit = deinit,
-    .reset = reset,
-    .get_read_block_size = get_block_size,
-    .get_write_block_size = get_block_size,
-    .get_encoded_block_size = get_encoded_block_size,
-    .reduce_encoder_bitrate = reduce_encoder_bitrate,
-    .increase_encoder_bitrate = increase_encoder_bitrate,
-    .encode_buffer = encode_buffer,
-    .decode_buffer = decode_buffer,
+    .bt_codec = {
+        .name = "sbc_xq_453",
+        .description = "SBC XQ 453kbps",
+        .init = init,
+        .deinit = deinit,
+        .reset = reset,
+        .get_read_block_size = get_block_size,
+        .get_write_block_size = get_block_size,
+        .get_encoded_block_size = get_encoded_block_size,
+        .reduce_encoder_bitrate = reduce_encoder_bitrate,
+        .increase_encoder_bitrate = increase_encoder_bitrate,
+        .encode_buffer = encode_buffer,
+        .decode_buffer = decode_buffer,
+    },
 };
 
-const pa_a2dp_codec pa_a2dp_codec_sbc_xq_512 = {
-    .name = "sbc_xq_512",
-    .description = "SBC XQ 512kbps",
+const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_sbc_xq_512 = {
     .id = { A2DP_CODEC_SBC, 0, 0 },
     .support_backchannel = false,
     .can_be_supported = can_be_supported,
@@ -966,21 +968,23 @@ const pa_a2dp_codec pa_a2dp_codec_sbc_xq_512 = {
     .fill_capabilities = fill_capabilities_xq,
     .is_configuration_valid = is_configuration_valid,
     .fill_preferred_configuration = fill_preferred_configuration_xq_512kbps,
-    .init = init,
-    .deinit = deinit,
-    .reset = reset,
-    .get_read_block_size = get_block_size,
-    .get_write_block_size = get_block_size,
-    .get_encoded_block_size = get_encoded_block_size,
-    .reduce_encoder_bitrate = reduce_encoder_bitrate,
-    .increase_encoder_bitrate = increase_encoder_bitrate,
-    .encode_buffer = encode_buffer,
-    .decode_buffer = decode_buffer,
+    .bt_codec = {
+        .name = "sbc_xq_512",
+        .description = "SBC XQ 512kbps",
+        .init = init,
+        .deinit = deinit,
+        .reset = reset,
+        .get_read_block_size = get_block_size,
+        .get_write_block_size = get_block_size,
+        .get_encoded_block_size = get_encoded_block_size,
+        .reduce_encoder_bitrate = reduce_encoder_bitrate,
+        .increase_encoder_bitrate = increase_encoder_bitrate,
+        .encode_buffer = encode_buffer,
+        .decode_buffer = decode_buffer,
+    },
 };
 
-const pa_a2dp_codec pa_a2dp_codec_sbc_xq_552 = {
-    .name = "sbc_xq_552",
-    .description = "SBC XQ 552kbps",
+const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_sbc_xq_552 = {
     .id = { A2DP_CODEC_SBC, 0, 0 },
     .support_backchannel = false,
     .can_be_supported = can_be_supported,
@@ -989,14 +993,18 @@ const pa_a2dp_codec pa_a2dp_codec_sbc_xq_552 = {
     .fill_capabilities = fill_capabilities_xq,
     .is_configuration_valid = is_configuration_valid,
     .fill_preferred_configuration = fill_preferred_configuration_xq_552kbps,
-    .init = init,
-    .deinit = deinit,
-    .reset = reset,
-    .get_read_block_size = get_block_size,
-    .get_write_block_size = get_block_size,
-    .get_encoded_block_size = get_encoded_block_size,
-    .reduce_encoder_bitrate = reduce_encoder_bitrate,
-    .increase_encoder_bitrate = increase_encoder_bitrate,
-    .encode_buffer = encode_buffer,
-    .decode_buffer = decode_buffer,
+    .bt_codec = {
+        .name = "sbc_xq_552",
+        .description = "SBC XQ 552kbps",
+        .init = init,
+        .deinit = deinit,
+        .reset = reset,
+        .get_read_block_size = get_block_size,
+        .get_write_block_size = get_block_size,
+        .get_encoded_block_size = get_encoded_block_size,
+        .reduce_encoder_bitrate = reduce_encoder_bitrate,
+        .increase_encoder_bitrate = increase_encoder_bitrate,
+        .encode_buffer = encode_buffer,
+        .decode_buffer = decode_buffer,
+    },
 };
