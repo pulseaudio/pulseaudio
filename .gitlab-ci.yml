@@ -101,8 +101,10 @@ build-meson:
     - meson build
     - cd build
     - ninja
+    - ulimit -c 0 # don't dump core files on tests that are supposed to assert
     - ninja test
     - ninja test-daemon
+    - ninja dist
   artifacts:
     paths:
       - build/
