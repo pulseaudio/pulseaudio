@@ -182,6 +182,16 @@ static size_t encode_buffer(void *codec_info, uint32_t timestamp, const uint8_t 
     return MSBC_PACKET_SIZE;
 }
 
+static inline bool is_all_zero(const uint8_t *ptr, size_t len) {
+    size_t i;
+
+    for (i = 0; i < len; ++i)
+        if (ptr[i] != 0)
+            return false;
+
+    return true;
+}
+
 /*
  * We build a msbc frame up in the sbc_info buffer until we have a whole one
  */
@@ -190,6 +200,12 @@ static struct msbc_frame *msbc_find_frame(struct sbc_info *si, ssize_t *len,
 {
     int i;
     uint8_t *p = si->input_buffer;
+
+    /* skip input if it has all zero bytes
+     * this could happen with older kernels inserting all-zero blocks
+     * inside otherwise valid mSBC stream */
+    if (*len > 0 && is_all_zero(buf, *len))
+        *len = 0;
 
     for (i = 0; i < *len; i++) {
         union msbc_h2_id1 id1;
