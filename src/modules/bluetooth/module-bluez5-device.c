@@ -2460,7 +2460,7 @@ static int bluez5_device_message_handler(const char *object_path, const char *me
 
         is_a2dp_sink = u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK;
 
-        if (!u->a2dp_codec->can_be_supported(is_a2dp_sink)) {
+        if (!codec->can_be_supported(is_a2dp_sink)) {
             pa_log_info("Codec not found on system");
             return -PA_ERR_NOTSUPPORTED;
         }
