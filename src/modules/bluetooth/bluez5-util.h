@@ -88,6 +88,7 @@ typedef int (*pa_bluetooth_transport_acquire_cb)(pa_bluetooth_transport *t, bool
 typedef void (*pa_bluetooth_transport_release_cb)(pa_bluetooth_transport *t);
 typedef void (*pa_bluetooth_transport_destroy_cb)(pa_bluetooth_transport *t);
 typedef pa_volume_t (*pa_bluetooth_transport_set_volume_cb)(pa_bluetooth_transport *t, pa_volume_t volume);
+typedef ssize_t (*pa_bluetooth_transport_write_cb)(pa_bluetooth_transport *t, int fd, const void* buffer, size_t size, size_t write_mtu);
 
 struct pa_bluetooth_transport {
     pa_bluetooth_device *device;
@@ -101,6 +102,7 @@ struct pa_bluetooth_transport {
     size_t config_size;
 
     const pa_a2dp_codec *a2dp_codec;
+    int stream_write_type;
 
     pa_volume_t source_volume;
     pa_volume_t sink_volume;
@@ -109,6 +111,7 @@ struct pa_bluetooth_transport {
 
     pa_bluetooth_transport_acquire_cb acquire;
     pa_bluetooth_transport_release_cb release;
+    pa_bluetooth_transport_write_cb write;
     pa_bluetooth_transport_destroy_cb destroy;
     pa_bluetooth_transport_set_volume_cb set_sink_volume;
     pa_bluetooth_transport_set_volume_cb set_source_volume;

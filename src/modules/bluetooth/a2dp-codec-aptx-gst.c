@@ -459,12 +459,28 @@ static size_t get_block_size(void *codec_info, size_t link_mtu) {
     return frame_count * 4 * 6;
 }
 
+static size_t get_encoded_block_size(void *codec_info, size_t input_size) {
+    /* input size should be aligned to codec input block size */
+    pa_assert_fp(input_size % (4 * 6) == 0);
+
+    return (input_size / (4 * 6)) * 4;
+}
+
 static size_t get_block_size_hd(void *codec_info, size_t link_mtu) {
     /* aptX HD compression ratio is 4:1 and we need to process one aptX HD frame (6 bytes) at once, plus aptX HD frames are encapsulated in RTP */
     size_t rtp_size = sizeof(struct rtp_header);
     size_t frame_count = (link_mtu - rtp_size) / 6;
 
     return frame_count * 6 * 4;
+}
+
+static size_t get_encoded_block_size_hd(void *codec_info, size_t input_size) {
+    size_t rtp_size = sizeof(struct rtp_header);
+
+    /* input size should be aligned to codec input block size */
+    pa_assert_fp(input_size % (4 * 6) == 0);
+
+    return (input_size / (4 * 6)) * 6 + rtp_size;
 }
 
 static size_t reduce_encoder_bitrate(void *codec_info, size_t write_link_mtu) {
@@ -554,6 +570,7 @@ const pa_a2dp_codec pa_a2dp_codec_aptx = {
     .reset = reset,
     .get_read_block_size = get_block_size,
     .get_write_block_size = get_block_size,
+    .get_encoded_block_size = get_encoded_block_size,
     .reduce_encoder_bitrate = reduce_encoder_bitrate,
     .encode_buffer = encode_buffer,
     .decode_buffer = decode_buffer,
@@ -575,6 +592,7 @@ const pa_a2dp_codec pa_a2dp_codec_aptx_hd = {
     .reset = reset_hd,
     .get_read_block_size = get_block_size_hd,
     .get_write_block_size = get_block_size_hd,
+    .get_encoded_block_size = get_encoded_block_size_hd,
     .reduce_encoder_bitrate = reduce_encoder_bitrate,
     .encode_buffer = encode_buffer_hd,
     .decode_buffer = decode_buffer_hd,

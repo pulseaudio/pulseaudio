@@ -405,6 +405,11 @@ static size_t get_block_size(void *codec_info, size_t link_mtu) {
     return get_ldac_num_samples(codec_info) * get_ldac_num_frames(codec_info, info->codec_type) * pa_frame_size(info->ss);
 }
 
+static size_t get_encoded_block_size(void *codec_info, size_t input_size) {
+    /* encoded block size is not exactly known, report input_size */
+    return input_size;
+}
+
 static size_t reduce_encoder_bitrate(void *codec_info, size_t write_link_mtu) {
     return 0;
 }
@@ -435,6 +440,7 @@ const pa_a2dp_codec pa_a2dp_codec_ldac_eqmid_hq = {
     .reset = reset,
     .get_read_block_size = get_block_size,
     .get_write_block_size = get_block_size,
+    .get_encoded_block_size = get_encoded_block_size,
     .reduce_encoder_bitrate = reduce_encoder_bitrate,
     .encode_buffer = encode_buffer,
 };
@@ -455,6 +461,7 @@ const pa_a2dp_codec pa_a2dp_codec_ldac_eqmid_sq = {
     .reset = reset,
     .get_read_block_size = get_block_size,
     .get_write_block_size = get_block_size,
+    .get_encoded_block_size = get_encoded_block_size,
     .reduce_encoder_bitrate = reduce_encoder_bitrate,
     .encode_buffer = encode_buffer,
 };
@@ -475,6 +482,7 @@ const pa_a2dp_codec pa_a2dp_codec_ldac_eqmid_mq = {
     .reset = reset,
     .get_read_block_size = get_block_size,
     .get_write_block_size = get_block_size,
+    .get_encoded_block_size = get_encoded_block_size,
     .reduce_encoder_bitrate = reduce_encoder_bitrate,
     .encode_buffer = encode_buffer,
 };

@@ -714,6 +714,16 @@ static size_t get_block_size(void *codec_info, size_t link_mtu) {
     return frame_count * sbc_info->codesize;
 }
 
+static size_t get_encoded_block_size(void *codec_info, size_t input_size) {
+    struct sbc_info *sbc_info = (struct sbc_info *) codec_info;
+    size_t rtp_size = sizeof(struct rtp_header) + sizeof(struct rtp_sbc_payload);
+
+    /* input size should be aligned to codec input block size */
+    pa_assert_fp(input_size % sbc_info->codesize == 0);
+
+    return (input_size / sbc_info->codesize) * sbc_info->frame_length + rtp_size;
+}
+
 static size_t reduce_encoder_bitrate(void *codec_info, size_t write_link_mtu) {
     struct sbc_info *sbc_info = (struct sbc_info *) codec_info;
     uint8_t bitpool;
@@ -902,6 +912,7 @@ const pa_a2dp_codec pa_a2dp_codec_sbc = {
     .reset = reset,
     .get_read_block_size = get_block_size,
     .get_write_block_size = get_block_size,
+    .get_encoded_block_size = get_encoded_block_size,
     .reduce_encoder_bitrate = reduce_encoder_bitrate,
     .increase_encoder_bitrate = increase_encoder_bitrate,
     .encode_buffer = encode_buffer,
@@ -937,6 +948,7 @@ const pa_a2dp_codec pa_a2dp_codec_sbc_xq_453 = {
     .reset = reset,
     .get_read_block_size = get_block_size,
     .get_write_block_size = get_block_size,
+    .get_encoded_block_size = get_encoded_block_size,
     .reduce_encoder_bitrate = reduce_encoder_bitrate,
     .increase_encoder_bitrate = increase_encoder_bitrate,
     .encode_buffer = encode_buffer,
@@ -959,6 +971,7 @@ const pa_a2dp_codec pa_a2dp_codec_sbc_xq_512 = {
     .reset = reset,
     .get_read_block_size = get_block_size,
     .get_write_block_size = get_block_size,
+    .get_encoded_block_size = get_encoded_block_size,
     .reduce_encoder_bitrate = reduce_encoder_bitrate,
     .increase_encoder_bitrate = increase_encoder_bitrate,
     .encode_buffer = encode_buffer,
@@ -981,6 +994,7 @@ const pa_a2dp_codec pa_a2dp_codec_sbc_xq_552 = {
     .reset = reset,
     .get_read_block_size = get_block_size,
     .get_write_block_size = get_block_size,
+    .get_encoded_block_size = get_encoded_block_size,
     .reduce_encoder_bitrate = reduce_encoder_bitrate,
     .increase_encoder_bitrate = increase_encoder_bitrate,
     .encode_buffer = encode_buffer,

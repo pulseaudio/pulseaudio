@@ -83,6 +83,9 @@ typedef struct pa_a2dp_codec {
     /* Get write block size for codec, it is maximal size of buffer
      * which can produce at most write_link_mtu bytes of encoded data */
     size_t (*get_write_block_size)(void *codec_info, size_t write_link_mtu);
+    /* Get encoded block size for codec to hold one encoded frame.
+     * Note HFP mSBC codec encoded block may not fit into one MTU and is sent out in chunks. */
+    size_t (*get_encoded_block_size)(void *codec_info, size_t input_size);
 
     /* Reduce encoder bitrate for codec, returns new write block size or zero
      * if not changed, called when socket is not accepting encoded data fast

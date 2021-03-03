@@ -83,6 +83,52 @@ struct pa_bluetooth_backend {
     PA_LLIST_HEAD(pa_dbus_pending, pending);
 };
 
+static ssize_t sco_transport_write(pa_bluetooth_transport *t, int fd, const void* buffer, size_t size, size_t write_mtu) {
+    ssize_t l = 0;
+    size_t written = 0;
+    size_t write_size;
+
+    pa_assert(t);
+
+    /* if encoder buffer has less data than required to make complete packet */
+    if (size < write_mtu)
+        return 0;
+
+    /* write out MTU sized chunks only */
+    while (written < size) {
+        write_size = PA_MIN(size - written, write_mtu);
+        if (write_size < write_mtu)
+            break;
+        l = pa_write(fd, buffer + written, write_size, &t->stream_write_type);
+        if (l < 0)
+            break;
+        written += l;
+    }
+
+    if (l < 0) {
+        if (errno == EAGAIN) {
+            /* Hmm, apparently the socket was not writable, give up for now */
+            pa_log_debug("Got EAGAIN on write() after POLLOUT, probably there is a temporary connection loss.");
+            /* Drain write buffer */
+            written = size;
+        } else {
+            pa_log_error("Failed to write data to socket: %s", pa_cstrerror(errno));
+            /* Report error from write call */
+            return -1;
+        }
+    }
+
+    /* if too much data left discard it all */
+    if (size - written >= write_mtu) {
+        pa_log_warn("Wrote memory block to socket only partially! %lu written, discarding pending write size %lu larger than write_mtu %lu",
+                    written, size, write_mtu);
+        /* Drain write buffer */
+        written = size;
+    }
+
+    return written;
+}
+
 static pa_dbus_pending* hf_dbus_send_and_add_to_pending(pa_bluetooth_backend *backend, DBusMessage *m,
                                                     DBusPendingCallNotifyFunction func, void *call_data) {
     pa_dbus_pending *p;
@@ -354,6 +400,7 @@ static void hf_audio_agent_card_found(pa_bluetooth_backend *backend, const char 
     card->transport = pa_bluetooth_transport_new(d, backend->ofono_bus_id, path, p, NULL, 0);
     card->transport->acquire = hf_audio_agent_transport_acquire;
     card->transport->release = hf_audio_agent_transport_release;
+    card->transport->write = sco_transport_write;
     card->transport->userdata = card;
 
     pa_bluetooth_transport_put(card->transport);

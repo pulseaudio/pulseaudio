@@ -22,11 +22,14 @@
 #include <config.h>
 #endif
 
+#include <errno.h>
+
 #include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/core.h>
+#include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/dbus-shared.h>
 #include <pulsecore/log.h>
@@ -580,6 +583,45 @@ static void bluez5_transport_release_cb(pa_bluetooth_transport *t) {
         dbus_error_free(&err);
     } else
         pa_log_info("Transport %s released", t->path);
+}
+
+static ssize_t a2dp_transport_write(pa_bluetooth_transport *t, int fd, const void* buffer, size_t size, size_t write_mtu) {
+    ssize_t l = 0;
+    size_t written = 0;
+    size_t write_size;
+
+    pa_assert(t);
+
+    while (written < size) {
+        write_size = PA_MIN(size - written, write_mtu);
+        l = pa_write(fd, buffer + written, write_size, &t->stream_write_type);
+        if (l < 0)
+            break;
+        written += l;
+    }
+
+    if (l < 0) {
+        if (errno == EAGAIN) {
+            /* Hmm, apparently the socket was not writable, give up for now */
+            pa_log_debug("Got EAGAIN on write() after POLLOUT, probably there is a temporary connection loss.");
+            /* Drain write buffer */
+            written = size;
+        } else {
+            pa_log_error("Failed to write data to socket: %s", pa_cstrerror(errno));
+            /* Report error from write call */
+            return -1;
+        }
+    }
+
+    /* if too much data left discard it all */
+    if (size - written >= write_mtu) {
+        pa_log_warn("Wrote memory block to socket only partially! %lu written, discarding pending write size %lu larger than write_mtu %lu",
+                    written, size, write_mtu);
+        /* Drain write buffer */
+        written = size;
+    }
+
+    return written;
 }
 
 bool pa_bluetooth_device_any_transport_connected(const pa_bluetooth_device *d) {
@@ -1906,6 +1948,7 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
     t->a2dp_codec = a2dp_codec;
     t->acquire = bluez5_transport_acquire_cb;
     t->release = bluez5_transport_release_cb;
+    t->write = a2dp_transport_write;
     pa_bluetooth_transport_put(t);
 
     pa_log_debug("Transport %s available for profile %s", t->path, pa_bluetooth_profile_to_string(t->profile));
