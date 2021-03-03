@@ -358,121 +358,7 @@ static int bt_process_render(struct userdata *u) {
     return ret;
 }
 
-/* Run from IO thread */
-static int sco_process_push(struct userdata *u) {
-    ssize_t l;
-    pa_memchunk memchunk;
-    struct cmsghdr *cm;
-    struct msghdr m;
-    bool found_tstamp = false;
-    pa_usec_t tstamp = 0;
-
-    pa_assert(u);
-    pa_assert(u->profile == PA_BLUETOOTH_PROFILE_HSP_HS ||
-              u->profile == PA_BLUETOOTH_PROFILE_HSP_AG ||
-              u->profile == PA_BLUETOOTH_PROFILE_HFP_HF ||
-              u->profile == PA_BLUETOOTH_PROFILE_HFP_AG);
-    pa_assert(u->source);
-    pa_assert(u->read_smoother);
-
-    memchunk.memblock = pa_memblock_new(u->core->mempool, u->read_block_size);
-    memchunk.index = memchunk.length = 0;
-
-    for (;;) {
-        void *p;
-        uint8_t aux[1024];
-        struct iovec iov;
-
-        pa_zero(m);
-        pa_zero(aux);
-        pa_zero(iov);
-
-        m.msg_iov = &iov;
-        m.msg_iovlen = 1;
-        m.msg_control = aux;
-        m.msg_controllen = sizeof(aux);
-
-        p = pa_memblock_acquire(memchunk.memblock);
-        iov.iov_base = p;
-        iov.iov_len = pa_memblock_get_length(memchunk.memblock);
-        l = recvmsg(u->stream_fd, &m, 0);
-        pa_memblock_release(memchunk.memblock);
-
-        if (l > 0)
-            break;
-
-        if (l < 0 && errno == EINTR)
-            /* Retry right away if we got interrupted */
-            continue;
-
-        pa_memblock_unref(memchunk.memblock);
-
-        if (l < 0 && errno == EAGAIN)
-            /* Hmm, apparently the socket was not readable, give up for now. */
-            return 0;
-
-        pa_log_error("Failed to read data from SCO socket: %s", l < 0 ? pa_cstrerror(errno) : "EOF");
-        return -1;
-    }
-
-    pa_assert((size_t) l <= pa_memblock_get_length(memchunk.memblock));
-
-    /* In some rare occasions, we might receive packets of a very strange
-     * size. This could potentially be possible if the SCO packet was
-     * received partially over-the-air, or more probably due to hardware
-     * issues in our Bluetooth adapter. In these cases, in order to avoid
-     * an assertion failure due to unaligned data, just discard the whole
-     * packet */
-    if (!pa_frame_aligned(l, &u->decoder_sample_spec)) {
-        pa_log_warn("SCO packet received of unaligned size: %zu", l);
-        pa_memblock_unref(memchunk.memblock);
-        return -1;
-    }
-
-    memchunk.length = (size_t) l;
-    u->read_index += (uint64_t) l;
-
-    for (cm = CMSG_FIRSTHDR(&m); cm; cm = CMSG_NXTHDR(&m, cm))
-        if (cm->cmsg_level == SOL_SOCKET && cm->cmsg_type == SO_TIMESTAMP) {
-            struct timeval *tv = (struct timeval*) CMSG_DATA(cm);
-            pa_rtclock_from_wallclock(tv);
-            tstamp = pa_timeval_load(tv);
-            found_tstamp = true;
-            break;
-        }
-
-    if (!found_tstamp) {
-        PA_ONCE_BEGIN {
-            pa_log_warn("Couldn't find SO_TIMESTAMP data in auxiliary recvmsg() data!");
-        } PA_ONCE_END;
-        tstamp = pa_rtclock_now();
-    }
-
-    pa_smoother_put(u->read_smoother, tstamp, pa_bytes_to_usec(u->read_index, &u->decoder_sample_spec));
-    pa_smoother_resume(u->read_smoother, tstamp, true);
-
-    pa_source_post(u->source, &memchunk);
-    pa_memblock_unref(memchunk.memblock);
-
-    return l;
-}
-
-/* Run from IO thread */
-static void a2dp_prepare_encoder_buffer(struct userdata *u) {
-    pa_assert(u);
-
-    if (u->encoder_buffer_size < u->write_link_mtu) {
-        pa_xfree(u->encoder_buffer);
-        u->encoder_buffer = pa_xmalloc(u->write_link_mtu);
-    }
-
-    /* Encoder buffer cannot be larger then link MTU, otherwise
-     * encode method would produce larger packets then link MTU */
-    u->encoder_buffer_size = u->write_link_mtu;
-}
-
-/* Run from IO thread */
-static void a2dp_prepare_decoder_buffer(struct userdata *u) {
+static void bt_prepare_decoder_buffer(struct userdata *u) {
     pa_assert(u);
 
     if (u->decoder_buffer_size < u->read_link_mtu) {
@@ -486,31 +372,16 @@ static void a2dp_prepare_decoder_buffer(struct userdata *u) {
 }
 
 /* Run from IO thread */
-static int a2dp_process_push(struct userdata *u) {
-    int ret = 0;
-    pa_memchunk memchunk;
+static ssize_t bt_transport_read(pa_bluetooth_transport *t, int fd, void *buffer, size_t size, pa_usec_t *p_timestamp) {
+    ssize_t received = 0;
 
-    pa_assert(u);
-    pa_assert(u->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE);
-    pa_assert(u->source);
-    pa_assert(u->read_smoother);
-    pa_assert(u->bt_codec);
-
-    memchunk.memblock = pa_memblock_new(u->core->mempool, u->read_block_size);
-    memchunk.index = memchunk.length = 0;
-
-    a2dp_prepare_decoder_buffer(u);
-
+    pa_assert(t);
     for (;;) {
         uint8_t aux[1024];
         struct iovec iov;
         struct cmsghdr *cm;
         struct msghdr m;
         bool found_tstamp = false;
-        pa_usec_t tstamp;
-        uint8_t *ptr;
-        ssize_t l;
-        size_t processed;
 
         pa_zero(m);
         pa_zero(aux);
@@ -521,77 +392,110 @@ static int a2dp_process_push(struct userdata *u) {
         m.msg_control = aux;
         m.msg_controllen = sizeof(aux);
 
-        iov.iov_base = u->decoder_buffer;
-        iov.iov_len = u->decoder_buffer_size;
+        iov.iov_base = buffer;
+        iov.iov_len = size;
 
-        l = recvmsg(u->stream_fd, &m, 0);
+        received = recvmsg(fd, &m, 0);
 
-        if (l <= 0) {
+        if (received <= 0) {
 
-            if (l < 0 && errno == EINTR)
+            if (received < 0 && errno == EINTR)
                 /* Retry right away if we got interrupted */
                 continue;
 
-            else if (l < 0 && errno == EAGAIN)
+            else if (received < 0 && errno == EAGAIN)
                 /* Hmm, apparently the socket was not readable, give up for now. */
-                break;
+                return 0;
 
-            pa_log_error("Failed to read data from socket: %s", l < 0 ? pa_cstrerror(errno) : "EOF");
-            ret = -1;
-            break;
+            pa_log_error("Failed to read data from socket: %s", received < 0 ? pa_cstrerror(errno) : "EOF");
+            return -1;
         }
 
-        pa_assert((size_t) l <= u->decoder_buffer_size);
+        pa_assert((size_t) received <= size);
 
-        /* TODO: get timestamp from rtp */
+        if (p_timestamp) {
+            /* TODO: get timestamp from rtp */
 
-        for (cm = CMSG_FIRSTHDR(&m); cm; cm = CMSG_NXTHDR(&m, cm)) {
-            if (cm->cmsg_level == SOL_SOCKET && cm->cmsg_type == SO_TIMESTAMP) {
-                struct timeval *tv = (struct timeval*) CMSG_DATA(cm);
-                pa_rtclock_from_wallclock(tv);
-                tstamp = pa_timeval_load(tv);
-                found_tstamp = true;
-                break;
+            for (cm = CMSG_FIRSTHDR(&m); cm; cm = CMSG_NXTHDR(&m, cm)) {
+                if (cm->cmsg_level == SOL_SOCKET && cm->cmsg_type == SO_TIMESTAMP) {
+                    struct timeval *tv = (struct timeval*) CMSG_DATA(cm);
+                    pa_rtclock_from_wallclock(tv);
+                    *p_timestamp = pa_timeval_load(tv);
+                    found_tstamp = true;
+                    break;
+                }
+            }
+
+            if (!found_tstamp) {
+                PA_ONCE_BEGIN {
+                    pa_log_warn("Couldn't find SO_TIMESTAMP data in auxiliary recvmsg() data!");
+                } PA_ONCE_END;
+                *p_timestamp = pa_rtclock_now();
             }
         }
 
-        if (!found_tstamp) {
-            PA_ONCE_BEGIN {
-                pa_log_warn("Couldn't find SO_TIMESTAMP data in auxiliary recvmsg() data!");
-            } PA_ONCE_END;
-            tstamp = pa_rtclock_now();
-        }
-
-        ptr = pa_memblock_acquire(memchunk.memblock);
-        memchunk.length = pa_memblock_get_length(memchunk.memblock);
-
-        memchunk.length = u->bt_codec->decode_buffer(u->decoder_info, u->decoder_buffer, l, ptr, memchunk.length, &processed);
-
-        pa_memblock_release(memchunk.memblock);
-
-        if (processed != (size_t) l) {
-            pa_log_error("Decoding error");
-            ret = -1;
-            break;
-        }
-
-        u->read_index += (uint64_t) memchunk.length;
-        pa_smoother_put(u->read_smoother, tstamp, pa_bytes_to_usec(u->read_index, &u->decoder_sample_spec));
-        pa_smoother_resume(u->read_smoother, tstamp, true);
-
-        /* Decoding of A2DP codec data may result in empty buffer, in this case
-         * do not post empty audio samples. It may happen due to algorithmic
-         * delay of audio codec. */
-        if (PA_LIKELY(memchunk.length))
-            pa_source_post(u->source, &memchunk);
-
-        ret = l;
         break;
     }
 
+    return received;
+}
+
+/* Run from IO thread */
+/* Read incoming data, decode it and post result (if any) to source output.
+ * Returns number of bytes posted to source output. */
+static int bt_process_push(struct userdata *u) {
+    pa_usec_t tstamp;
+    uint8_t *ptr;
+    ssize_t received;
+    size_t processed = 0;
+
+    pa_assert(u);
+    pa_assert(u->source);
+    pa_assert(u->read_smoother);
+    pa_assert(u->bt_codec);
+    pa_assert(u->transport);
+
+    bt_prepare_decoder_buffer(u);
+
+    received = bt_transport_read(u->transport, u->stream_fd, u->decoder_buffer, u->decoder_buffer_size, &tstamp);
+
+    if (received <= 0) {
+        return received;
+    }
+
+    pa_memchunk memchunk;
+
+    memchunk.memblock = pa_memblock_new(u->core->mempool, u->read_block_size);
+    memchunk.index = memchunk.length = 0;
+
+    ptr = pa_memblock_acquire(memchunk.memblock);
+    memchunk.length = pa_memblock_get_length(memchunk.memblock);
+
+    memchunk.length = u->bt_codec->decode_buffer(u->decoder_info, u->decoder_buffer, received, ptr, memchunk.length, &processed);
+
+    pa_memblock_release(memchunk.memblock);
+
+    if (processed != (size_t) received) {
+        pa_log_error("Decoding error");
+        return -1;
+    }
+
+    u->read_index += (uint64_t) memchunk.length;
+    pa_smoother_put(u->read_smoother, tstamp, pa_bytes_to_usec(u->read_index, &u->decoder_sample_spec));
+    pa_smoother_resume(u->read_smoother, tstamp, true);
+
+    /* Decoding of data may result in empty buffer, in this case
+     * do not post empty audio samples. It may happen due to algorithmic
+     * delay of audio codec. */
+    if (PA_LIKELY(memchunk.length))
+        pa_source_post(u->source, &memchunk);
+
+    /* report decoded size */
+    received = memchunk.length;
+
     pa_memblock_unref(memchunk.memblock);
 
-    return ret;
+    return received;
 }
 
 static void update_sink_buffer_size(struct userdata *u) {
@@ -1481,16 +1385,17 @@ static void thread_func(void *userdata) {
                 if (pollfd->revents & POLLIN) {
                     int n_read;
 
-                    if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE)
-                        n_read = a2dp_process_push(u);
-                    else
-                        n_read = sco_process_push(u);
+                    n_read = bt_process_push(u);
 
                     if (n_read < 0)
                         goto fail;
 
                     if (have_sink && n_read > 0) {
-                        /* We just read something, so we are supposed to write something, too */
+                        /* We just read something, so we are supposed to write something, too
+                         *
+                         * If source and sink sample specifications are not equal,
+                         * expected write size needs to be adjusted accordingly.
+                         */
                         bytes_to_write += n_read;
                         blocks_to_write += bytes_to_write / u->write_block_size;
                         bytes_to_write = bytes_to_write % u->write_block_size;
