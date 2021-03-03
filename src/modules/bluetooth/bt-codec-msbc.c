@@ -170,8 +170,16 @@ static size_t encode_buffer(void *codec_info, uint32_t timestamp, const uint8_t 
     frame->padding = 0x00;
 
     if (PA_UNLIKELY(encoded <= 0)) {
-        pa_log_error("SBC encoding error (%li)", (long) encoded);
-        return -1;
+        pa_log_error("SBC encoding error (%li) for input size %lu, SBC codesize %lu",
+                    (long) encoded, input_size, sbc_get_codesize(&sbc_info->sbc));
+
+        if (encoded < 0) {
+            *processed = 0;
+            return -1;
+        } else {
+            *processed = input_size;
+            return 0;
+        }
     }
 
     pa_assert_fp((size_t) encoded == sbc_info->codesize);
