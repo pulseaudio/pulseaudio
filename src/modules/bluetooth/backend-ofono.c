@@ -548,7 +548,8 @@ static void hf_audio_agent_register(pa_bluetooth_backend *hf) {
     pa_assert_se(m = dbus_message_new_method_call(OFONO_SERVICE, "/", HF_AUDIO_MANAGER_INTERFACE, "Register"));
 
     codecs[ncodecs++] = HFP_AUDIO_CODEC_CVSD;
-    codecs[ncodecs++] = HFP_AUDIO_CODEC_MSBC;
+    if (pa_bluetooth_discovery_get_enable_msbc(hf->discovery))
+        codecs[ncodecs++] = HFP_AUDIO_CODEC_MSBC;
 
     pa_assert_se(dbus_message_append_args(m, DBUS_TYPE_OBJECT_PATH, &path, DBUS_TYPE_ARRAY, DBUS_TYPE_BYTE, &pcodecs, ncodecs,
                                           DBUS_TYPE_INVALID));

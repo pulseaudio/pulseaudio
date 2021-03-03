@@ -613,7 +613,7 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
         rfcomm_write_response(fd, "OK");
 
         if (c->support_codec_negotiation) {
-            if (c->support_msbc) {
+            if (c->support_msbc && pa_bluetooth_discovery_get_enable_msbc(t->device->discovery)) {
                 rfcomm_write_response(fd, "+BCS:2");
                 c->state = 4;
             } else {
@@ -630,7 +630,7 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
     } else if (sscanf(buf, "AT+BCS=%d", &val)) {
         if (val == 1) {
             pa_bluetooth_transport_reconfigure(t, pa_bluetooth_get_hf_codec("CVSD"), sco_transport_write, NULL);
-        } else if (val == 2) {
+        } else if (val == 2 && pa_bluetooth_discovery_get_enable_msbc(t->device->discovery)) {
             pa_bluetooth_transport_reconfigure(t, pa_bluetooth_get_hf_codec("mSBC"), sco_transport_write, sco_setsockopt_enable_bt_voice);
         } else {
             pa_assert_fp(val != 1 && val != 2);

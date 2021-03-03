@@ -118,6 +118,7 @@ struct pa_bluetooth_discovery {
     pa_bluetooth_backend *ofono_backend, *native_backend;
     PA_LLIST_HEAD(pa_dbus_pending, pending);
     bool enable_native_hfp_hf;
+    bool enable_msbc;
 };
 
 static pa_dbus_pending* send_and_add_to_pending(pa_bluetooth_discovery *y, DBusMessage *m,
@@ -813,6 +814,14 @@ bool pa_bluetooth_discovery_get_enable_native_hfp_hf(pa_bluetooth_discovery *y)
     pa_assert(PA_REFCNT_VALUE(y) > 0);
 
     return y->enable_native_hfp_hf;
+}
+
+bool pa_bluetooth_discovery_get_enable_msbc(pa_bluetooth_discovery *y)
+{
+    pa_assert(y);
+    pa_assert(PA_REFCNT_VALUE(y) > 0);
+
+    return y->enable_msbc;
 }
 
 pa_bluetooth_device* pa_bluetooth_discovery_get_device_by_address(pa_bluetooth_discovery *y, const char *remote, const char *local) {
@@ -2268,7 +2277,7 @@ static void object_manager_done(pa_bluetooth_discovery *y) {
             A2DP_OBJECT_MANAGER_PATH);
 }
 
-pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c, int headset_backend, bool enable_native_hfp_hf) {
+pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c, int headset_backend, bool enable_native_hfp_hf, bool enable_msbc) {
     pa_bluetooth_discovery *y;
     DBusError err;
     DBusConnection *conn;
@@ -2282,6 +2291,7 @@ pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *c, int headset_backe
     y->core = c;
     y->headset_backend = headset_backend;
     y->enable_native_hfp_hf = enable_native_hfp_hf;
+    y->enable_msbc = enable_msbc;
     y->adapters = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL,
                                       (pa_free_cb_t) adapter_free);
     y->devices = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL,
