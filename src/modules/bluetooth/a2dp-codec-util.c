@@ -29,6 +29,14 @@
 
 #include "a2dp-codec-util.h"
 
+extern const pa_a2dp_codec pa_bt_codec_cvsd;
+
+/* List of HSP/HFP codecs.
+ */
+static const pa_a2dp_codec *pa_hf_codecs[] = {
+    &pa_bt_codec_cvsd,
+};
+
 extern const pa_a2dp_codec pa_a2dp_codec_sbc;
 extern const pa_a2dp_codec pa_a2dp_codec_sbc_xq_453;
 extern const pa_a2dp_codec pa_a2dp_codec_sbc_xq_512;
@@ -68,6 +76,17 @@ unsigned int pa_bluetooth_a2dp_codec_count(void) {
 const pa_a2dp_codec *pa_bluetooth_a2dp_codec_iter(unsigned int i) {
     pa_assert(i < pa_bluetooth_a2dp_codec_count());
     return pa_a2dp_codecs[i];
+}
+
+const pa_a2dp_codec *pa_bluetooth_get_hf_codec(const char *name) {
+    unsigned int i;
+
+    for (i = 0; i < PA_ELEMENTSOF(pa_hf_codecs); ++i) {
+        if (pa_streq(pa_hf_codecs[i]->name, name))
+            return pa_hf_codecs[i];
+    }
+
+    return NULL;
 }
 
 const pa_a2dp_codec *pa_bluetooth_get_a2dp_codec(const char *name) {

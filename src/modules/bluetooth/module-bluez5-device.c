@@ -623,28 +623,23 @@ static void handle_sink_block_size_change(struct userdata *u) {
 
 /* Run from I/O thread */
 static void transport_config_mtu(struct userdata *u) {
-    if (u->profile == PA_BLUETOOTH_PROFILE_HSP_HS
-        || u->profile == PA_BLUETOOTH_PROFILE_HSP_AG
-        || u->profile == PA_BLUETOOTH_PROFILE_HFP_HF
-        || u->profile == PA_BLUETOOTH_PROFILE_HFP_AG) {
-        u->read_block_size = u->read_link_mtu;
-        u->write_block_size = u->write_link_mtu;
+    pa_assert(u->bt_codec);
 
-        if (!pa_frame_aligned(u->read_block_size, &u->source->sample_spec)) {
-            pa_log_debug("Got invalid read MTU: %lu, rounding down", u->read_block_size);
-            u->read_block_size = pa_frame_align(u->read_block_size, &u->source->sample_spec);
-        }
+    if (u->encoder_info) {
+        u->write_block_size = u->bt_codec->get_write_block_size(u->encoder_info, u->write_link_mtu);
 
         if (!pa_frame_aligned(u->write_block_size, &u->sink->sample_spec)) {
             pa_log_debug("Got invalid write MTU: %lu, rounding down", u->write_block_size);
             u->write_block_size = pa_frame_align(u->write_block_size, &u->sink->sample_spec);
         }
-    } else {
-        pa_assert(u->bt_codec);
-        if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK) {
-            u->write_block_size = u->bt_codec->get_write_block_size(u->encoder_info, u->write_link_mtu);
-        } else {
-            u->read_block_size = u->bt_codec->get_read_block_size(u->decoder_info, u->read_link_mtu);
+    }
+
+    if (u->decoder_info) {
+        u->read_block_size = u->bt_codec->get_read_block_size(u->decoder_info, u->read_link_mtu);
+
+        if (!pa_frame_aligned(u->read_block_size, &u->source->sample_spec)) {
+            pa_log_debug("Got invalid read MTU: %lu, rounding down", u->read_block_size);
+            u->read_block_size = pa_frame_align(u->read_block_size, &u->source->sample_spec);
         }
     }
 
@@ -671,12 +666,14 @@ static int setup_stream(struct userdata *u) {
 
     pa_log_info("Transport %s resuming", u->transport->path);
 
-    if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK) {
-        pa_assert(u->bt_codec);
+    pa_assert(u->bt_codec);
+
+    if (u->encoder_info) {
         if (u->bt_codec->reset(u->encoder_info) < 0)
             return -1;
-    } else if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE) {
-        pa_assert(u->bt_codec);
+    }
+
+    if (u->decoder_info) {
         if (u->bt_codec->reset(u->decoder_info) < 0)
             return -1;
     }
@@ -1194,45 +1191,54 @@ static int add_sink(struct userdata *u) {
 }
 
 /* Run from main thread */
+static pa_direction_t get_profile_direction(pa_bluetooth_profile_t p) {
+    static const pa_direction_t profile_direction[] = {
+        [PA_BLUETOOTH_PROFILE_A2DP_SINK] = PA_DIRECTION_OUTPUT,
+        [PA_BLUETOOTH_PROFILE_A2DP_SOURCE] = PA_DIRECTION_INPUT,
+        [PA_BLUETOOTH_PROFILE_HSP_HS] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
+        [PA_BLUETOOTH_PROFILE_HSP_AG] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
+        [PA_BLUETOOTH_PROFILE_HFP_HF] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
+        [PA_BLUETOOTH_PROFILE_HFP_AG] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
+        [PA_BLUETOOTH_PROFILE_OFF] = 0
+    };
+
+    return profile_direction[p];
+}
+
+/* Run from main thread */
 static int transport_config(struct userdata *u) {
+    pa_assert(u);
+    pa_assert(u->transport);
+    pa_assert(!u->bt_codec);
+    pa_assert(!u->encoder_info);
+    pa_assert(!u->decoder_info);
+
+    u->bt_codec = u->transport->bt_codec;
+    pa_assert(u->bt_codec);
+
     /* reset encoder buffer contents */
     u->encoder_buffer_used = 0;
 
-    if (u->profile == PA_BLUETOOTH_PROFILE_HSP_HS
-        || u->profile == PA_BLUETOOTH_PROFILE_HSP_AG
-        || u->profile == PA_BLUETOOTH_PROFILE_HFP_HF
-        || u->profile == PA_BLUETOOTH_PROFILE_HFP_AG) {
-        u->encoder_sample_spec.format = PA_SAMPLE_S16LE;
-        u->encoder_sample_spec.channels = 1;
-        u->encoder_sample_spec.rate = 8000;
-        u->decoder_sample_spec.format = PA_SAMPLE_S16LE;
-        u->decoder_sample_spec.channels = 1;
-        u->decoder_sample_spec.rate = 8000;
-        return 0;
-    } else {
-        bool is_a2dp_sink = u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK;
-        void *info;
+    if (get_profile_direction(u->profile) & PA_DIRECTION_OUTPUT) {
+        u->encoder_info = u->bt_codec->init(true, false, u->transport->config, u->transport->config_size, &u->encoder_sample_spec, u->core);
 
-        pa_assert(u->transport);
-
-        pa_assert(!u->bt_codec);
-        pa_assert(!u->encoder_info);
-        pa_assert(!u->decoder_info);
-
-        u->bt_codec = u->transport->a2dp_codec;
-        pa_assert(u->bt_codec);
-
-        info = u->bt_codec->init(is_a2dp_sink, false, u->transport->config, u->transport->config_size, is_a2dp_sink ? &u->encoder_sample_spec : &u->decoder_sample_spec, u->core);
-        if (is_a2dp_sink)
-            u->encoder_info = info;
-        else
-            u->decoder_info = info;
-
-        if (!info)
+        if (!u->encoder_info)
             return -1;
-
-        return 0;
     }
+
+    if (get_profile_direction(u->profile) & PA_DIRECTION_INPUT) {
+        u->decoder_info = u->bt_codec->init(false, false, u->transport->config, u->transport->config_size, &u->decoder_sample_spec, u->core);
+
+        if (!u->decoder_info) {
+            if (u->encoder_info) {
+                u->bt_codec->deinit(u->encoder_info);
+                u->encoder_info = NULL;
+            }
+            return -1;
+        }
+    }
+
+    return 0;
 }
 
 /* Run from main thread */
@@ -1263,21 +1269,6 @@ static int setup_transport(struct userdata *u) {
     }
 
     return transport_config(u);
-}
-
-/* Run from main thread */
-static pa_direction_t get_profile_direction(pa_bluetooth_profile_t p) {
-    static const pa_direction_t profile_direction[] = {
-        [PA_BLUETOOTH_PROFILE_A2DP_SINK] = PA_DIRECTION_OUTPUT,
-        [PA_BLUETOOTH_PROFILE_A2DP_SOURCE] = PA_DIRECTION_INPUT,
-        [PA_BLUETOOTH_PROFILE_HSP_HS] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
-        [PA_BLUETOOTH_PROFILE_HSP_AG] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
-        [PA_BLUETOOTH_PROFILE_HFP_HF] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
-        [PA_BLUETOOTH_PROFILE_HFP_AG] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
-        [PA_BLUETOOTH_PROFILE_OFF] = 0
-    };
-
-    return profile_direction[p];
 }
 
 /* Run from main thread */
@@ -1486,7 +1477,7 @@ static void thread_func(void *userdata) {
                                 skip_bytes -= bytes_to_render;
                             }
 
-                            if (u->write_index > 0 && u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK) {
+                            if (u->write_index > 0 && (get_profile_direction(u->profile) & PA_DIRECTION_OUTPUT)) {
                                 size_t new_write_block_size = u->bt_codec->reduce_encoder_bitrate(u->encoder_info, u->write_link_mtu);
                                 if (new_write_block_size) {
                                     u->write_block_size = new_write_block_size;
@@ -1526,7 +1517,7 @@ static void thread_func(void *userdata) {
                             sleep_for = time_passed < next_write_at ? next_write_at - time_passed : 0;
                             /* pa_log("Sleeping for %lu; time passed %lu, next write at %lu", (unsigned long) sleep_for, (unsigned long) time_passed, (unsigned long)next_write_at); */
 
-                            if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK && u->write_memchunk.memblock == NULL) {
+                            if ((get_profile_direction(u->profile) & PA_DIRECTION_OUTPUT) && u->write_memchunk.memblock == NULL) {
                                 /* write_block() is keeping up with input, try increasing bitrate */
                                 if (u->bt_codec->increase_encoder_bitrate
                                     && pa_timeval_age(&tv_last_output_rate_change) >= u->device->output_rate_refresh_interval_ms * PA_USEC_PER_MSEC) {

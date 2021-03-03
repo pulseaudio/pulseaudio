@@ -218,7 +218,7 @@ static int card_acquire(struct hf_audio_card *card) {
             close(fd);
             return -1;
         }
-        card->transport->codec = codec;
+        card->transport->bt_codec = pa_bluetooth_get_hf_codec("CVSD");
         card->fd = fd;
         return 0;
     }
@@ -686,7 +686,7 @@ static DBusMessage *hf_audio_agent_new_connection(DBusConnection *c, DBusMessage
 
     card->connecting = false;
     card->fd = fd;
-    card->transport->codec = codec;
+    card->transport->bt_codec = pa_bluetooth_get_hf_codec("CVSD");
 
     pa_bluetooth_transport_set_state(card->transport, PA_BLUETOOTH_TRANSPORT_STATE_PLAYING);
 

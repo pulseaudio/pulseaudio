@@ -97,11 +97,10 @@ struct pa_bluetooth_transport {
     char *path;
     pa_bluetooth_profile_t profile;
 
-    uint8_t codec;
     void *config;
     size_t config_size;
 
-    const pa_a2dp_codec *a2dp_codec;
+    const pa_a2dp_codec *bt_codec;
     int stream_write_type;
 
     pa_volume_t source_volume;

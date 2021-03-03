@@ -551,6 +551,7 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
     } else if ((c->state == 2 || c->state == 3) && pa_startswith(buf, "AT+CMER=")) {
         rfcomm_write_response(fd, "OK");
         c->state = 4;
+        t->bt_codec = pa_bluetooth_get_hf_codec("CVSD");
         transport_put(t);
         return false;
     }
@@ -777,6 +778,7 @@ static DBusMessage *profile_new_connection(DBusConnection *conn, DBusMessage *m,
     t->acquire = sco_acquire_cb;
     t->release = sco_release_cb;
     t->write = sco_transport_write;
+    t->bt_codec = pa_bluetooth_get_hf_codec("CVSD");
     t->destroy = transport_destroy;
 
     /* If PA is the HF/HS we are in control of volume attenuation and

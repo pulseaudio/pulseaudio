@@ -37,4 +37,7 @@ bool pa_bluetooth_a2dp_codec_is_available(const pa_a2dp_codec_id *id, bool is_a2
 /* Initialise GStreamer */
 void pa_bluetooth_a2dp_codec_gst_init(void);
 
+/* Get HSP/HFP codec by name */
+const pa_a2dp_codec *pa_bluetooth_get_hf_codec(const char *name);
+
 #endif

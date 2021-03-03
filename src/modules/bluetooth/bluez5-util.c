@@ -1945,7 +1945,7 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
     dbus_message_unref(r);
 
     t = pa_bluetooth_transport_new(d, sender, path, p, config, size);
-    t->a2dp_codec = a2dp_codec;
+    t->bt_codec = a2dp_codec;
     t->acquire = bluez5_transport_acquire_cb;
     t->release = bluez5_transport_release_cb;
     t->write = a2dp_transport_write;
