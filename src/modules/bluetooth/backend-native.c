@@ -145,6 +145,23 @@ static uint16_t volume_to_hsp_gain(pa_volume_t volume) {
     return gain;
 }
 
+static bool is_peer_audio_gateway(pa_bluetooth_profile_t peer_profile) {
+    switch(peer_profile) {
+        case PA_BLUETOOTH_PROFILE_HFP_HF:
+        case PA_BLUETOOTH_PROFILE_HSP_HS:
+            return false;
+        case PA_BLUETOOTH_PROFILE_HFP_AG:
+        case PA_BLUETOOTH_PROFILE_HSP_AG:
+            return true;
+        default:
+            pa_assert_not_reached();
+    }
+}
+
+static bool is_pulseaudio_audio_gateway(pa_bluetooth_profile_t peer_profile) {
+    return !is_peer_audio_gateway(peer_profile);
+}
+
 static pa_dbus_pending* send_and_add_to_pending(pa_bluetooth_backend *backend, DBusMessage *m,
         DBusPendingCallNotifyFunction func, void *call_data) {
 
@@ -595,10 +612,11 @@ static pa_volume_t set_sink_volume(pa_bluetooth_transport *t, pa_volume_t volume
 
     t->sink_volume = volume;
 
-    /* If we are in the AG role, we send a command to the head set to change
-     * the speaker gain. In the HS role, source and sink are swapped, so
-     * in this case we notify the AG that the microphone gain has changed */
-    if (t->profile == PA_BLUETOOTH_PROFILE_HSP_HS || t->profile == PA_BLUETOOTH_PROFILE_HFP_HF) {
+    /* If we are in the AG role, we send an unsolicited result-code to the headset
+     * to change the speaker gain. In the HS role, source and sink are swapped,
+     * so in this case we notify the AG that the microphone gain has changed
+     * by sending a command. */
+    if (is_pulseaudio_audio_gateway(t->profile)) {
         rfcomm_write_response(trd->rfcomm_fd, "+VGS=%d", gain);
     } else {
         rfcomm_write_command(trd->rfcomm_fd, "AT+VGM=%d", gain);
@@ -619,10 +637,11 @@ static pa_volume_t set_source_volume(pa_bluetooth_transport *t, pa_volume_t volu
 
     t->source_volume = volume;
 
-    /* If we are in the AG role, we send a command to the head set to change
-     * the microphone gain. In the HS role, source and sink are swapped, so
-     * in this case we notify the AG that the speaker gain has changed */
-    if (t->profile == PA_BLUETOOTH_PROFILE_HSP_HS || t->profile == PA_BLUETOOTH_PROFILE_HFP_HF) {
+    /* If we are in the AG role, we send an unsolicited result-code to the headset
+     * to change the microphone gain. In the HS role, source and sink are swapped,
+     * so in this case we notify the AG that the speaker gain has changed
+     * by sending a command. */
+    if (is_pulseaudio_audio_gateway(t->profile)) {
         rfcomm_write_response(trd->rfcomm_fd, "+VGM=%d", gain);
     } else {
         rfcomm_write_command(trd->rfcomm_fd, "AT+VGS=%d", gain);

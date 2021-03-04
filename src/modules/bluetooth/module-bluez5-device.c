@@ -982,7 +982,7 @@ static void source_set_volume_cb(pa_source *s) {
     pa_cvolume_set(&s->real_volume, u->decoder_sample_spec.channels, volume);
 
     /* Set soft volume when in headset role */
-    if (u->profile == PA_BLUETOOTH_PROFILE_HFP_AG || u->profile == PA_BLUETOOTH_PROFILE_HSP_AG)
+    if (pa_bluetooth_profile_should_attenuate_volume(u->profile))
         pa_cvolume_set(&s->soft_volume, u->decoder_sample_spec.channels, volume);
 }
 
@@ -1162,7 +1162,7 @@ static void sink_set_volume_cb(pa_sink *s) {
     pa_cvolume_set(&s->real_volume, u->encoder_sample_spec.channels, volume);
 
     /* Set soft volume when in headset role */
-    if (u->profile == PA_BLUETOOTH_PROFILE_HFP_AG || u->profile == PA_BLUETOOTH_PROFILE_HSP_AG)
+    if (pa_bluetooth_profile_should_attenuate_volume(u->profile))
         pa_cvolume_set(&s->soft_volume, u->encoder_sample_spec.channels, volume);
 }
 
@@ -2257,10 +2257,10 @@ static pa_hook_result_t transport_sink_volume_changed_cb(pa_bluetooth_discovery 
     volume = t->sink_volume;
 
     pa_cvolume_set(&v, u->encoder_sample_spec.channels, volume);
-    if (t->profile == PA_BLUETOOTH_PROFILE_HSP_HS || t->profile == PA_BLUETOOTH_PROFILE_HFP_HF)
-        pa_sink_volume_changed(u->sink, &v);
-    else
+    if (pa_bluetooth_profile_should_attenuate_volume(t->profile))
         pa_sink_set_volume(u->sink, &v, true, true);
+    else
+        pa_sink_volume_changed(u->sink, &v);
 
     return PA_HOOK_OK;
 }
@@ -2279,10 +2279,10 @@ static pa_hook_result_t transport_source_volume_changed_cb(pa_bluetooth_discover
 
     pa_cvolume_set(&v, u->decoder_sample_spec.channels, volume);
 
-    if (t->profile == PA_BLUETOOTH_PROFILE_HSP_HS || t->profile == PA_BLUETOOTH_PROFILE_HFP_HF)
-        pa_source_volume_changed(u->source, &v);
-    else
+    if (pa_bluetooth_profile_should_attenuate_volume(t->profile))
         pa_source_set_volume(u->source, &v, true, true);
+    else
+        pa_source_volume_changed(u->source, &v);
 
     return PA_HOOK_OK;
 }
