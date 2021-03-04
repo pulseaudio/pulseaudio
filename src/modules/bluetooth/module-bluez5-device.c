@@ -105,6 +105,9 @@ struct userdata {
     pa_hook_slot *transport_sink_volume_changed_slot;
     pa_hook_slot *transport_source_volume_changed_slot;
 
+    pa_hook_slot *sink_volume_changed_slot;
+    pa_hook_slot *source_volume_changed_slot;
+
     pa_bluetooth_discovery *discovery;
     pa_bluetooth_device *device;
     pa_bluetooth_transport *transport;
@@ -869,6 +872,41 @@ static bool setup_transport_and_stream(struct userdata *u) {
     return true;
 }
 
+/* Run from main thread */
+static pa_hook_result_t sink_source_volume_changed_cb(void *hook_data, void *call_data, void *slot_data) {
+    struct userdata *u = slot_data;
+    const pa_cvolume *new_volume = NULL;
+    pa_volume_t volume;
+    pa_bluetooth_transport_set_volume_cb notify_volume_change;
+
+    /* In the HS/HF role, notify the AG of a change in speaker/microphone gain.
+     * In the AG role the command to change HW volume on the remote is already
+     * sent by the hardware callback (if the peer supports it and the sink
+     * or source set_volume callback is attached. Otherwise nothing is sent).
+     */
+    pa_assert(pa_bluetooth_profile_should_attenuate_volume(u->profile));
+
+    if (u->sink == call_data) {
+        new_volume = pa_sink_get_volume(u->sink, false);
+        notify_volume_change = u->transport->set_sink_volume;
+    } else if (u->source == call_data) {
+        new_volume = pa_source_get_volume(u->source, false);
+        notify_volume_change = u->transport->set_source_volume;
+    } else {
+        return PA_HOOK_OK;
+    }
+
+    /* Volume control/notifications are optional */
+    if (!notify_volume_change)
+        return PA_HOOK_OK;
+
+    volume = pa_cvolume_max(new_volume);
+
+    notify_volume_change(u->transport, volume);
+
+    return PA_HOOK_OK;
+}
+
 /* Run from IO thread */
 static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t offset, pa_memchunk *chunk) {
     struct userdata *u = PA_SOURCE(o)->userdata;
@@ -970,30 +1008,21 @@ static void source_set_volume_cb(pa_source *s) {
 
     pa_assert(u);
     pa_assert(u->source == s);
+    pa_assert(!pa_bluetooth_profile_should_attenuate_volume(u->profile));
+    pa_assert(u->transport);
+    pa_assert(u->transport->set_source_volume);
 
-    if (u->transport->set_source_volume == NULL)
-      return;
-
-    /* If we are in the AG role, we send a command to the head set to change
-     * the microphone gain. In the HS role, source and sink are swapped, so
-     * in this case we notify the AG that the speaker gain has changed */
+    /* In the AG role, send a command to change microphone gain on the HS/HF */
     volume = u->transport->set_source_volume(u->transport, pa_cvolume_max(&s->real_volume));
 
     pa_cvolume_set(&s->real_volume, u->decoder_sample_spec.channels, volume);
-
-    /* Set soft volume when in headset role */
-    if (pa_bluetooth_profile_should_attenuate_volume(u->profile))
-        pa_cvolume_set(&s->soft_volume, u->decoder_sample_spec.channels, volume);
 }
 
+/* Run from main thread */
 static void source_setup_volume_callback(pa_source *s) {
     struct userdata *u;
 
     pa_assert(s);
-
-    if (s->set_volume == source_set_volume_cb)
-        return;
-
     pa_assert(s->core);
 
     u = s->userdata;
@@ -1001,24 +1030,39 @@ static void source_setup_volume_callback(pa_source *s) {
     pa_assert(u->source == s);
     pa_assert(u->transport);
 
-    /* Remote volume control/notifications have to be supported for
-     * the callback to make sense, otherwise this source should
-     * continue performing attenuation in software without HW_VOLUME_CTL.
+    /* Remote volume control has to be supported for the callback to make sense,
+     * otherwise this source should continue performing attenuation in software
+     * without HW_VOLUME_CTL.
+     * If the peer is an AG however backend-native unconditionally provides this
+     * function, PA in the role of HS/HF is responsible for signalling support
+     * by emitting an initial volume command.
      */
     if (!u->transport->set_source_volume)
         return;
 
     if (pa_bluetooth_profile_should_attenuate_volume(u->profile)) {
-        pa_log_debug("%s: Peer supports receiving volume update notifications", s->name);
+        if (u->source_volume_changed_slot)
+            return;
+
+        pa_log_debug("%s: Attaching volume hook to notify peer of changes", s->name);
+
+        u->source_volume_changed_slot = pa_hook_connect(&s->core->hooks[PA_CORE_HOOK_SOURCE_VOLUME_CHANGED],
+                                                        PA_HOOK_NORMAL, sink_source_volume_changed_cb, u);
+
+        /* Send initial volume to peer, signalling support for volume control */
+        u->transport->set_source_volume(u->transport, pa_cvolume_max(&s->real_volume));
     } else {
+        if (s->set_volume == source_set_volume_cb)
+            return;
+
         pa_log_debug("%s: Resetting software volume for hardware attenuation by peer", s->name);
 
         /* Reset local attenuation */
         pa_source_set_soft_volume(s, NULL);
-    }
 
-    pa_source_set_set_volume_callback(s, source_set_volume_cb);
-    s->n_volume_steps = 16;
+        pa_source_set_set_volume_callback(s, source_set_volume_cb);
+        s->n_volume_steps = 16;
+    }
 }
 
 /* Run from main thread */
@@ -1180,30 +1224,21 @@ static void sink_set_volume_cb(pa_sink *s) {
 
     pa_assert(u);
     pa_assert(u->sink == s);
+    pa_assert(!pa_bluetooth_profile_should_attenuate_volume(u->profile));
+    pa_assert(u->transport);
+    pa_assert(u->transport->set_sink_volume);
 
-    if (u->transport->set_sink_volume == NULL)
-      return;
-
-    /* If we are in the AG role, we send a command to the head set to change
-     * the speaker gain. In the HS role, source and sink are swapped, so
-     * in this case we notify the AG that the microphone gain has changed */
+    /* In the AG role, send a command to change speaker gain on the HS/HF */
     volume = u->transport->set_sink_volume(u->transport, pa_cvolume_max(&s->real_volume));
 
     pa_cvolume_set(&s->real_volume, u->encoder_sample_spec.channels, volume);
-
-    /* Set soft volume when in headset role */
-    if (pa_bluetooth_profile_should_attenuate_volume(u->profile))
-        pa_cvolume_set(&s->soft_volume, u->encoder_sample_spec.channels, volume);
 }
 
+/* Run from main thread */
 static void sink_setup_volume_callback(pa_sink *s) {
     struct userdata *u;
 
     pa_assert(s);
-
-    if (s->set_volume == sink_set_volume_cb)
-        return;
-
     pa_assert(s->core);
 
     u = s->userdata;
@@ -1211,24 +1246,39 @@ static void sink_setup_volume_callback(pa_sink *s) {
     pa_assert(u->sink == s);
     pa_assert(u->transport);
 
-    /* Remote volume control/notifications have to be supported for
-     * the callback to make sense, otherwise this sink should
-     * continue performing attenuation in software without HW_VOLUME_CTL.
+    /* Remote volume control has to be supported for the callback to make sense,
+     * otherwise this sink should continue performing attenuation in software
+     * without HW_VOLUME_CTL.
+     * If the peer is an AG however backend-native unconditionally provides this
+     * function, PA in the role of HS/HF is responsible for signalling support
+     * by emitting an initial volume command.
      */
     if (!u->transport->set_sink_volume)
         return;
 
     if (pa_bluetooth_profile_should_attenuate_volume(u->profile)) {
-        pa_log_debug("%s: Peer supports receiving volume update notifications", s->name);
+        if (u->sink_volume_changed_slot)
+            return;
+
+        pa_log_debug("%s: Attaching volume hook to notify peer of changes", s->name);
+
+        u->sink_volume_changed_slot = pa_hook_connect(&s->core->hooks[PA_CORE_HOOK_SINK_VOLUME_CHANGED],
+                                                      PA_HOOK_NORMAL, sink_source_volume_changed_cb, u);
+
+        /* Send initial volume to peer, signalling support for volume control */
+        u->transport->set_sink_volume(u->transport, pa_cvolume_max(&s->real_volume));
     } else {
+        if (s->set_volume == sink_set_volume_cb)
+            return;
+
         pa_log_debug("%s: Resetting software volume for hardware attenuation by peer", s->name);
 
         /* Reset local attenuation */
         pa_sink_set_soft_volume(s, NULL);
-    }
 
-    pa_sink_set_set_volume_callback(s, sink_set_volume_cb);
-    s->n_volume_steps = 16;
+        pa_sink_set_set_volume_callback(s, sink_set_volume_cb);
+        s->n_volume_steps = 16;
+    }
 }
 
 /* Run from main thread */
@@ -1768,6 +1818,16 @@ static void stop_thread(struct userdata *u) {
     if (u->transport) {
         transport_release(u);
         u->transport = NULL;
+    }
+
+    if (u->sink_volume_changed_slot) {
+        pa_hook_slot_free(u->sink_volume_changed_slot);
+        u->sink_volume_changed_slot = NULL;
+    }
+
+    if (u->source_volume_changed_slot) {
+        pa_hook_slot_free(u->source_volume_changed_slot);
+        u->source_volume_changed_slot = NULL;
     }
 
     if (u->sink) {
