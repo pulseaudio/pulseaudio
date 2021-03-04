@@ -273,7 +273,7 @@ static size_t decode_buffer(void *codec_info, const uint8_t *input_buffer, size_
     uint8_t lost_packets = (4 + seq - sbc_info->msbc_seq++) % 4;
 
     if (lost_packets) {
-        pa_log_error("Lost %d input audio packet(s)", lost_packets);
+        pa_log_debug("Lost %d input audio packet(s)", lost_packets);
         sbc_info->msbc_seq = seq + 1;
     }
 
