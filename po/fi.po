@@ -10,8 +10,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-01-22 09:11+0200\n"
-"PO-Revision-Date: 2021-02-17 19:40+0000\n"
-"Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
+"PO-Revision-Date: 2021-03-06 14:01+0000\n"
+"Last-Translator: Ricky Tigg <ricky.tigg@gmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/fi/>\n"
 "Language: fi\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.4.2\n"
+"X-Generator: Weblate 4.5.1\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -722,7 +722,7 @@ msgstr "Digitaalinen sisääntulo (S/PDIF)"
 
 #: src/modules/alsa/alsa-mixer.c:2816
 msgid "Multichannel Input"
-msgstr ""
+msgstr "Monikanavainen sisääntulo"
 
 #: src/modules/alsa/alsa-mixer.c:2817
 msgid "Multichannel Output"
@@ -1021,7 +1021,7 @@ msgstr[1] ""
 #: src/modules/bluetooth/module-bluez5-device.c:1829
 #: src/modules/bluetooth/module-bluez5-device.c:1836
 msgid "Bluetooth Input"
-msgstr ""
+msgstr "Bluetooth:n sisääntulo"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1804
 #: src/modules/bluetooth/module-bluez5-device.c:1823
@@ -2913,7 +2913,7 @@ msgstr "NIMI|#N VOLUUMI [VOLUUMI ...]"
 
 #: src/utils/pactl.c:1704
 msgid "#N VOLUME [VOLUME ...]"
-msgstr ""
+msgstr "#N TALTIO [TALTIO ...]"
 
 #: src/utils/pactl.c:1705
 msgid "NAME|#N 1|0|toggle"
