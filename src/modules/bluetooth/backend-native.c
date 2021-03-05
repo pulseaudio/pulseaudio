@@ -560,7 +560,7 @@ static void rfcomm_io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_i
          * AT+CKPD=200: Sent by HS when headset button is pressed.
          * RING: Sent by AG to HS to notify of an incoming call. It can safely be ignored because
          * it does not expect a reply. */
-        if (sscanf(buf, "AT+VGS=%d", &gain) == 1 || sscanf(buf, "\r\n+VGM=%d\r\n", &gain) == 1) {
+        if (sscanf(buf, "AT+VGS=%d", &gain) == 1 || sscanf(buf, "\r\n+VGM%*[=:]%d\r\n", &gain) == 1) {
             if (!t->set_sink_volume) {
                 pa_log_debug("HS/HF peer supports speaker gain control");
                 t->set_sink_volume = set_sink_volume;
@@ -570,7 +570,7 @@ static void rfcomm_io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_i
             pa_hook_fire(pa_bluetooth_discovery_hook(t->device->discovery, PA_BLUETOOTH_HOOK_TRANSPORT_SINK_VOLUME_CHANGED), t);
             do_reply = true;
 
-        } else if (sscanf(buf, "AT+VGM=%d", &gain) == 1 || sscanf(buf, "\r\n+VGS=%d\r\n", &gain) == 1) {
+        } else if (sscanf(buf, "AT+VGM=%d", &gain) == 1 || sscanf(buf, "\r\n+VGS%*[=:]%d\r\n", &gain) == 1) {
             if (!t->set_source_volume) {
                 pa_log_debug("HS/HF peer supports microphone gain control");
                 t->set_source_volume = set_source_volume;
