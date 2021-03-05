@@ -473,6 +473,9 @@ static void transport_put(pa_bluetooth_transport *t)
     pa_log_debug("Transport %s available for profile %s", t->path, pa_bluetooth_profile_to_string(t->profile));
 }
 
+static pa_volume_t set_sink_volume(pa_bluetooth_transport *t, pa_volume_t volume);
+static pa_volume_t set_source_volume(pa_bluetooth_transport *t, pa_volume_t volume);
+
 static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf)
 {
     struct hfp_config *c = t->config;
@@ -480,11 +483,12 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
 
     /* stateful negotiation */
     if (c->state == 0 && sscanf(buf, "AT+BRSF=%d", &val) == 1) {
-          c->capabilities = val;
-          pa_log_info("HFP capabilities returns 0x%x", val);
-          rfcomm_write_response(fd, "+BRSF: %d", hfp_features);
-          c->state = 1;
-          return true;
+        c->capabilities = val;
+        pa_log_info("HFP capabilities returns 0x%x", val);
+        rfcomm_write_response(fd, "+BRSF: %d", hfp_features);
+        c->state = 1;
+
+        return true;
     } else if (c->state == 1 && pa_startswith(buf, "AT+CIND=?")) {
           /* we declare minimal no indicators */
         rfcomm_write_response(fd, "+CIND: "
@@ -557,11 +561,21 @@ static void rfcomm_io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_i
          * RING: Sent by AG to HS to notify of an incoming call. It can safely be ignored because
          * it does not expect a reply. */
         if (sscanf(buf, "AT+VGS=%d", &gain) == 1 || sscanf(buf, "\r\n+VGM=%d\r\n", &gain) == 1) {
+            if (!t->set_sink_volume) {
+                pa_log_debug("HS/HF peer supports speaker gain control");
+                t->set_sink_volume = set_sink_volume;
+            }
+
             t->sink_volume = hsp_gain_to_volume(gain);
             pa_hook_fire(pa_bluetooth_discovery_hook(t->device->discovery, PA_BLUETOOTH_HOOK_TRANSPORT_SINK_VOLUME_CHANGED), t);
             do_reply = true;
 
         } else if (sscanf(buf, "AT+VGM=%d", &gain) == 1 || sscanf(buf, "\r\n+VGS=%d\r\n", &gain) == 1) {
+            if (!t->set_source_volume) {
+                pa_log_debug("HS/HF peer supports microphone gain control");
+                t->set_source_volume = set_source_volume;
+            }
+
             t->source_volume = hsp_gain_to_volume(gain);
             pa_hook_fire(pa_bluetooth_discovery_hook(t->device->discovery, PA_BLUETOOTH_HOOK_TRANSPORT_SOURCE_VOLUME_CHANGED), t);
             do_reply = true;
@@ -717,8 +731,25 @@ static DBusMessage *profile_new_connection(DBusConnection *conn, DBusMessage *m,
     t->acquire = sco_acquire_cb;
     t->release = sco_release_cb;
     t->destroy = transport_destroy;
-    t->set_sink_volume = set_sink_volume;
-    t->set_source_volume = set_source_volume;
+
+    /* If PA is the HF/HS we are in control of volume attenuation and
+     * can always send volume commands (notifications) to keep the peer
+     * updated on actual volume value.
+     *
+     * If the peer is the HF/HS it is responsible for attenuation of both
+     * speaker and microphone gain.
+     * On HFP speaker/microphone gain support is reported by bit 4 in the
+     * `AT+BRSF=` command. Since it isn't explicitly documented whether this
+     * applies to speaker or microphone gain but the peer is required to send
+     * an initial value with `AT+VG[MS]=` either callback is hooked
+     * independently as soon as this command is received.
+     * On HSP this is not specified and is assumed to be dynamic for both
+     * speaker and microphone.
+     */
+    if (is_peer_audio_gateway(p)) {
+        t->set_sink_volume = set_sink_volume;
+        t->set_source_volume = set_source_volume;
+    }
 
     trd = pa_xnew0(struct transport_data, 1);
     trd->rfcomm_fd = fd;

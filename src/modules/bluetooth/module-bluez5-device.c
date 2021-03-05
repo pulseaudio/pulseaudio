@@ -1041,10 +1041,8 @@ static int add_source(struct userdata *u) {
     u->source->parent.process_msg = source_process_msg;
     u->source->set_state_in_io_thread = source_set_state_in_io_thread_cb;
 
-    if (u->profile == PA_BLUETOOTH_PROFILE_HSP_HS
-        || u->profile == PA_BLUETOOTH_PROFILE_HSP_AG
-        || u->profile == PA_BLUETOOTH_PROFILE_HFP_AG
-        || u->profile == PA_BLUETOOTH_PROFILE_HFP_HF) {
+    if (u->transport->set_source_volume) {
+        pa_log_debug("Peer supports microphone gain control");
         pa_source_set_set_volume_callback(u->source, source_set_volume_cb);
         u->source->n_volume_steps = 16;
     }
@@ -1222,10 +1220,8 @@ static int add_sink(struct userdata *u) {
     u->sink->parent.process_msg = sink_process_msg;
     u->sink->set_state_in_io_thread = sink_set_state_in_io_thread_cb;
 
-    if (u->profile == PA_BLUETOOTH_PROFILE_HSP_HS
-        || u->profile == PA_BLUETOOTH_PROFILE_HSP_AG
-        || u->profile == PA_BLUETOOTH_PROFILE_HFP_AG
-        || u->profile == PA_BLUETOOTH_PROFILE_HFP_HF) {
+    if (u->transport->set_sink_volume) {
+        pa_log_debug("Peer supports speaker gain control");
         pa_sink_set_set_volume_callback(u->sink, sink_set_volume_cb);
         u->sink->n_volume_steps = 16;
     }
