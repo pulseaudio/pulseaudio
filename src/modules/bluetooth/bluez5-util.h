@@ -87,6 +87,7 @@ typedef enum pa_bluetooth_transport_state {
 typedef int (*pa_bluetooth_transport_acquire_cb)(pa_bluetooth_transport *t, bool optional, size_t *imtu, size_t *omtu);
 typedef void (*pa_bluetooth_transport_release_cb)(pa_bluetooth_transport *t);
 typedef void (*pa_bluetooth_transport_destroy_cb)(pa_bluetooth_transport *t);
+typedef bool (*pa_bluetooth_transport_can_attenuate_volume_cb)(pa_bluetooth_transport *t);
 typedef void (*pa_bluetooth_transport_set_speaker_gain_cb)(pa_bluetooth_transport *t, uint16_t gain);
 typedef void (*pa_bluetooth_transport_set_microphone_gain_cb)(pa_bluetooth_transport *t, uint16_t gain);
 
@@ -111,7 +112,13 @@ struct pa_bluetooth_transport {
     pa_bluetooth_transport_acquire_cb acquire;
     pa_bluetooth_transport_release_cb release;
     pa_bluetooth_transport_destroy_cb destroy;
+    /* If set, then set_sink_volume callback must be set as well.
+     * Returns true if peer reachable through transport can attenuate sink volume. */
+    pa_bluetooth_transport_can_attenuate_volume_cb can_attenuate_sink_volume;
     pa_bluetooth_transport_set_speaker_gain_cb set_speaker_gain;
+    /* If set, then set_source_volume callback must be set as well.
+     * Returns true if peer reachable through transport can attenuate source volume. */
+    pa_bluetooth_transport_can_attenuate_volume_cb can_attenuate_source_volume;
     pa_bluetooth_transport_set_microphone_gain_cb set_microphone_gain;
     void *userdata;
 };
