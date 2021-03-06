@@ -10,7 +10,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-01-22 09:11+0200\n"
-"PO-Revision-Date: 2021-03-06 14:01+0000\n"
+"PO-Revision-Date: 2021-03-07 17:01+0000\n"
 "Last-Translator: Ricky Tigg <ricky.tigg@gmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/fi/>\n"
@@ -564,6 +564,8 @@ msgid ""
 "Failed to initialize daemon due to errors while executing startup commands. "
 "Source of commands: %s"
 msgstr ""
+"Demonin alustaminen epäonnistui käynnistyskomentoja suoritettaessa "
+"esiintyvien virheiden vuoksi. Komentojen lähde: %s"
 
 #: src/daemon/main.c:1131
 msgid "Daemon startup without any loaded modules, refusing to work."
@@ -778,7 +780,7 @@ msgstr "Stereo"
 #: src/modules/alsa/alsa-mixer.c:4575 src/modules/alsa/alsa-mixer.c:4733
 #: src/modules/bluetooth/module-bluez5-device.c:1810 src/utils/pactl.c:259
 msgid "Headset"
-msgstr ""
+msgstr "Kuulokkeet"
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
 msgid "Speakerphone"
@@ -786,7 +788,7 @@ msgstr "Kaiutinpuhelin"
 
 #: src/modules/alsa/alsa-mixer.c:4577 src/modules/alsa/alsa-mixer.c:4578
 msgid "Multichannel"
-msgstr ""
+msgstr "Monikanavainen"
 
 #: src/modules/alsa/alsa-mixer.c:4579
 msgid "Analog Surround 2.1"
@@ -878,7 +880,7 @@ msgstr "Digitaalinen stereo, molemmat suunnat (IEC958)"
 
 #: src/modules/alsa/alsa-mixer.c:4736
 msgid "Multichannel Duplex"
-msgstr ""
+msgstr "Monikanavainen Duplex"
 
 #: src/modules/alsa/alsa-mixer.c:4737
 msgid "Stereo Duplex"
@@ -886,7 +888,7 @@ msgstr "Stereo, molemmat suunnat"
 
 #: src/modules/alsa/alsa-mixer.c:4738
 msgid "Mono Chat + 7.1 Surround"
-msgstr ""
+msgstr "Mono Chat + 7.1 Surround"
 
 #: src/modules/alsa/alsa-mixer.c:4739 src/modules/alsa/module-alsa-card.c:197
 #: src/modules/bluetooth/module-bluez5-device.c:2083
@@ -1030,7 +1032,7 @@ msgstr "Bluetooth ulostulo"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1816 src/utils/pactl.c:270
 msgid "Handsfree"
-msgstr ""
+msgstr "Kädet vapaana"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1837
 msgid "Headphone"
@@ -1038,19 +1040,19 @@ msgstr "Kuuloke"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1843 src/utils/pactl.c:269
 msgid "Portable"
-msgstr ""
+msgstr "Kannettava"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1849 src/utils/pactl.c:271
 msgid "Car"
-msgstr ""
+msgstr "Auto"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1855 src/utils/pactl.c:272
 msgid "HiFi"
-msgstr ""
+msgstr "Hi-Fi"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1861 src/utils/pactl.c:273
 msgid "Phone"
-msgstr ""
+msgstr "Puhelin"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1908
 msgid "High Fidelity Playback (A2DP Sink)"
@@ -1062,14 +1064,13 @@ msgstr "Korkean äänenlaadun kaappaus (A2DP Source)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1932
 msgid "Headset Head Unit (HSP/HFP)"
-msgstr ""
+msgstr "Kuulokkeiden pääyksikkö (HSP/HFP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1945
 msgid "Headset Audio Gateway (HSP/HFP)"
-msgstr ""
+msgstr "Kuulokkeiden ääniyhdyskäytävä (HSP/HFP)"
 
 #: src/modules/echo-cancel/module-echo-cancel.c:59
-#, fuzzy
 msgid ""
 "source_name=<name for the source> source_properties=<properties for the "
 "source> source_master=<name of source to filter> sink_name=<name for the "
@@ -1082,12 +1083,13 @@ msgid ""
 "loaded automatically> use_volume_sharing=<yes or no> use_master_format=<yes "
 "or no> "
 msgstr ""
-"sink_name=<nielun nimi> sink_properties=<nielun asetukset> "
-"master=<suodatettavan nielun nimi> format=<näytemuoto> "
-"rate=<näytteenottotaajuus> channels=<kanavien määrä> "
-"channel_map=<kanavakartta> plugin=<ladspa-liitännäisen nimi> label=<ladspa-"
-"liitännäisen nimiö (label)> control=<pilkulla erotettu luettelo "
-"syötteenhallinta-arvoja> "
+"source_name=<lähteen nimi> source_properties=<lähteen ominaisuudet> "
+"source_master=<suodatettavan lähteen nimi> sink_name=<nielun nimi> "
+"sink_properties=<nielun ominaisuudet> sink_master=<suodatettavan nielun "
+"nimi> Adjust_time=<kuinka usein säädä nopeuksia s-arvoissa <käytettävä "
+"toteutus> aec_args=<AEC-moottorin parametrit> save_aec=<tallenna AEC-tiedot/"
+"tmp> autoloaded=<aseta, jos tätä moduulia ladataan automaattisesti> "
+"use_volume_sharing=<kyllä tai ei> use_master_format=<kyllä tai ei> "
 
 #. add on profile
 #: src/modules/macosx/module-coreaudio-device.c:825
@@ -1109,7 +1111,7 @@ msgstr "Pidä aina vähintään yksi lähde ladattuna, vaikka se olisi tyhjä l�
 
 #: src/modules/module-equalizer-sink.c:68
 msgid "General Purpose Equalizer"
-msgstr ""
+msgstr "Yleiskäyttöinen taajuuskorjain"
 
 #: src/modules/module-equalizer-sink.c:72
 msgid ""
@@ -1129,7 +1131,7 @@ msgstr ""
 #: src/modules/module-equalizer-sink.c:1217
 #, c-format
 msgid "FFT based equalizer on %s"
-msgstr ""
+msgstr "FFT-pohjainen taajuuskorjain %s:lla"
 
 #: src/modules/module-filter-apply.c:47
 msgid "autoclean=<automatically unload unused filters?>"
@@ -1140,7 +1142,6 @@ msgid "Virtual LADSPA sink"
 msgstr "Virtuaalinen LADSPA-nielu"
 
 #: src/modules/module-ladspa-sink.c:54
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "sink_input_properties=<properties for the sink input> master=<name of sink "
@@ -1152,12 +1153,16 @@ msgid ""
 "separated list of output LADSPA port names> autoloaded=<set if this module "
 "is being loaded automatically> "
 msgstr ""
-"sink_name=<nielun nimi> sink_properties=<nielun asetukset> "
-"master=<suodatettavan nielun nimi> format=<näytemuoto> "
-"rate=<näytteenottotaajuus> channels=<kanavien määrä> "
-"channel_map=<kanavakartta> plugin=<ladspa-liitännäisen nimi> label=<ladspa-"
-"liitännäisen nimiö (label)> control=<pilkulla erotettu luettelo "
-"syötteenhallinta-arvoja> "
+"sink_name=<nielun nimi> sink_properties=<nielun ominaisuudet> "
+"sink_input_properties=<nielun tulo-ominaisuudet> master=<suodattavan nielun "
+"nimi> sink_master=<suodatettavan nielun nimi> format=<näytemuoto> "
+"korko=<otosnopeus> kanavat=<kanavien lukumäärä> "
+"kanavan_kartta=<tulokanavakartta> laajennus=<ladspa-laajennuksen nimi> "
+"etiketti=<ladspa-laajennuksen tunniste> ohjaus=<pilkulla erotettu luettelo "
+"tulon ohjausarvoista> input_ladspaport_map=<pilkulla erotettu luettelo "
+"syötettyjen LADSPA-porttien nimistä> output_ladspaport_map=<pilkuilla "
+"erotettu luettelo lähtevien LADSPA-porttien nimistä> autoloaded=<aseta, jos "
+"tätä moduulia ladataan automaattisesti> "
 
 #: src/modules/module-null-sink.c:46
 msgid "Clocked NULL sink"
@@ -1194,20 +1199,19 @@ msgstr "Ääni koneella @HOSTNAME@"
 #: src/modules/module-tunnel-source-new.c:305
 #, c-format
 msgid "Tunnel for %s@%s"
-msgstr ""
+msgstr "Tunneli %s@%s:ta varten"
 
 #: src/modules/module-tunnel-sink-new.c:564
 #: src/modules/module-tunnel-source-new.c:540
 #, c-format
 msgid "Tunnel to %s/%s"
-msgstr ""
+msgstr "Tunneli %s/%s:een"
 
 #: src/modules/module-virtual-surround-sink.c:50
 msgid "Virtual surround sink"
 msgstr "Virtuaalinen ympäristö-nielu"
 
 #: src/modules/module-virtual-surround-sink.c:54
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "master=<name of sink to filter> sink_master=<name of sink to filter> "
@@ -1217,12 +1221,13 @@ msgid ""
 "left_hrir.wav hrir_right=/path/to/optional/right_hrir.wav autoloaded=<set if "
 "this module is being loaded automatically> "
 msgstr ""
-"sink_name=<nielun nimi> sink_properties=<nielun asetukset> "
-"master=<suodatettavan nielun nimi> format=<näytemuoto> "
-"rate=<näytteenottotaajuus> channels=<kanavien määrä> "
-"channel_map=<kanavakartta> plugin=<ladspa-liitännäisen nimi> label=<ladspa-"
-"liitännäisen nimiö (label)> control=<pilkulla erotettu luettelo "
-"syötteenhallinta-arvoja> "
+"sink_name=<nielun nimi> sink_properties=<nielun ominaisuudet> "
+"master=<suodattavan nielun nimi> sink_master=<suodattavan nielun nimi> "
+"format=<näytemuoto> nopeus=<näytteenottotaajuus> kanavat=<numero kanavista> "
+"channel_map=<kanavakartta> use_volume_sharing=<kyllä tai ei> "
+"force_flat_volume=<kyllä tai ei> hrir=/path/to/left_hrir.wav hrir_left=/path/"
+"to/left_hrir.wav hrir_right=/path/to/valinnainen/right_hrir.wav "
+"autoloaded=<aseta, jos tätä moduulia ladataan automaattisesti> "
 
 #: src/modules/raop/module-raop-discover.c:295
 msgid "Unknown device model"
@@ -2647,7 +2652,7 @@ msgid "Failed to get sink input information: %s"
 msgstr "Nielun sisääntulon tietojen nouto epäonnistui: %s"
 
 #: src/utils/pactl.c:700
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Sink Input #%u\n"
 "\tDriver: %s\n"
@@ -2674,11 +2679,11 @@ msgstr ""
 "\tNielu: %u\n"
 "\tNäytemäärittely: %s\n"
 "\tKanavakartta: %s\n"
-"    Formaatti: %s\n"
+"\tFormaatti: %s\n"
+"\tCorked: %s\n"
 "\tVaimennus: %s\n"
 "\tÄänenvoimakkuus: %s\n"
-"\t                 %s\n"
-"\t                 balanssi %0.2f\n"
+"\tTasapaino %0.2f\n"
 "\tPuskurin latenssi: %0.0f μs\n"
 "\tNielun latenssi: %0.0f μs\n"
 "\tUudelleennäytteistyksen tapa: %s\n"
@@ -2691,7 +2696,7 @@ msgid "Failed to get source output information: %s"
 msgstr "Lähteen ulostulon tietojen nouto epäonnistui: %s"
 
 #: src/utils/pactl.c:770
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Source Output #%u\n"
 "\tDriver: %s\n"
@@ -2718,11 +2723,11 @@ msgstr ""
 "\tLähde: %u\n"
 "\tNäytemäärittely: %s\n"
 "\tKanavakartta: %s\n"
-"    Formaatti: %s\n"
+"\tFormaatti: %s\n"
+"\tCorked: %s\n"
 "\tVaimennus: %s\n"
 "\tÄänenvoimakkuus: %s\n"
-"\t                 %s\n"
-"\t                 balanssi %0.2f\n"
+"\tTasapaino %0.2f\n"
 "\tPuskurin latenssi: %0.0f μs\n"
 "\tLähteen latenssi: %0.0f μs\n"
 "\tUudelleennäytteistyksen tapa: %s\n"
