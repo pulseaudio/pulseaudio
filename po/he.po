@@ -6,8 +6,8 @@ msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2021-03-08 16:26+0200\n"
-"PO-Revision-Date: 2021-03-02 14:40+0000\n"
+"POT-Creation-Date: 2021-01-22 09:11+0200\n"
+"PO-Revision-Date: 2021-03-09 09:01+0000\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/he/>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Weblate 4.4.2\n"
+"X-Generator: Weblate 4.5.1\n"
 "X-Poedit-Language: Hebrew\n"
 "X-Poedit-Country: Israel\n"
 
@@ -2128,7 +2128,7 @@ msgstr ""
 
 #: src/utils/pactl.c:242
 msgid "availability unknown"
-msgstr ""
+msgstr "זמינות לא יודעת"
 
 #: src/utils/pactl.c:243
 msgid "available"
@@ -2160,7 +2160,7 @@ msgstr ""
 
 #: src/utils/pactl.c:261
 msgid "Earpiece"
-msgstr ""
+msgstr "אוזניה"
 
 #: src/utils/pactl.c:262
 msgid "SPDIF"
@@ -2172,15 +2172,15 @@ msgstr "HDMI"
 
 #: src/utils/pactl.c:264
 msgid "TV"
-msgstr ""
+msgstr "טלוויזיה"
 
 #: src/utils/pactl.c:267
 msgid "USB"
-msgstr ""
+msgstr "USB"
 
 #: src/utils/pactl.c:268
 msgid "Bluetooth"
-msgstr ""
+msgstr "בלוטות׳"
 
 #: src/utils/pactl.c:274
 msgid "Network"
