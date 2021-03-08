@@ -13,7 +13,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2021-01-22 09:11+0200\n"
+"POT-Creation-Date: 2021-03-08 16:26+0200\n"
 "PO-Revision-Date: 2016-03-15 08:25+0000\n"
 "Last-Translator: Kenzo Moriguchi <kmoriguc@redhat.com>\n"
 "Language-Team: Japanese <jp@li.org>\n"
@@ -599,7 +599,7 @@ msgid "Line In"
 msgstr "ラインイン"
 
 #: src/modules/alsa/alsa-mixer.c:2713 src/modules/alsa/alsa-mixer.c:2797
-#: src/modules/bluetooth/module-bluez5-device.c:1822
+#: src/modules/bluetooth/module-bluez5-device.c:1847
 msgid "Microphone"
 msgstr "マイクロフォン"
 
@@ -662,7 +662,7 @@ msgid "No Bass Boost"
 msgstr "低音ブーストなし"
 
 #: src/modules/alsa/alsa-mixer.c:2728
-#: src/modules/bluetooth/module-bluez5-device.c:1830 src/utils/pactl.c:255
+#: src/modules/bluetooth/module-bluez5-device.c:1855 src/utils/pactl.c:255
 msgid "Speaker"
 msgstr "スピーカー"
 
@@ -785,7 +785,7 @@ msgid "Stereo"
 msgstr "ステレオ"
 
 #: src/modules/alsa/alsa-mixer.c:4575 src/modules/alsa/alsa-mixer.c:4733
-#: src/modules/bluetooth/module-bluez5-device.c:1810 src/utils/pactl.c:259
+#: src/modules/bluetooth/module-bluez5-device.c:1835 src/utils/pactl.c:259
 msgid "Headset"
 msgstr "ヘッドセット"
 
@@ -901,7 +901,7 @@ msgid "Mono Chat + 7.1 Surround"
 msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:4739 src/modules/alsa/module-alsa-card.c:197
-#: src/modules/bluetooth/module-bluez5-device.c:2083
+#: src/modules/bluetooth/module-bluez5-device.c:2138
 msgid "Off"
 msgstr "オフ"
 
@@ -1014,55 +1014,67 @@ msgstr[0] ""
 "これは多分、ALSA ドライバー '%s' 内のバグです。この問題は ALSA 開発者宛に報告"
 "を提出して下さい。"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1803
-#: src/modules/bluetooth/module-bluez5-device.c:1829
-#: src/modules/bluetooth/module-bluez5-device.c:1836
+#: src/modules/bluetooth/module-bluez5-device.c:1828
+#: src/modules/bluetooth/module-bluez5-device.c:1854
+#: src/modules/bluetooth/module-bluez5-device.c:1861
 msgid "Bluetooth Input"
 msgstr "Bluetooth 入力"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1804
-#: src/modules/bluetooth/module-bluez5-device.c:1823
+#: src/modules/bluetooth/module-bluez5-device.c:1829
+#: src/modules/bluetooth/module-bluez5-device.c:1848
 msgid "Bluetooth Output"
 msgstr "Bluetooth 出力"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1816 src/utils/pactl.c:270
+#: src/modules/bluetooth/module-bluez5-device.c:1841 src/utils/pactl.c:270
 msgid "Handsfree"
 msgstr "ハンズフリー"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1837
+#: src/modules/bluetooth/module-bluez5-device.c:1862
 msgid "Headphone"
 msgstr "ヘッドフォン"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1843 src/utils/pactl.c:269
+#: src/modules/bluetooth/module-bluez5-device.c:1868 src/utils/pactl.c:269
 msgid "Portable"
 msgstr "ポータブル"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1849 src/utils/pactl.c:271
+#: src/modules/bluetooth/module-bluez5-device.c:1874 src/utils/pactl.c:271
 msgid "Car"
 msgstr "車"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1855 src/utils/pactl.c:272
+#: src/modules/bluetooth/module-bluez5-device.c:1880 src/utils/pactl.c:272
 msgid "HiFi"
 msgstr "HiFi"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1861 src/utils/pactl.c:273
+#: src/modules/bluetooth/module-bluez5-device.c:1886 src/utils/pactl.c:273
 msgid "Phone"
 msgstr "電話"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1908
+#: src/modules/bluetooth/module-bluez5-device.c:1933
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "ハイファイ再生 (A2DP シンク)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1920
+#: src/modules/bluetooth/module-bluez5-device.c:1945
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "ハイファイキャプチャー (A2DP ソース)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1932
-msgid "Headset Head Unit (HSP/HFP)"
+#: src/modules/bluetooth/module-bluez5-device.c:1957
+#, fuzzy
+msgid "Headset Head Unit (HSP)"
 msgstr "ヘッドセットヘッドユニット (HSP/HFP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1945
-msgid "Headset Audio Gateway (HSP/HFP)"
+#: src/modules/bluetooth/module-bluez5-device.c:1970
+#, fuzzy
+msgid "Headset Audio Gateway (HSP)"
+msgstr "ヘッドセットオーディオゲートウェイ (HSP/HFP)"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1983
+#, fuzzy
+msgid "Handsfree Head Unit (HFP)"
+msgstr "ヘッドセットヘッドユニット (HSP/HFP)"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1996
+#, fuzzy
+msgid "Handsfree Audio Gateway (HFP)"
 msgstr "ヘッドセットオーディオゲートウェイ (HSP/HFP)"
 
 #: src/modules/echo-cancel/module-echo-cancel.c:59
@@ -1545,11 +1557,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "無効なログターゲット。"
 
-#: src/pulsecore/sink.c:3534
+#: src/pulsecore/sink.c:3535
 msgid "Built-in Audio"
 msgstr "内部オーディオ"
 
-#: src/pulsecore/sink.c:3539
+#: src/pulsecore/sink.c:3540
 msgid "Modem"
 msgstr "モデム"
 

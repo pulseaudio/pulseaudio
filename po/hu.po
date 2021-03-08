@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: PulseAudio master\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2021-01-22 09:11+0200\n"
+"POT-Creation-Date: 2021-03-08 16:26+0200\n"
 "PO-Revision-Date: 2020-07-21 15:29+0000\n"
 "Last-Translator: Balázs Meskó <meskobalazs@mailbox.org>\n"
 "Language-Team: Hungarian <https://translate.fedoraproject.org/projects/"
@@ -618,7 +618,7 @@ msgid "Line In"
 msgstr "Vonalbemenet"
 
 #: src/modules/alsa/alsa-mixer.c:2713 src/modules/alsa/alsa-mixer.c:2797
-#: src/modules/bluetooth/module-bluez5-device.c:1822
+#: src/modules/bluetooth/module-bluez5-device.c:1847
 msgid "Microphone"
 msgstr "Mikrofon"
 
@@ -681,7 +681,7 @@ msgid "No Bass Boost"
 msgstr "Nincs basszuskiemelés"
 
 #: src/modules/alsa/alsa-mixer.c:2728
-#: src/modules/bluetooth/module-bluez5-device.c:1830 src/utils/pactl.c:255
+#: src/modules/bluetooth/module-bluez5-device.c:1855 src/utils/pactl.c:255
 msgid "Speaker"
 msgstr "Hangszóró"
 
@@ -802,7 +802,7 @@ msgid "Stereo"
 msgstr "Sztereó"
 
 #: src/modules/alsa/alsa-mixer.c:4575 src/modules/alsa/alsa-mixer.c:4733
-#: src/modules/bluetooth/module-bluez5-device.c:1810 src/utils/pactl.c:259
+#: src/modules/bluetooth/module-bluez5-device.c:1835 src/utils/pactl.c:259
 msgid "Headset"
 msgstr "Fejhallgató"
 
@@ -917,7 +917,7 @@ msgid "Mono Chat + 7.1 Surround"
 msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:4739 src/modules/alsa/module-alsa-card.c:197
-#: src/modules/bluetooth/module-bluez5-device.c:2083
+#: src/modules/bluetooth/module-bluez5-device.c:2138
 msgid "Off"
 msgstr "Kikapcsolva"
 
@@ -1049,56 +1049,68 @@ msgstr[1] ""
 "Ez valószínűleg egy hiba eredménye az ALSA „%s” illesztőprogramban. Jelentse "
 "ezt a problémát az ALSA fejlesztői felé."
 
-#: src/modules/bluetooth/module-bluez5-device.c:1803
-#: src/modules/bluetooth/module-bluez5-device.c:1829
-#: src/modules/bluetooth/module-bluez5-device.c:1836
+#: src/modules/bluetooth/module-bluez5-device.c:1828
+#: src/modules/bluetooth/module-bluez5-device.c:1854
+#: src/modules/bluetooth/module-bluez5-device.c:1861
 msgid "Bluetooth Input"
 msgstr "Bluetooth bemenet"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1804
-#: src/modules/bluetooth/module-bluez5-device.c:1823
+#: src/modules/bluetooth/module-bluez5-device.c:1829
+#: src/modules/bluetooth/module-bluez5-device.c:1848
 msgid "Bluetooth Output"
 msgstr "Bluetooth kimenet"
 
 # FIXME: utánanézni
-#: src/modules/bluetooth/module-bluez5-device.c:1816 src/utils/pactl.c:270
+#: src/modules/bluetooth/module-bluez5-device.c:1841 src/utils/pactl.c:270
 msgid "Handsfree"
 msgstr "Kihangosító"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1837
+#: src/modules/bluetooth/module-bluez5-device.c:1862
 msgid "Headphone"
 msgstr "Fülhallgató"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1843 src/utils/pactl.c:269
+#: src/modules/bluetooth/module-bluez5-device.c:1868 src/utils/pactl.c:269
 msgid "Portable"
 msgstr "Hordozható"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1849 src/utils/pactl.c:271
+#: src/modules/bluetooth/module-bluez5-device.c:1874 src/utils/pactl.c:271
 msgid "Car"
 msgstr "Autó"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1855 src/utils/pactl.c:272
+#: src/modules/bluetooth/module-bluez5-device.c:1880 src/utils/pactl.c:272
 msgid "HiFi"
 msgstr "Hi-Fi"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1861 src/utils/pactl.c:273
+#: src/modules/bluetooth/module-bluez5-device.c:1886 src/utils/pactl.c:273
 msgid "Phone"
 msgstr "Telefon"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1908
+#: src/modules/bluetooth/module-bluez5-device.c:1933
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "Hi-Fi lejátszás (A2DP bemenet)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1920
+#: src/modules/bluetooth/module-bluez5-device.c:1945
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "Hi-Fi felvétel (A2DP forrás)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1932
-msgid "Headset Head Unit (HSP/HFP)"
+#: src/modules/bluetooth/module-bluez5-device.c:1957
+#, fuzzy
+msgid "Headset Head Unit (HSP)"
 msgstr "Fejhallgató fejegység (HSP/HFP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1945
-msgid "Headset Audio Gateway (HSP/HFP)"
+#: src/modules/bluetooth/module-bluez5-device.c:1970
+#, fuzzy
+msgid "Headset Audio Gateway (HSP)"
+msgstr "Fejhallgató hangátjáró (HSP/HFP)"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1983
+#, fuzzy
+msgid "Handsfree Head Unit (HFP)"
+msgstr "Fejhallgató fejegység (HSP/HFP)"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1996
+#, fuzzy
+msgid "Handsfree Audio Gateway (HFP)"
 msgstr "Fejhallgató hangátjáró (HSP/HFP)"
 
 #: src/modules/echo-cancel/module-echo-cancel.c:59
@@ -1586,11 +1598,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "Érvénytelen naplózási cél."
 
-#: src/pulsecore/sink.c:3534
+#: src/pulsecore/sink.c:3535
 msgid "Built-in Audio"
 msgstr "Belső hangforrás"
 
-#: src/pulsecore/sink.c:3539
+#: src/pulsecore/sink.c:3540
 msgid "Modem"
 msgstr "Modem"
 

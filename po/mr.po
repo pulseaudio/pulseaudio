@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2021-01-22 09:11+0200\n"
+"POT-Creation-Date: 2021-03-08 16:26+0200\n"
 "PO-Revision-Date: 2012-01-30 09:54+0000\n"
 "Last-Translator: Sandeep Shedmake <sshedmak@redhat.com>\n"
 "Language-Team: Marathi <fedora-trans-mr@redhat.com>\n"
@@ -588,7 +588,7 @@ msgid "Line In"
 msgstr "लाइन-इन"
 
 #: src/modules/alsa/alsa-mixer.c:2713 src/modules/alsa/alsa-mixer.c:2797
-#: src/modules/bluetooth/module-bluez5-device.c:1822
+#: src/modules/bluetooth/module-bluez5-device.c:1847
 msgid "Microphone"
 msgstr "माइक्रोफोन"
 
@@ -655,7 +655,7 @@ msgid "No Bass Boost"
 msgstr "बूस्ट अशक्य"
 
 #: src/modules/alsa/alsa-mixer.c:2728
-#: src/modules/bluetooth/module-bluez5-device.c:1830 src/utils/pactl.c:255
+#: src/modules/bluetooth/module-bluez5-device.c:1855 src/utils/pactl.c:255
 msgid "Speaker"
 msgstr ""
 
@@ -782,7 +782,7 @@ msgid "Stereo"
 msgstr "स्टिरीओ"
 
 #: src/modules/alsa/alsa-mixer.c:4575 src/modules/alsa/alsa-mixer.c:4733
-#: src/modules/bluetooth/module-bluez5-device.c:1810 src/utils/pactl.c:259
+#: src/modules/bluetooth/module-bluez5-device.c:1835 src/utils/pactl.c:259
 msgid "Headset"
 msgstr ""
 
@@ -899,7 +899,7 @@ msgid "Mono Chat + 7.1 Surround"
 msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:4739 src/modules/alsa/module-alsa-card.c:197
-#: src/modules/bluetooth/module-bluez5-device.c:2083
+#: src/modules/bluetooth/module-bluez5-device.c:2138
 msgid "Off"
 msgstr "बंद करा"
 
@@ -1018,59 +1018,67 @@ msgstr[1] ""
 "हे सहसा ALSA ड्राइवर '%s' अंतर्गत बग अशू शकते. कृपया या अडचणीस ALSA डेव्हलपर करीता "
 "कळवा."
 
-#: src/modules/bluetooth/module-bluez5-device.c:1803
-#: src/modules/bluetooth/module-bluez5-device.c:1829
-#: src/modules/bluetooth/module-bluez5-device.c:1836
+#: src/modules/bluetooth/module-bluez5-device.c:1828
+#: src/modules/bluetooth/module-bluez5-device.c:1854
+#: src/modules/bluetooth/module-bluez5-device.c:1861
 msgid "Bluetooth Input"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1804
-#: src/modules/bluetooth/module-bluez5-device.c:1823
+#: src/modules/bluetooth/module-bluez5-device.c:1829
+#: src/modules/bluetooth/module-bluez5-device.c:1848
 #, fuzzy
 msgid "Bluetooth Output"
 msgstr "ऍनलॉग आऊटपुट"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1816 src/utils/pactl.c:270
+#: src/modules/bluetooth/module-bluez5-device.c:1841 src/utils/pactl.c:270
 msgid "Handsfree"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1837
+#: src/modules/bluetooth/module-bluez5-device.c:1862
 #, fuzzy
 msgid "Headphone"
 msgstr "ऍनलॉग हेडफोन्स्"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1843 src/utils/pactl.c:269
+#: src/modules/bluetooth/module-bluez5-device.c:1868 src/utils/pactl.c:269
 msgid "Portable"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1849 src/utils/pactl.c:271
+#: src/modules/bluetooth/module-bluez5-device.c:1874 src/utils/pactl.c:271
 msgid "Car"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1855 src/utils/pactl.c:272
+#: src/modules/bluetooth/module-bluez5-device.c:1880 src/utils/pactl.c:272
 msgid "HiFi"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1861 src/utils/pactl.c:273
+#: src/modules/bluetooth/module-bluez5-device.c:1886 src/utils/pactl.c:273
 msgid "Phone"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1908
+#: src/modules/bluetooth/module-bluez5-device.c:1933
 #, fuzzy
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "हाय फिडेलिटी प्लेबॅक (A2DP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1920
+#: src/modules/bluetooth/module-bluez5-device.c:1945
 #, fuzzy
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "हाय फिडीलीटी कॅपचर (A2DP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1932
-msgid "Headset Head Unit (HSP/HFP)"
+#: src/modules/bluetooth/module-bluez5-device.c:1957
+msgid "Headset Head Unit (HSP)"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1945
-msgid "Headset Audio Gateway (HSP/HFP)"
+#: src/modules/bluetooth/module-bluez5-device.c:1970
+msgid "Headset Audio Gateway (HSP)"
+msgstr ""
+
+#: src/modules/bluetooth/module-bluez5-device.c:1983
+msgid "Handsfree Head Unit (HFP)"
+msgstr ""
+
+#: src/modules/bluetooth/module-bluez5-device.c:1996
+msgid "Handsfree Audio Gateway (HFP)"
 msgstr ""
 
 #: src/modules/echo-cancel/module-echo-cancel.c:59
@@ -1551,11 +1559,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "[%s:%u] अवैध लॉग लक्ष्य '%s'."
 
-#: src/pulsecore/sink.c:3534
+#: src/pulsecore/sink.c:3535
 msgid "Built-in Audio"
 msgstr "आंतरीक ऑडिओ"
 
-#: src/pulsecore/sink.c:3539
+#: src/pulsecore/sink.c:3540
 msgid "Modem"
 msgstr "मोडेम"
 

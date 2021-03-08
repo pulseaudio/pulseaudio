@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: git trunk\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2021-01-22 09:11+0200\n"
+"POT-Creation-Date: 2021-03-08 16:26+0200\n"
 "PO-Revision-Date: 2021-03-07 17:01+0000\n"
 "Last-Translator: Ricky Tigg <ricky.tigg@gmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/"
@@ -602,7 +602,7 @@ msgid "Line In"
 msgstr "Linjasisääntulo"
 
 #: src/modules/alsa/alsa-mixer.c:2713 src/modules/alsa/alsa-mixer.c:2797
-#: src/modules/bluetooth/module-bluez5-device.c:1822
+#: src/modules/bluetooth/module-bluez5-device.c:1847
 msgid "Microphone"
 msgstr "Mikrofoni"
 
@@ -665,7 +665,7 @@ msgid "No Bass Boost"
 msgstr "Ei basson vahvistusta"
 
 #: src/modules/alsa/alsa-mixer.c:2728
-#: src/modules/bluetooth/module-bluez5-device.c:1830 src/utils/pactl.c:255
+#: src/modules/bluetooth/module-bluez5-device.c:1855 src/utils/pactl.c:255
 msgid "Speaker"
 msgstr "Kaiutin"
 
@@ -778,7 +778,7 @@ msgid "Stereo"
 msgstr "Stereo"
 
 #: src/modules/alsa/alsa-mixer.c:4575 src/modules/alsa/alsa-mixer.c:4733
-#: src/modules/bluetooth/module-bluez5-device.c:1810 src/utils/pactl.c:259
+#: src/modules/bluetooth/module-bluez5-device.c:1835 src/utils/pactl.c:259
 msgid "Headset"
 msgstr "Kuulokkeet"
 
@@ -891,7 +891,7 @@ msgid "Mono Chat + 7.1 Surround"
 msgstr "Mono Chat + 7.1 Surround"
 
 #: src/modules/alsa/alsa-mixer.c:4739 src/modules/alsa/module-alsa-card.c:197
-#: src/modules/bluetooth/module-bluez5-device.c:2083
+#: src/modules/bluetooth/module-bluez5-device.c:2138
 msgid "Off"
 msgstr "Poissa"
 
@@ -973,13 +973,13 @@ msgid_plural ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr[0] ""
-"snd_pcm_delay() palautti poikkeuksellisen suuren arvon: %li tavu (%s%lu ms)."
-"\n"
+"snd_pcm_delay() palautti poikkeuksellisen suuren arvon: %li tavu (%s%lu "
+"ms).\n"
 "Tämä on todennäköisesti ohjelmavirhe ALSA-ajurissa ”%s”. Ilmoita tästä "
 "ongelmasta ALSA-kehittäjille."
 msgstr[1] ""
-"snd_pcm_delay() palautti poikkeuksellisen suuren arvon: %li tavua (%s%lu ms)."
-"\n"
+"snd_pcm_delay() palautti poikkeuksellisen suuren arvon: %li tavua (%s%lu "
+"ms).\n"
 "Tämä on todennäköisesti ohjelmavirhe ALSA-ajurissa ”%s”. Ilmoita tästä "
 "ongelmasta ALSA-kehittäjille."
 
@@ -1019,55 +1019,67 @@ msgstr[1] ""
 "Tämä on todennäköisesti ohjelmavirhe ALSA-ajurissa ”%s”. Ilmoita tästä "
 "ongelmasta ALSA-kehittäjille."
 
-#: src/modules/bluetooth/module-bluez5-device.c:1803
-#: src/modules/bluetooth/module-bluez5-device.c:1829
-#: src/modules/bluetooth/module-bluez5-device.c:1836
+#: src/modules/bluetooth/module-bluez5-device.c:1828
+#: src/modules/bluetooth/module-bluez5-device.c:1854
+#: src/modules/bluetooth/module-bluez5-device.c:1861
 msgid "Bluetooth Input"
 msgstr "Bluetooth:n sisääntulo"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1804
-#: src/modules/bluetooth/module-bluez5-device.c:1823
+#: src/modules/bluetooth/module-bluez5-device.c:1829
+#: src/modules/bluetooth/module-bluez5-device.c:1848
 msgid "Bluetooth Output"
 msgstr "Bluetooth ulostulo"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1816 src/utils/pactl.c:270
+#: src/modules/bluetooth/module-bluez5-device.c:1841 src/utils/pactl.c:270
 msgid "Handsfree"
 msgstr "Kädet vapaana"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1837
+#: src/modules/bluetooth/module-bluez5-device.c:1862
 msgid "Headphone"
 msgstr "Kuuloke"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1843 src/utils/pactl.c:269
+#: src/modules/bluetooth/module-bluez5-device.c:1868 src/utils/pactl.c:269
 msgid "Portable"
 msgstr "Kannettava"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1849 src/utils/pactl.c:271
+#: src/modules/bluetooth/module-bluez5-device.c:1874 src/utils/pactl.c:271
 msgid "Car"
 msgstr "Auto"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1855 src/utils/pactl.c:272
+#: src/modules/bluetooth/module-bluez5-device.c:1880 src/utils/pactl.c:272
 msgid "HiFi"
 msgstr "Hi-Fi"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1861 src/utils/pactl.c:273
+#: src/modules/bluetooth/module-bluez5-device.c:1886 src/utils/pactl.c:273
 msgid "Phone"
 msgstr "Puhelin"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1908
+#: src/modules/bluetooth/module-bluez5-device.c:1933
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "Korkean äänenlaadun toisto (A2DP Sink)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1920
+#: src/modules/bluetooth/module-bluez5-device.c:1945
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "Korkean äänenlaadun kaappaus (A2DP Source)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1932
-msgid "Headset Head Unit (HSP/HFP)"
+#: src/modules/bluetooth/module-bluez5-device.c:1957
+#, fuzzy
+msgid "Headset Head Unit (HSP)"
 msgstr "Kuulokkeiden pääyksikkö (HSP/HFP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1945
-msgid "Headset Audio Gateway (HSP/HFP)"
+#: src/modules/bluetooth/module-bluez5-device.c:1970
+#, fuzzy
+msgid "Headset Audio Gateway (HSP)"
+msgstr "Kuulokkeiden ääniyhdyskäytävä (HSP/HFP)"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1983
+#, fuzzy
+msgid "Handsfree Head Unit (HFP)"
+msgstr "Kuulokkeiden pääyksikkö (HSP/HFP)"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1996
+#, fuzzy
+msgid "Handsfree Audio Gateway (HFP)"
 msgstr "Kuulokkeiden ääniyhdyskäytävä (HSP/HFP)"
 
 #: src/modules/echo-cancel/module-echo-cancel.c:59
@@ -1545,11 +1557,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "Virheellinen lokikirjoituksen kohde."
 
-#: src/pulsecore/sink.c:3534
+#: src/pulsecore/sink.c:3535
 msgid "Built-in Audio"
 msgstr "Sisäinen äänentoisto"
 
-#: src/pulsecore/sink.c:3539
+#: src/pulsecore/sink.c:3540
 msgid "Modem"
 msgstr "Modeemi"
 
@@ -1949,8 +1961,8 @@ msgstr ""
 "palvelimella\n"
 "      --volume=ÄÄNENVOIMAKKUUS          Määritä (lineaarinen) "
 "aloitusäänenvoimakkuus väliltä 0...65536\n"
-"      --rate=NÄYTTEENOTTOTAAJUUS        Näytteenottotaajuus hertseinä(oletus:"
-" 44100)\n"
+"      --rate=NÄYTTEENOTTOTAAJUUS        Näytteenottotaajuus "
+"hertseinä(oletus: 44100)\n"
 "      --format=NÄYTEMUOTO               Näytteen tyyppi, yksi seuraavista:"
 "s16le, s16be, u8, float32le,\n"
 "                                        float32be, ulaw, alaw, s32le, s32be\n"
@@ -1970,8 +1982,8 @@ msgstr ""
 "      --no-remix                        Älä yli- tai alimiksaa kanavia.\n"
 "      --no-remap                        Kartoita kanavat indeksin mukaan, "
 "älä nimen mukaan.\n"
-"      --latency=TAVUA                   Pyydä määritettyä latenssia tavuissa."
-"\n"
+"      --latency=TAVUA                   Pyydä määritettyä latenssia "
+"tavuissa.\n"
 "      --process-time=TAVUA              Pyydä määritettyä prosessiaikaa "
 "pyyntöä kohti tavuissa.\n"
 "      --property=ASETUS=ARVO            Anna määritetylle asetukselle "

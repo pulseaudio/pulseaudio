@@ -11,7 +11,7 @@ msgstr ""
 "Project-Id-Version: PulseAudio\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2021-01-22 09:11+0200\n"
+"POT-Creation-Date: 2021-03-08 16:26+0200\n"
 "PO-Revision-Date: 2019-02-20 01:36+0200\n"
 "Last-Translator: Fran Dieguez <frandieguez@gnome.org>\n"
 "Language-Team: Galician\n"
@@ -610,7 +610,7 @@ msgid "Line In"
 msgstr "Liña de entrada"
 
 #: src/modules/alsa/alsa-mixer.c:2713 src/modules/alsa/alsa-mixer.c:2797
-#: src/modules/bluetooth/module-bluez5-device.c:1822
+#: src/modules/bluetooth/module-bluez5-device.c:1847
 msgid "Microphone"
 msgstr "Micrófono"
 
@@ -673,7 +673,7 @@ msgid "No Bass Boost"
 msgstr "Sen enfatizador baixo"
 
 #: src/modules/alsa/alsa-mixer.c:2728
-#: src/modules/bluetooth/module-bluez5-device.c:1830 src/utils/pactl.c:255
+#: src/modules/bluetooth/module-bluez5-device.c:1855 src/utils/pactl.c:255
 msgid "Speaker"
 msgstr "Altofalante"
 
@@ -791,7 +791,7 @@ msgid "Stereo"
 msgstr "Estéreo"
 
 #: src/modules/alsa/alsa-mixer.c:4575 src/modules/alsa/alsa-mixer.c:4733
-#: src/modules/bluetooth/module-bluez5-device.c:1810 src/utils/pactl.c:259
+#: src/modules/bluetooth/module-bluez5-device.c:1835 src/utils/pactl.c:259
 msgid "Headset"
 msgstr "Auriculares con micro"
 
@@ -905,7 +905,7 @@ msgid "Mono Chat + 7.1 Surround"
 msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:4739 src/modules/alsa/module-alsa-card.c:197
-#: src/modules/bluetooth/module-bluez5-device.c:2083
+#: src/modules/bluetooth/module-bluez5-device.c:2138
 msgid "Off"
 msgstr "Apagado"
 
@@ -1035,55 +1035,67 @@ msgstr[1] ""
 "O máis probábel é que sexa un erro do controlador ALSA «%s». Informe disto "
 "aos desenvolvedores de ALSA."
 
-#: src/modules/bluetooth/module-bluez5-device.c:1803
-#: src/modules/bluetooth/module-bluez5-device.c:1829
-#: src/modules/bluetooth/module-bluez5-device.c:1836
+#: src/modules/bluetooth/module-bluez5-device.c:1828
+#: src/modules/bluetooth/module-bluez5-device.c:1854
+#: src/modules/bluetooth/module-bluez5-device.c:1861
 msgid "Bluetooth Input"
 msgstr "Entrada de Bluetooth"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1804
-#: src/modules/bluetooth/module-bluez5-device.c:1823
+#: src/modules/bluetooth/module-bluez5-device.c:1829
+#: src/modules/bluetooth/module-bluez5-device.c:1848
 msgid "Bluetooth Output"
 msgstr "Saída de Bluetooth"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1816 src/utils/pactl.c:270
+#: src/modules/bluetooth/module-bluez5-device.c:1841 src/utils/pactl.c:270
 msgid "Handsfree"
 msgstr "Sen mans"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1837
+#: src/modules/bluetooth/module-bluez5-device.c:1862
 msgid "Headphone"
 msgstr "Auriculares"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1843 src/utils/pactl.c:269
+#: src/modules/bluetooth/module-bluez5-device.c:1868 src/utils/pactl.c:269
 msgid "Portable"
 msgstr "Portátil"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1849 src/utils/pactl.c:271
+#: src/modules/bluetooth/module-bluez5-device.c:1874 src/utils/pactl.c:271
 msgid "Car"
 msgstr "Automóbil"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1855 src/utils/pactl.c:272
+#: src/modules/bluetooth/module-bluez5-device.c:1880 src/utils/pactl.c:272
 msgid "HiFi"
 msgstr "Hifi"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1861 src/utils/pactl.c:273
+#: src/modules/bluetooth/module-bluez5-device.c:1886 src/utils/pactl.c:273
 msgid "Phone"
 msgstr "Teléfono"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1908
+#: src/modules/bluetooth/module-bluez5-device.c:1933
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "Reprodución en alta fidelidade (A2DP Sink)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1920
+#: src/modules/bluetooth/module-bluez5-device.c:1945
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "Captura en alta fidelidade (A2DP fonte )"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1932
-msgid "Headset Head Unit (HSP/HFP)"
+#: src/modules/bluetooth/module-bluez5-device.c:1957
+#, fuzzy
+msgid "Headset Head Unit (HSP)"
 msgstr "Unidade de auriculares con micrófono de cabeza (HSP/HFP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1945
-msgid "Headset Audio Gateway (HSP/HFP)"
+#: src/modules/bluetooth/module-bluez5-device.c:1970
+#, fuzzy
+msgid "Headset Audio Gateway (HSP)"
+msgstr "Entrada de son por auriculares con micrófono (HSP/HFP)"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1983
+#, fuzzy
+msgid "Handsfree Head Unit (HFP)"
+msgstr "Unidade de auriculares con micrófono de cabeza (HSP/HFP)"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1996
+#, fuzzy
+msgid "Handsfree Audio Gateway (HFP)"
 msgstr "Entrada de son por auriculares con micrófono (HSP/HFP)"
 
 #: src/modules/echo-cancel/module-echo-cancel.c:59
@@ -1570,11 +1582,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "Obxectivo do rexistro incorrecto."
 
-#: src/pulsecore/sink.c:3534
+#: src/pulsecore/sink.c:3535
 msgid "Built-in Audio"
 msgstr "Audio interno"
 
-#: src/pulsecore/sink.c:3539
+#: src/pulsecore/sink.c:3540
 msgid "Modem"
 msgstr "Módem"
 
