@@ -19,7 +19,7 @@ msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2021-01-22 09:11+0200\n"
+"POT-Creation-Date: 2021-03-08 16:26+0200\n"
 "PO-Revision-Date: 2021-02-12 14:40+0000\n"
 "Last-Translator: Göran Uddeborg <goeran@uddeborg.se>\n"
 "Language-Team: Swedish <https://translate.fedoraproject.org/projects/"
@@ -164,8 +164,8 @@ msgstr ""
 "belastningsbegränsare\n"
 "                                        på plattformar som stödjer det.\n"
 "      --disable-shm[=BOOL]              Inaktivera stöd för delat minne.\n"
-"      --enable-memfd[=BOOL]             Aktivera stöd för memfd-delat minne."
-"\n"
+"      --enable-memfd[=BOOL]             Aktivera stöd för memfd-delat "
+"minne.\n"
 "\n"
 "STARTSKRIPT:\n"
 "  -L, --load=”MODUL ARGUMENT”           Läs in den angivna insticksmodulen "
@@ -603,7 +603,7 @@ msgid "Line In"
 msgstr "Linje in"
 
 #: src/modules/alsa/alsa-mixer.c:2713 src/modules/alsa/alsa-mixer.c:2797
-#: src/modules/bluetooth/module-bluez5-device.c:1822
+#: src/modules/bluetooth/module-bluez5-device.c:1847
 msgid "Microphone"
 msgstr "Mikrofon"
 
@@ -666,7 +666,7 @@ msgid "No Bass Boost"
 msgstr "Ingen basökning"
 
 #: src/modules/alsa/alsa-mixer.c:2728
-#: src/modules/bluetooth/module-bluez5-device.c:1830 src/utils/pactl.c:255
+#: src/modules/bluetooth/module-bluez5-device.c:1855 src/utils/pactl.c:255
 msgid "Speaker"
 msgstr "Högtalare"
 
@@ -779,7 +779,7 @@ msgid "Stereo"
 msgstr "Stereo"
 
 #: src/modules/alsa/alsa-mixer.c:4575 src/modules/alsa/alsa-mixer.c:4733
-#: src/modules/bluetooth/module-bluez5-device.c:1810 src/utils/pactl.c:259
+#: src/modules/bluetooth/module-bluez5-device.c:1835 src/utils/pactl.c:259
 msgid "Headset"
 msgstr "Headset"
 
@@ -892,7 +892,7 @@ msgid "Mono Chat + 7.1 Surround"
 msgstr "Mono Chatt + 7.1 Surround"
 
 #: src/modules/alsa/alsa-mixer.c:4739 src/modules/alsa/module-alsa-card.c:197
-#: src/modules/bluetooth/module-bluez5-device.c:2083
+#: src/modules/bluetooth/module-bluez5-device.c:2138
 msgid "Off"
 msgstr "Av"
 
@@ -1022,55 +1022,67 @@ msgstr[1] ""
 "Förmodligen är detta ett fel i ALSA-drivrutinen ”%s”. Vänligen rapportera "
 "problemet till ALSA-utvecklarna."
 
-#: src/modules/bluetooth/module-bluez5-device.c:1803
-#: src/modules/bluetooth/module-bluez5-device.c:1829
-#: src/modules/bluetooth/module-bluez5-device.c:1836
+#: src/modules/bluetooth/module-bluez5-device.c:1828
+#: src/modules/bluetooth/module-bluez5-device.c:1854
+#: src/modules/bluetooth/module-bluez5-device.c:1861
 msgid "Bluetooth Input"
 msgstr "Bluetooth-ingång"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1804
-#: src/modules/bluetooth/module-bluez5-device.c:1823
+#: src/modules/bluetooth/module-bluez5-device.c:1829
+#: src/modules/bluetooth/module-bluez5-device.c:1848
 msgid "Bluetooth Output"
 msgstr "Bluetooth-utgång"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1816 src/utils/pactl.c:270
+#: src/modules/bluetooth/module-bluez5-device.c:1841 src/utils/pactl.c:270
 msgid "Handsfree"
 msgstr "Handsfree"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1837
+#: src/modules/bluetooth/module-bluez5-device.c:1862
 msgid "Headphone"
 msgstr "Hörlurar"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1843 src/utils/pactl.c:269
+#: src/modules/bluetooth/module-bluez5-device.c:1868 src/utils/pactl.c:269
 msgid "Portable"
 msgstr "Bärbar"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1849 src/utils/pactl.c:271
+#: src/modules/bluetooth/module-bluez5-device.c:1874 src/utils/pactl.c:271
 msgid "Car"
 msgstr "Bil"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1855 src/utils/pactl.c:272
+#: src/modules/bluetooth/module-bluez5-device.c:1880 src/utils/pactl.c:272
 msgid "HiFi"
 msgstr "HiFi"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1861 src/utils/pactl.c:273
+#: src/modules/bluetooth/module-bluez5-device.c:1886 src/utils/pactl.c:273
 msgid "Phone"
 msgstr "Telefon"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1908
+#: src/modules/bluetooth/module-bluez5-device.c:1933
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "High fidelity playback (A2DP Sink)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1920
+#: src/modules/bluetooth/module-bluez5-device.c:1945
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "High fidelity capture (A2DP Source)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1932
-msgid "Headset Head Unit (HSP/HFP)"
+#: src/modules/bluetooth/module-bluez5-device.c:1957
+#, fuzzy
+msgid "Headset Head Unit (HSP)"
 msgstr "Headset head unit (HSP/HFP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1945
-msgid "Headset Audio Gateway (HSP/HFP)"
+#: src/modules/bluetooth/module-bluez5-device.c:1970
+#, fuzzy
+msgid "Headset Audio Gateway (HSP)"
+msgstr "Headset audio gateway (HSP/HFP)"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1983
+#, fuzzy
+msgid "Handsfree Head Unit (HFP)"
+msgstr "Headset head unit (HSP/HFP)"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1996
+#, fuzzy
+msgid "Handsfree Audio Gateway (HFP)"
 msgstr "Headset audio gateway (HSP/HFP)"
 
 #: src/modules/echo-cancel/module-echo-cancel.c:59
@@ -1230,8 +1242,8 @@ msgstr ""
 "master=<namn på mottagare att filtrera> sink_master=<namn på mottagare att "
 "filtrera> format=<samplingsformat> rate=<samplingshastighet> channels=<antal "
 "kanaler> channel_map=<kanalavbildning> use_volume_sharing=<ja eller nej> "
-"force_flat_volume=<ja eller nej> hrir=/sökväg/till/left_hrir.wav "
-"hrir_left=/sökväg/till/left_hrir.wav hrir=/sökväg/till/right_hrir.wav "
+"force_flat_volume=<ja eller nej> hrir=/sökväg/till/left_hrir.wav hrir_left=/"
+"sökväg/till/left_hrir.wav hrir=/sökväg/till/right_hrir.wav "
 "autoloaded=<angiven om denna modul läses in automatiskt> "
 
 #: src/modules/raop/module-raop-discover.c:295
@@ -1554,11 +1566,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "Ogiltigt mål för logg."
 
-#: src/pulsecore/sink.c:3534
+#: src/pulsecore/sink.c:3535
 msgid "Built-in Audio"
 msgstr "Inbyggt ljud"
 
-#: src/pulsecore/sink.c:3539
+#: src/pulsecore/sink.c:3540
 msgid "Modem"
 msgstr "Modem"
 

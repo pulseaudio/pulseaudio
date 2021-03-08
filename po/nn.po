@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2021-01-22 09:11+0200\n"
+"POT-Creation-Date: 2021-03-08 16:26+0200\n"
 "PO-Revision-Date: 2021-02-07 15:40+0000\n"
 "Last-Translator: Karl Ove Hufthammer <karl@huftis.org>\n"
 "Language-Team: Norwegian Nynorsk <https://translate.fedoraproject.org/"
@@ -97,8 +97,8 @@ msgstr ""
 "      --version                         Vis versjonsinformasjon.\n"
 "      --dump-conf                       Vis standardoppsett.\n"
 "      --dump-modules                    Vis tilgjengelege modular.\n"
-"      --dump-resample-methods           Vis tilgjengelege resamplingsmetodar."
-"\n"
+"      --dump-resample-methods           Vis tilgjengelege "
+"resamplingsmetodar.\n"
 "      --cleanup-shm                     Rydd opp i utdaterte segment i delt "
 "minne.\n"
 "      --start                           Start tenesta viss ho ikkje køyrer.\n"
@@ -113,8 +113,8 @@ msgstr ""
 "      --high-priority[=BOOL]            Prøv å bruka høgt «nice»-nivå\n"
 "                                        (berre tilgjengeleg som rotbrukar, "
 "viss SUID\n"
-"                                        eller med forhøga RLIMIT_NICE-verdi)."
-"\n"
+"                                        eller med forhøga RLIMIT_NICE-"
+"verdi).\n"
 "      --realtime[=BOOL]                 Prøv å bruka sanntids "
 "oppgåvestyring\n"
 "                                        (berre tilgjengeleg som rotbrukar, "
@@ -133,8 +133,8 @@ msgstr ""
 "  -v  --verbose                         Vis meir detaljerte meldingar.\n"
 "      --log-target={auto,syslog,stderr,file:ADRESSE,newfile:ADRESSE}\n"
 "                                        Vel mål for logg.\n"
-"      --log-meta[=BOOL]                 Ta med kodeposisjon i loggmeldingar."
-"\n"
+"      --log-meta[=BOOL]                 Ta med kodeposisjon i "
+"loggmeldingar.\n"
 "      --log-time[=BOOL]                 Ta med tidsinformasjon i "
 "loggmeldingar.\n"
 "      --log-backtrace=RAMMER            Ta med tilbakespor i loggmeldingar.\n"
@@ -556,8 +556,8 @@ msgid ""
 "Failed to initialize daemon due to errors while executing startup commands. "
 "Source of commands: %s"
 msgstr ""
-"Klarte ikkje starta tenesta, grunna feil ved køyring av oppstarts­"
-"kommandoar. Kjelde til kommandoane: %s"
+"Klarte ikkje starta tenesta, grunna feil ved køyring av oppstarts­kommandoar. "
+"Kjelde til kommandoane: %s"
 
 #: src/daemon/main.c:1131
 msgid "Daemon startup without any loaded modules, refusing to work."
@@ -592,7 +592,7 @@ msgid "Line In"
 msgstr "Linje inn"
 
 #: src/modules/alsa/alsa-mixer.c:2713 src/modules/alsa/alsa-mixer.c:2797
-#: src/modules/bluetooth/module-bluez5-device.c:1822
+#: src/modules/bluetooth/module-bluez5-device.c:1847
 msgid "Microphone"
 msgstr "Mikrofon"
 
@@ -655,7 +655,7 @@ msgid "No Bass Boost"
 msgstr "Inga bassforsterking"
 
 #: src/modules/alsa/alsa-mixer.c:2728
-#: src/modules/bluetooth/module-bluez5-device.c:1830 src/utils/pactl.c:255
+#: src/modules/bluetooth/module-bluez5-device.c:1855 src/utils/pactl.c:255
 msgid "Speaker"
 msgstr "Høgtalar"
 
@@ -768,7 +768,7 @@ msgid "Stereo"
 msgstr "Stereo"
 
 #: src/modules/alsa/alsa-mixer.c:4575 src/modules/alsa/alsa-mixer.c:4733
-#: src/modules/bluetooth/module-bluez5-device.c:1810 src/utils/pactl.c:259
+#: src/modules/bluetooth/module-bluez5-device.c:1835 src/utils/pactl.c:259
 msgid "Headset"
 msgstr "Hovudsett"
 
@@ -881,7 +881,7 @@ msgid "Mono Chat + 7.1 Surround"
 msgstr "Mono-nettprat + 7.1-kringlyd"
 
 #: src/modules/alsa/alsa-mixer.c:4739 src/modules/alsa/module-alsa-card.c:197
-#: src/modules/bluetooth/module-bluez5-device.c:2083
+#: src/modules/bluetooth/module-bluez5-device.c:2138
 msgid "Off"
 msgstr "Av"
 
@@ -1005,55 +1005,67 @@ msgstr[1] ""
 "Dette kjem truleg av ein feil i ALSA-drivaren «%s». Meld frå om problemet "
 "til ALSA-utviklarane."
 
-#: src/modules/bluetooth/module-bluez5-device.c:1803
-#: src/modules/bluetooth/module-bluez5-device.c:1829
-#: src/modules/bluetooth/module-bluez5-device.c:1836
+#: src/modules/bluetooth/module-bluez5-device.c:1828
+#: src/modules/bluetooth/module-bluez5-device.c:1854
+#: src/modules/bluetooth/module-bluez5-device.c:1861
 msgid "Bluetooth Input"
 msgstr "Bluetooth-innlyd"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1804
-#: src/modules/bluetooth/module-bluez5-device.c:1823
+#: src/modules/bluetooth/module-bluez5-device.c:1829
+#: src/modules/bluetooth/module-bluez5-device.c:1848
 msgid "Bluetooth Output"
 msgstr "Bluetooth-utlyd"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1816 src/utils/pactl.c:270
+#: src/modules/bluetooth/module-bluez5-device.c:1841 src/utils/pactl.c:270
 msgid "Handsfree"
 msgstr "Handfri"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1837
+#: src/modules/bluetooth/module-bluez5-device.c:1862
 msgid "Headphone"
 msgstr "Hovudtelefonar"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1843 src/utils/pactl.c:269
+#: src/modules/bluetooth/module-bluez5-device.c:1868 src/utils/pactl.c:269
 msgid "Portable"
 msgstr "Portabel"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1849 src/utils/pactl.c:271
+#: src/modules/bluetooth/module-bluez5-device.c:1874 src/utils/pactl.c:271
 msgid "Car"
 msgstr "Bil"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1855 src/utils/pactl.c:272
+#: src/modules/bluetooth/module-bluez5-device.c:1880 src/utils/pactl.c:272
 msgid "HiFi"
 msgstr "Hi-fi"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1861 src/utils/pactl.c:273
+#: src/modules/bluetooth/module-bluez5-device.c:1886 src/utils/pactl.c:273
 msgid "Phone"
 msgstr "Telefon"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1908
+#: src/modules/bluetooth/module-bluez5-device.c:1933
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "Hi-fi-avspeling (A2DP-sluk)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1920
+#: src/modules/bluetooth/module-bluez5-device.c:1945
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "Hi-fi-opptak (A2DP-kjelde)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1932
-msgid "Headset Head Unit (HSP/HFP)"
+#: src/modules/bluetooth/module-bluez5-device.c:1957
+#, fuzzy
+msgid "Headset Head Unit (HSP)"
 msgstr "Hovudsett-hovudeining (HSP/HFP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1945
-msgid "Headset Audio Gateway (HSP/HFP)"
+#: src/modules/bluetooth/module-bluez5-device.c:1970
+#, fuzzy
+msgid "Headset Audio Gateway (HSP)"
+msgstr "Hovudsett-lydportnar (HSP/HFP)"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1983
+#, fuzzy
+msgid "Handsfree Head Unit (HFP)"
+msgstr "Hovudsett-hovudeining (HSP/HFP)"
+
+#: src/modules/bluetooth/module-bluez5-device.c:1996
+#, fuzzy
+msgid "Handsfree Audio Gateway (HFP)"
 msgstr "Hovudsett-lydportnar (HSP/HFP)"
 
 #: src/modules/echo-cancel/module-echo-cancel.c:59
@@ -1539,11 +1551,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "Ugyldig loggmål."
 
-#: src/pulsecore/sink.c:3534
+#: src/pulsecore/sink.c:3535
 msgid "Built-in Audio"
 msgstr "Innebygd lyd"
 
-#: src/pulsecore/sink.c:3539
+#: src/pulsecore/sink.c:3540
 msgid "Modem"
 msgstr "Modem"
 
@@ -1935,22 +1947,22 @@ msgstr ""
 "      --version                         Vis versjonsinformasjon.\n"
 "\n"
 "  -r, --record                          Opprett tilkopling for lydopptak.\n"
-"  -p, --playback                        Opprett tilkopling for lydavspeling."
-"\n"
+"  -p, --playback                        Opprett tilkopling for "
+"lydavspeling.\n"
 "\n"
 "  -v, --verbose                         Vis meir detaljerte meldingar.\n"
 "\n"
 "  -s, --server=TENAR                    Namnet på tenaren å kopla til.\n"
-"  -d, --device=EINING                   Namnet på sluket/kjelda å kopla til."
-"\n"
-"  -n, --client-name=NAMN                Kva klienten skal kallast på tenaren."
-"\n"
-"      --stream-name=NAMN                Kva straumen skal kallast på tenaren."
-"\n"
-"      --volume=LYDSTYRKE                Vel startlydstyrke (lineær). Verdiar:"
-" 0–65536.\n"
-"      --rate=SAMPLINGSRATE              Samplingsrate i Hz (standard: 44100)."
-"\n"
+"  -d, --device=EINING                   Namnet på sluket/kjelda å kopla "
+"til.\n"
+"  -n, --client-name=NAMN                Kva klienten skal kallast på "
+"tenaren.\n"
+"      --stream-name=NAMN                Kva straumen skal kallast på "
+"tenaren.\n"
+"      --volume=LYDSTYRKE                Vel startlydstyrke (lineær). "
+"Verdiar: 0–65536.\n"
+"      --rate=SAMPLINGSRATE              Samplingsrate i Hz (standard: "
+"44100).\n"
 "      --format=SAMPLEFORMAT             Samplingsformat. Sjå\n"
 "                                        https://www.freedesktop.org/wiki/"
 "Software/PulseAudio/Documentation/User/SupportedAudioFormats/\n"
@@ -1971,8 +1983,8 @@ msgstr ""
 "frå\n"
 "                                        sluket/kjelda som straumen vert "
 "kopla til.\n"
-"      --no-remix                        Ikkje oppmiks eller nedmiks kanalar."
-"\n"
+"      --no-remix                        Ikkje oppmiks eller nedmiks "
+"kanalar.\n"
 "      --no-remap                        Definer kanalar etter indeks, ikkje "
 "etter namn.\n"
 "      --latency=BYTE                    Be om valt latenstid, målt i byte.\n"
@@ -1986,8 +1998,8 @@ msgstr ""
 "verdi.\n"
 "      --raw                             Ta opp / spel av rå PCM-data.\n"
 "      --passthrough                     Vidaresend lyddata.\n"
-"      --file-format[=FFORMAT]           Ta opp / spel av formatert PCM-data."
-"\n"
+"      --file-format[=FFORMAT]           Ta opp / spel av formatert PCM-"
+"data.\n"
 "      --list-file-formats               Vis tilgjengelege filformat.\n"
 "      --monitor-stream=INDEKS           Ta opp frå sluk-inndata med indeksen "
 "INDEKS.\n"
@@ -2335,7 +2347,8 @@ msgid "Allocated during whole lifetime: %u block containing %s bytes total.\n"
 msgid_plural ""
 "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
 msgstr[0] "Reservert gjennom heile levetida: %u blokk med til saman %s byte.\n"
-msgstr[1] "Reservert gjennom heile levetida: %u blokker med til saman %s byte.\n"
+msgstr[1] ""
+"Reservert gjennom heile levetida: %u blokker med til saman %s byte.\n"
 
 # https://freedesktop.org/software/pulseaudio/doxygen/scache.html
 #: src/utils/pactl.c:187
@@ -2656,8 +2669,8 @@ msgstr "\tAktiv profil: %s\n"
 msgid ""
 "\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s, %s)\n"
 msgstr ""
-"\t\t%s: %s (type: %s, prioritet: %u, latens­forskyving: %<PRId64> µs%s%s, %s)"
-"\n"
+"\t\t%s: %s (type: %s, prioritet: %u, latens­forskyving: %<PRId64> µs%s%s, "
+"%s)\n"
 
 #: src/utils/pactl.c:649
 #, c-format
@@ -3157,8 +3170,8 @@ msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
 msgstr ""
-"Eventuelle ekstraargument ved ignorerte. Merk at alle meldings­parametrane "
-"må skrivast som éin tekststreng."
+"Eventuelle ekstraargument ved ignorerte. Merk at alle meldings­parametrane må "
+"skrivast som éin tekststreng."
 
 #: src/utils/pactl.c:2170
 msgid ""
