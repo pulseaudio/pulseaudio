@@ -44,6 +44,30 @@ struct pa_json_object {
     };
 };
 
+/* JSON encoder context type */
+typedef enum pa_json_context_type {
+    /* Top-level context of empty encoder. JSON element can be added. */
+    PA_JSON_CONTEXT_EMPTY  = 0,
+    /* Top-level context of encoder with an element. JSON element cannot be added. */
+    PA_JSON_CONTEXT_TOP    = 1,
+    /* JSON array context. JSON elements can be added. */
+    PA_JSON_CONTEXT_ARRAY  = 2,
+    /* JSON object context. JSON object members can be added. */
+    PA_JSON_CONTEXT_OBJECT = 3,
+} pa_json_context_type_t;
+
+typedef struct encoder_context {
+    pa_json_context_type_t type;
+    int counter;
+    struct encoder_context *next;
+} encoder_context;
+
+/* JSON encoder structure, a wrapper for pa_strbuf and encoder context */
+struct pa_json_encoder {
+    pa_strbuf *buffer;
+    encoder_context *context;
+};
+
 static const char* parse_value(const char *str, const char *end, pa_json_object **obj, unsigned int depth);
 
 static pa_json_object* json_object_new(void) {
@@ -526,6 +550,11 @@ const pa_json_object* pa_json_object_get_object_member(const pa_json_object *o, 
     return pa_hashmap_get(o->object_values, name);
 }
 
+const pa_hashmap *pa_json_object_get_object_member_hashmap(const pa_json_object *o) {
+    pa_assert(pa_json_object_get_type(o) == PA_JSON_TYPE_OBJECT);
+    return o->object_values;
+}
+
 int pa_json_object_get_array_length(const pa_json_object *o) {
     pa_assert(pa_json_object_get_type(o) == PA_JSON_TYPE_ARRAY);
     return pa_idxset_size(o->array_values);
@@ -590,4 +619,444 @@ bool pa_json_object_equal(const pa_json_object *o1, const pa_json_object *o2) {
         default:
             pa_assert_not_reached();
     }
+}
+
+/* Write functions. The functions are wrapper functions around pa_strbuf,
+ * so that the client does not need to use pa_strbuf directly. */
+
+static void json_encoder_context_push(pa_json_encoder *encoder, pa_json_context_type_t type) {
+    pa_assert(encoder);
+
+    encoder_context *head = pa_xnew0(encoder_context, 1);
+    head->type = type;
+    head->next = encoder->context;
+    encoder->context = head;
+}
+
+/* Returns type of context popped off encoder context stack. */
+static pa_json_context_type_t json_encoder_context_pop(pa_json_encoder *encoder) {
+    encoder_context *head;
+    pa_json_context_type_t type;
+
+    pa_assert(encoder);
+    pa_assert(encoder->context);
+
+    type = encoder->context->type;
+
+    head = encoder->context->next;
+    pa_xfree(encoder->context);
+    encoder->context = head;
+
+    return type;
+}
+
+pa_json_encoder *pa_json_encoder_new(void) {
+    pa_json_encoder *encoder;
+
+    encoder = pa_xnew(pa_json_encoder, 1);
+    encoder->buffer = pa_strbuf_new();
+
+    encoder->context = NULL;
+    json_encoder_context_push(encoder, PA_JSON_CONTEXT_EMPTY);
+
+    return encoder;
+}
+
+void pa_json_encoder_free(pa_json_encoder *encoder) {
+    pa_json_context_type_t type;
+    pa_assert(encoder);
+
+    /* should have exactly one encoder context left at this point */
+    pa_assert(encoder->context);
+    type = json_encoder_context_pop(encoder);
+    pa_assert(encoder->context == NULL);
+
+    pa_assert(type == PA_JSON_CONTEXT_TOP || type == PA_JSON_CONTEXT_EMPTY);
+    if (type == PA_JSON_CONTEXT_EMPTY)
+        pa_log_warn("JSON encoder is empty.");
+
+    if (encoder->buffer)
+        pa_strbuf_free(encoder->buffer);
+
+    pa_xfree(encoder);
+}
+
+char *pa_json_encoder_to_string_free(pa_json_encoder *encoder) {
+    char *result;
+
+    pa_assert(encoder);
+
+    result = pa_strbuf_to_string_free(encoder->buffer);
+
+    encoder->buffer = NULL;
+    pa_json_encoder_free(encoder);
+
+    return result;
+}
+
+static void json_encoder_insert_delimiter(pa_json_encoder *encoder) {
+    pa_assert(encoder);
+
+    if (encoder->context->counter++)
+        pa_strbuf_putc(encoder->buffer, ',');
+}
+
+/* Escapes p to create valid JSON string.
+ * The caller has to free the returned string. */
+static char *pa_json_escape(const char *p) {
+    const char *s;
+    char *out_string, *output;
+    int char_count = strlen(p);
+
+    /* Maximum number of characters in output string
+     * including trailing 0. */
+    char_count = 2 * char_count + 1;
+
+    /* allocate output string */
+    out_string = pa_xmalloc(char_count);
+    output = out_string;
+
+    /* write output string */
+    for (s = p; *s; ++s) {
+        switch (*s) {
+            case '"':
+                *output++ = '\\';
+                *output++ = '"';
+                break;
+            case '\\':
+                *output++ = '\\';
+                *output++ = '\\';
+                break;
+            case '\b':
+                *output++ = '\\';
+                *output++ = 'b';
+                break;
+
+            case '\f':
+                *output++ = '\\';
+                *output++ = 'f';
+                break;
+
+            case '\n':
+                *output++ = '\\';
+                *output++ = 'n';
+                break;
+
+            case '\r':
+                *output++ = '\\';
+                *output++ = 'r';
+                break;
+
+            case '\t':
+                *output++ = '\\';
+                *output++ = 't';
+                break;
+            default:
+                if (*s < 0x20 || *s > 0x7E) {
+                    pa_log("Invalid non-ASCII character: 0x%x", (unsigned int) *s);
+                    pa_xfree(out_string);
+                    return NULL;
+                }
+                *output++ = *s;
+                break;
+        }
+    }
+
+    *output = 0;
+
+    return out_string;
+}
+
+static void json_write_string_escaped(pa_json_encoder *encoder, const char *value) {
+    char *escaped_value;
+
+    pa_assert(encoder);
+
+    escaped_value = pa_json_escape(value);
+    pa_strbuf_printf(encoder->buffer, "\"%s\"", escaped_value);
+    pa_xfree(escaped_value);
+}
+
+/* Writes an opening curly brace */
+void pa_json_encoder_begin_element_object(pa_json_encoder *encoder) {
+    pa_assert(encoder);
+    pa_assert(encoder->context->type != PA_JSON_CONTEXT_TOP);
+
+    if (encoder->context->type == PA_JSON_CONTEXT_EMPTY)
+        encoder->context->type = PA_JSON_CONTEXT_TOP;
+
+    json_encoder_insert_delimiter(encoder);
+    pa_strbuf_putc(encoder->buffer, '{');
+
+    json_encoder_context_push(encoder, PA_JSON_CONTEXT_OBJECT);
+}
+
+/* Writes an opening curly brace */
+void pa_json_encoder_begin_member_object(pa_json_encoder *encoder, const char *name) {
+    pa_assert(encoder);
+    pa_assert(encoder->context);
+    pa_assert(encoder->context->type == PA_JSON_CONTEXT_OBJECT);
+    pa_assert(name && name[0]);
+
+    json_encoder_insert_delimiter(encoder);
+
+    json_write_string_escaped(encoder, name);
+    pa_strbuf_putc(encoder->buffer, ':');
+
+    pa_strbuf_putc(encoder->buffer, '{');
+
+    json_encoder_context_push(encoder, PA_JSON_CONTEXT_OBJECT);
+}
+
+/* Writes a closing curly brace */
+void pa_json_encoder_end_object(pa_json_encoder *encoder) {
+    pa_json_context_type_t type;
+    pa_assert(encoder);
+
+    type = json_encoder_context_pop(encoder);
+    pa_assert(type == PA_JSON_CONTEXT_OBJECT);
+
+    pa_strbuf_putc(encoder->buffer, '}');
+}
+
+/* Writes an opening bracket */
+void pa_json_encoder_begin_element_array(pa_json_encoder *encoder) {
+    pa_assert(encoder);
+    pa_assert(encoder->context);
+    pa_assert(encoder->context->type != PA_JSON_CONTEXT_TOP);
+
+    if (encoder->context->type == PA_JSON_CONTEXT_EMPTY)
+        encoder->context->type = PA_JSON_CONTEXT_TOP;
+
+    json_encoder_insert_delimiter(encoder);
+    pa_strbuf_putc(encoder->buffer, '[');
+
+    json_encoder_context_push(encoder, PA_JSON_CONTEXT_ARRAY);
+}
+
+/* Writes member name and an opening bracket */
+void pa_json_encoder_begin_member_array(pa_json_encoder *encoder, const char *name) {
+    pa_assert(encoder);
+    pa_assert(encoder->context);
+    pa_assert(encoder->context->type == PA_JSON_CONTEXT_OBJECT);
+    pa_assert(name && name[0]);
+
+    json_encoder_insert_delimiter(encoder);
+
+    json_write_string_escaped(encoder, name);
+    pa_strbuf_putc(encoder->buffer, ':');
+
+    pa_strbuf_putc(encoder->buffer, '[');
+
+    json_encoder_context_push(encoder, PA_JSON_CONTEXT_ARRAY);
+}
+
+/* Writes a closing bracket */
+void pa_json_encoder_end_array(pa_json_encoder *encoder) {
+    pa_json_context_type_t type;
+    pa_assert(encoder);
+
+    type = json_encoder_context_pop(encoder);
+    pa_assert(type == PA_JSON_CONTEXT_ARRAY);
+
+    pa_strbuf_putc(encoder->buffer, ']');
+}
+
+void pa_json_encoder_add_element_string(pa_json_encoder *encoder, const char *value) {
+    pa_assert(encoder);
+    pa_assert(encoder->context);
+    pa_assert(encoder->context->type == PA_JSON_CONTEXT_EMPTY || encoder->context->type == PA_JSON_CONTEXT_ARRAY);
+
+    if (encoder->context->type == PA_JSON_CONTEXT_EMPTY)
+        encoder->context->type = PA_JSON_CONTEXT_TOP;
+
+    json_encoder_insert_delimiter(encoder);
+
+    json_write_string_escaped(encoder, value);
+}
+
+void pa_json_encoder_add_member_string(pa_json_encoder *encoder, const char *name, const char *value) {
+    pa_assert(encoder);
+    pa_assert(encoder->context);
+    pa_assert(encoder->context->type == PA_JSON_CONTEXT_OBJECT);
+    pa_assert(name && name[0]);
+
+    json_encoder_insert_delimiter(encoder);
+
+    json_write_string_escaped(encoder, name);
+
+    pa_strbuf_putc(encoder->buffer, ':');
+
+    /* Null value is written as empty element */
+    if (!value)
+        value = "";
+
+    json_write_string_escaped(encoder, value);
+}
+
+static void json_write_null(pa_json_encoder *encoder) {
+    pa_assert(encoder);
+
+    pa_strbuf_puts(encoder->buffer, "null");
+}
+
+void pa_json_encoder_add_element_null(pa_json_encoder *encoder) {
+    pa_assert(encoder);
+    pa_assert(encoder->context);
+    pa_assert(encoder->context->type == PA_JSON_CONTEXT_EMPTY || encoder->context->type == PA_JSON_CONTEXT_ARRAY);
+
+    if (encoder->context->type == PA_JSON_CONTEXT_EMPTY)
+        encoder->context->type = PA_JSON_CONTEXT_TOP;
+
+    json_encoder_insert_delimiter(encoder);
+
+    json_write_null(encoder);
+}
+
+void pa_json_encoder_add_member_null(pa_json_encoder *encoder, const char *name) {
+    pa_assert(encoder);
+    pa_assert(encoder->context);
+    pa_assert(encoder->context->type == PA_JSON_CONTEXT_OBJECT);
+    pa_assert(name && name[0]);
+
+    json_encoder_insert_delimiter(encoder);
+
+    json_write_string_escaped(encoder, name);
+    pa_strbuf_putc(encoder->buffer, ':');
+
+    json_write_null(encoder);
+}
+
+static void json_write_bool(pa_json_encoder *encoder, bool value) {
+    pa_assert(encoder);
+
+    pa_strbuf_puts(encoder->buffer, value ? "true" : "false");
+}
+
+void pa_json_encoder_add_element_bool(pa_json_encoder *encoder, bool value) {
+    pa_assert(encoder);
+    pa_assert(encoder->context);
+    pa_assert(encoder->context->type == PA_JSON_CONTEXT_EMPTY || encoder->context->type == PA_JSON_CONTEXT_ARRAY);
+
+    if (encoder->context->type == PA_JSON_CONTEXT_EMPTY)
+        encoder->context->type = PA_JSON_CONTEXT_TOP;
+
+    json_encoder_insert_delimiter(encoder);
+
+    json_write_bool(encoder, value);
+}
+
+void pa_json_encoder_add_member_bool(pa_json_encoder *encoder, const char *name, bool value) {
+    pa_assert(encoder);
+    pa_assert(encoder->context);
+    pa_assert(encoder->context->type == PA_JSON_CONTEXT_OBJECT);
+    pa_assert(name && name[0]);
+
+    json_encoder_insert_delimiter(encoder);
+
+    json_write_string_escaped(encoder, name);
+
+    pa_strbuf_putc(encoder->buffer, ':');
+
+    json_write_bool(encoder, value);
+}
+
+static void json_write_int(pa_json_encoder *encoder, int64_t value) {
+    pa_assert(encoder);
+
+    pa_strbuf_printf(encoder->buffer, "%"PRId64, value);
+}
+
+void pa_json_encoder_add_element_int(pa_json_encoder *encoder, int64_t value) {
+    pa_assert(encoder);
+    pa_assert(encoder->context);
+    pa_assert(encoder->context->type == PA_JSON_CONTEXT_EMPTY || encoder->context->type == PA_JSON_CONTEXT_ARRAY);
+
+    if (encoder->context->type == PA_JSON_CONTEXT_EMPTY)
+        encoder->context->type = PA_JSON_CONTEXT_TOP;
+
+    json_encoder_insert_delimiter(encoder);
+
+    json_write_int(encoder, value);
+}
+
+void pa_json_encoder_add_member_int(pa_json_encoder *encoder, const char *name, int64_t value) {
+    pa_assert(encoder);
+    pa_assert(encoder->context);
+    pa_assert(encoder->context->type == PA_JSON_CONTEXT_OBJECT);
+    pa_assert(name && name[0]);
+
+    json_encoder_insert_delimiter(encoder);
+
+    json_write_string_escaped(encoder, name);
+
+    pa_strbuf_putc(encoder->buffer, ':');
+
+    json_write_int(encoder, value);
+}
+
+static void json_write_double(pa_json_encoder *encoder, double value, int precision) {
+    pa_assert(encoder);
+    pa_strbuf_printf(encoder->buffer, "%.*f",  precision, value);
+}
+
+void pa_json_encoder_add_element_double(pa_json_encoder *encoder, double value, int precision) {
+    pa_assert(encoder);
+    pa_assert(encoder->context);
+    pa_assert(encoder->context->type == PA_JSON_CONTEXT_EMPTY || encoder->context->type == PA_JSON_CONTEXT_ARRAY);
+
+    if (encoder->context->type == PA_JSON_CONTEXT_EMPTY)
+        encoder->context->type = PA_JSON_CONTEXT_TOP;
+
+    json_encoder_insert_delimiter(encoder);
+
+    json_write_double(encoder, value, precision);
+}
+
+void pa_json_encoder_add_member_double(pa_json_encoder *encoder, const char *name, double value, int precision) {
+    pa_assert(encoder);
+    pa_assert(encoder->context);
+    pa_assert(encoder->context->type == PA_JSON_CONTEXT_OBJECT);
+    pa_assert(name && name[0]);
+
+    json_encoder_insert_delimiter(encoder);
+
+    json_write_string_escaped(encoder, name);
+
+    pa_strbuf_putc(encoder->buffer, ':');
+
+    json_write_double(encoder, value, precision);
+}
+
+static void json_write_raw(pa_json_encoder *encoder, const char *raw_string) {
+    pa_assert(encoder);
+    pa_strbuf_puts(encoder->buffer, raw_string);
+}
+
+void pa_json_encoder_add_element_raw_json(pa_json_encoder *encoder, const char *raw_json_string) {
+    pa_assert(encoder);
+    pa_assert(encoder->context);
+    pa_assert(encoder->context->type == PA_JSON_CONTEXT_EMPTY || encoder->context->type == PA_JSON_CONTEXT_ARRAY);
+
+    if (encoder->context->type == PA_JSON_CONTEXT_EMPTY)
+        encoder->context->type = PA_JSON_CONTEXT_TOP;
+
+    json_encoder_insert_delimiter(encoder);
+
+    json_write_raw(encoder, raw_json_string);
+}
+
+void pa_json_encoder_add_member_raw_json(pa_json_encoder *encoder, const char *name, const char *raw_json_string) {
+    pa_assert(encoder);
+    pa_assert(encoder->context);
+    pa_assert(encoder->context->type == PA_JSON_CONTEXT_OBJECT);
+    pa_assert(name && name[0]);
+
+    json_encoder_insert_delimiter(encoder);
+
+    json_write_string_escaped(encoder, name);
+
+    pa_strbuf_putc(encoder->buffer, ':');
+
+    json_write_raw(encoder, raw_json_string);
 }
