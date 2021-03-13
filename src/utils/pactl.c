@@ -1075,7 +1075,7 @@ static void get_sink_mute_callback(pa_context *c, const pa_sink_info *i, int is_
     pa_assert(i);
 
     printf(("Mute: %s\n"),
-           pa_yes_no_localised(&i->mute));
+           pa_yes_no_localised(i->mute));
 
     complete_action();
 }
@@ -1134,7 +1134,7 @@ static void get_source_mute_callback(pa_context *c, const pa_source_info *i, int
     pa_assert(i);
 
     printf(("Mute: %s\n"),
-           pa_yes_no_localised(&i->mute));
+           pa_yes_no_localised(i->mute));
 
     complete_action();
 }
@@ -1849,7 +1849,7 @@ static void help(const char *argv0) {
     printf("%s %s %s %s\n", argv0, _("[options]"), "move-(sink-input|source-output)", _("#N SINK|SOURCE"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "suspend-(sink|source)", _("NAME|#N 1|0"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-card-profile ", _("CARD PROFILE"));
-    printf("%s %s %s %s\n", argv0, _("[options]"), "get-default-(sink|source)");
+    printf("%s %s %s\n", argv0, _("[options]"), "get-default-(sink|source)");
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-default-(sink|source)", _("NAME"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink|source)-port", _("NAME|#N PORT"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "get-(sink|source)-volume", _("NAME|#N"));
