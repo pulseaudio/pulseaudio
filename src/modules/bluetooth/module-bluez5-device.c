@@ -32,7 +32,6 @@
 #include <pulse/timeval.h>
 #include <pulse/utf8.h>
 #include <pulse/util.h>
-#include <pulse/message-params.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-rtclock.h>

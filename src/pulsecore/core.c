@@ -29,7 +29,6 @@
 #include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
-#include <pulse/message-params.h>
 
 #include <pulsecore/module.h>
 #include <pulsecore/core-rtclock.h>

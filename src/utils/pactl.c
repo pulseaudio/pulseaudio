@@ -35,7 +35,6 @@
 #include <sndfile.h>
 
 #include <pulse/pulseaudio.h>
-#include <pulse/message-params.h>
 #include <pulse/ext-device-restore.h>
 #include <pulse/json.h>
 
