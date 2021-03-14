@@ -19,6 +19,7 @@
 ***/
 
 #include <pulsecore/core.h>
+#include <pulse/json.h>
 
 /* Message handler types and functions */
 
@@ -26,7 +27,7 @@
 typedef int (*pa_message_handler_cb_t)(
         const char *object_path,
         const char *message,
-        char *message_parameters,
+        const pa_json_object *parameters,
         char **response,
         void *userdata);
 

@@ -27,6 +27,7 @@
 
 #include <arpa/inet.h>
 
+#include <pulse/json.h>
 #include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 #include <pulse/utf8.h>
@@ -2458,7 +2459,7 @@ static char *list_codecs(struct userdata *u) {
     const pa_a2dp_codec_capabilities *a2dp_capabilities;
     const pa_a2dp_codec_id *key;
     pa_hashmap *a2dp_endpoints;
-    pa_message_params *param;
+    pa_json_encoder *encoder;
     unsigned int i;
     bool is_a2dp_sink;
     void *state;
@@ -2467,9 +2468,9 @@ static char *list_codecs(struct userdata *u) {
 
     a2dp_endpoints = is_a2dp_sink ? u->device->a2dp_sink_endpoints : u->device->a2dp_source_endpoints;
 
-    param = pa_message_params_new();
+    encoder = pa_json_encoder_new();
 
-    pa_message_params_begin_list(param);
+    pa_json_encoder_begin_element_array(encoder);
 
     PA_HASHMAP_FOREACH_KV(key, a2dp_capabilities, a2dp_endpoints, state) {
         for (i = 0; i < pa_bluetooth_a2dp_codec_count(); i++) {
@@ -2479,23 +2480,23 @@ static char *list_codecs(struct userdata *u) {
 
             if (memcmp(key, &a2dp_codec->id, sizeof(pa_a2dp_codec_id)) == 0) {
                 if (a2dp_codec->can_be_supported(is_a2dp_sink)) {
-                    pa_message_params_begin_list(param);
+                    pa_json_encoder_begin_element_object(encoder);
 
-                    pa_message_params_write_string(param, a2dp_codec->name);
-                    pa_message_params_write_string(param, a2dp_codec->description);
+                    pa_json_encoder_add_member_string(encoder, "name", a2dp_codec->name);
+                    pa_json_encoder_add_member_string(encoder, "description", a2dp_codec->description);
 
-                    pa_message_params_end_list(param);
+                    pa_json_encoder_end_object(encoder);
                 }
             }
         }
     }
 
-    pa_message_params_end_list(param);
+    pa_json_encoder_end_array(encoder);
 
-    return pa_message_params_to_string_free(param);
+    return pa_json_encoder_to_string_free(encoder);
 }
 
-static int bluez5_device_message_handler(const char *object_path, const char *message, char *message_parameters, char **response, void *userdata) {
+static int bluez5_device_message_handler(const char *object_path, const char *message, const pa_json_object *parameters, char **response, void *userdata) {
     char *message_handler_path;
     pa_hashmap *capabilities_hashmap;
     pa_bluetooth_profile_t profile;
@@ -2503,8 +2504,6 @@ static int bluez5_device_message_handler(const char *object_path, const char *me
     const char *codec_name;
     struct userdata *u;
     bool is_a2dp_sink;
-    void *state = NULL;
-    int err;
 
     pa_assert(u = (struct userdata *)userdata);
     pa_assert(message);
@@ -2539,9 +2538,17 @@ static int bluez5_device_message_handler(const char *object_path, const char *me
     }
 
     if (pa_streq(message, "switch-codec")) {
-        err = pa_message_params_read_string(message_parameters, &codec_name, &state);
-        if (err < 0)
-            return err;
+        if (!parameters) {
+            pa_log_info("Codec switching operation requires codec name string parameter");
+            return -PA_ERR_INVALID;
+        }
+
+        if (pa_json_object_get_type(parameters) != PA_JSON_TYPE_STRING) {
+            pa_log_info("Codec name object parameter must be a string");
+            return -PA_ERR_INVALID;
+        }
+
+        codec_name = pa_json_object_get_string(parameters);
 
         if (u->a2dp_codec && pa_streq(codec_name, u->a2dp_codec->name)) {
             pa_log_info("Requested codec is currently selected codec");
@@ -2599,15 +2606,13 @@ static int bluez5_device_message_handler(const char *object_path, const char *me
         *response = list_codecs(u);
         return PA_OK;
     } else if (pa_streq(message, "get-codec")) {
-        pa_message_params *param;
-        param = pa_message_params_new();
+        pa_json_encoder *encoder;
+        encoder = pa_json_encoder_new();
 
         if (u->a2dp_codec)
-            pa_message_params_write_string(param, u->a2dp_codec->name);
-        else
-            pa_message_params_write_string(param, "none");
+            pa_json_encoder_add_element_string(encoder, u->a2dp_codec->name);
 
-        *response = pa_message_params_to_string_free(param);
+        *response = pa_json_encoder_to_string_free(encoder);
 
         return PA_OK;
     }

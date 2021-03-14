@@ -37,6 +37,7 @@
 #include <pulse/pulseaudio.h>
 #include <pulse/message-params.h>
 #include <pulse/ext-device-restore.h>
+#include <pulse/json.h>
 
 #include <pulsecore/i18n.h>
 #include <pulsecore/macro.h>
@@ -897,10 +898,10 @@ static void send_message_callback(pa_context *c, int success, char *response, vo
 }
 
 static void list_handlers_callback(pa_context *c, int success, char *response, void *userdata) {
-    void *state = NULL;
-    char *handler_list;
-    char *handler_struct;
     int err;
+    pa_json_object *o;
+    int i;
+    const pa_json_object *v, *path, *description;
 
     if (!success) {
         pa_log(_("list-handlers message failed: %s"), pa_strerror(pa_context_errno(c)));
@@ -908,29 +909,45 @@ static void list_handlers_callback(pa_context *c, int success, char *response, v
         return;
     }
 
-    if (pa_message_params_read_raw(response, &handler_list, &state) <= 0) {
+    o = pa_json_parse(response);
+
+    if (!o) {
         pa_log(_("list-handlers message response could not be parsed correctly"));
+        pa_json_object_free(o);
         quit(1);
         return;
     }
 
-    state = NULL;
-    while ((err = pa_message_params_read_raw(handler_list, &handler_struct, &state)) > 0) {
-        void *state2 = NULL;
-        const char *path;
-        const char *description;
+    if (pa_json_object_get_type(o) != PA_JSON_TYPE_ARRAY) {
+        pa_log(_("list-handlers message response is not a JSON array"));
+        pa_json_object_free(o);
+        quit(1);
+        return;
+    }
 
-        if (pa_message_params_read_string(handler_struct, &path, &state2) <= 0) {
+    err = 0;
+
+    for (i = 0; i < pa_json_object_get_array_length(o); ++i) {
+        v = pa_json_object_get_array_member(o, i);
+        if (pa_json_object_get_type(v) != PA_JSON_TYPE_OBJECT) {
+            pa_log(_("list-handlers message response array element %d is not a JSON object"), i);
             err = -1;
             break;
         }
-        if (pa_message_params_read_string(handler_struct, &description, &state2) <= 0) {
+
+        path = pa_json_object_get_object_member(v, "name");
+        if (!path || pa_json_object_get_type(path) != PA_JSON_TYPE_STRING) {
+            err = -1;
+            break;
+        }
+        description = pa_json_object_get_object_member(v, "description");
+        if (!description || pa_json_object_get_type(description) != PA_JSON_TYPE_STRING) {
             err = -1;
             break;
         }
 
         if (short_list_format)
-            printf("%s\n", path);
+            printf("%s\n", pa_json_object_get_string(path));
         else {
             if (nl)
                 printf("\n");
@@ -938,16 +955,19 @@ static void list_handlers_callback(pa_context *c, int success, char *response, v
 
             printf("Message Handler %s\n"
                    "\tDescription: %s\n",
-                   path,
-                   description);
+                   pa_json_object_get_string(path),
+                   pa_json_object_get_string(description));
         }
     }
 
     if (err < 0) {
         pa_log(_("list-handlers message response could not be parsed correctly"));
+        pa_json_object_free(o);
         quit(1);
         return;
     }
+
+    pa_json_object_free(o);
 
     complete_action();
 }

@@ -66,29 +66,27 @@ static void core_free(pa_object *o);
 
 /* Returns a list of handlers. */
 static char *message_handler_list(pa_core *c) {
-    pa_message_params *param;
+    pa_json_encoder *encoder;
     void *state = NULL;
     struct pa_message_handler *handler;
 
-    param = pa_message_params_new();
+    encoder = pa_json_encoder_new();
 
-    pa_message_params_begin_list(param);
+    pa_json_encoder_begin_element_array(encoder);
     PA_HASHMAP_FOREACH(handler, c->message_handlers, state) {
-        pa_message_params_begin_list(param);
+        pa_json_encoder_begin_element_object(encoder);
 
-        /* object_path cannot contain characters that need escaping, therefore
-         * pa_message_params_write_raw() can safely be used here. */
-        pa_message_params_write_raw(param, handler->object_path, true);
-        pa_message_params_write_string(param, handler->description);
+        pa_json_encoder_add_member_string(encoder, "name", handler->object_path);
+        pa_json_encoder_add_member_string(encoder, "description", handler->description);
 
-        pa_message_params_end_list(param);
+        pa_json_encoder_end_object(encoder);
     }
-    pa_message_params_end_list(param);
+    pa_json_encoder_end_array(encoder);
 
-    return pa_message_params_to_string_free(param);
+    return pa_json_encoder_to_string_free(encoder);
 }
 
-static int core_message_handler(const char *object_path, const char *message, char *message_parameters, char **response, void *userdata) {
+static int core_message_handler(const char *object_path, const char *message, const pa_json_object *parameters, char **response, void *userdata) {
     pa_core *c;
 
     pa_assert(c = (pa_core *) userdata);

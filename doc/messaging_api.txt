@@ -4,26 +4,18 @@ The message API allows any object within pulseaudio to register a message
 handler. A message handler is a function that can be called by clients using
 PA_COMMAND_SEND_OBJECT_MESSAGE. A message consists at least of an object path
 and a message command, both specified as strings. Additional parameters can
-be specified using a single string, but are not mandatory. The message handler
-returns an error number as defined in def.h and also returns a string in
-the "response" variable. If the string is not empty it consists of elements.
-Curly braces are used to separate elements. Each element can itself contain
-further elements. For example consider a message that returns multiple elements
-which each contain an integer and an array of float. A response string would
-look like that:
-{{Integer} {{1st float} {2nd float} ...}}{...}
-Any characters that are not enclosed in curly braces are ignored (all characters
-between { and {, between } and } and between } and {). The same syntax is used
-to specify message parameters. The reference further down lists available messages,
-their parameters and return values. If a return value is enclosed in {}, this
-means that multiple elements of the same type may be returned.
+be specified using a single string in JSON format, but are not mandatory.
 
-For string parameters that contain curly braces or backslashes, those characters
-must be escaped by adding a "\" before them.
+The message handler returns an error number as defined in def.h and also returns
+a string in the "response" variable. Non-empty response will be in JSON format.
+
+The reference further down lists available messages, their parameters
+and return values.
 
 Reference:
 
 Object path: /core
 Message: list-handlers
 Parameters: None
-Return value: {{{Handler name} {Description}} ...}
+Return value: JSON array of handler description objects
+    [{"name":"Handler name","description":"Description"} ...]
