@@ -4,6 +4,8 @@ project('pulseaudio', 'c', 'cpp',
         default_options : [ 'c_std=gnu11', 'cpp_std=c++11' ]
         )
 
+meson.add_dist_script('scripts/save-tarball-version.sh', meson.project_version())
+
 pa_version_str = meson.project_version()
 # For tarballs, the first split will do nothing, but for builds in git, we
 # split out suffixes when there are commits since the last tag
