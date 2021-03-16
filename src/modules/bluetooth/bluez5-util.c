@@ -305,7 +305,7 @@ struct switch_codec_data {
     void *userdata;
 };
 
-static void pa_bluetooth_switch_codec_reply(DBusPendingCall *pending, void *userdata) {
+static void pa_bluetooth_device_switch_codec_reply(DBusPendingCall *pending, void *userdata) {
     DBusMessage *r;
     pa_dbus_pending *p;
     pa_bluetooth_discovery *y;
@@ -345,7 +345,7 @@ static void pa_bluetooth_switch_codec_reply(DBusPendingCall *pending, void *user
     device->codec_switching_in_progress = false;
 }
 
-bool pa_bluetooth_switch_codec(pa_bluetooth_device *device, pa_bluetooth_profile_t profile,
+bool pa_bluetooth_device_switch_codec(pa_bluetooth_device *device, pa_bluetooth_profile_t profile,
         pa_hashmap *capabilities_hashmap, const pa_a2dp_codec *a2dp_codec,
         void (*codec_switch_cb)(bool, pa_bluetooth_profile_t profile, void *), void *userdata) {
     DBusMessageIter iter, dict;
@@ -409,7 +409,7 @@ bool pa_bluetooth_switch_codec(pa_bluetooth_device *device, pa_bluetooth_profile
     data->cb = codec_switch_cb;
     data->userdata = userdata;
 
-    send_and_add_to_pending(device->discovery, m, pa_bluetooth_switch_codec_reply, data);
+    send_and_add_to_pending(device->discovery, m, pa_bluetooth_device_switch_codec_reply, data);
 
     return true;
 }
@@ -1736,6 +1736,34 @@ const char *pa_bluetooth_profile_to_string(pa_bluetooth_profile_t profile) {
     }
 
     return NULL;
+}
+
+/* Returns true when PA has to perform attenuation, false if this is the
+ * responsibility of the peer.
+ *
+ * `peer_profile` is the profile of the peer.
+ *
+ * When the peer is in the HFP/HSP Audio Gateway role (PA is in headset role) PA
+ * has to perform attenuation on both the incoming and outgoing stream. In the
+ * HandsFree/HeadSet role both are attenuated on the peer.
+ */
+bool pa_bluetooth_profile_should_attenuate_volume(pa_bluetooth_profile_t peer_profile) {
+    switch(peer_profile) {
+        case PA_BLUETOOTH_PROFILE_A2DP_SINK:
+            /* Will be set to false when A2DP absolute volume is supported */
+            return true;
+        case PA_BLUETOOTH_PROFILE_A2DP_SOURCE:
+            return true;
+        case PA_BLUETOOTH_PROFILE_HFP_HF:
+        case PA_BLUETOOTH_PROFILE_HSP_HS:
+            return false;
+        case PA_BLUETOOTH_PROFILE_HFP_AG:
+        case PA_BLUETOOTH_PROFILE_HSP_AG:
+            return true;
+        case PA_BLUETOOTH_PROFILE_OFF:
+            pa_assert_not_reached();
+    }
+    pa_assert_not_reached();
 }
 
 static const pa_a2dp_codec *a2dp_endpoint_to_a2dp_codec(const char *endpoint) {

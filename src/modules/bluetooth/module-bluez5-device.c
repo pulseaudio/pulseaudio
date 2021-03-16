@@ -67,8 +67,6 @@ PA_MODULE_USAGE(
 #define FIXED_LATENCY_RECORD_A2DP   (25 * PA_USEC_PER_MSEC)
 #define FIXED_LATENCY_RECORD_SCO    (25 * PA_USEC_PER_MSEC)
 
-#define HSP_MAX_GAIN 15
-
 static const char* const valid_modargs[] = {
     "path",
     "autodetect_mtu",
@@ -104,8 +102,8 @@ struct userdata {
 
     pa_hook_slot *device_connection_changed_slot;
     pa_hook_slot *transport_state_changed_slot;
-    pa_hook_slot *transport_speaker_gain_changed_slot;
-    pa_hook_slot *transport_microphone_gain_changed_slot;
+    pa_hook_slot *transport_sink_volume_changed_slot;
+    pa_hook_slot *transport_source_volume_changed_slot;
 
     pa_bluetooth_discovery *discovery;
     pa_bluetooth_device *device;
@@ -962,7 +960,6 @@ static int source_set_state_in_io_thread_cb(pa_source *s, pa_source_state_t new_
 
 /* Run from main thread */
 static void source_set_volume_cb(pa_source *s) {
-    uint16_t gain;
     pa_volume_t volume;
     struct userdata *u;
 
@@ -974,30 +971,19 @@ static void source_set_volume_cb(pa_source *s) {
     pa_assert(u);
     pa_assert(u->source == s);
 
-    if (u->transport->set_microphone_gain == NULL)
+    if (u->transport->set_source_volume == NULL)
       return;
-
-    gain = (pa_cvolume_max(&s->real_volume) * HSP_MAX_GAIN) / PA_VOLUME_NORM;
-
-    if (gain > HSP_MAX_GAIN)
-        gain = HSP_MAX_GAIN;
-
-    volume = (pa_volume_t) (gain * PA_VOLUME_NORM / HSP_MAX_GAIN);
-
-    /* increment volume by one to correct rounding errors */
-    if (volume < PA_VOLUME_NORM)
-        volume++;
-
-    pa_cvolume_set(&s->real_volume, u->decoder_sample_spec.channels, volume);
-
-    /* Set soft volume when in headset role */
-    if (u->profile == PA_BLUETOOTH_PROFILE_HFP_AG || u->profile == PA_BLUETOOTH_PROFILE_HSP_AG)
-        pa_cvolume_set(&s->soft_volume, u->decoder_sample_spec.channels, volume);
 
     /* If we are in the AG role, we send a command to the head set to change
      * the microphone gain. In the HS role, source and sink are swapped, so
      * in this case we notify the AG that the speaker gain has changed */
-    u->transport->set_microphone_gain(u->transport, gain);
+    volume = u->transport->set_source_volume(u->transport, pa_cvolume_max(&s->real_volume));
+
+    pa_cvolume_set(&s->real_volume, u->decoder_sample_spec.channels, volume);
+
+    /* Set soft volume when in headset role */
+    if (pa_bluetooth_profile_should_attenuate_volume(u->profile))
+        pa_cvolume_set(&s->soft_volume, u->decoder_sample_spec.channels, volume);
 }
 
 /* Run from main thread */
@@ -1055,10 +1041,8 @@ static int add_source(struct userdata *u) {
     u->source->parent.process_msg = source_process_msg;
     u->source->set_state_in_io_thread = source_set_state_in_io_thread_cb;
 
-    if (u->profile == PA_BLUETOOTH_PROFILE_HSP_HS
-        || u->profile == PA_BLUETOOTH_PROFILE_HSP_AG
-        || u->profile == PA_BLUETOOTH_PROFILE_HFP_AG
-        || u->profile == PA_BLUETOOTH_PROFILE_HFP_HF) {
+    if (u->transport->set_source_volume) {
+        pa_log_debug("Peer supports microphone gain control");
         pa_source_set_set_volume_callback(u->source, source_set_volume_cb);
         u->source->n_volume_steps = 16;
     }
@@ -1154,7 +1138,6 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
 
 /* Run from main thread */
 static void sink_set_volume_cb(pa_sink *s) {
-    uint16_t gain;
     pa_volume_t volume;
     struct userdata *u;
 
@@ -1166,30 +1149,19 @@ static void sink_set_volume_cb(pa_sink *s) {
     pa_assert(u);
     pa_assert(u->sink == s);
 
-    if (u->transport->set_speaker_gain == NULL)
+    if (u->transport->set_sink_volume == NULL)
       return;
-
-    gain = (pa_cvolume_max(&s->real_volume) * HSP_MAX_GAIN) / PA_VOLUME_NORM;
-
-    if (gain > HSP_MAX_GAIN)
-        gain = HSP_MAX_GAIN;
-
-    volume = (pa_volume_t) (gain * PA_VOLUME_NORM / HSP_MAX_GAIN);
-
-    /* increment volume by one to correct rounding errors */
-    if (volume < PA_VOLUME_NORM)
-        volume++;
-
-    pa_cvolume_set(&s->real_volume, u->encoder_sample_spec.channels, volume);
-
-    /* Set soft volume when in headset role */
-    if (u->profile == PA_BLUETOOTH_PROFILE_HFP_AG || u->profile == PA_BLUETOOTH_PROFILE_HSP_AG)
-        pa_cvolume_set(&s->soft_volume, u->encoder_sample_spec.channels, volume);
 
     /* If we are in the AG role, we send a command to the head set to change
      * the speaker gain. In the HS role, source and sink are swapped, so
      * in this case we notify the AG that the microphone gain has changed */
-    u->transport->set_speaker_gain(u->transport, gain);
+    volume = u->transport->set_sink_volume(u->transport, pa_cvolume_max(&s->real_volume));
+
+    pa_cvolume_set(&s->real_volume, u->encoder_sample_spec.channels, volume);
+
+    /* Set soft volume when in headset role */
+    if (pa_bluetooth_profile_should_attenuate_volume(u->profile))
+        pa_cvolume_set(&s->soft_volume, u->encoder_sample_spec.channels, volume);
 }
 
 /* Run from main thread */
@@ -1248,10 +1220,8 @@ static int add_sink(struct userdata *u) {
     u->sink->parent.process_msg = sink_process_msg;
     u->sink->set_state_in_io_thread = sink_set_state_in_io_thread_cb;
 
-    if (u->profile == PA_BLUETOOTH_PROFILE_HSP_HS
-        || u->profile == PA_BLUETOOTH_PROFILE_HSP_AG
-        || u->profile == PA_BLUETOOTH_PROFILE_HFP_AG
-        || u->profile == PA_BLUETOOTH_PROFILE_HFP_HF) {
+    if (u->transport->set_sink_volume) {
+        pa_log_debug("Peer supports speaker gain control");
         pa_sink_set_set_volume_callback(u->sink, sink_set_volume_cb);
         u->sink->n_volume_steps = 16;
     }
@@ -2270,10 +2240,9 @@ static pa_hook_result_t transport_state_changed_cb(pa_bluetooth_discovery *y, pa
     return PA_HOOK_OK;
 }
 
-static pa_hook_result_t transport_speaker_gain_changed_cb(pa_bluetooth_discovery *y, pa_bluetooth_transport *t, struct userdata *u) {
+static pa_hook_result_t transport_sink_volume_changed_cb(pa_bluetooth_discovery *y, pa_bluetooth_transport *t, struct userdata *u) {
     pa_volume_t volume;
     pa_cvolume v;
-    uint16_t gain;
 
     pa_assert(t);
     pa_assert(u);
@@ -2281,26 +2250,20 @@ static pa_hook_result_t transport_speaker_gain_changed_cb(pa_bluetooth_discovery
     if (t != u->transport)
       return PA_HOOK_OK;
 
-    gain = t->speaker_gain;
-    volume = (pa_volume_t) (gain * PA_VOLUME_NORM / HSP_MAX_GAIN);
-
-    /* increment volume by one to correct rounding errors */
-    if (volume < PA_VOLUME_NORM)
-        volume++;
+    volume = t->sink_volume;
 
     pa_cvolume_set(&v, u->encoder_sample_spec.channels, volume);
-    if (t->profile == PA_BLUETOOTH_PROFILE_HSP_HS || t->profile == PA_BLUETOOTH_PROFILE_HFP_HF)
-        pa_sink_volume_changed(u->sink, &v);
-    else
+    if (pa_bluetooth_profile_should_attenuate_volume(t->profile))
         pa_sink_set_volume(u->sink, &v, true, true);
+    else
+        pa_sink_volume_changed(u->sink, &v);
 
     return PA_HOOK_OK;
 }
 
-static pa_hook_result_t transport_microphone_gain_changed_cb(pa_bluetooth_discovery *y, pa_bluetooth_transport *t, struct userdata *u) {
+static pa_hook_result_t transport_source_volume_changed_cb(pa_bluetooth_discovery *y, pa_bluetooth_transport *t, struct userdata *u) {
     pa_volume_t volume;
     pa_cvolume v;
-    uint16_t gain;
 
     pa_assert(t);
     pa_assert(u);
@@ -2308,19 +2271,14 @@ static pa_hook_result_t transport_microphone_gain_changed_cb(pa_bluetooth_discov
     if (t != u->transport)
       return PA_HOOK_OK;
 
-    gain = t->microphone_gain;
-    volume = (pa_volume_t) (gain * PA_VOLUME_NORM / HSP_MAX_GAIN);
-
-    /* increment volume by one to correct rounding errors */
-    if (volume < PA_VOLUME_NORM)
-        volume++;
+    volume = t->source_volume;
 
     pa_cvolume_set(&v, u->decoder_sample_spec.channels, volume);
 
-    if (t->profile == PA_BLUETOOTH_PROFILE_HSP_HS || t->profile == PA_BLUETOOTH_PROFILE_HFP_HF)
-        pa_source_volume_changed(u->source, &v);
-    else
+    if (pa_bluetooth_profile_should_attenuate_volume(t->profile))
         pa_source_set_volume(u->source, &v, true, true);
+    else
+        pa_source_volume_changed(u->source, &v);
 
     return PA_HOOK_OK;
 }
@@ -2494,7 +2452,7 @@ static int bluez5_device_message_handler(const char *object_path, const char *me
 
         stop_thread(u);
 
-        if (!pa_bluetooth_switch_codec(u->device, profile, capabilities_hashmap, codec, switch_codec_cb_handler, userdata)
+        if (!pa_bluetooth_device_switch_codec(u->device, profile, capabilities_hashmap, codec, switch_codec_cb_handler, userdata)
                 && !u->device->codec_switching_in_progress)
             goto profile_off;
 
@@ -2620,11 +2578,11 @@ int pa__init(pa_module* m) {
         pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED),
                         PA_HOOK_NORMAL, (pa_hook_cb_t) transport_state_changed_cb, u);
 
-    u->transport_speaker_gain_changed_slot =
-        pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_TRANSPORT_SPEAKER_GAIN_CHANGED), PA_HOOK_NORMAL, (pa_hook_cb_t) transport_speaker_gain_changed_cb, u);
+    u->transport_sink_volume_changed_slot =
+        pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_TRANSPORT_SINK_VOLUME_CHANGED), PA_HOOK_NORMAL, (pa_hook_cb_t) transport_sink_volume_changed_cb, u);
 
-    u->transport_microphone_gain_changed_slot =
-        pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_TRANSPORT_MICROPHONE_GAIN_CHANGED), PA_HOOK_NORMAL, (pa_hook_cb_t) transport_microphone_gain_changed_cb, u);
+    u->transport_source_volume_changed_slot =
+        pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_TRANSPORT_SOURCE_VOLUME_CHANGED), PA_HOOK_NORMAL, (pa_hook_cb_t) transport_source_volume_changed_cb, u);
 
     if (add_card(u) < 0)
         goto fail;
@@ -2695,11 +2653,11 @@ void pa__done(pa_module *m) {
     if (u->transport_state_changed_slot)
         pa_hook_slot_free(u->transport_state_changed_slot);
 
-    if (u->transport_speaker_gain_changed_slot)
-        pa_hook_slot_free(u->transport_speaker_gain_changed_slot);
+    if (u->transport_sink_volume_changed_slot)
+        pa_hook_slot_free(u->transport_sink_volume_changed_slot);
 
-    if (u->transport_microphone_gain_changed_slot)
-        pa_hook_slot_free(u->transport_microphone_gain_changed_slot);
+    if (u->transport_source_volume_changed_slot)
+        pa_hook_slot_free(u->transport_source_volume_changed_slot);
 
     if (u->encoder_buffer)
         pa_xfree(u->encoder_buffer);
