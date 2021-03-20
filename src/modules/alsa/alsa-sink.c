@@ -1825,6 +1825,9 @@ static int process_rewind(struct userdata *u) {
 
     pa_log_debug("Requested to rewind %lu bytes.", (unsigned long) rewind_nbytes);
 
+    if (rewind_nbytes == 0)
+        goto rewind_done;
+
     if (PA_UNLIKELY((unused = pa_alsa_safe_avail(u->pcm_handle, u->hwbuf_size, &u->sink->sample_spec)) < 0)) {
         if ((err = try_recover(u, "snd_pcm_avail", (int) unused)) < 0) {
             pa_log_warn("Trying to recover from underrun failed during rewind");
