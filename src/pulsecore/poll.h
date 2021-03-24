@@ -24,7 +24,7 @@
 
 #if defined(HAVE_POLL_H)
 #include <poll.h>
-#elif OS_IS_WIN32 && HAVE_WINSOCK2_H && NTDDI_VERSION >= NTDDI_VISTA
+#elif OS_IS_WIN32 && HAVE_WINSOCK2_H && (_WIN32_WINNT >= 0x0600)
 #include <winsock2.h>
 #else
 

@@ -24,6 +24,7 @@
 
 #include <windows.h>
 #include <mmsystem.h>
+#include <mmreg.h>
 #include <string.h>
 
 #include <pulse/xmalloc.h>
@@ -458,31 +459,96 @@ static void sink_set_volume_cb(pa_sink *s) {
         return;
 }
 
-static int ss_to_waveformat(pa_sample_spec *ss, LPWAVEFORMATEX wf) {
-    wf->wFormatTag = WAVE_FORMAT_PCM;
+static DWORD channel_position_to_wavefmt(pa_channel_position_t channel) {
+    switch(channel) {
+        case PA_CHANNEL_POSITION_MONO:
+        case PA_CHANNEL_POSITION_FRONT_LEFT:
+            return SPEAKER_FRONT_LEFT;
+        case PA_CHANNEL_POSITION_FRONT_RIGHT:
+            return SPEAKER_FRONT_RIGHT;
+        case PA_CHANNEL_POSITION_FRONT_CENTER:
+            return SPEAKER_FRONT_CENTER;
 
-    if (ss->channels > 2) {
-        pa_log_error("More than two channels not supported.");
+        case PA_CHANNEL_POSITION_REAR_LEFT:
+            return SPEAKER_BACK_LEFT;
+        case PA_CHANNEL_POSITION_REAR_RIGHT:
+            return SPEAKER_BACK_RIGHT;
+        case PA_CHANNEL_POSITION_REAR_CENTER:
+            return SPEAKER_BACK_CENTER;
+
+        case PA_CHANNEL_POSITION_LFE:
+            return SPEAKER_LOW_FREQUENCY;
+
+        case PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER:
+            return SPEAKER_FRONT_LEFT_OF_CENTER;
+        case PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER:
+            return SPEAKER_FRONT_RIGHT_OF_CENTER;
+
+        case PA_CHANNEL_POSITION_SIDE_LEFT:
+            return SPEAKER_SIDE_LEFT;
+        case PA_CHANNEL_POSITION_SIDE_RIGHT:
+            return SPEAKER_SIDE_RIGHT;
+
+        case PA_CHANNEL_POSITION_TOP_CENTER:
+            return SPEAKER_TOP_CENTER;
+
+        case PA_CHANNEL_POSITION_TOP_FRONT_LEFT:
+            return SPEAKER_TOP_FRONT_LEFT;
+        case PA_CHANNEL_POSITION_TOP_FRONT_RIGHT:
+            return SPEAKER_TOP_FRONT_RIGHT;
+        case PA_CHANNEL_POSITION_TOP_FRONT_CENTER:
+            return SPEAKER_TOP_FRONT_CENTER;
+
+        case PA_CHANNEL_POSITION_TOP_REAR_LEFT:
+            return SPEAKER_TOP_BACK_LEFT;
+        case PA_CHANNEL_POSITION_TOP_REAR_RIGHT:
+            return SPEAKER_TOP_BACK_RIGHT;
+        case PA_CHANNEL_POSITION_TOP_REAR_CENTER:
+            return SPEAKER_TOP_BACK_CENTER;
+
+        default:
+            return 0;
+    }
+}
+
+static int ss_to_waveformat(pa_sample_spec *ss, pa_channel_map *map, PWAVEFORMATEXTENSIBLE wf) {
+    wf->Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
+    wf->SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
+
+    wf->Format.nChannels = ss->channels;
+    wf->Format.nSamplesPerSec = ss->rate;
+
+    wf->dwChannelMask = 0;
+    for (int i = 0; i < map->channels; i++) {
+        DWORD thisSpeaker = channel_position_to_wavefmt(map->map[i]);
+        if (thisSpeaker == 0 || (wf->dwChannelMask & thisSpeaker)) {
+            pa_log_error("Invalid channel map: unknown or duplicated channel %d.", map->map[i]);
+            return -1;
+        }
+        wf->dwChannelMask |= thisSpeaker;
+    }
+
+    if (ss->format == PA_SAMPLE_U8) {
+        wf->Format.wBitsPerSample = 8;
+        wf->Samples.wValidBitsPerSample = 8;
+    } else if (ss->format == PA_SAMPLE_S16LE) {
+        wf->Format.wBitsPerSample = 16;
+        wf->Samples.wValidBitsPerSample = 16;
+    } else if (ss->format == PA_SAMPLE_S24LE) {
+        wf->Format.wBitsPerSample = 24;
+        wf->Samples.wValidBitsPerSample = 24;
+    } else if (ss->format == PA_SAMPLE_S32LE) {
+        wf->Format.wBitsPerSample = 32;
+        wf->Samples.wValidBitsPerSample = 32;
+    } else {
+        pa_log_error("Unsupported sample format, only u8, s16le, s24le, and s32le are supported.");
         return -1;
     }
 
-    wf->nChannels = ss->channels;
+    wf->Format.nBlockAlign = wf->Format.nChannels * wf->Format.wBitsPerSample/8;
+    wf->Format.nAvgBytesPerSec = wf->Format.nSamplesPerSec * wf->Format.nBlockAlign;
 
-    wf->nSamplesPerSec = ss->rate;
-
-    if (ss->format == PA_SAMPLE_U8)
-        wf->wBitsPerSample = 8;
-    else if (ss->format == PA_SAMPLE_S16NE)
-        wf->wBitsPerSample = 16;
-    else {
-        pa_log_error("Unsupported sample format, only u8 and s16 are supported.");
-        return -1;
-    }
-
-    wf->nBlockAlign = wf->nChannels * wf->wBitsPerSample/8;
-    wf->nAvgBytesPerSec = wf->nSamplesPerSec * wf->nBlockAlign;
-
-    wf->cbSize = 0;
+    wf->Format.cbSize = 22;
 
     return 0;
 }
@@ -501,7 +567,7 @@ int pa__init(pa_module *m) {
     struct userdata *u = NULL;
     HWAVEOUT hwo = INVALID_HANDLE_VALUE;
     HWAVEIN hwi = INVALID_HANDLE_VALUE;
-    WAVEFORMATEX wf;
+    WAVEFORMATEXTENSIBLE wf;
     WAVEOUTCAPS pwoc;
     WAVEINCAPS pwic;
     MMRESULT result;
@@ -606,7 +672,7 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
-    if (ss_to_waveformat(&ss, &wf) < 0)
+    if (ss_to_waveformat(&ss, &map, &wf) < 0)
         goto fail;
 
     u = pa_xmalloc(sizeof(struct userdata));
@@ -615,7 +681,7 @@ int pa__init(pa_module *m) {
         result = waveInOpen(&hwi, input_device, &wf, 0, 0, WAVE_FORMAT_DIRECT | WAVE_FORMAT_QUERY);
         if (result != MMSYSERR_NOERROR) {
             pa_log_warn("Sample spec not supported by WaveIn, falling back to default sample rate.");
-            ss.rate = wf.nSamplesPerSec = m->core->default_sample_spec.rate;
+            ss.rate = wf.Format.nSamplesPerSec = m->core->default_sample_spec.rate;
         }
         result = waveInOpen(&hwi, input_device, &wf, (DWORD_PTR) chunk_ready_cb, (DWORD_PTR) u, CALLBACK_FUNCTION);
         if (result != MMSYSERR_NOERROR) {
@@ -635,7 +701,7 @@ int pa__init(pa_module *m) {
         result = waveOutOpen(&hwo, output_device, &wf, 0, 0, WAVE_FORMAT_DIRECT | WAVE_FORMAT_QUERY);
         if (result != MMSYSERR_NOERROR) {
             pa_log_warn("Sample spec not supported by WaveOut, falling back to default sample rate.");
-            ss.rate = wf.nSamplesPerSec = m->core->default_sample_spec.rate;
+            ss.rate = wf.Format.nSamplesPerSec = m->core->default_sample_spec.rate;
         }
         result = waveOutOpen(&hwo, output_device, &wf, (DWORD_PTR) chunk_done_cb, (DWORD_PTR) u, CALLBACK_FUNCTION);
         if (result != MMSYSERR_NOERROR) {

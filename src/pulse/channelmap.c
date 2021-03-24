@@ -296,8 +296,7 @@ pa_channel_map* pa_channel_map_init_auto(pa_channel_map *m, unsigned channels, p
 
         case PA_CHANNEL_MAP_WAVEEX:
 
-            /* Following http://www.microsoft.com/whdc/device/audio/multichaud.mspx#EKLAC */
-
+            /* following: https://docs.microsoft.com/en-us/previous-versions/windows/hardware/design/dn653308(v=vs.85) */
             switch (channels) {
                 case 1:
                     m->map[0] = PA_CHANNEL_POSITION_MONO;
