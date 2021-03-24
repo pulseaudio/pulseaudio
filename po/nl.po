@@ -10,7 +10,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-03-08 16:26+0200\n"
-"PO-Revision-Date: 2021-03-22 19:39+0000\n"
+"PO-Revision-Date: 2021-03-24 08:55+0000\n"
 "Last-Translator: Pjotr Vertaalt <pjotrvertaalt@gmail.com>\n"
 "Language-Team: Dutch <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/nl/>\n"
@@ -664,7 +664,7 @@ msgstr "Dokmicrofoon"
 
 #: src/modules/alsa/alsa-mixer.c:2802
 msgid "Headset Microphone"
-msgstr "Koptelefoonmicrofoon"
+msgstr "Hoofdsetmicrofoon"
 
 #: src/modules/alsa/alsa-mixer.c:2806
 msgid "Analog Output"
@@ -760,7 +760,7 @@ msgstr "Stereo"
 #: src/modules/alsa/alsa-mixer.c:4575 src/modules/alsa/alsa-mixer.c:4733
 #: src/modules/bluetooth/module-bluez5-device.c:1835 src/utils/pactl.c:259
 msgid "Headset"
-msgstr "Koptelefoon"
+msgstr "Hoofdset"
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
 msgid "Speakerphone"
@@ -1046,11 +1046,11 @@ msgstr "High Fidelity opnemen (A2DP bron)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1957
 msgid "Headset Head Unit (HSP)"
-msgstr "Koptelefoon hoofdeenheid (HSP)"
+msgstr "Hoofdset hoofdeenheid (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1970
 msgid "Headset Audio Gateway (HSP)"
-msgstr "Koptelefoon Audio Gateway (HSP)"
+msgstr "Hoofdset Audio Gateway (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1983
 msgid "Handsfree Head Unit (HFP)"
@@ -1073,6 +1073,16 @@ msgid ""
 "loaded automatically> use_volume_sharing=<yes or no> use_master_format=<yes "
 "or no> "
 msgstr ""
+"source_name=<naam voor de bron> source_properties=<eigenschappen voor de "
+"bron> source_master=<naam van te filteren bron> sink_name=<naam voor de "
+"afvoer> sink_properties=<eigenschappen voor de afvoer> sink_master=<naam van "
+"te filteren afvoer> adjust_time=<hoe vaak rates bij te stellen in s> "
+"adjust_threshold=<how much drift to readjust after in ms> format=<sample "
+"format> rate=<sample rate> channels=<aantal kanalen> "
+"channel_map=<kanalenkaart> aec_method=<te gebruiken implementatie> "
+"aec_args=<parameters voor de AEC engine> save_aec=<sla AEC-gegevens op in /"
+"tmp> autoloaded=<ingesteld idnien deze module automatisch wordt geladen> "
+"use_volume_sharing=<ja of nee> use_master_format=<ja of nee> "
 
 #. add on profile
 #: src/modules/macosx/module-coreaudio-device.c:825
@@ -1105,6 +1115,11 @@ msgid ""
 "channels=<number of channels> channel_map=<channel map> autoloaded=<set if "
 "this module is being loaded automatically> use_volume_sharing=<yes or no> "
 msgstr ""
+"sink_name=<naam van de afvoer> sink_properties=<eigenschappen voor de "
+"afvoer> sink_master=<afvoer waarmee moet worden verbonden> format=<sample "
+"format> rate=<sample rate> channels=<aantal kanalen> "
+"channel_map=<kanalenkaart> autoloaded=<ingesteld indien deze module "
+"automatisch wordt geladen> use_volume_sharing=<ja of nee> "
 
 #: src/modules/module-equalizer-sink.c:1094
 #: src/modules/module-equalizer-sink.c:1217
@@ -1114,7 +1129,7 @@ msgstr "FFT-gebaseerd mengpaneel op %s"
 
 #: src/modules/module-filter-apply.c:47
 msgid "autoclean=<automatically unload unused filters?>"
-msgstr ""
+msgstr "autoclean=<ongebruikte filters automatisch lossen?>"
 
 #: src/modules/module-ladspa-sink.c:50
 msgid "Virtual LADSPA sink"
@@ -1132,6 +1147,16 @@ msgid ""
 "separated list of output LADSPA port names> autoloaded=<set if this module "
 "is being loaded automatically> "
 msgstr ""
+"sink_name=<naam voor de afvoer> sink_properties=<eigenschappen voor de "
+"afvoer> sink_input_properties=<eigenschappen voor de afvoer-invoer> "
+"master=<naam van te filteren afvoer> sink_master=<naam van te filteren "
+"afvoer> format=<sample format> rate=<sample rate> channels=<aantal kanalen> "
+"channel_map=<invoerkanalenkaart> plugin=<ladspa invoegselnaam> label=<ladspa "
+"invoegseletiket> control=<kommagescheiden lijst van "
+"invoerbeheersingswaarden> input_ladspaport_map=<kommagescheiden lijst van "
+"invoer LADSPA poortnamen> output_ladspaport_map=<kommagescheiden lijst van "
+"uitvoer LADSPA poortnamen> autoloaded=<ingesteld indien deze module "
+"automatisch wordt geladen> "
 
 #: src/modules/module-null-sink.c:46
 msgid "Clocked NULL sink"
@@ -1190,6 +1215,13 @@ msgid ""
 "left_hrir.wav hrir_right=/path/to/optional/right_hrir.wav autoloaded=<set if "
 "this module is being loaded automatically> "
 msgstr ""
+"sink_name=<naam voor de afvoer> sink_properties=<eigenschappen voor de "
+"afvoer> master=<naam van te filteren afvoer> sink_master=<naam van te "
+"filteren afvoer> format=<sample format> rate=<sample rate> channels=<aantal "
+"kanalen> channel_map=<kanalenkaart> use_volume_sharing=<ja of nee> "
+"force_flat_volume=<ja of nee> hrir=/path/to/left_hrir.wav hrir_left=/path/to/"
+"left_hrir.wav hrir_right=/path/to/optional/right_hrir.wav "
+"autoloaded=<ingesteld indien deze module automatisch wordt geladen> "
 
 #: src/modules/raop/module-raop-discover.c:295
 msgid "Unknown device model"
@@ -1479,6 +1511,9 @@ msgid ""
 "e.g. happen if you try to connect to a non-root PulseAudio as a root user, "
 "over the native protocol. Don't do that.)"
 msgstr ""
+"XDG_RUNTIME_DIR (%s) is niet ons eigendom (uid %d), maar van uid %d! (Dit "
+"zou bijv. kunnen gebeuren indien u als rootgebruiker probeert te verbinden "
+"met een PulseAudio die niet root is, via het eigen protocol. Doe dat niet.)"
 
 #: src/pulsecore/core-util.h:97
 msgid "yes"
@@ -2310,6 +2345,12 @@ msgid ""
 "Client Index: %u\n"
 "Tile Size: %zu\n"
 msgstr ""
+"Server tekenreeks: %s\n"
+"Bibliotheek protocolversie: %u\n"
+"Server protocolversie: %u\n"
+"Is Local: %s\n"
+"Cliënt-index: %u\n"
+"Tegelgrootte: %zu\n"
 
 #: src/utils/pactl.c:217
 #, c-format
@@ -2916,6 +2957,9 @@ msgid ""
 "The special names @DEFAULT_SINK@, @DEFAULT_SOURCE@ and @DEFAULT_MONITOR@\n"
 "can be used to specify the default sink, source and monitor.\n"
 msgstr ""
+"\n"
+"De speciale namen @DEFAULT_SINK@, @DEFAULT_SOURCE@ en @DEFAULT_MONITOR@\n"
+"kunnen worden gebruikt om de standaardafvoer, -bron en -monitor te bepalen.\n"
 
 #: src/utils/pactl.c:1714
 #, c-format
