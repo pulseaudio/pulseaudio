@@ -19,3 +19,19 @@ Message: list-handlers
 Parameters: None
 Return value: JSON array of handler description objects
     [{"name":"Handler name","description":"Description"} ...]
+
+Object path: /card/bluez_card.XX_XX_XX_XX_XX_XX/bluez
+Message: list-codecs
+Parameters: None
+Return value: JSON array of codec description objects
+    [{"name":"codec1","description":"Codec 1"} ...]
+
+Object path: /card/bluez_card.XX_XX_XX_XX_XX_XX/bluez
+Message: get-codec
+Parameters: None
+Return value: "codec name"
+
+Object path: /card/bluez_card.XX_XX_XX_XX_XX_XX/bluez
+Message: switch-codec
+Parameters: "codec name"
+Return value: none
