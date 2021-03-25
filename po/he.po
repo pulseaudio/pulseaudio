@@ -7,7 +7,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-01-22 09:11+0200\n"
-"PO-Revision-Date: 2021-03-09 09:01+0000\n"
+"PO-Revision-Date: 2021-03-26 21:01+0000\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/he/>\n"
@@ -676,7 +676,7 @@ msgstr "סטריאו"
 #: src/modules/alsa/alsa-mixer.c:4575 src/modules/alsa/alsa-mixer.c:4733
 #: src/modules/bluetooth/module-bluez5-device.c:1835 src/utils/pactl.c:259
 msgid "Headset"
-msgstr ""
+msgstr "אוזניות עם מיקרופון"
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
 msgid "Speakerphone"
@@ -894,7 +894,7 @@ msgstr "דיבורית"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1862
 msgid "Headphone"
-msgstr "אוזניה"
+msgstr "אוזניות"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1868 src/utils/pactl.c:269
 msgid "Portable"
@@ -922,7 +922,7 @@ msgstr ""
 
 #: src/modules/bluetooth/module-bluez5-device.c:1957
 msgid "Headset Head Unit (HSP)"
-msgstr ""
+msgstr "יחידת ראש של אוזניות (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1970
 msgid "Headset Audio Gateway (HSP)"
@@ -2128,7 +2128,7 @@ msgstr ""
 
 #: src/utils/pactl.c:242
 msgid "availability unknown"
-msgstr "זמינות לא יודעת"
+msgstr "זמינות לא ידועה"
 
 #: src/utils/pactl.c:243
 msgid "available"
@@ -2156,7 +2156,7 @@ msgstr "מיקרופון"
 
 #: src/utils/pactl.c:260
 msgid "Handset"
-msgstr ""
+msgstr "שפופרת"
 
 #: src/utils/pactl.c:261
 msgid "Earpiece"
@@ -2879,17 +2879,17 @@ msgstr ""
 #: src/utils/pax11publish.c:91
 #, c-format
 msgid "Failed to parse command line.\n"
-msgstr ""
+msgstr "פענוח שורת הפקודה נכשל.\n"
 
 #: src/utils/pax11publish.c:110
 #, c-format
 msgid "Server: %s\n"
-msgstr ""
+msgstr "שרת: %s\n"
 
 #: src/utils/pax11publish.c:112
 #, c-format
 msgid "Source: %s\n"
-msgstr ""
+msgstr "מקור: %s\n"
 
 #: src/utils/pax11publish.c:114
 #, c-format
