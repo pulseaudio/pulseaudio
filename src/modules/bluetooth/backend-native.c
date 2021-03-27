@@ -37,8 +37,6 @@
 #include "bluez5-util.h"
 #include "bt-codec-msbc.h"
 
-#define HSP_MAX_GAIN 15
-
 struct pa_bluetooth_backend {
   pa_core *core;
   pa_dbus_connection *connection;

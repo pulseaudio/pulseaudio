@@ -930,7 +930,7 @@ static void source_setup_volume_callback(pa_source *s) {
         pa_source_set_soft_volume(s, NULL);
 
         pa_source_set_set_volume_callback(s, source_set_volume_cb);
-        s->n_volume_steps = 16;
+        s->n_volume_steps = HSP_MAX_GAIN + 1;
     }
 }
 
@@ -1146,7 +1146,7 @@ static void sink_setup_volume_callback(pa_sink *s) {
         pa_sink_set_soft_volume(s, NULL);
 
         pa_sink_set_set_volume_callback(s, sink_set_volume_cb);
-        s->n_volume_steps = 16;
+        s->n_volume_steps = HSP_MAX_GAIN + 1;
     }
 }
 
