@@ -52,6 +52,7 @@
 #define PA_BLUETOOTH_UUID_HFP_HF      "0000111e-0000-1000-8000-00805f9b34fb"
 #define PA_BLUETOOTH_UUID_HFP_AG      "0000111f-0000-1000-8000-00805f9b34fb"
 
+#define A2DP_MAX_GAIN 127
 #define HSP_MAX_GAIN 15
 
 typedef struct pa_bluetooth_transport pa_bluetooth_transport;

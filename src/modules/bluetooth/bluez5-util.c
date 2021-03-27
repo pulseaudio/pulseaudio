@@ -101,6 +101,19 @@
     " </interface>"                                                     \
     "</node>"
 
+static pa_volume_t a2dp_gain_to_volume(uint16_t gain) {
+    pa_volume_t volume = (pa_volume_t) ((
+        gain * PA_VOLUME_NORM
+        /* Round to closest by adding half the denominator */
+        + A2DP_MAX_GAIN / 2
+    ) / A2DP_MAX_GAIN);
+
+    if (volume > PA_VOLUME_NORM)
+        volume = PA_VOLUME_NORM;
+
+    return volume;
+}
+
 struct pa_bluetooth_discovery {
     PA_REFCNT_DECLARE;
 
@@ -496,6 +509,24 @@ void pa_bluetooth_transport_set_state(pa_bluetooth_transport *t, pa_bluetooth_tr
     }
 }
 
+static void pa_bluetooth_transport_remote_volume_changed(pa_bluetooth_transport *t, uint16_t gain) {
+    pa_volume_t volume;
+
+    pa_assert(t);
+
+    volume = a2dp_gain_to_volume(gain);
+
+    /* increment volume by one to correct rounding errors */
+    if (volume < PA_VOLUME_NORM)
+        volume++;
+
+    if (t->source_volume == volume)
+        return;
+
+    t->source_volume = volume;
+    pa_hook_fire(pa_bluetooth_discovery_hook(t->device->discovery, PA_BLUETOOTH_HOOK_TRANSPORT_SOURCE_VOLUME_CHANGED), t);
+}
+
 void pa_bluetooth_transport_put(pa_bluetooth_transport *t) {
     pa_assert(t);
 
@@ -679,6 +710,8 @@ static void parse_transport_property(pa_bluetooth_transport *t, DBusMessageIter 
     if (key == NULL)
         return;
 
+    pa_log_debug("Transport property %s changed", key);
+
     dbus_message_iter_recurse(i, &variant_i);
 
     switch (dbus_message_iter_get_arg_type(&variant_i)) {
@@ -699,6 +732,17 @@ static void parse_transport_property(pa_bluetooth_transport *t, DBusMessageIter 
                 pa_bluetooth_transport_set_state(t, state);
             }
 
+            break;
+        }
+
+        case DBUS_TYPE_UINT16: {
+            uint16_t value;
+            dbus_message_iter_get_basic(&variant_i, &value);
+
+            if (pa_streq(key, "Volume")) {
+                if (t->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE)
+                    pa_bluetooth_transport_remote_volume_changed(t, value);
+            }
             break;
         }
     }
