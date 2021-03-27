@@ -18,6 +18,7 @@
 ***/
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #define PA_DOUBLE_IS_EQUAL(x, y) (((x) - (y)) < 0.000001 && ((x) - (y)) > -0.000001)
 
@@ -40,7 +41,7 @@ void pa_json_object_free(pa_json_object *obj);
 
 /* All pointer members that are returned are valid while the corresponding object is valid */
 
-int pa_json_object_get_int(const pa_json_object *o);
+int64_t pa_json_object_get_int(const pa_json_object *o);
 double pa_json_object_get_double(const pa_json_object *o);
 bool pa_json_object_get_bool(const pa_json_object *o);
 const char* pa_json_object_get_string(const pa_json_object *o);
