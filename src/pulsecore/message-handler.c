@@ -105,7 +105,8 @@ void pa_message_handler_unregister(pa_core *c, const char *object_path) {
 int pa_message_handler_send_message(pa_core *c, const char *object_path, const char *message, const char *message_parameters, char **response) {
     struct pa_message_handler *handler;
     int ret;
-    char *parameter_copy, *path_copy;
+    char *path_copy;
+    pa_json_object *parameters = NULL;
 
     pa_assert(c);
     pa_assert(object_path);
@@ -125,14 +126,21 @@ int pa_message_handler_send_message(pa_core *c, const char *object_path, const c
         return -PA_ERR_NOENTITY;
     }
 
-    parameter_copy = pa_xstrdup(message_parameters);
+    pa_xfree(path_copy);
+
+    if (message_parameters) {
+        parameters = pa_json_parse(message_parameters);
+
+        if (!parameters)
+            return -PA_ERR_INVALID;
+    }
 
     /* The handler is expected to return an error code and may also
        return an error string in response */
-    ret = handler->callback(handler->object_path, message, parameter_copy, response, handler->userdata);
+    ret = handler->callback(handler->object_path, message, parameters, response, handler->userdata);
 
-    pa_xfree(parameter_copy);
-    pa_xfree(path_copy);
+    if (parameters)
+        pa_json_object_free(parameters);
     return ret;
 }
 
