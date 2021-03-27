@@ -52,8 +52,21 @@
 #define PA_BLUETOOTH_UUID_HFP_HF      "0000111e-0000-1000-8000-00805f9b34fb"
 #define PA_BLUETOOTH_UUID_HFP_AG      "0000111f-0000-1000-8000-00805f9b34fb"
 
-#define A2DP_MAX_GAIN 127
 #define HSP_MAX_GAIN 15
+
+#define A2DP_MAX_GAIN 127
+/* Some devices only go as low as 1 */
+#define A2DP_MUTE_GAIN 1
+#define A2DP_MIN_GAIN (A2DP_MUTE_GAIN + 1)
+
+/* Round to closest by adding half the denominator */
+#define A2DP_GAIN_TO_VOLUME(gain)                                              \
+    ((pa_volume_t)(((gain)*PA_VOLUME_NORM + A2DP_MAX_GAIN / 2) / A2DP_MAX_GAIN))
+#define VOLUME_TO_A2DP_GAIN(volume)                                            \
+    ((uint16_t)(((volume)*A2DP_MAX_GAIN + PA_VOLUME_NORM / 2) / PA_VOLUME_NORM))
+
+#define A2DP_MUTE_VOLUME A2DP_GAIN_TO_VOLUME(A2DP_MUTE_GAIN)
+#define A2DP_MIN_VOLUME A2DP_GAIN_TO_VOLUME(A2DP_MIN_GAIN)
 
 typedef struct pa_bluetooth_transport pa_bluetooth_transport;
 typedef struct pa_bluetooth_device pa_bluetooth_device;
