@@ -54,7 +54,8 @@ START_TEST(int_test) {
     pa_json_object *o;
     unsigned int i;
     const char *ints_parse[] = { "1", "-1", "1234", "0" };
-    const int ints_compare[] = { 1, -1, 1234, 0 };
+    const int64_t ints_compare[] = { 1, -1, 1234, 0 };
+    char *ulong_max_str;
 
     for (i = 0; i < PA_ELEMENTSOF(ints_parse); i++) {
         o = pa_json_parse(ints_parse[i]);
@@ -65,12 +66,19 @@ START_TEST(int_test) {
 
         pa_json_object_free(o);
     }
+
+    /* test that parser would fail on integer overflow */
+    ulong_max_str = pa_sprintf_malloc("%"PRIu64, ULONG_MAX);
+    o = pa_json_parse(ulong_max_str);
+    fail_unless(o == NULL);
+    pa_xfree(ulong_max_str);
 }
 END_TEST
 
 START_TEST(double_test) {
     pa_json_object *o;
     unsigned int i;
+    char *very_large_double_str;
     const char *doubles_parse[] = {
         "1.0", "-1.1", "1234e2", "1234e0", "0.1234", "-0.1234", "1234e-1", "1234.5e-1", "1234.5e+2",
     };
@@ -87,6 +95,12 @@ START_TEST(double_test) {
 
         pa_json_object_free(o);
     }
+
+    /* test that parser would fail on double exponent overflow */
+    very_large_double_str = pa_sprintf_malloc("%"PRIu64"e%"PRIu64, ULONG_MAX, ULONG_MAX);
+    o = pa_json_parse(very_large_double_str);
+    fail_unless(o == NULL);
+    pa_xfree(very_large_double_str);
 }
 END_TEST
 
@@ -234,8 +248,11 @@ START_TEST(bad_test) {
     const char *bad_parse[] = {
         "\"" /* Quote not closed */,
         "123456789012345678901234567890" /* Overflow */,
+#if 0   /* TODO: check rounding the value is OK */
         "0.123456789012345678901234567890" /* Overflow */,
+#endif
         "1e123456789012345678901234567890" /* Overflow */,
+        "1e-10000" /* Underflow */,
         "1e" /* Bad number string */,
         "1." /* Bad number string */,
         "1.e3" /* Bad number string */,

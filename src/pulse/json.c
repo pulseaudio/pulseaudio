@@ -35,7 +35,7 @@ struct pa_json_object {
     pa_json_type type;
 
     union {
-        int int_value;
+        int64_t int_value;
         double double_value;
         bool bool_value;
         char *string_value;
@@ -194,33 +194,22 @@ error:
 }
 
 static const char* parse_number(const char *str, pa_json_object *obj) {
-    bool negative = false, has_fraction = false, has_exponent = false, valid = false;
-    unsigned int integer = 0;
-    unsigned int fraction = 0;
-    unsigned int fraction_digits = 0;
-    int exponent = 0;
+    bool has_fraction = false, has_exponent = false, valid = false;
+    char *candidate = NULL;
+    const char *s = str;
 
-    if (*str == '-') {
-        negative = true;
-        str++;
-    }
+    if (*s == '-')
+        s++;
 
-    if (*str == '0') {
+    if (*s == '0') {
         valid = true;
-        str++;
+        s++;
         goto fraction;
     }
 
-    while (is_digit(*str)) {
+    while (is_digit(*s)) {
         valid = true;
-
-        if (integer > ((negative ? INT_MAX : UINT_MAX) / 10)) {
-            pa_log("Integer overflow while parsing number");
-            goto error;
-        }
-
-        integer = (integer * 10) + (*str - '0');
-        str++;
+        s++;
     }
 
 fraction:
@@ -230,22 +219,14 @@ fraction:
         goto error;
     }
 
-    if (*str == '.') {
+    if (*s == '.') {
         has_fraction = true;
-        str++;
+        s++;
         valid = false;
 
-        while (is_digit(*str)) {
+        while (is_digit(*s)) {
             valid = true;
-
-            if (fraction > (UINT_MAX / 10)) {
-                pa_log("Integer overflow while parsing fractional part of number");
-                goto error;
-            }
-
-            fraction = (fraction * 10) + (*str - '0');
-            fraction_digits++;
-            str++;
+            s++;
         }
 
         if (!valid) {
@@ -254,52 +235,50 @@ fraction:
         }
     }
 
-    if (*str == 'e' || *str == 'E') {
-        bool exponent_negative = false;
-
+    if (*s == 'e' || *s == 'E') {
         has_exponent = true;
-        str++;
+        s++;
         valid = false;
 
-        if (*str == '-') {
-            exponent_negative = true;
-            str++;
-        } else if (*str == '+')
-            str++;
+        if (*s == '-' || *s == '+')
+            s++;
 
-        while (is_digit(*str)) {
+        while (is_digit(*s)) {
             valid = true;
-
-            if (exponent > (INT_MAX / 10)) {
-                pa_log("Integer overflow while parsing exponent part of number");
-                goto error;
-            }
-
-            exponent = (exponent * 10) + (*str - '0');
-            str++;
+            s++;
         }
 
         if (!valid) {
             pa_log("No digit in exponent while parsing fraction");
             goto error;
         }
-
-        if (exponent_negative)
-            exponent *= -1;
     }
+
+    /* Number format looks good, now try to extract the value.
+     * Here 's' points just after the string which will be consumed. */
+
+    candidate = pa_xstrndup(str, s - str);
 
     if (has_fraction || has_exponent) {
+        if (pa_atod(candidate, &obj->double_value) < 0) {
+            pa_log("Cannot convert string '%s' to double value", str);
+            goto error;
+        }
         obj->type = PA_JSON_TYPE_DOUBLE;
-        obj->double_value =
-            (negative ? -1.0 : 1.0) * (integer + (double) fraction / pow(10, fraction_digits)) * pow(10, exponent);
     } else {
+        if (pa_atoi64(candidate, &obj->int_value) < 0) {
+            pa_log("Cannot convert string '%s' to int64_t value", str);
+            goto error;
+        }
         obj->type = PA_JSON_TYPE_INT;
-        obj->int_value = (negative ? -1 : 1) * integer;
     }
 
-    return str;
+    pa_xfree(candidate);
+
+    return s;
 
 error:
+    pa_xfree(candidate);
     return NULL;
 }
 
@@ -522,7 +501,7 @@ void pa_json_object_free(pa_json_object *obj) {
     pa_xfree(obj);
 }
 
-int pa_json_object_get_int(const pa_json_object *o) {
+int64_t pa_json_object_get_int(const pa_json_object *o) {
     pa_assert(pa_json_object_get_type(o) == PA_JSON_TYPE_INT);
     return o->int_value;
 }
