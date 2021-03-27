@@ -606,6 +606,16 @@ static void pa_bluetooth_transport_remote_volume_changed(pa_bluetooth_transport 
             return;
         t->sink_volume = volume;
         hook = PA_BLUETOOTH_HOOK_TRANSPORT_SINK_VOLUME_CHANGED;
+
+        /* A2DP Absolute Volume is optional.  This callback is only
+         * attached when the peer supports it, and the hook handler
+         * further attaches the necessary hardware callback to the
+         * pa_sink and disables software attenuation.
+         */
+        if (!t->set_sink_volume) {
+            pa_log_debug("A2DP sink supports volume control");
+            t->set_sink_volume = pa_bluetooth_transport_set_sink_volume;
+        }
     } else {
         pa_assert_not_reached();
     }
@@ -722,6 +732,78 @@ static void bluez5_transport_release_cb(pa_bluetooth_transport *t) {
         dbus_error_free(&err);
     } else
         pa_log_info("Transport %s released", t->path);
+}
+
+static void get_volume_reply(DBusPendingCall *pending, void *userdata) {
+    DBusMessage *r;
+    DBusMessageIter iter, variant;
+    pa_dbus_pending *p;
+    pa_bluetooth_discovery *y;
+    pa_bluetooth_transport *t;
+    uint16_t gain;
+    pa_volume_t volume;
+
+    pa_assert(pending);
+    pa_assert_se(p = userdata);
+    pa_assert_se(y = p->context_data);
+    pa_assert_se(t = p->call_data);
+    pa_assert_se(r = dbus_pending_call_steal_reply(pending));
+
+    if (dbus_message_get_type(r) == DBUS_MESSAGE_TYPE_ERROR) {
+        pa_log_error(DBUS_INTERFACE_PROPERTIES ".Get %s Volume failed: %s: %s",
+                     dbus_message_get_path(p->message),
+                     dbus_message_get_error_name(r),
+                     pa_dbus_get_error_message(r));
+        goto finish;
+    }
+    dbus_message_iter_init(r, &iter);
+    pa_assert(dbus_message_iter_get_arg_type(&iter) == DBUS_TYPE_VARIANT);
+    dbus_message_iter_recurse(&iter, &variant);
+    pa_assert(dbus_message_iter_get_arg_type(&variant) == DBUS_TYPE_UINT16);
+    dbus_message_iter_get_basic(&variant, &gain);
+
+    if (gain > A2DP_MAX_GAIN)
+        gain = A2DP_MAX_GAIN;
+
+    pa_log_debug("Received A2DP Absolute Volume %d", gain);
+
+    volume = a2dp_gain_to_volume(gain);
+
+    pa_bluetooth_transport_remote_volume_changed(t, volume);
+
+finish:
+    dbus_message_unref(r);
+
+    PA_LLIST_REMOVE(pa_dbus_pending, y->pending, p);
+    pa_dbus_pending_free(p);
+}
+
+static void bluez5_transport_get_volume(pa_bluetooth_transport *t) {
+    static const char *volume_str = "Volume";
+    static const char *mediatransport_str = BLUEZ_MEDIA_TRANSPORT_INTERFACE;
+    DBusMessage *m;
+
+    pa_assert(t);
+    pa_assert(t->device);
+    pa_assert(t->device->discovery);
+
+    pa_assert(t->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK || t->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE);
+
+    pa_assert_se(m = dbus_message_new_method_call(BLUEZ_SERVICE, t->path, DBUS_INTERFACE_PROPERTIES, "Get"));
+    pa_assert_se(dbus_message_append_args(m,
+        DBUS_TYPE_STRING, &mediatransport_str,
+        DBUS_TYPE_STRING, &volume_str,
+        DBUS_TYPE_INVALID));
+
+    send_and_add_to_pending(t->device->discovery, m, get_volume_reply, t);
+}
+
+void pa_bluetooth_transport_load_a2dp_sink_volume(pa_bluetooth_transport *t) {
+    pa_assert(t);
+
+    if (t->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK)
+        /* A2DP Absolute Volume control (AVRCP 1.4) is optional */
+        bluez5_transport_get_volume(t);
 }
 
 static ssize_t a2dp_transport_write(pa_bluetooth_transport *t, int fd, const void* buffer, size_t size, size_t write_mtu) {
@@ -2114,7 +2196,6 @@ static DBusMessage *endpoint_set_configuration(DBusConnection *conn, DBusMessage
     t = pa_bluetooth_transport_new(d, sender, path, p, config, size);
     t->acquire = bluez5_transport_acquire_cb;
     t->release = bluez5_transport_release_cb;
-    t->set_sink_volume = pa_bluetooth_transport_set_sink_volume;
     /* A2DP Absolute Volume is optional but BlueZ unconditionally reports
      * feature category 2, meaning supporting it is mandatory.
      * PulseAudio can and should perform the attenuation anyway in

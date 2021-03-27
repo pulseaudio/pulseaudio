@@ -1688,6 +1688,22 @@ static int start_thread(struct userdata *u) {
         if (u->bt_codec)
             pa_proplist_sets(u->card->proplist, PA_PROP_BLUETOOTH_CODEC, u->bt_codec->name);
 
+    /* Now that everything is set up we are ready to check for the Volume property.
+     * Sometimes its initial "change" notification arrives too early when the sink
+     * is not available or still in UNLINKED state; check it again here to know if
+     * our sink peer supports Absolute Volume; in that case we should not perform
+     * any attenuation but delegate all set_volume calls to the peer through this
+     * Volume property.
+     *
+     * Note that this works the other way around if the peer is in source profile:
+     * we are rendering audio and hence responsible for applying attenuation.  The
+     * set_volume callback is always registered, and Volume is always passed to
+     * BlueZ unconditionally.  BlueZ only sends a notification to the peer if it
+     * registered a notification request for absolute volume previously.
+     */
+    if (u->transport && u->sink)
+        pa_bluetooth_transport_load_a2dp_sink_volume(u->transport);
+
     return 0;
 }
 
