@@ -2365,8 +2365,11 @@ static pa_hook_result_t transport_sink_volume_changed_cb(pa_bluetooth_discovery 
     pa_cvolume_set(&v, u->encoder_sample_spec.channels, volume);
     if (pa_bluetooth_profile_should_attenuate_volume(t->profile))
         pa_sink_set_volume(u->sink, &v, true, true);
-    else
+    else {
+        /* Reset local attenuation */
+        pa_sink_set_soft_volume(u->sink, NULL);
         pa_sink_volume_changed(u->sink, &v);
+    }
 
     return PA_HOOK_OK;
 }
@@ -2394,8 +2397,11 @@ static pa_hook_result_t transport_source_volume_changed_cb(pa_bluetooth_discover
 
     if (pa_bluetooth_profile_should_attenuate_volume(t->profile))
         pa_source_set_volume(u->source, &v, true, true);
-    else
+    else {
+        /* Reset local attenuation */
+        pa_source_set_soft_volume(u->source, NULL);
         pa_source_volume_changed(u->source, &v);
+    }
 
     return PA_HOOK_OK;
 }
