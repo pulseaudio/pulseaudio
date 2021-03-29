@@ -10,7 +10,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-03-08 16:26+0200\n"
-"PO-Revision-Date: 2021-03-26 21:01+0000\n"
+"PO-Revision-Date: 2021-03-30 23:01+0000\n"
 "Last-Translator: Pjotr Vertaalt <pjotrvertaalt@gmail.com>\n"
 "Language-Team: Dutch <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/nl/>\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.5.1\n"
+"X-Generator: Weblate 4.5.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -1735,7 +1735,7 @@ msgstr "Buffermetriek: maxlength=%u, fragsize=%u"
 #: src/utils/pacat.c:338
 #, c-format
 msgid "Using sample spec '%s', channel map '%s'."
-msgstr "Gebruik bemonsterings-spec  '%s', kanalenkaart '%s'."
+msgstr "Gebruik bemonsterings-spec '%s', kanalenkaart '%s'."
 
 #: src/utils/pacat.c:342
 #, c-format
@@ -2815,10 +2815,10 @@ msgid_plural ""
 "Failed to set volume: You tried to set volumes for %d channels, whereas "
 "channel(s) supported = %d\n"
 msgstr[0] ""
-"Kon geen volume instellen: u probeerde om volumes in te stellen voor  %d "
+"Kon geen volume instellen: u probeerde om volumes in te stellen voor %d "
 "kanaal, terwijl ondersteunde kanalen = %d\n"
 msgstr[1] ""
-"Kon geen volume instellen: u probeerde om volumes in te stellen voor  %d "
+"Kon geen volume instellen: u probeerde om volumes in te stellen voor %d "
 "kanalen, terwijl ondersteunde kanalen = %d\n"
 
 #: src/utils/pactl.c:1213
@@ -2974,12 +2974,10 @@ msgid ""
 "server\n"
 msgstr ""
 "\n"
-"  -h, --help                            Toon deze hulptekst\n"
-"      --version                         Toon versie\n"
-"  -s, --server=SERVER                   De naam van de server waarmee "
-"verbonden moet worden\n"
-"  -n, --client-name=NAME                Hoe deze cliënt te noemen op de "
-"server\n"
+"  -h, --help    Toon deze hulptekst\n"
+" --version    Toon versie\n"
+" -s, --server=SERVER    De naam van de server waarmee verbonden moet worden\n"
+" -n, --client-name=NAME    Hoe deze cliënt te noemen op de server\n"
 
 #: src/utils/pactl.c:1755
 #, c-format
@@ -3113,7 +3111,7 @@ msgstr "Ongeldige dempingsspecificatie"
 msgid ""
 "You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
 msgstr ""
-"U dient een bronnaam/index en een dempingsactie  (0, 1, or 'toggle') op te "
+"U dient een bronnaam/index en een dempingsactie (0, 1, of 'toggle') op te "
 "geven"
 
 #: src/utils/pactl.c:2114
