@@ -7,7 +7,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-03-08 16:26+0200\n"
-"PO-Revision-Date: 2021-03-26 21:01+0000\n"
+"PO-Revision-Date: 2021-04-02 07:01+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ko/>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.5.1\n"
+"X-Generator: Weblate 4.5.3\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -1453,7 +1453,7 @@ msgid ""
 "e.g. happen if you try to connect to a non-root PulseAudio as a root user, "
 "over the native protocol. Don't do that.)"
 msgstr ""
-"XDG_RUNTIME_DIR (%s)는 우리(uid %d)가 아니라 uid %d가 소유합니다! (기본적인 통신규약을 통해 루트가 아닌 "
+"XDG_RUNTIME_DIR (%s)는 우리(uid %d)가 아니라 uid %d가 소유합니다! (기본적인 통신규약을 통해 비-root가 "
 "PluseAudio에 root 사용자로 연결을 시도할 때에 예를 들어 발생 할 수 있습니다. 그렇게 하지 않습니다.)"
 
 #: src/pulsecore/core-util.h:97
