@@ -914,10 +914,10 @@ pa_bluetooth_backend *pa_bluetooth_native_backend_new(pa_core *c, pa_bluetooth_d
     backend->enable_shared_profiles = enable_shared_profiles;
     backend->enable_hfp_hf = pa_bluetooth_discovery_get_enable_native_hfp_hf(y);
 
+    profile_init(backend, PA_BLUETOOTH_PROFILE_HSP_HS);
+
     if (backend->enable_shared_profiles)
         native_backend_apply_profile_registration_change(backend, true);
-
-    profile_init(backend, PA_BLUETOOTH_PROFILE_HSP_HS);
 
     return backend;
 }
