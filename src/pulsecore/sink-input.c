@@ -1888,6 +1888,22 @@ static void update_volume_due_to_moving(pa_sink_input *i, pa_sink *dest) {
         pa_sink_set_volume(i->sink, NULL, false, i->save_volume);
 }
 
+/* Called from the main thread. */
+static void set_preferred_sink(pa_sink_input *i, const char *sink_name) {
+    pa_assert(i);
+
+    if (pa_safe_streq(i->preferred_sink, sink_name))
+        return;
+
+    pa_log_debug("Sink input %u: preferred_sink: %s -> %s",
+                 i->index, i->preferred_sink ? i->preferred_sink : "(unset)", sink_name ? sink_name : "(unset)");
+    pa_xfree(i->preferred_sink);
+    i->preferred_sink = pa_xstrdup(sink_name);
+
+    pa_subscription_post(i->core, PA_SUBSCRIPTION_EVENT_SINK_INPUT | PA_SUBSCRIPTION_EVENT_CHANGE, i->index);
+    pa_hook_fire(&i->core->hooks[PA_CORE_HOOK_SINK_INPUT_PREFERRED_SINK_CHANGED], i);
+}
+
 /* Called from main context */
 int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, bool save) {
     struct volume_factor_entry *v;
@@ -1930,11 +1946,10 @@ int pa_sink_input_finish_move(pa_sink_input *i, pa_sink *dest, bool save) {
     /* save == true, means user is calling the move_to() and want to
        save the preferred_sink */
     if (save) {
-        pa_xfree(i->preferred_sink);
         if (dest == dest->core->default_sink)
-            i->preferred_sink = NULL;
+            set_preferred_sink(i, NULL);
         else
-            i->preferred_sink = pa_xstrdup(dest->name);
+            set_preferred_sink(i, dest->name);
     }
 
     pa_idxset_put(dest->inputs, pa_sink_input_ref(i), NULL);
@@ -2434,16 +2449,29 @@ void pa_sink_input_set_reference_ratio(pa_sink_input *i, const pa_cvolume *ratio
                  pa_cvolume_snprint_verbose(new_ratio_str, sizeof(new_ratio_str), ratio, &i->channel_map, true));
 }
 
-/* Called from the main thread. */
+/* Called from the main thread.
+ *
+ * This is called when e.g. module-stream-restore wants to change the preferred
+ * sink. As a side effect the stream is moved to the new preferred sink. Note
+ * that things can work also in the other direction: if the user moves
+ * a stream, as a side effect the preferred sink is changed. This could cause
+ * an infinite loop, but it's avoided by these two measures:
+ *   - When pa_sink_input_set_preferred_sink() is called, it calls
+ *     pa_sink_input_move_to() with save=false, which avoids the recursive
+ *     pa_sink_input_set_preferred_sink() call.
+ *   - When the primary operation is to move a stream,
+ *     pa_sink_input_finish_move() calls set_preferred_sink() instead of
+ *     pa_sink_input_set_preferred_sink(). set_preferred_sink() doesn't move
+ *     the stream as a side effect.
+ */
 void pa_sink_input_set_preferred_sink(pa_sink_input *i, pa_sink *s) {
     pa_assert(i);
 
-    pa_xfree(i->preferred_sink);
     if (s) {
-        i->preferred_sink = pa_xstrdup(s->name);
+        set_preferred_sink(i, s->name);
         pa_sink_input_move_to(i, s, false);
     } else {
-        i->preferred_sink = NULL;
+        set_preferred_sink(i, NULL);
         pa_sink_input_move_to(i, i->core->default_sink, false);
     }
 }
