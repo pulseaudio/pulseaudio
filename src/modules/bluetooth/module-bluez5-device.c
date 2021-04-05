@@ -128,7 +128,6 @@ struct userdata {
     bluetooth_msg *msg;
 
     int stream_fd;
-    int stream_write_type;
     size_t read_link_mtu;
     size_t write_link_mtu;
     size_t read_block_size;
@@ -139,12 +138,13 @@ struct userdata {
     pa_smoother *read_smoother;
     pa_memchunk write_memchunk;
 
-    const pa_a2dp_codec *a2dp_codec;
+    const pa_bt_codec *bt_codec;
 
     void *encoder_info;
     pa_sample_spec encoder_sample_spec;
     void *encoder_buffer;                        /* Codec transfer buffer */
     size_t encoder_buffer_size;                  /* Size of the buffer */
+    size_t encoder_buffer_used;                  /* Used space in the buffer */
 
     void *decoder_info;
     pa_sample_spec decoder_sample_spec;
@@ -255,186 +255,128 @@ static void connect_ports(struct userdata *u, void *new_data, pa_direction_t dir
     }
 }
 
+static bool bt_prepare_encoder_buffer(struct userdata *u)
+{
+    size_t encoded_size, reserved_size;
+    pa_assert(u);
+    pa_assert(u->bt_codec);
+
+    /* If socket write MTU is less than encoded frame size, there could be
+     * up to one write MTU of data left in encoder buffer from previous round.
+     *
+     * Reserve space for 2 encoded frames to cover that.
+     *
+     * Note for A2DP codecs it is expected that size of encoded frame is less
+     * than write link MTU. Therefore each encoded frame is sent out completely
+     * and there is no used space in encoder buffer before next encoder call.
+     */
+    if (u->bt_codec->get_encoded_block_size)
+        encoded_size = u->bt_codec->get_encoded_block_size(u->encoder_info, u->write_block_size);
+    else
+        encoded_size = u->write_block_size;
+
+    reserved_size = 2 * encoded_size;
+
+    if (u->encoder_buffer_size < reserved_size) {
+        u->encoder_buffer = pa_xrealloc(u->encoder_buffer, reserved_size);
+        u->encoder_buffer_size = reserved_size;
+
+        if (u->encoder_buffer_used > reserved_size) {
+            u->encoder_buffer_used = 0;
+        }
+    }
+
+    /* Report if there is still not enough space for new block */
+    if (u->encoder_buffer_size < u->encoder_buffer_used + encoded_size)
+        return false;
+
+    return true;
+}
+
 /* Run from IO thread */
-static int sco_process_render(struct userdata *u) {
-    ssize_t l;
-    pa_memchunk memchunk;
-    int saved_errno;
+static int bt_write_buffer(struct userdata *u) {
+    ssize_t written = 0;
 
     pa_assert(u);
-    pa_assert(u->profile == PA_BLUETOOTH_PROFILE_HSP_HS ||
-              u->profile == PA_BLUETOOTH_PROFILE_HSP_AG ||
-              u->profile == PA_BLUETOOTH_PROFILE_HFP_HF ||
-              u->profile == PA_BLUETOOTH_PROFILE_HFP_AG);
+    pa_assert(u->transport);
+    pa_assert(u->bt_codec);
+
+    written = u->transport->write(u->transport, u->stream_fd, u->encoder_buffer, u->encoder_buffer_used, u->write_link_mtu);
+
+    if (written > 0) {
+        /* calculate remainder */
+        u->encoder_buffer_used -= written;
+
+        /* move any remainder back to start of u->encoder_buffer */
+        if (u->encoder_buffer_used)
+            memmove(u->encoder_buffer, u->encoder_buffer + written, u->encoder_buffer_used);
+
+        return 1;
+    } else if (written == 0) {
+        /* Not enough data in encoder buffer */
+        return 0;
+    } else {
+        /* Reset encoder sequence number and buffer positions */
+        u->bt_codec->reset(u->encoder_info);
+        u->encoder_buffer_used = 0;
+        return -1;
+    }
+}
+
+/* Run from IO thread */
+static int bt_process_render(struct userdata *u) {
+    int ret;
+
+    const uint8_t *ptr;
+    size_t processed;
+    size_t length;
+
+    pa_assert(u);
     pa_assert(u->sink);
+    pa_assert(u->bt_codec);
 
-    pa_sink_render_full(u->sink, u->write_block_size, &memchunk);
+    if (!bt_prepare_encoder_buffer(u))
+        return false;
 
-    pa_assert(memchunk.length == u->write_block_size);
+    /* First, render some data */
+    if (!u->write_memchunk.memblock)
+        pa_sink_render_full(u->sink, u->write_block_size, &u->write_memchunk);
 
-    for (;;) {
-        const void *p;
+    pa_assert(u->write_memchunk.length == u->write_block_size);
 
-        /* Now write that data to the socket. The socket is of type
-         * SEQPACKET, and we generated the data of the MTU size, so this
-         * should just work. */
+    ptr = (const uint8_t *) pa_memblock_acquire_chunk(&u->write_memchunk);
 
-        p = (const uint8_t *) pa_memblock_acquire_chunk(&memchunk);
-        l = pa_write(u->stream_fd, p, memchunk.length, &u->stream_write_type);
-        pa_memblock_release(memchunk.memblock);
+    length = u->bt_codec->encode_buffer(u->encoder_info, u->write_index / pa_frame_size(&u->encoder_sample_spec),
+            ptr, u->write_memchunk.length,
+            u->encoder_buffer + u->encoder_buffer_used, u->encoder_buffer_size - u->encoder_buffer_used,
+            &processed);
 
-        pa_assert(l != 0);
+    pa_memblock_release(u->write_memchunk.memblock);
 
-        if (l > 0)
-            break;
-
-        saved_errno = errno;
-
-        pa_memblock_unref(memchunk.memblock);
-
-        if (saved_errno == EAGAIN) {
-            /* Hmm, apparently the socket was not writable, give up for now.
-             * Because the data was already rendered, let's discard the block. */
-            pa_log_debug("Got EAGAIN on write() after POLLOUT, probably there is a temporary connection loss.");
-            return 1;
-        }
-
-        pa_log_error("Failed to write data to SCO socket: %s", pa_cstrerror(saved_errno));
+    if (processed != u->write_memchunk.length) {
+        pa_log_error("Encoding error");
         return -1;
     }
 
-    pa_assert((size_t) l <= memchunk.length);
+    /* Encoder function of BT codec may provide empty buffer, in this case do
+     * not post any empty buffer via BT socket. It may be because of codec
+     * internal state, e.g. encoder is waiting for more samples so it can
+     * provide encoded data. */
 
-    if ((size_t) l != memchunk.length) {
-        pa_log_error("Wrote memory block to socket only partially! %llu written, wanted to write %llu.",
-                    (unsigned long long) l,
-                    (unsigned long long) memchunk.length);
+    if (PA_LIKELY(length)) {
+        u->encoder_buffer_used += length;
+        ret = 1;
+    } else
+        ret = 0;
 
-        pa_memblock_unref(memchunk.memblock);
-        return -1;
-    }
+    u->write_index += (uint64_t) u->write_memchunk.length;
+    pa_memblock_unref(u->write_memchunk.memblock);
+    pa_memchunk_reset(&u->write_memchunk);
 
-    u->write_index += (uint64_t) memchunk.length;
-    pa_memblock_unref(memchunk.memblock);
-
-    return 1;
+    return ret;
 }
 
-/* Run from IO thread */
-static int sco_process_push(struct userdata *u) {
-    ssize_t l;
-    pa_memchunk memchunk;
-    struct cmsghdr *cm;
-    struct msghdr m;
-    bool found_tstamp = false;
-    pa_usec_t tstamp = 0;
-
-    pa_assert(u);
-    pa_assert(u->profile == PA_BLUETOOTH_PROFILE_HSP_HS ||
-              u->profile == PA_BLUETOOTH_PROFILE_HSP_AG ||
-              u->profile == PA_BLUETOOTH_PROFILE_HFP_HF ||
-              u->profile == PA_BLUETOOTH_PROFILE_HFP_AG);
-    pa_assert(u->source);
-    pa_assert(u->read_smoother);
-
-    memchunk.memblock = pa_memblock_new(u->core->mempool, u->read_block_size);
-    memchunk.index = memchunk.length = 0;
-
-    for (;;) {
-        void *p;
-        uint8_t aux[1024];
-        struct iovec iov;
-
-        pa_zero(m);
-        pa_zero(aux);
-        pa_zero(iov);
-
-        m.msg_iov = &iov;
-        m.msg_iovlen = 1;
-        m.msg_control = aux;
-        m.msg_controllen = sizeof(aux);
-
-        p = pa_memblock_acquire(memchunk.memblock);
-        iov.iov_base = p;
-        iov.iov_len = pa_memblock_get_length(memchunk.memblock);
-        l = recvmsg(u->stream_fd, &m, 0);
-        pa_memblock_release(memchunk.memblock);
-
-        if (l > 0)
-            break;
-
-        if (l < 0 && errno == EINTR)
-            /* Retry right away if we got interrupted */
-            continue;
-
-        pa_memblock_unref(memchunk.memblock);
-
-        if (l < 0 && errno == EAGAIN)
-            /* Hmm, apparently the socket was not readable, give up for now. */
-            return 0;
-
-        pa_log_error("Failed to read data from SCO socket: %s", l < 0 ? pa_cstrerror(errno) : "EOF");
-        return -1;
-    }
-
-    pa_assert((size_t) l <= pa_memblock_get_length(memchunk.memblock));
-
-    /* In some rare occasions, we might receive packets of a very strange
-     * size. This could potentially be possible if the SCO packet was
-     * received partially over-the-air, or more probably due to hardware
-     * issues in our Bluetooth adapter. In these cases, in order to avoid
-     * an assertion failure due to unaligned data, just discard the whole
-     * packet */
-    if (!pa_frame_aligned(l, &u->decoder_sample_spec)) {
-        pa_log_warn("SCO packet received of unaligned size: %zu", l);
-        pa_memblock_unref(memchunk.memblock);
-        return -1;
-    }
-
-    memchunk.length = (size_t) l;
-    u->read_index += (uint64_t) l;
-
-    for (cm = CMSG_FIRSTHDR(&m); cm; cm = CMSG_NXTHDR(&m, cm))
-        if (cm->cmsg_level == SOL_SOCKET && cm->cmsg_type == SO_TIMESTAMP) {
-            struct timeval *tv = (struct timeval*) CMSG_DATA(cm);
-            pa_rtclock_from_wallclock(tv);
-            tstamp = pa_timeval_load(tv);
-            found_tstamp = true;
-            break;
-        }
-
-    if (!found_tstamp) {
-        PA_ONCE_BEGIN {
-            pa_log_warn("Couldn't find SO_TIMESTAMP data in auxiliary recvmsg() data!");
-        } PA_ONCE_END;
-        tstamp = pa_rtclock_now();
-    }
-
-    pa_smoother_put(u->read_smoother, tstamp, pa_bytes_to_usec(u->read_index, &u->decoder_sample_spec));
-    pa_smoother_resume(u->read_smoother, tstamp, true);
-
-    pa_source_post(u->source, &memchunk);
-    pa_memblock_unref(memchunk.memblock);
-
-    return l;
-}
-
-/* Run from IO thread */
-static void a2dp_prepare_encoder_buffer(struct userdata *u) {
-    pa_assert(u);
-
-    if (u->encoder_buffer_size < u->write_link_mtu) {
-        pa_xfree(u->encoder_buffer);
-        u->encoder_buffer = pa_xmalloc(u->write_link_mtu);
-    }
-
-    /* Encoder buffer cannot be larger then link MTU, otherwise
-     * encode method would produce larger packets then link MTU */
-    u->encoder_buffer_size = u->write_link_mtu;
-}
-
-/* Run from IO thread */
-static void a2dp_prepare_decoder_buffer(struct userdata *u) {
+static void bt_prepare_decoder_buffer(struct userdata *u) {
     pa_assert(u);
 
     if (u->decoder_buffer_size < u->read_link_mtu) {
@@ -448,122 +390,16 @@ static void a2dp_prepare_decoder_buffer(struct userdata *u) {
 }
 
 /* Run from IO thread */
-static int a2dp_write_buffer(struct userdata *u, size_t nbytes) {
-    int ret = 0;
+static ssize_t bt_transport_read(pa_bluetooth_transport *t, int fd, void *buffer, size_t size, pa_usec_t *p_timestamp) {
+    ssize_t received = 0;
 
-    /* Encoder function of A2DP codec may provide empty buffer, in this case do
-     * not post any empty buffer via A2DP socket. It may be because of codec
-     * internal state, e.g. encoder is waiting for more samples so it can
-     * provide encoded data. */
-    if (PA_UNLIKELY(!nbytes)) {
-        u->write_index += (uint64_t) u->write_memchunk.length;
-        pa_memblock_unref(u->write_memchunk.memblock);
-        pa_memchunk_reset(&u->write_memchunk);
-        return 0;
-    }
-
-    for (;;) {
-        ssize_t l;
-
-        l = pa_write(u->stream_fd, u->encoder_buffer, nbytes, &u->stream_write_type);
-
-        pa_assert(l != 0);
-
-        if (l < 0) {
-
-            if (errno == EAGAIN) {
-                /* Hmm, apparently the socket was not writable, give up for now */
-                pa_log_debug("Got EAGAIN on write() after POLLOUT, probably there is a temporary connection loss.");
-                break;
-            }
-
-            pa_log_error("Failed to write data to socket: %s", pa_cstrerror(errno));
-            ret = -1;
-            break;
-        }
-
-        pa_assert((size_t) l <= nbytes);
-
-        if ((size_t) l != nbytes) {
-            pa_log_warn("Wrote memory block to socket only partially! %llu written, wanted to write %llu.",
-                        (unsigned long long) l,
-                        (unsigned long long) nbytes);
-            ret = -1;
-            break;
-        }
-
-        u->write_index += (uint64_t) u->write_memchunk.length;
-        pa_memblock_unref(u->write_memchunk.memblock);
-        pa_memchunk_reset(&u->write_memchunk);
-
-        ret = 1;
-
-        break;
-    }
-
-    return ret;
-}
-
-/* Run from IO thread */
-static int a2dp_process_render(struct userdata *u) {
-    const uint8_t *ptr;
-    size_t processed;
-    size_t length;
-
-    pa_assert(u);
-    pa_assert(u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK);
-    pa_assert(u->sink);
-    pa_assert(u->a2dp_codec);
-
-    /* First, render some data */
-    if (!u->write_memchunk.memblock)
-        pa_sink_render_full(u->sink, u->write_block_size, &u->write_memchunk);
-
-    pa_assert(u->write_memchunk.length == u->write_block_size);
-
-    a2dp_prepare_encoder_buffer(u);
-
-    /* Try to create a packet of the full MTU */
-    ptr = (const uint8_t *) pa_memblock_acquire_chunk(&u->write_memchunk);
-
-    length = u->a2dp_codec->encode_buffer(u->encoder_info, u->write_index / pa_frame_size(&u->encoder_sample_spec), ptr, u->write_memchunk.length, u->encoder_buffer, u->encoder_buffer_size, &processed);
-
-    pa_memblock_release(u->write_memchunk.memblock);
-
-    if (processed != u->write_memchunk.length) {
-        pa_log_error("Encoding error");
-        return -1;
-    }
-
-    return a2dp_write_buffer(u, length);
-}
-
-/* Run from IO thread */
-static int a2dp_process_push(struct userdata *u) {
-    int ret = 0;
-    pa_memchunk memchunk;
-
-    pa_assert(u);
-    pa_assert(u->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE);
-    pa_assert(u->source);
-    pa_assert(u->read_smoother);
-    pa_assert(u->a2dp_codec);
-
-    memchunk.memblock = pa_memblock_new(u->core->mempool, u->read_block_size);
-    memchunk.index = memchunk.length = 0;
-
-    a2dp_prepare_decoder_buffer(u);
-
+    pa_assert(t);
     for (;;) {
         uint8_t aux[1024];
         struct iovec iov;
         struct cmsghdr *cm;
         struct msghdr m;
         bool found_tstamp = false;
-        pa_usec_t tstamp;
-        uint8_t *ptr;
-        ssize_t l;
-        size_t processed;
 
         pa_zero(m);
         pa_zero(aux);
@@ -574,77 +410,113 @@ static int a2dp_process_push(struct userdata *u) {
         m.msg_control = aux;
         m.msg_controllen = sizeof(aux);
 
-        iov.iov_base = u->decoder_buffer;
-        iov.iov_len = u->decoder_buffer_size;
+        iov.iov_base = buffer;
+        iov.iov_len = size;
 
-        l = recvmsg(u->stream_fd, &m, 0);
+        received = recvmsg(fd, &m, 0);
 
-        if (l <= 0) {
+        if (received <= 0) {
 
-            if (l < 0 && errno == EINTR)
+            if (received < 0 && errno == EINTR)
                 /* Retry right away if we got interrupted */
                 continue;
 
-            else if (l < 0 && errno == EAGAIN)
+            else if (received < 0 && errno == EAGAIN)
                 /* Hmm, apparently the socket was not readable, give up for now. */
-                break;
+                return 0;
 
-            pa_log_error("Failed to read data from socket: %s", l < 0 ? pa_cstrerror(errno) : "EOF");
-            ret = -1;
-            break;
+            pa_log_error("Failed to read data from socket: %s", received < 0 ? pa_cstrerror(errno) : "EOF");
+            return -1;
         }
 
-        pa_assert((size_t) l <= u->decoder_buffer_size);
+        pa_assert((size_t) received <= size);
 
-        /* TODO: get timestamp from rtp */
+        /* allow write side to find out size of last read packet */
+        t->last_read_size = received;
 
-        for (cm = CMSG_FIRSTHDR(&m); cm; cm = CMSG_NXTHDR(&m, cm)) {
-            if (cm->cmsg_level == SOL_SOCKET && cm->cmsg_type == SO_TIMESTAMP) {
-                struct timeval *tv = (struct timeval*) CMSG_DATA(cm);
-                pa_rtclock_from_wallclock(tv);
-                tstamp = pa_timeval_load(tv);
-                found_tstamp = true;
-                break;
+        if (p_timestamp) {
+            /* TODO: get timestamp from rtp */
+
+            for (cm = CMSG_FIRSTHDR(&m); cm; cm = CMSG_NXTHDR(&m, cm)) {
+                if (cm->cmsg_level == SOL_SOCKET && cm->cmsg_type == SO_TIMESTAMP) {
+                    struct timeval *tv = (struct timeval*) CMSG_DATA(cm);
+                    pa_rtclock_from_wallclock(tv);
+                    *p_timestamp = pa_timeval_load(tv);
+                    found_tstamp = true;
+                    break;
+                }
+            }
+
+            if (!found_tstamp) {
+                PA_ONCE_BEGIN {
+                    pa_log_warn("Couldn't find SO_TIMESTAMP data in auxiliary recvmsg() data!");
+                } PA_ONCE_END;
+                *p_timestamp = pa_rtclock_now();
             }
         }
 
-        if (!found_tstamp) {
-            PA_ONCE_BEGIN {
-                pa_log_warn("Couldn't find SO_TIMESTAMP data in auxiliary recvmsg() data!");
-            } PA_ONCE_END;
-            tstamp = pa_rtclock_now();
-        }
-
-        ptr = pa_memblock_acquire(memchunk.memblock);
-        memchunk.length = pa_memblock_get_length(memchunk.memblock);
-
-        memchunk.length = u->a2dp_codec->decode_buffer(u->decoder_info, u->decoder_buffer, l, ptr, memchunk.length, &processed);
-
-        pa_memblock_release(memchunk.memblock);
-
-        if (processed != (size_t) l) {
-            pa_log_error("Decoding error");
-            ret = -1;
-            break;
-        }
-
-        u->read_index += (uint64_t) memchunk.length;
-        pa_smoother_put(u->read_smoother, tstamp, pa_bytes_to_usec(u->read_index, &u->decoder_sample_spec));
-        pa_smoother_resume(u->read_smoother, tstamp, true);
-
-        /* Decoding of A2DP codec data may result in empty buffer, in this case
-         * do not post empty audio samples. It may happen due to algorithmic
-         * delay of audio codec. */
-        if (PA_LIKELY(memchunk.length))
-            pa_source_post(u->source, &memchunk);
-
-        ret = l;
         break;
     }
 
+    return received;
+}
+
+/* Run from IO thread */
+/* Read incoming data, decode it and post result (if any) to source output.
+ * Returns number of bytes posted to source output. */
+static int bt_process_push(struct userdata *u) {
+    pa_usec_t tstamp;
+    uint8_t *ptr;
+    ssize_t received;
+    size_t processed = 0;
+
+    pa_assert(u);
+    pa_assert(u->source);
+    pa_assert(u->read_smoother);
+    pa_assert(u->bt_codec);
+    pa_assert(u->transport);
+
+    bt_prepare_decoder_buffer(u);
+
+    received = bt_transport_read(u->transport, u->stream_fd, u->decoder_buffer, u->decoder_buffer_size, &tstamp);
+
+    if (received <= 0) {
+        return received;
+    }
+
+    pa_memchunk memchunk;
+
+    memchunk.memblock = pa_memblock_new(u->core->mempool, u->read_block_size);
+    memchunk.index = memchunk.length = 0;
+
+    ptr = pa_memblock_acquire(memchunk.memblock);
+    memchunk.length = pa_memblock_get_length(memchunk.memblock);
+
+    memchunk.length = u->bt_codec->decode_buffer(u->decoder_info, u->decoder_buffer, received, ptr, memchunk.length, &processed);
+
+    pa_memblock_release(memchunk.memblock);
+
+    if (processed != (size_t) received) {
+        pa_log_error("Decoding error");
+        return -1;
+    }
+
+    u->read_index += (uint64_t) memchunk.length;
+    pa_smoother_put(u->read_smoother, tstamp, pa_bytes_to_usec(u->read_index, &u->decoder_sample_spec));
+    pa_smoother_resume(u->read_smoother, tstamp, true);
+
+    /* Decoding of data may result in empty buffer, in this case
+     * do not post empty audio samples. It may happen due to algorithmic
+     * delay of audio codec. */
+    if (PA_LIKELY(memchunk.length))
+        pa_source_post(u->source, &memchunk);
+
+    /* report decoded size */
+    received = memchunk.length;
+
     pa_memblock_unref(memchunk.memblock);
 
-    return ret;
+    return received;
 }
 
 static void update_sink_buffer_size(struct userdata *u) {
@@ -772,28 +644,23 @@ static void handle_sink_block_size_change(struct userdata *u) {
 
 /* Run from I/O thread */
 static void transport_config_mtu(struct userdata *u) {
-    if (u->profile == PA_BLUETOOTH_PROFILE_HSP_HS
-        || u->profile == PA_BLUETOOTH_PROFILE_HSP_AG
-        || u->profile == PA_BLUETOOTH_PROFILE_HFP_HF
-        || u->profile == PA_BLUETOOTH_PROFILE_HFP_AG) {
-        u->read_block_size = u->read_link_mtu;
-        u->write_block_size = u->write_link_mtu;
+    pa_assert(u->bt_codec);
 
-        if (!pa_frame_aligned(u->read_block_size, &u->source->sample_spec)) {
-            pa_log_debug("Got invalid read MTU: %lu, rounding down", u->read_block_size);
-            u->read_block_size = pa_frame_align(u->read_block_size, &u->source->sample_spec);
-        }
+    if (u->encoder_info) {
+        u->write_block_size = u->bt_codec->get_write_block_size(u->encoder_info, u->write_link_mtu);
 
         if (!pa_frame_aligned(u->write_block_size, &u->sink->sample_spec)) {
             pa_log_debug("Got invalid write MTU: %lu, rounding down", u->write_block_size);
             u->write_block_size = pa_frame_align(u->write_block_size, &u->sink->sample_spec);
         }
-    } else {
-        pa_assert(u->a2dp_codec);
-        if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK) {
-            u->write_block_size = u->a2dp_codec->get_write_block_size(u->encoder_info, u->write_link_mtu);
-        } else {
-            u->read_block_size = u->a2dp_codec->get_read_block_size(u->decoder_info, u->read_link_mtu);
+    }
+
+    if (u->decoder_info) {
+        u->read_block_size = u->bt_codec->get_read_block_size(u->decoder_info, u->read_link_mtu);
+
+        if (!pa_frame_aligned(u->read_block_size, &u->source->sample_spec)) {
+            pa_log_debug("Got invalid read MTU: %lu, rounding down", u->read_block_size);
+            u->read_block_size = pa_frame_align(u->read_block_size, &u->source->sample_spec);
         }
     }
 
@@ -820,13 +687,15 @@ static int setup_stream(struct userdata *u) {
 
     pa_log_info("Transport %s resuming", u->transport->path);
 
-    if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK) {
-        pa_assert(u->a2dp_codec);
-        if (u->a2dp_codec->reset(u->encoder_info) < 0)
+    pa_assert(u->bt_codec);
+
+    if (u->encoder_info) {
+        if (u->bt_codec->reset(u->encoder_info) < 0)
             return -1;
-    } else if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE) {
-        pa_assert(u->a2dp_codec);
-        if (u->a2dp_codec->reset(u->decoder_info) < 0)
+    }
+
+    if (u->decoder_info) {
+        if (u->bt_codec->reset(u->decoder_info) < 0)
             return -1;
     }
 
@@ -1078,8 +947,8 @@ static int add_source(struct userdata *u) {
     data.name = pa_sprintf_malloc("bluez_source.%s.%s", u->device->address, pa_bluetooth_profile_to_string(u->profile));
     data.namereg_fail = false;
     pa_proplist_sets(data.proplist, "bluetooth.protocol", pa_bluetooth_profile_to_string(u->profile));
-    if (u->a2dp_codec)
-        pa_proplist_sets(data.proplist, PA_PROP_BLUETOOTH_CODEC, u->a2dp_codec->name);
+    if (u->bt_codec)
+        pa_proplist_sets(data.proplist, PA_PROP_BLUETOOTH_CODEC, u->bt_codec->name);
     pa_source_new_data_set_sample_spec(&data, &u->decoder_sample_spec);
     if (u->profile == PA_BLUETOOTH_PROFILE_HSP_HS
         || u->profile == PA_BLUETOOTH_PROFILE_HFP_HF)
@@ -1294,8 +1163,8 @@ static int add_sink(struct userdata *u) {
     data.name = pa_sprintf_malloc("bluez_sink.%s.%s", u->device->address, pa_bluetooth_profile_to_string(u->profile));
     data.namereg_fail = false;
     pa_proplist_sets(data.proplist, "bluetooth.protocol", pa_bluetooth_profile_to_string(u->profile));
-    if (u->a2dp_codec)
-        pa_proplist_sets(data.proplist, PA_PROP_BLUETOOTH_CODEC, u->a2dp_codec->name);
+    if (u->bt_codec)
+        pa_proplist_sets(data.proplist, PA_PROP_BLUETOOTH_CODEC, u->bt_codec->name);
     pa_sink_new_data_set_sample_spec(&data, &u->encoder_sample_spec);
     if (u->profile == PA_BLUETOOTH_PROFILE_HSP_HS
         || u->profile == PA_BLUETOOTH_PROFILE_HFP_HF)
@@ -1343,42 +1212,54 @@ static int add_sink(struct userdata *u) {
 }
 
 /* Run from main thread */
+static pa_direction_t get_profile_direction(pa_bluetooth_profile_t p) {
+    static const pa_direction_t profile_direction[] = {
+        [PA_BLUETOOTH_PROFILE_A2DP_SINK] = PA_DIRECTION_OUTPUT,
+        [PA_BLUETOOTH_PROFILE_A2DP_SOURCE] = PA_DIRECTION_INPUT,
+        [PA_BLUETOOTH_PROFILE_HSP_HS] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
+        [PA_BLUETOOTH_PROFILE_HSP_AG] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
+        [PA_BLUETOOTH_PROFILE_HFP_HF] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
+        [PA_BLUETOOTH_PROFILE_HFP_AG] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
+        [PA_BLUETOOTH_PROFILE_OFF] = 0
+    };
+
+    return profile_direction[p];
+}
+
+/* Run from main thread */
 static int transport_config(struct userdata *u) {
-    if (u->profile == PA_BLUETOOTH_PROFILE_HSP_HS
-        || u->profile == PA_BLUETOOTH_PROFILE_HSP_AG
-        || u->profile == PA_BLUETOOTH_PROFILE_HFP_HF
-        || u->profile == PA_BLUETOOTH_PROFILE_HFP_AG) {
-        u->encoder_sample_spec.format = PA_SAMPLE_S16LE;
-        u->encoder_sample_spec.channels = 1;
-        u->encoder_sample_spec.rate = 8000;
-        u->decoder_sample_spec.format = PA_SAMPLE_S16LE;
-        u->decoder_sample_spec.channels = 1;
-        u->decoder_sample_spec.rate = 8000;
-        return 0;
-    } else {
-        bool is_a2dp_sink = u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK;
-        void *info;
+    pa_assert(u);
+    pa_assert(u->transport);
+    pa_assert(!u->bt_codec);
+    pa_assert(!u->encoder_info);
+    pa_assert(!u->decoder_info);
 
-        pa_assert(u->transport);
+    u->bt_codec = u->transport->bt_codec;
+    pa_assert(u->bt_codec);
 
-        pa_assert(!u->a2dp_codec);
-        pa_assert(!u->encoder_info);
-        pa_assert(!u->decoder_info);
+    /* reset encoder buffer contents */
+    u->encoder_buffer_used = 0;
 
-        u->a2dp_codec = u->transport->a2dp_codec;
-        pa_assert(u->a2dp_codec);
+    if (get_profile_direction(u->profile) & PA_DIRECTION_OUTPUT) {
+        u->encoder_info = u->bt_codec->init(true, false, u->transport->config, u->transport->config_size, &u->encoder_sample_spec, u->core);
 
-        info = u->a2dp_codec->init(is_a2dp_sink, false, u->transport->config, u->transport->config_size, is_a2dp_sink ? &u->encoder_sample_spec : &u->decoder_sample_spec, u->core);
-        if (is_a2dp_sink)
-            u->encoder_info = info;
-        else
-            u->decoder_info = info;
-
-        if (!info)
+        if (!u->encoder_info)
             return -1;
-
-        return 0;
     }
+
+    if (get_profile_direction(u->profile) & PA_DIRECTION_INPUT) {
+        u->decoder_info = u->bt_codec->init(false, false, u->transport->config, u->transport->config_size, &u->decoder_sample_spec, u->core);
+
+        if (!u->decoder_info) {
+            if (u->encoder_info) {
+                u->bt_codec->deinit(u->encoder_info);
+                u->encoder_info = NULL;
+            }
+            return -1;
+        }
+    }
+
+    return 0;
 }
 
 /* Run from main thread */
@@ -1412,21 +1293,6 @@ static int setup_transport(struct userdata *u) {
 }
 
 /* Run from main thread */
-static pa_direction_t get_profile_direction(pa_bluetooth_profile_t p) {
-    static const pa_direction_t profile_direction[] = {
-        [PA_BLUETOOTH_PROFILE_A2DP_SINK] = PA_DIRECTION_OUTPUT,
-        [PA_BLUETOOTH_PROFILE_A2DP_SOURCE] = PA_DIRECTION_INPUT,
-        [PA_BLUETOOTH_PROFILE_HSP_HS] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
-        [PA_BLUETOOTH_PROFILE_HSP_AG] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
-        [PA_BLUETOOTH_PROFILE_HFP_HF] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
-        [PA_BLUETOOTH_PROFILE_HFP_AG] = PA_DIRECTION_INPUT | PA_DIRECTION_OUTPUT,
-        [PA_BLUETOOTH_PROFILE_OFF] = 0
-    };
-
-    return profile_direction[p];
-}
-
-/* Run from main thread */
 static int init_profile(struct userdata *u) {
     int r = 0;
     pa_assert(u);
@@ -1451,23 +1317,19 @@ static int init_profile(struct userdata *u) {
     return r;
 }
 
-static int write_block(struct userdata *u) {
-    int n_written;
+static int bt_render_block(struct userdata *u) {
+    int n_rendered;
 
     if (u->write_index <= 0)
         u->started_at = pa_rtclock_now();
 
-    if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK) {
-        if ((n_written = a2dp_process_render(u)) < 0)
-            return -1;
-    } else {
-        if ((n_written = sco_process_render(u)) < 0)
-            return -1;
-    }
+    n_rendered = bt_process_render(u);
 
-    return n_written;
+    if (n_rendered < 0)
+        n_rendered = -1;
+
+    return n_rendered;
 }
-
 
 /* I/O thread function */
 static void thread_func(void *userdata) {
@@ -1534,16 +1396,17 @@ static void thread_func(void *userdata) {
                 if (pollfd->revents & POLLIN) {
                     int n_read;
 
-                    if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE)
-                        n_read = a2dp_process_push(u);
-                    else
-                        n_read = sco_process_push(u);
+                    n_read = bt_process_push(u);
 
                     if (n_read < 0)
                         goto fail;
 
                     if (have_sink && n_read > 0) {
-                        /* We just read something, so we are supposed to write something, too */
+                        /* We just read something, so we are supposed to write something, too
+                         *
+                         * If source and sink sample specifications are not equal,
+                         * expected write size needs to be adjusted accordingly.
+                         */
                         bytes_to_write += n_read;
                         blocks_to_write += bytes_to_write / u->write_block_size;
                         bytes_to_write = bytes_to_write % u->write_block_size;
@@ -1566,27 +1429,38 @@ static void thread_func(void *userdata) {
                  * for the sink */
                 if (have_source) {
 
-                    if (writable && blocks_to_write > 0) {
+                    /* If the stream is writable, send some data if necessary */
+                    if (writable) {
                         int result;
 
-                        if ((result = write_block(u)) < 0)
+                        if (blocks_to_write > 0) {
+                            result = bt_render_block(u);
+                            if (result < 0)
+                                goto fail;
+                            blocks_to_write -= result;
+                        }
+
+                        result = bt_write_buffer(u);
+
+                        if (result < 0)
                             goto fail;
 
-                        blocks_to_write -= result;
-
-                        /* writable controls whether we set POLLOUT when polling - we set it to
-                         * false to enable POLLOUT. If there are more blocks to write, we want to
-                         * be woken up immediately when the socket becomes writable. If there
-                         * aren't currently any more blocks to write, then we'll have to wait
-                         * until we've received more data, so in that case we only want to set
-                         * POLLIN. Note that when we are woken up the next time, POLLOUT won't be
-                         * set in revents even if the socket has meanwhile become writable, which
-                         * may seem bad, but in that case we'll set POLLOUT in the subsequent
-                         * poll, and the poll will return immediately, so our writes won't be
-                         * delayed. */
-                        if (blocks_to_write > 0)
+                        if (result)
                             writable = false;
                     }
+
+                    /* writable controls whether we set POLLOUT when polling - we set it to
+                     * false to enable POLLOUT. If there are more blocks to write, we want to
+                     * be woken up immediately when the socket becomes writable. If there
+                     * aren't currently any more blocks to write, then we'll have to wait
+                     * until we've received more data, so in that case we only want to set
+                     * POLLIN. Note that when we are woken up the next time, POLLOUT won't be
+                     * set in revents even if the socket has meanwhile become writable, which
+                     * may seem bad, but in that case we'll set POLLOUT in the subsequent
+                     * poll, and the poll will return immediately, so our writes won't be
+                     * delayed. */
+                    if (blocks_to_write > 0)
+                        writable = false;
 
                 /* There is no source, we have to use the system clock for timing */
                 } else {
@@ -1634,8 +1508,8 @@ static void thread_func(void *userdata) {
                                 skip_bytes -= bytes_to_render;
                             }
 
-                            if (u->write_index > 0 && u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK) {
-                                size_t new_write_block_size = u->a2dp_codec->reduce_encoder_bitrate(u->encoder_info, u->write_link_mtu);
+                            if (u->write_index > 0 && (get_profile_direction(u->profile) & PA_DIRECTION_OUTPUT)) {
+                                size_t new_write_block_size = u->bt_codec->reduce_encoder_bitrate(u->encoder_info, u->write_link_mtu);
                                 if (new_write_block_size) {
                                     u->write_block_size = new_write_block_size;
                                     handle_sink_block_size_change(u);
@@ -1648,16 +1522,25 @@ static void thread_func(void *userdata) {
                     }
 
                     /* If the stream is writable, send some data if necessary */
-                    if (writable && blocks_to_write > 0) {
+                    if (writable) {
                         int result;
 
-                        if ((result = write_block(u)) < 0)
+                        if (blocks_to_write > 0) {
+                            int result = bt_render_block(u);
+                            if (result < 0)
+                                goto fail;
+                            blocks_to_write -= result;
+                        }
+
+                        result = bt_write_buffer(u);
+
+                        if (result < 0)
                             goto fail;
 
-                        blocks_to_write -= result;
-                        writable = false;
-                        if (result)
+                        if (result) {
+                            writable = false;
                             have_written = true;
+                        }
                     }
 
                     /* If nothing was written during this iteration, either the stream
@@ -1674,11 +1557,11 @@ static void thread_func(void *userdata) {
                             sleep_for = time_passed < next_write_at ? next_write_at - time_passed : 0;
                             /* pa_log("Sleeping for %lu; time passed %lu, next write at %lu", (unsigned long) sleep_for, (unsigned long) time_passed, (unsigned long)next_write_at); */
 
-                            if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK && u->write_memchunk.memblock == NULL) {
-                                /* write_block() is keeping up with input, try increasing bitrate */
-                                if (u->a2dp_codec->increase_encoder_bitrate
+                            if ((get_profile_direction(u->profile) & PA_DIRECTION_OUTPUT) && u->write_memchunk.memblock == NULL) {
+                                /* bt_write_buffer() is keeping up with input, try increasing bitrate */
+                                if (u->bt_codec->increase_encoder_bitrate
                                     && pa_timeval_age(&tv_last_output_rate_change) >= u->device->output_rate_refresh_interval_ms * PA_USEC_PER_MSEC) {
-                                    size_t new_write_block_size = u->a2dp_codec->increase_encoder_bitrate(u->encoder_info, u->write_link_mtu);
+                                    size_t new_write_block_size = u->bt_codec->increase_encoder_bitrate(u->encoder_info, u->write_link_mtu);
                                     if (new_write_block_size) {
                                         u->write_block_size = new_write_block_size;
                                         handle_sink_block_size_change(u);
@@ -1779,8 +1662,8 @@ static int start_thread(struct userdata *u) {
     }
 
     if (u->sink || u->source)
-        if (u->a2dp_codec)
-            pa_proplist_sets(u->card->proplist, PA_PROP_BLUETOOTH_CODEC, u->a2dp_codec->name);
+        if (u->bt_codec)
+            pa_proplist_sets(u->card->proplist, PA_PROP_BLUETOOTH_CODEC, u->bt_codec->name);
 
     return 0;
 }
@@ -1845,19 +1728,34 @@ static void stop_thread(struct userdata *u) {
         u->read_smoother = NULL;
     }
 
-    if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK || u->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE) {
+    if (u->bt_codec) {
         if (u->encoder_info) {
-            u->a2dp_codec->deinit(u->encoder_info);
+            u->bt_codec->deinit(u->encoder_info);
             u->encoder_info = NULL;
         }
 
         if (u->decoder_info) {
-            u->a2dp_codec->deinit(u->decoder_info);
+            u->bt_codec->deinit(u->decoder_info);
             u->decoder_info = NULL;
         }
 
-        u->a2dp_codec = NULL;
+        u->bt_codec = NULL;
     }
+
+    if (u->encoder_buffer) {
+        pa_xfree(u->encoder_buffer);
+        u->encoder_buffer = NULL;
+    }
+
+    u->encoder_buffer_size = 0;
+    u->encoder_buffer_used = 0;
+
+    if (u->decoder_buffer) {
+        pa_xfree(u->decoder_buffer);
+        u->decoder_buffer = NULL;
+    }
+
+    u->decoder_buffer_size = 0;
 }
 
 /* Run from main thread */
@@ -2446,7 +2344,7 @@ static void switch_codec_cb_handler(bool success, pa_bluetooth_profile_t profile
         }
 
     pa_log_info("Codec successfully switched to %s with profile: %s",
-            u->a2dp_codec->name, pa_bluetooth_profile_to_string(u->profile));
+            u->bt_codec->name, pa_bluetooth_profile_to_string(u->profile));
 
     return;
 
@@ -2463,29 +2361,47 @@ static char *list_codecs(struct userdata *u) {
     bool is_a2dp_sink;
     void *state;
 
-    is_a2dp_sink = u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK;
-
-    a2dp_endpoints = is_a2dp_sink ? u->device->a2dp_sink_endpoints : u->device->a2dp_source_endpoints;
-
     encoder = pa_json_encoder_new();
 
     pa_json_encoder_begin_element_array(encoder);
 
-    PA_HASHMAP_FOREACH_KV(key, a2dp_capabilities, a2dp_endpoints, state) {
-        for (i = 0; i < pa_bluetooth_a2dp_codec_count(); i++) {
-            const pa_a2dp_codec *a2dp_codec;
+    if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK || u->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE) {
+        is_a2dp_sink = u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK;
 
-            a2dp_codec = pa_bluetooth_a2dp_codec_iter(i);
+        a2dp_endpoints = is_a2dp_sink ? u->device->a2dp_sink_endpoints : u->device->a2dp_source_endpoints;
 
-            if (memcmp(key, &a2dp_codec->id, sizeof(pa_a2dp_codec_id)) == 0) {
-                if (a2dp_codec->can_be_supported(is_a2dp_sink)) {
-                    pa_json_encoder_begin_element_object(encoder);
+        PA_HASHMAP_FOREACH_KV(key, a2dp_capabilities, a2dp_endpoints, state) {
+            for (i = 0; i < pa_bluetooth_a2dp_endpoint_conf_count(); i++) {
+                const pa_a2dp_endpoint_conf *endpoint_conf;
 
-                    pa_json_encoder_add_member_string(encoder, "name", a2dp_codec->name);
-                    pa_json_encoder_add_member_string(encoder, "description", a2dp_codec->description);
+                endpoint_conf = pa_bluetooth_a2dp_endpoint_conf_iter(i);
 
-                    pa_json_encoder_end_object(encoder);
+                if (memcmp(key, &endpoint_conf->id, sizeof(pa_a2dp_codec_id)) == 0) {
+                    if (endpoint_conf->can_be_supported(is_a2dp_sink)) {
+                        pa_json_encoder_begin_element_object(encoder);
+
+                        pa_json_encoder_add_member_string(encoder, "name", endpoint_conf->bt_codec.name);
+                        pa_json_encoder_add_member_string(encoder, "description", endpoint_conf->bt_codec.description);
+
+                        pa_json_encoder_end_object(encoder);
+                    }
                 }
+            }
+        }
+    } else {
+        /* find out active codec selection from device profile */
+        for (i = 0; i < pa_bluetooth_hf_codec_count(); i++) {
+            const pa_bt_codec *hf_codec;
+
+            hf_codec = pa_bluetooth_hf_codec_iter(i);
+
+            if (true) {
+                pa_json_encoder_begin_element_object(encoder);
+
+                pa_json_encoder_add_member_string(encoder, "name", hf_codec->name);
+                pa_json_encoder_add_member_string(encoder, "description", hf_codec->description);
+
+                pa_json_encoder_end_object(encoder);
             }
         }
     }
@@ -2499,7 +2415,7 @@ static int bluez5_device_message_handler(const char *object_path, const char *me
     char *message_handler_path;
     pa_hashmap *capabilities_hashmap;
     pa_bluetooth_profile_t profile;
-    const pa_a2dp_codec *codec;
+    const pa_a2dp_endpoint_conf *endpoint_conf;
     const char *codec_name;
     struct userdata *u;
     bool is_a2dp_sink;
@@ -2530,13 +2446,15 @@ static int bluez5_device_message_handler(const char *object_path, const char *me
     if (u->profile == PA_BLUETOOTH_PROFILE_OFF) {
         pa_log_info("Bluetooth profile is off. Message cannot be handled.");
         return -PA_ERR_INVALID;
-    } else if (u->profile != PA_BLUETOOTH_PROFILE_A2DP_SINK &&
-            u->profile != PA_BLUETOOTH_PROFILE_A2DP_SOURCE) {
-        pa_log_info("Listing or switching codecs only allowed for A2DP sink or source");
-        return -PA_ERR_INVALID;
     }
 
     if (pa_streq(message, "switch-codec")) {
+        if (u->profile != PA_BLUETOOTH_PROFILE_A2DP_SINK &&
+            u->profile != PA_BLUETOOTH_PROFILE_A2DP_SOURCE) {
+            pa_log_info("Switching codecs only allowed for A2DP sink or source");
+            return -PA_ERR_INVALID;
+        }
+
         if (!parameters) {
             pa_log_info("Codec switching operation requires codec name string parameter");
             return -PA_ERR_INVALID;
@@ -2549,20 +2467,20 @@ static int bluez5_device_message_handler(const char *object_path, const char *me
 
         codec_name = pa_json_object_get_string(parameters);
 
-        if (u->a2dp_codec && pa_streq(codec_name, u->a2dp_codec->name)) {
+        if (u->bt_codec && pa_streq(codec_name, u->bt_codec->name)) {
             pa_log_info("Requested codec is currently selected codec");
             return -PA_ERR_INVALID;
         }
 
-        codec = pa_bluetooth_get_a2dp_codec(codec_name);
-        if (codec == NULL) {
+        endpoint_conf = pa_bluetooth_get_a2dp_endpoint_conf(codec_name);
+        if (endpoint_conf == NULL) {
             pa_log_info("Invalid codec %s specified for switching", codec_name);
             return -PA_ERR_INVALID;
         }
 
         is_a2dp_sink = u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK;
 
-        if (!codec->can_be_supported(is_a2dp_sink)) {
+        if (!endpoint_conf->can_be_supported(is_a2dp_sink)) {
             pa_log_info("Codec not found on system");
             return -PA_ERR_NOTSUPPORTED;
         }
@@ -2578,14 +2496,14 @@ static int bluez5_device_message_handler(const char *object_path, const char *me
             return -PA_ERR_INVALID;
         }
 
-        capabilities_hashmap = pa_hashmap_get(is_a2dp_sink ? u->device->a2dp_sink_endpoints : u->device->a2dp_source_endpoints, &codec->id);
+        capabilities_hashmap = pa_hashmap_get(is_a2dp_sink ? u->device->a2dp_sink_endpoints : u->device->a2dp_source_endpoints, &endpoint_conf->id);
         if (!capabilities_hashmap) {
             pa_log_info("No remote endpoint found for %s codec. Codec not supported by remote endpoint.",
-                    codec->name);
+                    endpoint_conf->bt_codec.name);
             return -PA_ERR_INVALID;
         }
 
-        pa_log_info("Initiating codec switching process to %s", codec->name);
+        pa_log_info("Initiating codec switching process to %s", endpoint_conf->bt_codec.name);
 
         /*
          * The current profile needs to be saved before we stop the thread and
@@ -2596,7 +2514,7 @@ static int bluez5_device_message_handler(const char *object_path, const char *me
 
         stop_thread(u);
 
-        if (!pa_bluetooth_device_switch_codec(u->device, profile, capabilities_hashmap, codec, switch_codec_cb_handler, userdata)
+        if (!pa_bluetooth_device_switch_codec(u->device, profile, capabilities_hashmap, endpoint_conf, switch_codec_cb_handler, userdata)
                 && !u->device->codec_switching_in_progress)
             goto profile_off;
 
@@ -2608,8 +2526,10 @@ static int bluez5_device_message_handler(const char *object_path, const char *me
         pa_json_encoder *encoder;
         encoder = pa_json_encoder_new();
 
-        if (u->a2dp_codec)
-            pa_json_encoder_add_element_string(encoder, u->a2dp_codec->name);
+        if (u->bt_codec)
+            pa_json_encoder_add_element_string(encoder, u->bt_codec->name);
+        else
+            pa_json_encoder_add_element_null(encoder);
 
         *response = pa_json_encoder_to_string_free(encoder);
 

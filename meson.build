@@ -696,6 +696,7 @@ if avahi_dep.found()
 endif
 
 sbc_dep = dependency('sbc', version : '>= 1.0', required : false)
+
 if get_option('bluez5')
   assert(dbus_dep.found(), 'BlueZ requires D-Bus support')
   assert(sbc_dep.found(), 'BlueZ requires SBC support')

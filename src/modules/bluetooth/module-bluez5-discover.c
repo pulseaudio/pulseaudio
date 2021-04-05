@@ -37,6 +37,7 @@ PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE(
     "headset=ofono|native|auto"
     "autodetect_mtu=<boolean>"
+    "enable_msbc=<boolean, enable mSBC support in native and oFono backends, default is true>"
     "output_rate_refresh_interval_ms=<interval between attempts to improve output rate in milliseconds>"
     "enable_native_hfp_hf=<boolean, enable HFP support in native backend>"
 );
@@ -44,6 +45,7 @@ PA_MODULE_USAGE(
 static const char* const valid_modargs[] = {
     "headset",
     "autodetect_mtu",
+    "enable_msbc",
     "output_rate_refresh_interval_ms",
     "enable_native_hfp_hf",
     NULL
@@ -111,6 +113,7 @@ int pa__init(pa_module *m) {
     const char *headset_str;
     int headset_backend;
     bool autodetect_mtu;
+    bool enable_msbc;
     uint32_t output_rate_refresh_interval_ms;
     bool enable_native_hfp_hf = true;
 
@@ -140,6 +143,10 @@ int pa__init(pa_module *m) {
     if (pa_modargs_get_value_boolean(ma, "autodetect_mtu", &autodetect_mtu) < 0) {
         pa_log("Invalid boolean value for autodetect_mtu parameter");
     }
+    enable_msbc = true;
+    if (pa_modargs_get_value_boolean(ma, "enable_msbc", &enable_msbc) < 0) {
+        pa_log("Invalid boolean value for enable_msbc parameter");
+    }
     if (pa_modargs_get_value_boolean(ma, "enable_native_hfp_hf", &enable_native_hfp_hf) < 0) {
         pa_log("enable_native_hfp_hf must be true or false");
         goto fail;
@@ -158,7 +165,7 @@ int pa__init(pa_module *m) {
     u->output_rate_refresh_interval_ms = output_rate_refresh_interval_ms;
     u->loaded_device_paths = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
-    if (!(u->discovery = pa_bluetooth_discovery_get(u->core, headset_backend, enable_native_hfp_hf)))
+    if (!(u->discovery = pa_bluetooth_discovery_get(u->core, headset_backend, enable_native_hfp_hf, enable_msbc)))
         goto fail;
 
     u->device_connection_changed_slot =

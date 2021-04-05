@@ -88,6 +88,8 @@ typedef int (*pa_bluetooth_transport_acquire_cb)(pa_bluetooth_transport *t, bool
 typedef void (*pa_bluetooth_transport_release_cb)(pa_bluetooth_transport *t);
 typedef void (*pa_bluetooth_transport_destroy_cb)(pa_bluetooth_transport *t);
 typedef pa_volume_t (*pa_bluetooth_transport_set_volume_cb)(pa_bluetooth_transport *t, pa_volume_t volume);
+typedef ssize_t (*pa_bluetooth_transport_write_cb)(pa_bluetooth_transport *t, int fd, const void* buffer, size_t size, size_t write_mtu);
+typedef int (*pa_bluetooth_transport_setsockopt_cb)(pa_bluetooth_transport *t, int fd);
 
 struct pa_bluetooth_transport {
     pa_bluetooth_device *device;
@@ -96,11 +98,12 @@ struct pa_bluetooth_transport {
     char *path;
     pa_bluetooth_profile_t profile;
 
-    uint8_t codec;
     void *config;
     size_t config_size;
 
-    const pa_a2dp_codec *a2dp_codec;
+    const pa_bt_codec *bt_codec;
+    int stream_write_type;
+    size_t last_read_size;
 
     pa_volume_t source_volume;
     pa_volume_t sink_volume;
@@ -109,6 +112,8 @@ struct pa_bluetooth_transport {
 
     pa_bluetooth_transport_acquire_cb acquire;
     pa_bluetooth_transport_release_cb release;
+    pa_bluetooth_transport_write_cb write;
+    pa_bluetooth_transport_setsockopt_cb setsockopt;
     pa_bluetooth_transport_destroy_cb destroy;
     pa_bluetooth_transport_set_volume_cb set_sink_volume;
     pa_bluetooth_transport_set_volume_cb set_source_volume;
@@ -177,13 +182,16 @@ static inline void pa_bluetooth_native_backend_enable_shared_profiles(pa_bluetoo
 pa_bluetooth_transport *pa_bluetooth_transport_new(pa_bluetooth_device *d, const char *owner, const char *path,
                                                    pa_bluetooth_profile_t p, const uint8_t *config, size_t size);
 
+void pa_bluetooth_transport_reconfigure(pa_bluetooth_transport *t, const pa_bt_codec *bt_codec,
+                                        pa_bluetooth_transport_write_cb write_cb, pa_bluetooth_transport_setsockopt_cb setsockopt_cb);
+
 void pa_bluetooth_transport_set_state(pa_bluetooth_transport *t, pa_bluetooth_transport_state_t state);
 void pa_bluetooth_transport_put(pa_bluetooth_transport *t);
 void pa_bluetooth_transport_unlink(pa_bluetooth_transport *t);
 void pa_bluetooth_transport_free(pa_bluetooth_transport *t);
 
 bool pa_bluetooth_device_any_transport_connected(const pa_bluetooth_device *d);
-bool pa_bluetooth_device_switch_codec(pa_bluetooth_device *device, pa_bluetooth_profile_t profile, pa_hashmap *capabilities_hashmap, const pa_a2dp_codec *a2dp_codec, void (*codec_switch_cb)(bool, pa_bluetooth_profile_t profile, void *), void *userdata);
+bool pa_bluetooth_device_switch_codec(pa_bluetooth_device *device, pa_bluetooth_profile_t profile, pa_hashmap *capabilities_hashmap, const pa_a2dp_endpoint_conf *endpoint_conf, void (*codec_switch_cb)(bool, pa_bluetooth_profile_t profile, void *), void *userdata);
 
 pa_bluetooth_device* pa_bluetooth_discovery_get_device_by_path(pa_bluetooth_discovery *y, const char *path);
 pa_bluetooth_device* pa_bluetooth_discovery_get_device_by_address(pa_bluetooth_discovery *y, const char *remote, const char *local);
@@ -201,9 +209,10 @@ static inline bool pa_bluetooth_uuid_is_hsp_hs(const char *uuid) {
 #define HEADSET_BACKEND_NATIVE 1
 #define HEADSET_BACKEND_AUTO 2
 
-pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *core, int headset_backend, bool default_profile_hfp);
+pa_bluetooth_discovery* pa_bluetooth_discovery_get(pa_core *core, int headset_backend, bool default_profile_hfp, bool enable_msbc);
 pa_bluetooth_discovery* pa_bluetooth_discovery_ref(pa_bluetooth_discovery *y);
 void pa_bluetooth_discovery_unref(pa_bluetooth_discovery *y);
 void pa_bluetooth_discovery_set_ofono_running(pa_bluetooth_discovery *y, bool is_running);
 bool pa_bluetooth_discovery_get_enable_native_hfp_hf(pa_bluetooth_discovery *y);
+bool pa_bluetooth_discovery_get_enable_msbc(pa_bluetooth_discovery *y);
 #endif
