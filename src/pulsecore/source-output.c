@@ -1531,6 +1531,22 @@ static void update_volume_due_to_moving(pa_source_output *o, pa_source *dest) {
         pa_source_set_volume(o->source, NULL, false, o->save_volume);
 }
 
+/* Called from the main thread. */
+static void set_preferred_source(pa_source_output *o, const char *source_name) {
+    pa_assert(o);
+
+    if (pa_safe_streq(o->preferred_source, source_name))
+        return;
+
+    pa_log_debug("Source output %u: preferred_source: %s -> %s",
+                 o->index, o->preferred_source ? o->preferred_source : "(unset)", source_name ? source_name : "(unset)");
+    pa_xfree(o->preferred_source);
+    o->preferred_source = pa_xstrdup(source_name);
+
+    pa_subscription_post(o->core, PA_SUBSCRIPTION_EVENT_SOURCE_OUTPUT | PA_SUBSCRIPTION_EVENT_CHANGE, o->index);
+    pa_hook_fire(&o->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_PREFERRED_SOURCE_CHANGED], o);
+}
+
 /* Called from main context */
 int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, bool save) {
     pa_source_output_assert_ref(o);
@@ -1570,11 +1586,10 @@ int pa_source_output_finish_move(pa_source_output *o, pa_source *dest, bool save
     /* save == true, means user is calling the move_to() and want to
        save the preferred_source */
     if (save) {
-        pa_xfree(o->preferred_source);
         if (dest == dest->core->default_source)
-            o->preferred_source = NULL;
+            set_preferred_source(o, NULL);
         else
-            o->preferred_source = pa_xstrdup(dest->name);
+            set_preferred_source(o, dest->name);
     }
 
     pa_idxset_put(o->source->outputs, pa_source_output_ref(o), NULL);
@@ -1907,16 +1922,29 @@ void pa_source_output_set_reference_ratio(pa_source_output *o, const pa_cvolume 
                  pa_cvolume_snprint_verbose(new_ratio_str, sizeof(new_ratio_str), ratio, &o->channel_map, true));
 }
 
-/* Called from the main thread. */
+/* Called from the main thread.
+ *
+ * This is called when e.g. module-stream-restore wants to change the preferred
+ * source. As a side effect the stream is moved to the new preferred source.
+ * Note that things can work also in the other direction: if the user moves
+ * a stream, as a side effect the preferred source is changed. This could cause
+ * an infinite loop, but it's avoided by these two measures:
+ *   - When pa_source_output_set_preferred_source() is called, it calls
+ *     pa_source_output_move_to() with save=false, which avoids the recursive
+ *     pa_source_output_set_preferred_source() call.
+ *   - When the primary operation is to move a stream,
+ *     pa_source_output_finish_move() calls set_preferred_source() instead of
+ *     pa_source_output_set_preferred_source(). set_preferred_source() doesn't
+ *     move the stream as a side effect.
+ */
 void pa_source_output_set_preferred_source(pa_source_output *o, pa_source *s) {
     pa_assert(o);
 
-    pa_xfree(o->preferred_source);
     if (s) {
-        o->preferred_source = pa_xstrdup(s->name);
+        set_preferred_source(o, s->name);
         pa_source_output_move_to(o, s, false);
     } else {
-        o->preferred_source = NULL;
+        set_preferred_source(o, NULL);
         pa_source_output_move_to(o, o->core->default_source, false);
     }
 }
