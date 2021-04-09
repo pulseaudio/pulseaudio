@@ -322,7 +322,8 @@ const char *pa_proplist_gets(const pa_proplist *p, const char *key);
 /** Store the value for the specified key in \a data. Will store a
  * NUL-terminated string for string entries. The \a data pointer returned will
  * point to an internally allocated buffer. The caller should make a
- * copy of the data before the property list is accessed again.
+ * copy of the data before any subsequent modification or destruction
+ * of the property list.
  * Returns zero on success, negative on error. \since 0.9.11 */
 int pa_proplist_get(const pa_proplist *p, const char *key, const void **data, size_t *nbytes);
 
