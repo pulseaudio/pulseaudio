@@ -14,8 +14,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-03-08 16:26+0200\n"
-"PO-Revision-Date: 2020-10-01 15:30+0000\n"
-"Last-Translator: Emilio Herrera <ehespinosa57@gmail.com>\n"
+"PO-Revision-Date: 2021-04-13 06:02+0000\n"
+"Last-Translator: Toni Estevez <toni.estevez@gmail.com>\n"
 "Language-Team: Spanish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/es/>\n"
 "Language: es\n"
@@ -23,7 +23,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.2.2\n"
+"X-Generator: Weblate 4.5.3\n"
 "X-Poedit-Language: Spanish\n"
 
 #: src/daemon/cmdline.c:113
@@ -256,9 +256,8 @@ msgid "--disable-shm expects boolean argument"
 msgstr "--disable-shm espera un argumento booleano"
 
 #: src/daemon/cmdline.c:397
-#, fuzzy
 msgid "--enable-memfd expects boolean argument"
-msgstr "--realtime espera un argumento booleano"
+msgstr "--enable-memfd espera un argumento booleano"
 
 #: src/daemon/daemon-conf.c:270
 #, c-format
@@ -491,29 +490,24 @@ msgstr ""
 "exhaustivo."
 
 #: src/daemon/main.c:729
-#, fuzzy
 msgid "Running in system mode, but --disallow-exit not set."
-msgstr ""
-"Ejecutándose en modo de sistema, ¡pero no se ha configurado --disallow-exit! "
+msgstr "Se ejecuta en modo sistema, pero no se ha especificado--disallow-exit."
 
 #: src/daemon/main.c:732
-#, fuzzy
 msgid "Running in system mode, but --disallow-module-loading not set."
 msgstr ""
-"Ejecutándose en modo de sistema, ¡pero no se ha configurado --disallow-"
-"module-loading!"
+"Se ejecuta en modo sistema, pero no se ha especificado --disallow-module-"
+"loading."
 
 #: src/daemon/main.c:735
-#, fuzzy
 msgid "Running in system mode, forcibly disabling SHM mode."
-msgstr ""
-"Ejecutándose en modo de sistema, ¡desactivando forzadamente el modo SHM!"
+msgstr "Se ejecuta en modo sistema, se desactiva forzosamente el modo SHM."
 
 #: src/daemon/main.c:740
-#, fuzzy
 msgid "Running in system mode, forcibly disabling exit idle time."
 msgstr ""
-"Ejecutándose en modo de sistema, ¡desactivando forzadamente exit idle time!"
+"Se ejecuta en modo sistema, se desactiva forzosamente la salida por tiempo "
+"de inactividad."
 
 #: src/daemon/main.c:773
 msgid "Failed to acquire stdio."
@@ -548,7 +542,6 @@ msgid "Failed to get machine ID"
 msgstr "Fallo al intentar obtener el ID de la máquina"
 
 #: src/daemon/main.c:996
-#, fuzzy
 msgid ""
 "OK, so you are running PA in system mode. Please make sure that you actually "
 "do want to do that.\n"
@@ -556,13 +549,11 @@ msgid ""
 "Documentation/User/WhatIsWrongWithSystemWide/ for an explanation why system "
 "mode is usually a bad idea."
 msgstr ""
-"Bien, o sea que está ejecutando PA en modo de sistema. Por favor entienda "
-"que, en general, no debería estar haciéndolo.\n"
-"Si insiste en seguir utilizando este modo, será debido a su propio accionar "
-"que las cosas no funcionen como se esperaba.\n"
-"Por favor lea http://www.freedesktop.org/wiki/Software/PulseAudio/"
-"Documentation/User/WhatIsWrongWithSystemWide/ para obtener una explicación "
-"acerca de por qué es una mala idea utilizar el  modo sistema."
+"Está ejecutando PulseAudio en modo sistema. Asegúrese de que efectivamente "
+"quiere hacerlo.\n"
+"Consulte http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/"
+"User/WhatIsWrongWithSystemWide/ para obtener una explicación de por qué el "
+"modo sistema suele ser una mala idea."
 
 #: src/daemon/main.c:1012
 msgid "pa_pid_file_create() failed."
@@ -573,9 +564,8 @@ msgid "pa_core_new() failed."
 msgstr "Falló pa_core_new()."
 
 #: src/daemon/main.c:1119
-#, fuzzy
 msgid "command line arguments"
-msgstr "Demasiados argumentos."
+msgstr "argumentos de la línea de órdenes"
 
 #: src/daemon/main.c:1126
 #, c-format
@@ -583,6 +573,8 @@ msgid ""
 "Failed to initialize daemon due to errors while executing startup commands. "
 "Source of commands: %s"
 msgstr ""
+"Error al inicializar el servicio debido a errores al ejecutar las órdenes de "
+"inicio. Fuente de las órdenes: %s"
 
 #: src/daemon/main.c:1131
 msgid "Daemon startup without any loaded modules, refusing to work."
@@ -708,14 +700,12 @@ msgid "Analog Output"
 msgstr "Salida analógica"
 
 #: src/modules/alsa/alsa-mixer.c:2808
-#, fuzzy
 msgid "Headphones 2"
-msgstr "Auriculares"
+msgstr "Auriculares 2"
 
 #: src/modules/alsa/alsa-mixer.c:2809
-#, fuzzy
 msgid "Headphones Mono Output"
-msgstr "Salida mono analógica "
+msgstr "Salida mono de los auriculares"
 
 #: src/modules/alsa/alsa-mixer.c:2810
 msgid "Line Out"
@@ -742,48 +732,40 @@ msgid "Digital Input (S/PDIF)"
 msgstr "Entrada digital (S/PDIF)"
 
 #: src/modules/alsa/alsa-mixer.c:2816
-#, fuzzy
 msgid "Multichannel Input"
-msgstr "Multicanal"
+msgstr "Entrada multicanal"
 
 #: src/modules/alsa/alsa-mixer.c:2817
-#, fuzzy
 msgid "Multichannel Output"
-msgstr "Multicanal"
+msgstr "Salida multicanal"
 
 #: src/modules/alsa/alsa-mixer.c:2818
-#, fuzzy
 msgid "Game Output"
-msgstr "Salida %s"
+msgstr "Salida del juego"
 
 #: src/modules/alsa/alsa-mixer.c:2819 src/modules/alsa/alsa-mixer.c:2820
-#, fuzzy
 msgid "Chat Output"
-msgstr "Salida %s"
+msgstr "Salida del chat"
 
 #: src/modules/alsa/alsa-mixer.c:2821
-#, fuzzy
 msgid "Chat Input"
-msgstr "Entrada %s"
+msgstr "Entrada del chat"
 
 #: src/modules/alsa/alsa-mixer.c:2822
-#, fuzzy
 msgid "Virtual Surround 7.1"
-msgstr "Destino envolvente virtual"
+msgstr "Sonido envolvente virtual 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4562
 msgid "Analog Mono"
 msgstr "Mono analógico"
 
 #: src/modules/alsa/alsa-mixer.c:4563
-#, fuzzy
 msgid "Analog Mono (Left)"
-msgstr "Mono analógico"
+msgstr "Mono analógico (izquierda)"
 
 #: src/modules/alsa/alsa-mixer.c:4564
-#, fuzzy
 msgid "Analog Mono (Right)"
-msgstr "Mono analógico"
+msgstr "Mono analógico (derecha)"
 
 #. Note: Not translated to "Analog Stereo Input", because the source
 #. * name gets "Input" appended to it automatically, so adding "Input"
@@ -810,7 +792,6 @@ msgid "Headset"
 msgstr "Auriculares"
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
-#, fuzzy
 msgid "Speakerphone"
 msgstr "Altavoz"
 
@@ -888,11 +869,11 @@ msgstr "Envolvente digital 5.1 (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4596
 msgid "Chat"
-msgstr ""
+msgstr "Chat"
 
 #: src/modules/alsa/alsa-mixer.c:4597
 msgid "Game"
-msgstr ""
+msgstr "Juego"
 
 #: src/modules/alsa/alsa-mixer.c:4731
 msgid "Analog Mono Duplex"
@@ -907,18 +888,16 @@ msgid "Digital Stereo Duplex (IEC958)"
 msgstr "Estéreo digital dúplex (IEC958)"
 
 #: src/modules/alsa/alsa-mixer.c:4736
-#, fuzzy
 msgid "Multichannel Duplex"
-msgstr "Multicanal"
+msgstr "Dúplex multicanal"
 
 #: src/modules/alsa/alsa-mixer.c:4737
-#, fuzzy
 msgid "Stereo Duplex"
-msgstr "Estéreo analógico dúplex"
+msgstr "Dúplex estéreo"
 
 #: src/modules/alsa/alsa-mixer.c:4738
 msgid "Mono Chat + 7.1 Surround"
-msgstr ""
+msgstr "Chat mono + Sonido envolvente 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4739 src/modules/alsa/module-alsa-card.c:197
 #: src/modules/bluetooth/module-bluez5-device.c:2138
@@ -936,7 +915,7 @@ msgid "%s Input"
 msgstr "Entrada %s"
 
 #: src/modules/alsa/alsa-sink.c:652 src/modules/alsa/alsa-sink.c:842
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
 "nothing to write.\n"
@@ -945,15 +924,15 @@ msgid ""
 "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
 msgstr ""
-"ALSA nos despertó para escribir nuevos datos al dispositivo, ¡pero en "
-"realidad no hay nada para escribir!\n"
-"Probablemente sea un error en el controlador ALSA '%s'. Por favor, informe "
-"de esto a los desarrolladores de ALSA.\n"
-"Nos despertaron con POLLOUT activado. Sin embargo, la llamada a "
-"snd_pcm_avail() devolvió 0 u otro valor < min_avail."
+"ALSA ha enviado un aviso para escribir datos nuevos en el dispositivo, pero "
+"en realidad no había nada que escribir.\n"
+"Seguramente se trata de un error en el controlador ALSA «%s». Informe del "
+"problema a los desarrolladores de ALSA.\n"
+"Se ha definido el evento POLLOUT, sin embargo un snd_pcm_avail() posterior "
+"ha devuelto 0 u otro valor < min_avail."
 
 #: src/modules/alsa/alsa-source.c:611 src/modules/alsa/alsa-source.c:777
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
 "nothing to read.\n"
@@ -962,15 +941,15 @@ msgid ""
 "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
 msgstr ""
-"ALSA nos despertó para leer nuevos datos desde el dispositivo, ¡pero en "
-"realidad no hay nada para leer!\n"
-"Lo más probable es que sea un error del controlador ALSA '%s'. Por favor, "
-"informe de esto a los desarrolladores de ALSA.\n"
-"Nos despertaron con POLLIN activado. Sin embargo, la llamada a "
-"snd_pcm_avail() devolvió 0 u otro valor < min_avail."
+"ALSA ha enviado un aviso para leer datos nuevos en el dispositivo, pero en "
+"realidad no había nada que leer.\n"
+"Seguramente se trata de un error en el controlador ALSA «%s». Informe del "
+"problema a los desarrolladores de ALSA.\n"
+"Se ha definido el evento POLLIN sin embargo un snd_pcm_avail() posterior ha "
+"devuelto 0 u otro valor < min_avail."
 
 #: src/modules/alsa/alsa-util.c:1183 src/modules/alsa/alsa-util.c:1277
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu byte (%lu "
 "ms).\n"
@@ -982,18 +961,18 @@ msgid_plural ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr[0] ""
-"snd_pcm_avail() devolvió un valor que es excepcionalmente grande: %lu bytes "
-"(%lu ms).\n"
-"Lo más probable es que sea un error del controlador ALSA '%s'. Por favor, "
-"informe de esto a los desarrolladores de ALSA."
+"snd_pcm_avail() ha devuelto un valor excepcionalmente grande: %lu byte (%lu "
+"ms).\n"
+"Probablemente se trata de un error en el controlador ALSA «%s». Informe del "
+"problema a los desarrolladores de ALSA."
 msgstr[1] ""
-"snd_pcm_avail() devolvió un valor que es excepcionalmente grande: %lu bytes "
-"(%lu ms).\n"
-"Lo más probable es que sea un error del controlador ALSA '%s'. Por favor, "
-"informe de esto a los desarrolladores de ALSA."
+"snd_pcm_avail() ha devuelto un valor excepcionalmente grande: %lu byte (%lu "
+"ms).\n"
+"Probablemente se trata de un error en el controlador ALSA «%s». Informe del "
+"problema a los desarrolladores de ALSA."
 
 #: src/modules/alsa/alsa-util.c:1249
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li byte (%s"
 "%lu ms).\n"
@@ -1005,15 +984,15 @@ msgid_plural ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr[0] ""
-"snd_pcm_delay() devolvió un valor que es excepcionalmente grande: %li bytes "
-"(%s%lu ms).\n"
-"Lo más probable es que sea un error del controlador ALSA '%s'. Por favor, "
-"informe de esto a los desarrolladores de ALSA."
+"snd_pcm_delay() ha devuelto un valor excepcionalmente grande: %li byte ("
+"%s%lu ms).\n"
+"Probablemente se trata de un error en el controlador ALSA «%s». Informe del "
+"problema a los desarrolladores de ALSA."
 msgstr[1] ""
-"snd_pcm_delay() devolvió un valor que es excepcionalmente grande: %li bytes "
-"(%s%lu ms).\n"
-"Lo más probable es que sea un error del controlador ALSA '%s'. Por favor, "
-"informe de esto a los desarrolladores de ALSA."
+"snd_pcm_delay() ha devuelto un valor excepcionalmente grande: %li byte ("
+"%s%lu ms).\n"
+"Probablemente se trata de un error en el controlador ALSA «%s». Informe del "
+"problema a los desarrolladores de ALSA."
 
 #: src/modules/alsa/alsa-util.c:1296
 #, c-format
@@ -1029,7 +1008,7 @@ msgstr ""
 "informe de esto a los desarrolladores de ALSA."
 
 #: src/modules/alsa/alsa-util.c:1339
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu byte "
 "(%lu ms).\n"
@@ -1041,15 +1020,15 @@ msgid_plural ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr[0] ""
-"snd_pcm_mmap_begin() devolvió un valor que es excepcionalmente grande: %lu "
-"bytes (%lu ms).\n"
-"Lo más probable es que sea un error del controlador ALSA '%s'. Por favor, "
-"informe de esto a los desarrolladores de ALSA."
+"snd_pcm_mmap_begin() ha devuelto un valor excepcionalmente grande: %lu byte ("
+"%lu ms).\n"
+"Probablemente se trata de un error en el controlador ALSA «%s». Informe del "
+"problema a los desarrolladores de ALSA."
 msgstr[1] ""
-"snd_pcm_mmap_begin() devolvió un valor que es excepcionalmente grande: %lu "
-"bytes (%lu ms).\n"
-"Lo más probable es que sea un error del controlador ALSA '%s'. Por favor, "
-"informe de esto a los desarrolladores de ALSA."
+"snd_pcm_mmap_begin() ha devuelto un valor excepcionalmente grande: %lu byte ("
+"%lu ms).\n"
+"Probablemente se trata de un error en el controlador ALSA «%s». Informe del "
+"problema a los desarrolladores de ALSA."
 
 #: src/modules/bluetooth/module-bluez5-device.c:1828
 #: src/modules/bluetooth/module-bluez5-device.c:1854
@@ -1095,27 +1074,22 @@ msgid "High Fidelity Capture (A2DP Source)"
 msgstr "Captura de alta fidelidad (fuente A2DP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1957
-#, fuzzy
 msgid "Headset Head Unit (HSP)"
-msgstr "Unidad de auriculares de diadema  (HSP/HFP)"
+msgstr "Unidad de auriculares (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1970
-#, fuzzy
 msgid "Headset Audio Gateway (HSP)"
-msgstr "Salida de audio para auriculares (HSP/HFP)"
+msgstr "Puerta de enlace de audio para auriculares (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1983
-#, fuzzy
 msgid "Handsfree Head Unit (HFP)"
-msgstr "Unidad de auriculares de diadema  (HSP/HFP)"
+msgstr "Unidad de manos libres (HFP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1996
-#, fuzzy
 msgid "Handsfree Audio Gateway (HFP)"
-msgstr "Salida de audio para auriculares (HSP/HFP)"
+msgstr "Puerta de enlace de audio para manos libres (HFP)"
 
 #: src/modules/echo-cancel/module-echo-cancel.c:59
-#, fuzzy
 msgid ""
 "source_name=<name for the source> source_properties=<properties for the "
 "source> source_master=<name of source to filter> sink_name=<name for the "
@@ -1129,15 +1103,16 @@ msgid ""
 "or no> "
 msgstr ""
 "source_name=<nombre para la fuente> source_properties=<propiedades para la "
-"fuente> source_master=<nombre de la fuente a filtrar> sink_name=<nombre para "
-"el destino> sink_properties=<propiedades para el destino> "
-"sink_master=<nombre del destino a filtrar> adjust_time=<cada cuánto "
-"reajustar la tasa, en segundos> adjust_threshold=<tras cuánta deriva "
-"reajustar, en ms> format=<formato de muestra> rate=<tasa de muestra> "
-"channels=<número de canales> channel_map=<mapa de canales> "
-"aec_method=<implementación a usar> aec_args=<parámetros para el núcleo AEC> "
-"save_aec=<guardar datos AEC en /tmp> autoloaded=<activado si este módulo se "
-"está cargando automáticamente> use_volume_sharing=<yes o no> "
+"fuente> source_master=<nombre de la fuente para filtrar> sink_name=<nombre "
+"para el destino> sink_properties=<propiedades para el destino> "
+"sink_master=<nombre del destino para filtrar> adjust_time=<cada cuánto "
+"reajustar la tasa, en segundos> adjust_threshold=<cuánto se debe reajustar "
+"la deriva, en milisegundos> format=<formato de la muestra> rate=<tasa de "
+"muestreo> channels=<número de canales> channel_map=<mapa de canales> "
+"aec_method=<implementación para usar> aec_args=<parámetros para el motor "
+"AEC> save_aec=<guardar datos AEC en /tmp> autoloaded=<se configura si este "
+"módulo se carga automáticamente> use_volume_sharing=<sí o no> "
+"use_master_format=<sí o no> "
 
 #. add on profile
 #: src/modules/macosx/module-coreaudio-device.c:825
@@ -1154,9 +1129,8 @@ msgid "Always keeps at least one sink loaded even if it's a null one"
 msgstr "Mantiene siempre un destino activo aunque sea el nulo"
 
 #: src/modules/module-always-source.c:35
-#, fuzzy
 msgid "Always keeps at least one source loaded even if it's a null one"
-msgstr "Mantiene siempre un destino activo aunque sea el nulo"
+msgstr "Siempre mantiene cargada al menos una fuente aunque sea nula"
 
 #: src/modules/module-equalizer-sink.c:68
 msgid "General Purpose Equalizer"
@@ -1179,7 +1153,7 @@ msgstr ""
 #: src/modules/module-equalizer-sink.c:1217
 #, c-format
 msgid "FFT based equalizer on %s"
-msgstr ""
+msgstr "Ecualizador basado en FFT en %s"
 
 #: src/modules/module-filter-apply.c:47
 msgid "autoclean=<automatically unload unused filters?>"
