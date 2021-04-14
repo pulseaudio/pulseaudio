@@ -562,6 +562,9 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
     struct hfp_config *c = t->config;
     int val;
     char str[5];
+    const char *r;
+    size_t len;
+    const char *state;
 
     /* first-time initialize selected codec to CVSD */
     if (c->selected_codec == 0)
@@ -576,10 +579,17 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
 
         return true;
     } else if (sscanf(buf, "AT+BAC=%3s", str) == 1) {
-        if (strncmp(str, "1,2", 3) == 0)
-            c->support_msbc = true;
-        else
-            c->support_msbc = false;
+        c->support_msbc = false;
+
+        state = NULL;
+
+        /* check if codec id 2 (mSBC) is in the list of supported codecs */
+        while ((r = pa_split_in_place(str, ",", &len, &state))) {
+            if (len == 1 && r[0] == '2') {
+                c->support_msbc = true;
+                break;
+            }
+        }
 
         c->support_codec_negotiation = true;
 
