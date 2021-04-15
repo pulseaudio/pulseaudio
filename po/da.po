@@ -8,14 +8,16 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-03-08 16:26+0200\n"
-"PO-Revision-Date: 2019-03-25 17:38+0200\n"
-"Last-Translator: scootergrisen\n"
-"Language-Team: Danish\n"
+"PO-Revision-Date: 2021-04-16 13:02+0000\n"
+"Last-Translator: scootergrisen <scootergrisen@gmail.com>\n"
+"Language-Team: Danish <https://translate.fedoraproject.org/projects/"
+"pulseaudio/pulseaudio/da/>\n"
 "Language: da\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.5.3\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -548,9 +550,8 @@ msgid "pa_core_new() failed."
 msgstr "pa_core_new() mislykkedes."
 
 #: src/daemon/main.c:1119
-#, fuzzy
 msgid "command line arguments"
-msgstr "For mange argumenter."
+msgstr "kommandolinjeargumenter"
 
 #: src/daemon/main.c:1126
 #, c-format
@@ -681,9 +682,8 @@ msgid "Analog Output"
 msgstr "Analog output"
 
 #: src/modules/alsa/alsa-mixer.c:2808
-#, fuzzy
 msgid "Headphones 2"
-msgstr "Hovedtelefoner"
+msgstr "Hovedtelefoner 2"
 
 #: src/modules/alsa/alsa-mixer.c:2809
 msgid "Headphones Mono Output"
@@ -730,28 +730,24 @@ msgid "Chat Output"
 msgstr "Chatoutput"
 
 #: src/modules/alsa/alsa-mixer.c:2821
-#, fuzzy
 msgid "Chat Input"
-msgstr "Chatoutput"
+msgstr "Chatinput"
 
 #: src/modules/alsa/alsa-mixer.c:2822
-#, fuzzy
 msgid "Virtual Surround 7.1"
-msgstr "Virtuel surround-sink"
+msgstr "Virtuel surround 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4562
 msgid "Analog Mono"
 msgstr "Analog mono"
 
 #: src/modules/alsa/alsa-mixer.c:4563
-#, fuzzy
 msgid "Analog Mono (Left)"
-msgstr "Analog mono"
+msgstr "Analog mono (venstre)"
 
 #: src/modules/alsa/alsa-mixer.c:4564
-#, fuzzy
 msgid "Analog Mono (Right)"
-msgstr "Analog mono"
+msgstr "Analog mono (højre)"
 
 #. Note: Not translated to "Analog Stereo Input", because the source
 #. * name gets "Input" appended to it automatically, so adding "Input"
@@ -778,7 +774,6 @@ msgid "Headset"
 msgstr "Headset"
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
-#, fuzzy
 msgid "Speakerphone"
 msgstr "Højttaler"
 
@@ -856,11 +851,11 @@ msgstr "Digital surround 5.1 (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4596
 msgid "Chat"
-msgstr ""
+msgstr "Chat"
 
 #: src/modules/alsa/alsa-mixer.c:4597
 msgid "Game"
-msgstr ""
+msgstr "Spil"
 
 #: src/modules/alsa/alsa-mixer.c:4731
 msgid "Analog Mono Duplex"
@@ -884,7 +879,7 @@ msgstr "Stereo dupleks"
 
 #: src/modules/alsa/alsa-mixer.c:4738
 msgid "Mono Chat + 7.1 Surround"
-msgstr ""
+msgstr "Mono chat + 7.1 surround"
 
 #: src/modules/alsa/alsa-mixer.c:4739 src/modules/alsa/module-alsa-card.c:197
 #: src/modules/bluetooth/module-bluez5-device.c:2138
@@ -1061,24 +1056,20 @@ msgid "High Fidelity Capture (A2DP Source)"
 msgstr "Hi-fi-optagelse (A2DP-kilde)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1957
-#, fuzzy
 msgid "Headset Head Unit (HSP)"
-msgstr "Headset-hovedenhed (HSP/HFP)"
+msgstr "Headset-hovedenhed (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1970
-#, fuzzy
 msgid "Headset Audio Gateway (HSP)"
-msgstr "Headset-lydport (HSP/HFP)"
+msgstr "Headset-lydport (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1983
-#, fuzzy
 msgid "Handsfree Head Unit (HFP)"
-msgstr "Headset-hovedenhed (HSP/HFP)"
+msgstr "Håndfri-hovedenhed (HFP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1996
-#, fuzzy
 msgid "Handsfree Audio Gateway (HFP)"
-msgstr "Headset-lydport (HSP/HFP)"
+msgstr "Håndfri-lydport (HFP)"
 
 #: src/modules/echo-cancel/module-echo-cancel.c:59
 msgid ""
@@ -2398,38 +2389,35 @@ msgstr ""
 
 #: src/utils/pactl.c:242
 msgid "availability unknown"
-msgstr ""
+msgstr "tilgængelighed ukendt"
 
 #: src/utils/pactl.c:243
 msgid "available"
-msgstr ""
+msgstr "tilgængelig"
 
 #: src/utils/pactl.c:244
 msgid "not available"
-msgstr ""
+msgstr "ikke tilgængelig"
 
 #: src/utils/pactl.c:253 src/utils/pactl.c:277
-#, fuzzy
 msgid "Unknown"
-msgstr "ukendt"
+msgstr "Ukendt"
 
 #: src/utils/pactl.c:254
 msgid "Aux"
 msgstr ""
 
 #: src/utils/pactl.c:257
-#, fuzzy
 msgid "Line"
-msgstr "Line in"
+msgstr "Line"
 
 #: src/utils/pactl.c:258
 msgid "Mic"
-msgstr ""
+msgstr "Mik."
 
 #: src/utils/pactl.c:260
-#, fuzzy
 msgid "Handset"
-msgstr "Headset"
+msgstr "Håndsæt"
 
 #: src/utils/pactl.c:261
 msgid "Earpiece"
@@ -2437,33 +2425,31 @@ msgstr ""
 
 #: src/utils/pactl.c:262
 msgid "SPDIF"
-msgstr ""
+msgstr "SPDIF"
 
 #: src/utils/pactl.c:263
 msgid "HDMI"
-msgstr ""
+msgstr "HDMI"
 
 #: src/utils/pactl.c:264
 msgid "TV"
-msgstr ""
+msgstr "TV"
 
 #: src/utils/pactl.c:267
 msgid "USB"
-msgstr ""
+msgstr "USB"
 
 #: src/utils/pactl.c:268
-#, fuzzy
 msgid "Bluetooth"
-msgstr "Bluetooth-input"
+msgstr "Bluetooth"
 
 #: src/utils/pactl.c:274
 msgid "Network"
-msgstr ""
+msgstr "Netværk"
 
 #: src/utils/pactl.c:275
-#, fuzzy
 msgid "Analog"
-msgstr "Analog mono"
+msgstr "Analog"
 
 #: src/utils/pactl.c:299 src/utils/pactl.c:1020 src/utils/pactl.c:1098
 #, c-format
