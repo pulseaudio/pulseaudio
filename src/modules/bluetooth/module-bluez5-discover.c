@@ -39,6 +39,7 @@ PA_MODULE_USAGE(
     "autodetect_mtu=<boolean>"
     "enable_msbc=<boolean, enable mSBC support in native and oFono backends, default is true>"
     "output_rate_refresh_interval_ms=<interval between attempts to improve output rate in milliseconds>"
+    "enable_native_hsp_hs=<boolean, enable HSP support in native backend>"
     "enable_native_hfp_hf=<boolean, enable HFP support in native backend>"
 );
 
@@ -47,6 +48,7 @@ static const char* const valid_modargs[] = {
     "autodetect_mtu",
     "enable_msbc",
     "output_rate_refresh_interval_ms",
+    "enable_native_hsp_hs",
     "enable_native_hfp_hf",
     NULL
 };
@@ -115,7 +117,8 @@ int pa__init(pa_module *m) {
     bool autodetect_mtu;
     bool enable_msbc;
     uint32_t output_rate_refresh_interval_ms;
-    bool enable_native_hfp_hf = true;
+    bool enable_native_hsp_hs;
+    bool enable_native_hfp_hf;
 
     pa_assert(m);
 
@@ -147,8 +150,14 @@ int pa__init(pa_module *m) {
     if (pa_modargs_get_value_boolean(ma, "enable_msbc", &enable_msbc) < 0) {
         pa_log("Invalid boolean value for enable_msbc parameter");
     }
+    enable_native_hfp_hf = true;
     if (pa_modargs_get_value_boolean(ma, "enable_native_hfp_hf", &enable_native_hfp_hf) < 0) {
         pa_log("enable_native_hfp_hf must be true or false");
+        goto fail;
+    }
+    enable_native_hsp_hs = !enable_native_hfp_hf;
+    if (pa_modargs_get_value_boolean(ma, "enable_native_hsp_hs", &enable_native_hsp_hs) < 0) {
+        pa_log("enable_native_hsp_hs must be true or false");
         goto fail;
     }
 
@@ -165,7 +174,7 @@ int pa__init(pa_module *m) {
     u->output_rate_refresh_interval_ms = output_rate_refresh_interval_ms;
     u->loaded_device_paths = pa_hashmap_new(pa_idxset_string_hash_func, pa_idxset_string_compare_func);
 
-    if (!(u->discovery = pa_bluetooth_discovery_get(u->core, headset_backend, enable_native_hfp_hf, enable_msbc)))
+    if (!(u->discovery = pa_bluetooth_discovery_get(u->core, headset_backend, enable_native_hsp_hs, enable_native_hfp_hf, enable_msbc)))
         goto fail;
 
     u->device_connection_changed_slot =

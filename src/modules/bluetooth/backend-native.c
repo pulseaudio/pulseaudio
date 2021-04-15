@@ -44,6 +44,7 @@ struct pa_bluetooth_backend {
   pa_dbus_connection *connection;
   pa_bluetooth_discovery *discovery;
   bool enable_shared_profiles;
+  bool enable_hsp_hs;
   bool enable_hfp_hf;
 
   PA_LLIST_HEAD(pa_dbus_pending, pending);
@@ -1069,8 +1070,13 @@ pa_bluetooth_backend *pa_bluetooth_native_backend_new(pa_core *c, pa_bluetooth_d
     backend->discovery = y;
     backend->enable_shared_profiles = enable_shared_profiles;
     backend->enable_hfp_hf = pa_bluetooth_discovery_get_enable_native_hfp_hf(y);
+    backend->enable_hsp_hs = pa_bluetooth_discovery_get_enable_native_hsp_hs(y);
 
-    profile_init(backend, PA_BLUETOOTH_PROFILE_HSP_HS);
+    if (!backend->enable_hsp_hs && !backend->enable_hfp_hf)
+        pa_log_warn("Both HSP HS and HFP HF bluetooth profiles disabled in native backend. Native backend will not register for headset connections.");
+
+    if (backend->enable_hsp_hs)
+        profile_init(backend, PA_BLUETOOTH_PROFILE_HSP_HS);
 
     if (backend->enable_shared_profiles)
         native_backend_apply_profile_registration_change(backend, true);
@@ -1086,7 +1092,8 @@ void pa_bluetooth_native_backend_free(pa_bluetooth_backend *backend) {
     if (backend->enable_shared_profiles)
         native_backend_apply_profile_registration_change(backend, false);
 
-    profile_done(backend, PA_BLUETOOTH_PROFILE_HSP_HS);
+    if (backend->enable_hsp_hs)
+        profile_done(backend, PA_BLUETOOTH_PROFILE_HSP_HS);
 
     pa_dbus_connection_unref(backend->connection);
 
