@@ -12,7 +12,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-03-08 16:26+0200\n"
-"PO-Revision-Date: 2021-03-20 19:01+0000\n"
+"PO-Revision-Date: 2021-04-19 20:02+0000\n"
 "Last-Translator: Milo Casagrande <milo@milo.name>\n"
 "Language-Team: Italian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/it/>\n"
@@ -21,7 +21,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.5.1\n"
+"X-Generator: Weblate 4.6\n"
 
 # mamma mia che impressione
 #: src/daemon/cmdline.c:113
@@ -810,9 +810,8 @@ msgid "Headset"
 msgstr "Cuffie con microfono"
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
-#, fuzzy
 msgid "Speakerphone"
-msgstr "Altoparlante"
+msgstr "Viva voce"
 
 #: src/modules/alsa/alsa-mixer.c:4577 src/modules/alsa/alsa-mixer.c:4578
 msgid "Multichannel"
@@ -2313,7 +2312,7 @@ msgstr "FRAME"
 
 #: src/utils/pacmd.c:80 src/utils/pactl.c:1709
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
-msgstr ""
+msgstr "DESTINATARIO MESSAGGIO [PARAMETRI_MESSAGGIO]"
 
 #: src/utils/pacmd.c:82
 #, c-format
@@ -2488,7 +2487,7 @@ msgstr "Cuffie con microfono"
 
 #: src/utils/pactl.c:261
 msgid "Earpiece"
-msgstr ""
+msgstr "Auricolare"
 
 #: src/utils/pactl.c:262
 msgid "SPDIF"
@@ -2576,8 +2575,9 @@ msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
 msgstr "\t\t%s: %s (tipo: %s, priorità: %u%s%s, %s)\n"
 
 #: src/utils/pactl.c:373 src/utils/pactl.c:481 src/utils/pactl.c:645
+#, fuzzy
 msgid ", availability group: "
-msgstr ""
+msgstr ", gruppo disponibilità: "
 
 #: src/utils/pactl.c:378 src/utils/pactl.c:486
 #, c-format
@@ -2725,6 +2725,7 @@ msgstr "\tProfilo attivo: %s\n"
 msgid ""
 "\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s, %s)\n"
 msgstr ""
+"\t\t%s: %s (tipo: %s, priorità: %u, offset latenza: %<PRId64> usec%s%s, %s)\n"
 
 #: src/utils/pactl.c:649
 #, c-format
