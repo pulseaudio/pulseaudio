@@ -1,13 +1,20 @@
 if bashcompletiondir != 'no'
-  aliases = [
+  aliases = []
+
+  if get_option('daemon')
+    aliases += [
+      'pacmd',
+      'pasuspender',
+    ]
+  endif
+
+  aliases += [
     'pacat',
-    'pacmd',
     'pactl',
     'padsp',
     'paplay',
     'parec',
     'parecord',
-    'pasuspender',
   ]
 
   install_data('pulseaudio', install_dir : bashcompletiondir)

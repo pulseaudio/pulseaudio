@@ -1,3 +1,6 @@
+option('daemon',
+       type : 'boolean', value : true,
+       description : 'Enable building and installation of pulseaudio daemon and supporting configuration files')
 option('gcov',
        type : 'boolean', value : false,
        description : 'Enable optional gcov coverage analysis')
