@@ -25,16 +25,13 @@
 
 #include <pulse/proplist.h>
 #include <pulse/xmalloc.h>
-#include <pulsecore/macro.h>
+#include <pulsecore/log.h>
 #include <pulsecore/core-util.h>
-#include <pulsecore/modargs.h>
 
 START_TEST (proplist_test) {
-    pa_modargs *ma;
     pa_proplist *a, *b, *c, *d;
     char *s, *t, *u, *v;
     const char *text;
-    const char *x[] = { "foo", NULL };
 
     a = pa_proplist_new();
     fail_unless(pa_proplist_sets(a, PA_PROP_MEDIA_TITLE, "Brandenburgische Konzerte") == 0);
@@ -80,19 +77,6 @@ START_TEST (proplist_test) {
     pa_proplist_free(d);
     pa_log_debug("%s", v);
     pa_xfree(v);
-
-    ma = pa_modargs_new("foo='foobar=waldo foo2=\"lj\\\"dhflh\" foo3=\"kjlskj\\'\"'", x);
-    fail_unless(ma != NULL);
-    a = pa_proplist_new();
-    fail_unless(a != NULL);
-
-    fail_unless(pa_modargs_get_proplist(ma, "foo", a, PA_UPDATE_REPLACE) >= 0);
-
-    pa_log_debug("%s", v = pa_proplist_to_string(a));
-    pa_xfree(v);
-
-    pa_proplist_free(a);
-    pa_modargs_free(ma);
 }
 END_TEST
 

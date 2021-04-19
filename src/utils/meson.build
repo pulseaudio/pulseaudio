@@ -42,34 +42,36 @@ executable('pactl',
   c_args : pa_c_args,
 )
 
-if host_machine.system() != 'windows'
-  pasuspender_sources = [
-    'pasuspender.c',
-  ]
+if get_option('daemon')
+  if host_machine.system() != 'windows'
+    pasuspender_sources = [
+      'pasuspender.c',
+    ]
 
-  executable('pasuspender',
-    pasuspender_sources,
-    install: true,
-    install_rpath : privlibdir,
-    include_directories : [configinc, topinc],
-    link_with : [libpulsecommon, libpulse],
-    dependencies: [libintl_dep],
-    c_args : pa_c_args,
-  )
+    executable('pasuspender',
+      pasuspender_sources,
+      install: true,
+      install_rpath : privlibdir,
+      include_directories : [configinc, topinc],
+      link_with : [libpulsecommon, libpulse],
+      dependencies: [libintl_dep],
+      c_args : pa_c_args,
+    )
 
-  pacmd_sources = [
-    'pacmd.c',
-  ]
+    pacmd_sources = [
+      'pacmd.c',
+    ]
 
-  executable('pacmd',
-    pacmd_sources,
-    install: true,
-    install_rpath : privlibdir,
-    include_directories : [configinc, topinc],
-    link_with : [libpulsecommon, libpulse],
-    dependencies: [libintl_dep],
-    c_args : pa_c_args,
-  )
+    executable('pacmd',
+      pacmd_sources,
+      install: true,
+      install_rpath : privlibdir,
+      include_directories : [configinc, topinc],
+      link_with : [libpulsecommon, libpulse],
+      dependencies: [libintl_dep],
+      c_args : pa_c_args,
+    )
+  endif
 endif
 
 if x11_dep.found()

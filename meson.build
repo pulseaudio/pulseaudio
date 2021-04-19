@@ -882,6 +882,8 @@ summary = [
 #  'CPPFLAGS:                      @0@'.format(${CPPFLAGS}),
 #  'LIBS:                          @0@'.format(${LIBS}),
   '',
+  'Enable pulseaudio daemon:      @0@'.format(get_option('daemon')),
+  '',
   'Enable memfd shared memory:    @0@'.format(cdata.has('HAVE_MEMFD')),
   'Enable X11:                    @0@'.format(x11_dep.found()),
   '  Safe X11 I/O errors:         @0@'.format(cdata.has('HAVE_XSETIOERROREXITHANDLER')),

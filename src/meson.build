@@ -206,9 +206,11 @@ libpulsecommon = shared_library('pulsecommon-' + pa_version_major_minor,
 libpulsecommon_dep = declare_dependency(link_with: libpulsecommon)
 
 subdir('pulse')
-subdir('pulsecore')
-subdir('daemon')
-subdir('modules')
+if get_option('daemon')
+  subdir('pulsecore')
+  subdir('daemon')
+  subdir('modules')
+endif
 if get_option('tests')
   subdir('tests')
 endif
