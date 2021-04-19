@@ -1067,9 +1067,12 @@ int main(int argc, char *argv[]) {
 	     * Endianness has been set in pa_sndfile_write_sample_spec(), but
 	     * libsndfile errors out if endianness is set to anything other than
 	     * SF_ENDIAN_FILE for OGG or FLAC. Clear it.
+	     * For OGG, libsndfile accepts only subformat SF_FORMAT_VORBIS.
 	     */
 	    if (file_format == SF_FORMAT_OGG || file_format == SF_FORMAT_FLAC)
 		    sfi.format = (sfi.format & ~SF_FORMAT_ENDMASK) | SF_ENDIAN_FILE;
+	    if (file_format == SF_FORMAT_OGG)
+		    sfi.format = (sfi.format & ~SF_FORMAT_SUBMASK) | SF_FORMAT_VORBIS;
 
         }
 
