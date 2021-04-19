@@ -17,10 +17,20 @@ endif
 manpages += [
   ['pacat', '1', ['paplay', 'parec', 'parecord', 'pamon']],
   ['pactl', '1'],
-  ['padsp', '1'],
-  ['pax11publish', '1'],
   ['pulse-client.conf', '5'],
 ]
+
+if cdata.has('HAVE_OSS_WRAPPER')
+  manpages += [
+    ['padsp', '1'],
+  ]
+endif
+
+if x11_dep.found()
+  manpages += [
+    ['pax11publish', '1'],
+  ]
+endif
 
 # FIXME: Add esdcompat if HAVE_ESOUND
 #manpages += ['esdcompat', '1'],
