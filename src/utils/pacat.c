@@ -1062,6 +1062,15 @@ int main(int argc, char *argv[]) {
             }
 
             sfi.format |= file_format;
+
+	    /*
+	     * Endianness has been set in pa_sndfile_write_sample_spec(), but
+	     * libsndfile errors out if endianness is set to anything other than
+	     * SF_ENDIAN_FILE for OGG or FLAC. Clear it.
+	     */
+	    if (file_format == SF_FORMAT_OGG || file_format == SF_FORMAT_FLAC)
+		    sfi.format = (sfi.format & ~SF_FORMAT_ENDMASK) | SF_ENDIAN_FILE;
+
         }
 
         if (!(sndfile = sf_open_fd(mode == RECORD ? STDOUT_FILENO : STDIN_FILENO,
