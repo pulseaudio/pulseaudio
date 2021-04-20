@@ -1594,7 +1594,7 @@ static void update_preferred_device(struct userdata *u, const char *name, const 
 static pa_hook_result_t sink_input_preferred_sink_changed_cb(pa_core *c, pa_sink_input *sink_input, struct userdata *u) {
     char *name;
     pa_sink *sink;
-    const char *card_name;
+    const char *card_name = NULL;
 
     pa_assert(c);
     pa_assert(sink_input);
@@ -1723,7 +1723,7 @@ static pa_hook_result_t source_output_fixate_hook_callback(pa_core *c, pa_source
 static pa_hook_result_t source_output_preferred_source_changed_cb(pa_core *c, pa_source_output *source_output, struct userdata *u) {
     char *name;
     pa_source *source;
-    const char *card_name;
+    const char *card_name = NULL;
 
     pa_assert(c);
     pa_assert(source_output);
