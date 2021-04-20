@@ -1342,6 +1342,7 @@ static pa_direction_t get_profile_direction(pa_bluetooth_profile_t p) {
 
 /* Run from main thread */
 static int transport_config(struct userdata *u) {
+    bool reverse_backchannel;
     pa_assert(u);
     pa_assert(u->transport);
     pa_assert(!u->bt_codec);
@@ -1354,15 +1355,18 @@ static int transport_config(struct userdata *u) {
     /* reset encoder buffer contents */
     u->encoder_buffer_used = 0;
 
-    if (get_profile_direction(u->profile) & PA_DIRECTION_OUTPUT) {
-        u->encoder_info = u->bt_codec->init(true, false, u->transport->config, u->transport->config_size, &u->encoder_sample_spec, u->core);
+    /* forward encoding direction */
+    reverse_backchannel = u->bt_codec->support_backchannel && !(get_profile_direction(u->profile) & PA_DIRECTION_OUTPUT);
+
+    if ((get_profile_direction(u->profile) & PA_DIRECTION_OUTPUT) || u->bt_codec->support_backchannel) {
+        u->encoder_info = u->bt_codec->init(true, reverse_backchannel, u->transport->config, u->transport->config_size, &u->encoder_sample_spec, u->core);
 
         if (!u->encoder_info)
             return -1;
     }
 
-    if (get_profile_direction(u->profile) & PA_DIRECTION_INPUT) {
-        u->decoder_info = u->bt_codec->init(false, false, u->transport->config, u->transport->config_size, &u->decoder_sample_spec, u->core);
+    if ((get_profile_direction(u->profile) & PA_DIRECTION_INPUT) || u->bt_codec->support_backchannel) {
+        u->decoder_info = u->bt_codec->init(false, reverse_backchannel, u->transport->config, u->transport->config_size, &u->decoder_sample_spec, u->core);
 
         if (!u->decoder_info) {
             if (u->encoder_info) {
@@ -1420,11 +1424,11 @@ static int init_profile(struct userdata *u) {
 
     pa_assert(u->transport);
 
-    if (get_profile_direction (u->profile) & PA_DIRECTION_OUTPUT)
+    if ((get_profile_direction(u->profile) & PA_DIRECTION_OUTPUT) || u->bt_codec->support_backchannel)
         if (add_sink(u) < 0)
             r = -1;
 
-    if (get_profile_direction (u->profile) & PA_DIRECTION_INPUT)
+    if ((get_profile_direction(u->profile) & PA_DIRECTION_INPUT) || u->bt_codec->support_backchannel)
         if (add_source(u) < 0)
             r = -1;
 
@@ -1625,13 +1629,15 @@ static void thread_func(void *userdata) {
                                 skip_bytes -= bytes_to_render;
                             }
 
-                            if (u->write_index > 0 && (get_profile_direction(u->profile) & PA_DIRECTION_OUTPUT)) {
-                                size_t new_write_block_size = u->bt_codec->reduce_encoder_bitrate(u->encoder_info, u->write_link_mtu);
-                                if (new_write_block_size) {
-                                    u->write_block_size = new_write_block_size;
-                                    handle_sink_block_size_change(u);
+                            if (u->write_index > 0 && (get_profile_direction(u->profile) & PA_DIRECTION_OUTPUT || u->bt_codec->support_backchannel)) {
+                                if (u->bt_codec->reduce_encoder_bitrate) {
+                                    size_t new_write_block_size = u->bt_codec->reduce_encoder_bitrate(u->encoder_info, u->write_link_mtu);
+                                    if (new_write_block_size) {
+                                        u->write_block_size = new_write_block_size;
+                                        handle_sink_block_size_change(u);
+                                    }
+                                    pa_gettimeofday(&tv_last_output_rate_change);
                                 }
-                                pa_gettimeofday(&tv_last_output_rate_change);
                             }
                         }
 
@@ -1674,7 +1680,7 @@ static void thread_func(void *userdata) {
                             sleep_for = time_passed < next_write_at ? next_write_at - time_passed : 0;
                             /* pa_log("Sleeping for %lu; time passed %lu, next write at %lu", (unsigned long) sleep_for, (unsigned long) time_passed, (unsigned long)next_write_at); */
 
-                            if ((get_profile_direction(u->profile) & PA_DIRECTION_OUTPUT) && u->write_memchunk.memblock == NULL) {
+                            if ((get_profile_direction(u->profile) & PA_DIRECTION_OUTPUT || u->bt_codec->support_backchannel) && u->write_memchunk.memblock == NULL) {
                                 /* bt_write_buffer() is keeping up with input, try increasing bitrate */
                                 if (u->bt_codec->increase_encoder_bitrate
                                     && pa_timeval_age(&tv_last_output_rate_change) >= u->device->output_rate_refresh_interval_ms * PA_USEC_PER_MSEC) {
@@ -1906,10 +1912,10 @@ static pa_available_t get_port_availability(struct userdata *u, pa_direction_t d
     for (i = 0; i < PA_BLUETOOTH_PROFILE_COUNT; i++) {
         pa_bluetooth_transport *transport;
 
-        if (!(get_profile_direction(i) & direction))
+        if (!(transport = u->device->transports[i]))
             continue;
 
-        if (!(transport = u->device->transports[i]))
+        if (!(get_profile_direction(i) & direction || (transport->bt_codec && transport->bt_codec->support_backchannel)))
             continue;
 
         switch(transport->state) {

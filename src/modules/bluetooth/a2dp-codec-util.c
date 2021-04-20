@@ -52,6 +52,7 @@ extern const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_ldac_eqmid_hq;
 extern const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_ldac_eqmid_sq;
 extern const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_ldac_eqmid_mq;
 #endif
+extern const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_faststream;
 
 /* This is list of supported codecs. Their order is important.
  * Codec with lower index has higher priority. */
@@ -69,6 +70,7 @@ static const pa_a2dp_endpoint_conf *pa_a2dp_endpoint_configurations[] = {
     &pa_a2dp_endpoint_conf_sbc_xq_453,
     &pa_a2dp_endpoint_conf_sbc_xq_512,
     &pa_a2dp_endpoint_conf_sbc_xq_552,
+    &pa_a2dp_endpoint_conf_faststream,
 };
 
 unsigned int pa_bluetooth_a2dp_endpoint_conf_count(void) {

@@ -433,7 +433,6 @@ static size_t encode_buffer(void *codec_info, uint32_t timestamp, const uint8_t 
 
 const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_ldac_eqmid_hq = {
     .id = { A2DP_CODEC_VENDOR, LDAC_VENDOR_ID, LDAC_CODEC_ID },
-    .support_backchannel = false,
     .can_be_supported = can_be_supported,
     .can_accept_capabilities = can_accept_capabilities,
     .choose_remote_endpoint = choose_remote_endpoint,
@@ -456,7 +455,6 @@ const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_ldac_eqmid_hq = {
 
 const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_ldac_eqmid_sq = {
     .id = { A2DP_CODEC_VENDOR, LDAC_VENDOR_ID, LDAC_CODEC_ID },
-    .support_backchannel = false,
     .can_be_supported = can_be_supported,
     .can_accept_capabilities = can_accept_capabilities,
     .choose_remote_endpoint = choose_remote_endpoint,
@@ -479,7 +477,6 @@ const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_ldac_eqmid_sq = {
 
 const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_ldac_eqmid_mq = {
     .id = { A2DP_CODEC_VENDOR, LDAC_VENDOR_ID, LDAC_CODEC_ID },
-    .support_backchannel = false,
     .can_be_supported = can_be_supported,
     .can_accept_capabilities = can_accept_capabilities,
     .choose_remote_endpoint = choose_remote_endpoint,

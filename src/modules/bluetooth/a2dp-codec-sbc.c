@@ -108,6 +108,24 @@ static bool can_accept_capabilities_xq(const uint8_t *capabilities_buffer, uint8
     return true;
 }
 
+static bool can_accept_capabilities_faststream(const uint8_t *capabilities_buffer, uint8_t capabilities_size, bool for_encoding) {
+    const a2dp_faststream_t *capabilities = (const a2dp_faststream_t *) capabilities_buffer;
+
+    if (capabilities_size != sizeof(*capabilities))
+        return false;
+
+    if (!(capabilities->direction & (FASTSTREAM_DIRECTION_SINK | FASTSTREAM_DIRECTION_SOURCE)))
+        return false;
+
+    if (!(capabilities->sink_frequency & (FASTSTREAM_SINK_SAMPLING_FREQ_44100 | FASTSTREAM_SINK_SAMPLING_FREQ_48000)))
+        return false;
+
+    if (!(capabilities->source_frequency & FASTSTREAM_SOURCE_SAMPLING_FREQ_16000))
+        return false;
+
+    return true;
+}
+
 static const char *choose_remote_endpoint(const pa_hashmap *capabilities_hashmap, const pa_sample_spec *default_sample_spec, bool for_encoding) {
     const pa_a2dp_codec_capabilities *a2dp_capabilities;
     const char *key;
@@ -132,6 +150,23 @@ static const char *choose_remote_endpoint_xq(const pa_hashmap *capabilities_hash
         if (can_accept_capabilities_xq(a2dp_capabilities->buffer, a2dp_capabilities->size, for_encoding))
             return key;
     }
+
+    return NULL;
+}
+
+static const char *choose_remote_endpoint_faststream(const pa_hashmap *capabilities_hashmap, const pa_sample_spec *default_sample_spec, bool for_encoding) {
+    const pa_a2dp_codec_capabilities *a2dp_capabilities;
+    const char *key;
+    void *state;
+
+    /* There is no preference, just choose random valid entry */
+    PA_HASHMAP_FOREACH_KV(key, a2dp_capabilities, capabilities_hashmap, state) {
+        pa_log_debug("choose_remote_endpoint_faststream checking peer endpoint '%s'", key);
+        if (can_accept_capabilities_faststream(a2dp_capabilities->buffer, a2dp_capabilities->size, for_encoding))
+            return key;
+    }
+
+    pa_log_debug("choose_remote_endpoint_faststream matched no peer endpoint");
 
     return NULL;
 }
@@ -324,6 +359,46 @@ static uint8_t fill_capabilities_xq(uint8_t capabilities_buffer[MAX_A2DP_CAPS_SI
     capabilities->frequency = SBC_SAMPLING_FREQ_44100 | SBC_SAMPLING_FREQ_48000;
 
     return sizeof(*capabilities);
+}
+
+static uint8_t fill_capabilities_faststream(uint8_t capabilities_buffer[MAX_A2DP_CAPS_SIZE]) {
+    a2dp_faststream_t *capabilities = (a2dp_faststream_t *) capabilities_buffer;
+
+    pa_zero(*capabilities);
+
+    capabilities->info = A2DP_SET_VENDOR_ID_CODEC_ID(FASTSTREAM_VENDOR_ID, FASTSTREAM_CODEC_ID);
+
+    capabilities->direction = FASTSTREAM_DIRECTION_SINK | FASTSTREAM_DIRECTION_SOURCE;
+    capabilities->sink_frequency = FASTSTREAM_SINK_SAMPLING_FREQ_44100 | FASTSTREAM_SINK_SAMPLING_FREQ_48000;
+    capabilities->source_frequency = FASTSTREAM_SOURCE_SAMPLING_FREQ_16000;
+
+    return sizeof(*capabilities);
+}
+
+static bool is_configuration_valid_faststream(const uint8_t *config_buffer, uint8_t config_size) {
+    const a2dp_faststream_t *config = (const a2dp_faststream_t *) config_buffer;
+
+    if (config_size != sizeof(*config)) {
+        pa_log_error("Invalid size of config buffer");
+        return false;
+    }
+
+    if (!(config->direction & (FASTSTREAM_DIRECTION_SINK | FASTSTREAM_DIRECTION_SOURCE))) {
+        pa_log_error("Invalid FastStream direction in configuration");
+        return false;
+    }
+
+    if (config->sink_frequency != FASTSTREAM_SINK_SAMPLING_FREQ_44100 && config->sink_frequency != FASTSTREAM_SINK_SAMPLING_FREQ_48000) {
+        pa_log_error("Invalid FastStream sink sampling frequency in configuration");
+        return false;
+    }
+
+    if (config->source_frequency != FASTSTREAM_SOURCE_SAMPLING_FREQ_16000) {
+        pa_log_error("Invalid FastStream source sampling frequency in configuration");
+        return false;
+    }
+
+    return true;
 }
 
 static bool is_configuration_valid(const uint8_t *config_buffer, uint8_t config_size) {
@@ -527,6 +602,85 @@ static uint8_t fill_preferred_configuration(const pa_sample_spec *default_sample
     return sizeof(*config);
 }
 
+static uint8_t fill_preferred_configuration_faststream(const pa_sample_spec *default_sample_spec, const uint8_t *capabilities_buffer, uint8_t capabilities_size, uint8_t config_buffer[MAX_A2DP_CAPS_SIZE]) {
+    a2dp_faststream_t *config = (a2dp_faststream_t *) config_buffer;
+    const a2dp_faststream_t *capabilities = (const a2dp_faststream_t *) capabilities_buffer;
+    int i;
+
+    static const struct {
+        uint32_t rate;
+        uint8_t cap;
+    } sink_freq_table[] = {
+        { 44100U, FASTSTREAM_SINK_SAMPLING_FREQ_44100 },
+        { 48000U, FASTSTREAM_SINK_SAMPLING_FREQ_48000 }
+    };
+
+    static const struct {
+        uint32_t rate;
+        uint8_t cap;
+    } source_freq_table[] = {
+        { 16000U, FASTSTREAM_SOURCE_SAMPLING_FREQ_16000 }
+    };
+
+    if (capabilities_size != sizeof(*capabilities)) {
+        pa_log_error("Invalid size of FastStream capabilities buffer");
+        return 0;
+    }
+
+    pa_zero(*config);
+
+    /* Find the lowest freq that is at least as high as the requested sampling rate */
+    for (i = 0; (unsigned) i < PA_ELEMENTSOF(sink_freq_table); i++)
+        if (sink_freq_table[i].rate >= default_sample_spec->rate && (capabilities->sink_frequency & sink_freq_table[i].cap)) {
+            config->sink_frequency = sink_freq_table[i].cap;
+            break;
+        }
+
+    /* Match with endpoint capabilities */
+    if ((unsigned) i == PA_ELEMENTSOF(sink_freq_table)) {
+        for (--i; i >= 0; i--) {
+            if (capabilities->sink_frequency & sink_freq_table[i].cap) {
+                config->sink_frequency = sink_freq_table[i].cap;
+                break;
+            }
+        }
+
+        if (i < 0) {
+            pa_log_error("Not suitable FastStream sink sample rate");
+            return 0;
+        }
+    }
+
+    pa_assert((unsigned) i < PA_ELEMENTSOF(sink_freq_table));
+
+    /* Only single frequency (for now?) */
+    config->source_frequency = FASTSTREAM_SOURCE_SAMPLING_FREQ_16000;
+    i = 0;
+
+    /* Match with endpoint capabilities */
+    if ((unsigned) i == PA_ELEMENTSOF(source_freq_table)) {
+        for (--i; i >= 0; i--) {
+            if (capabilities->source_frequency & source_freq_table[i].cap) {
+                config->source_frequency = source_freq_table[i].cap;
+                break;
+            }
+        }
+
+        if (i < 0) {
+            pa_log_error("Not suitable FastStream source sample rate");
+            return 0;
+        }
+    }
+
+    pa_assert((unsigned) i < PA_ELEMENTSOF(source_freq_table));
+
+    config->direction = FASTSTREAM_DIRECTION_SINK | FASTSTREAM_DIRECTION_SOURCE;
+
+    config->info = A2DP_SET_VENDOR_ID_CODEC_ID(FASTSTREAM_VENDOR_ID, FASTSTREAM_CODEC_ID);
+
+    return sizeof(*config);
+}
+
 static uint8_t fill_preferred_configuration_xq(const pa_sample_spec *default_sample_spec, const uint8_t *capabilities_buffer, uint8_t capabilities_size, uint8_t config_buffer[MAX_A2DP_CAPS_SIZE], uint32_t bitrate_cap) {
     a2dp_sbc_t *config = (a2dp_sbc_t *) config_buffer;
     const a2dp_sbc_t *capabilities = (const a2dp_sbc_t *) capabilities_buffer;
@@ -684,6 +838,79 @@ static void *init(bool for_encoding, bool for_backchannel, const uint8_t *config
     return sbc_info;
 }
 
+static void *init_faststream(bool for_encoding, bool for_backchannel, const uint8_t *config_buffer, uint8_t config_size, pa_sample_spec *sample_spec, pa_core *core) {
+    struct sbc_info *sbc_info;
+    const a2dp_faststream_t *config = (const a2dp_faststream_t *) config_buffer;
+    int ret;
+
+    pa_assert(config_size == sizeof(*config));
+
+    sbc_info = pa_xnew0(struct sbc_info, 1);
+
+    ret = sbc_init(&sbc_info->sbc, 0);
+    if (ret != 0) {
+        pa_xfree(sbc_info);
+        pa_log_error("SBC initialization failed: %d", ret);
+        return NULL;
+    }
+
+    sample_spec->format = PA_SAMPLE_S16LE;
+
+    if (for_encoding != for_backchannel) {
+        switch (config->sink_frequency) {
+            case FASTSTREAM_SINK_SAMPLING_FREQ_44100:
+                sbc_info->frequency = SBC_FREQ_44100;
+                sample_spec->rate = 44100U;
+                break;
+            case FASTSTREAM_SINK_SAMPLING_FREQ_48000:
+                sbc_info->frequency = SBC_FREQ_48000;
+                sample_spec->rate = 48000U;
+                break;
+            default:
+                pa_assert_not_reached();
+        }
+
+        sample_spec->channels = 2;
+
+        sbc_info->mode = SBC_MODE_JOINT_STEREO;
+        sbc_info->initial_bitpool = sbc_info->min_bitpool = sbc_info->max_bitpool = 29;
+    } else {
+        switch (config->source_frequency) {
+            case FASTSTREAM_SOURCE_SAMPLING_FREQ_16000:
+                sbc_info->frequency = SBC_FREQ_16000;
+                sample_spec->rate = 16000U;
+                break;
+            default:
+                pa_assert_not_reached();
+        }
+
+        sample_spec->channels = 1;
+
+        sbc_info->mode = SBC_MODE_MONO;
+        sbc_info->initial_bitpool = sbc_info->min_bitpool = sbc_info->max_bitpool = 32;
+    }
+
+    sbc_info->allocation = SBC_AM_LOUDNESS;
+    sbc_info->subbands = SBC_SB_8;
+    sbc_info->nr_subbands = 8;
+    sbc_info->blocks = SBC_BLK_16;
+    sbc_info->nr_blocks = 16;
+
+    set_params(sbc_info);
+    if (sbc_info->frame_length & 1)
+        ++sbc_info->frame_length;
+
+    pa_log_info("FastStream %s SBC parameters: allocation=%s, subbands=%u, blocks=%u, mode=%s bitpool=%u codesize=%u frame_length=%u",
+                for_encoding ? "encoder" : "decoder",
+                sbc_info->sbc.allocation ? "SNR" : "Loudness", sbc_info->sbc.subbands ? 8 : 4,
+                (sbc_info->sbc.blocks+1)*4, sbc_info->sbc.mode == SBC_MODE_MONO ? "Mono" :
+                sbc_info->sbc.mode == SBC_MODE_DUAL_CHANNEL ? "DualChannel" :
+                sbc_info->sbc.mode == SBC_MODE_STEREO ? "Stereo" : "JointStereo",
+                sbc_info->sbc.bitpool, (unsigned)sbc_info->codesize, (unsigned)sbc_info->frame_length);
+
+    return sbc_info;
+}
+
 static void deinit(void *codec_info) {
     struct sbc_info *sbc_info = (struct sbc_info *) codec_info;
 
@@ -722,6 +949,25 @@ static int reset(void *codec_info) {
     return 0;
 }
 
+static int reset_faststream(void *codec_info) {
+    struct sbc_info *sbc_info = (struct sbc_info *) codec_info;
+    int ret;
+
+    ret = sbc_reinit(&sbc_info->sbc, 0);
+    if (ret != 0) {
+        pa_log_error("SBC reinitialization failed: %d", ret);
+        return -1;
+    }
+
+    /* sbc_reinit() sets also default parameters, so reset them back */
+    set_params(sbc_info);
+    if (sbc_info->frame_length & 1)
+        ++sbc_info->frame_length;
+
+    sbc_info->seq_num = 0;
+    return 0;
+}
+
 static size_t get_block_size(void *codec_info, size_t link_mtu) {
     struct sbc_info *sbc_info = (struct sbc_info *) codec_info;
     size_t rtp_size = sizeof(struct rtp_header) + sizeof(struct rtp_payload);
@@ -742,6 +988,28 @@ static size_t get_block_size(void *codec_info, size_t link_mtu) {
     return frame_count * sbc_info->codesize;
 }
 
+static size_t get_write_block_size_faststream(void *codec_info, size_t link_mtu) {
+    struct sbc_info *sbc_info = (struct sbc_info *) codec_info;
+    size_t frame_count = link_mtu / sbc_info->frame_length;
+
+    /* 3 frames seem to work best, with minimal glitches */
+    if (frame_count > 3)
+        frame_count = 3;
+
+    return frame_count * sbc_info->codesize;
+}
+
+static size_t get_read_block_size_faststream(void *codec_info, size_t link_mtu) {
+    /* With SBC bitpool >= 29 and any combination of blocks, subbands
+     * and channels maximum compression ratio 4:1 is achieved with
+     * blocks=16, subbands=8, channels=2, bitpool=29
+     *
+     * Though smaller bitpools can yield higher compression ratio, faststream is
+     * assumed to have fixed bitpool so maximum output size is link_mtu * 4.
+     */
+    return link_mtu * 4;
+}
+
 static size_t get_encoded_block_size(void *codec_info, size_t input_size) {
     struct sbc_info *sbc_info = (struct sbc_info *) codec_info;
     size_t rtp_size = sizeof(struct rtp_header) + sizeof(struct rtp_payload);
@@ -750,6 +1018,15 @@ static size_t get_encoded_block_size(void *codec_info, size_t input_size) {
     pa_assert_fp(input_size % sbc_info->codesize == 0);
 
     return (input_size / sbc_info->codesize) * sbc_info->frame_length + rtp_size;
+}
+
+static size_t get_encoded_block_size_faststream(void *codec_info, size_t input_size) {
+    struct sbc_info *sbc_info = (struct sbc_info *) codec_info;
+
+    /* input size should be aligned to codec input block size */
+    pa_assert_fp(input_size % sbc_info->codesize == 0);
+
+    return (input_size / sbc_info->codesize) * sbc_info->frame_length;
 }
 
 static size_t reduce_encoder_bitrate(void *codec_info, size_t write_link_mtu) {
@@ -860,6 +1137,72 @@ static size_t encode_buffer(void *codec_info, uint32_t timestamp, const uint8_t 
     return d - output_buffer;
 }
 
+static size_t encode_buffer_faststream(void *codec_info, uint32_t timestamp, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed) {
+    struct sbc_info *sbc_info = (struct sbc_info *) codec_info;
+    uint8_t *d;
+    const uint8_t *p;
+    size_t to_write, to_encode;
+    uint8_t frame_count;
+
+    frame_count = 0;
+
+    p = input_buffer;
+    to_encode = input_size;
+
+    d = output_buffer;
+    to_write = output_size;
+
+    /* frame_count is only 4 bit number */
+    while (PA_LIKELY(to_encode > 0 && to_write > 0)) {
+        ssize_t written;
+        ssize_t encoded;
+
+        encoded = sbc_encode(&sbc_info->sbc,
+                             p, to_encode,
+                             d, to_write,
+                             &written);
+
+        if (PA_UNLIKELY(encoded <= 0)) {
+            pa_log_error("SBC encoding error (%li)", (long) encoded);
+            break;
+        }
+
+        if (PA_UNLIKELY(written < 0)) {
+            pa_log_error("SBC encoding error (%li)", (long) written);
+            break;
+        }
+
+        while (written < sbc_info->frame_length && written < to_write)
+            d[written++] = 0;
+
+        pa_assert_fp((size_t) encoded <= to_encode);
+        pa_assert_fp((size_t) encoded == sbc_info->codesize);
+
+        pa_assert_fp((size_t) written <= to_write);
+        pa_assert_fp((size_t) written == sbc_info->frame_length);
+
+        p += encoded;
+        to_encode -= encoded;
+
+        d += written;
+        to_write -= written;
+
+        frame_count++;
+    }
+
+    PA_ONCE_BEGIN {
+        pa_log_debug("Using SBC codec implementation: %s", pa_strnull(sbc_get_implementation_info(&sbc_info->sbc)));
+    } PA_ONCE_END;
+
+    if (PA_UNLIKELY(frame_count == 0)) {
+        *processed = 0;
+        return 0;
+    }
+
+    *processed = p - input_buffer;
+    return d - output_buffer;
+}
+
 static size_t decode_buffer(void *codec_info, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed) {
     struct sbc_info *sbc_info = (struct sbc_info *) codec_info;
 
@@ -924,9 +1267,76 @@ static size_t decode_buffer(void *codec_info, const uint8_t *input_buffer, size_
     return d - output_buffer;
 }
 
+static size_t decode_buffer_faststream(void *codec_info, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed) {
+    struct sbc_info *sbc_info = (struct sbc_info *) codec_info;
+
+    const uint8_t *p;
+    uint8_t *d;
+    size_t to_write, to_decode;
+    pa_sample_spec decoded_sample_spec = {
+            .format = PA_SAMPLE_S16LE,
+            .channels = 1,
+            .rate = 16000U
+    };
+
+    p = input_buffer;
+    to_decode = input_size;
+
+    d = output_buffer;
+    to_write = output_size;
+
+    while (PA_LIKELY(to_decode > 0 && to_write > 0)) {
+        size_t written;
+        ssize_t decoded;
+
+        decoded = sbc_decode(&sbc_info->sbc,
+                             p, to_decode,
+                             d, to_write,
+                             &written);
+
+        if (PA_UNLIKELY(decoded <= 0)) {
+            pa_log_error("FastStream SBC decoding error (%li)", (long) decoded);
+            decoded = PA_MIN(sbc_info->frame_length, to_decode);
+            written = PA_MIN(sbc_info->codesize, to_write);
+            pa_silence_memory(d, written, &decoded_sample_spec);
+        } else {
+            /* Reset codesize and frame_length to values found by decoder */
+            sbc_info->codesize = sbc_get_codesize(&sbc_info->sbc);
+            sbc_info->frame_length = sbc_get_frame_length(&sbc_info->sbc);
+
+            if (sbc_info->frequency != sbc_info->sbc.frequency) {
+                /* some devices unexpectedly return SBC frequency different from 16000
+                 * remember this, and keep incoming sample rate at 16000 */
+                pa_log_debug("FastStream decoder detected SBC frequency %u, expected %u", sbc_info->sbc.frequency, sbc_info->frequency);
+                sbc_info->frequency = sbc_info->sbc.frequency;
+            }
+        }
+
+        if ((sbc_info->frame_length & 1) && decoded < to_decode) {
+            ++decoded;
+            ++sbc_info->frame_length;
+        }
+
+        pa_assert_fp((size_t) decoded <= to_decode);
+        pa_assert_fp((size_t) decoded == PA_MIN(sbc_info->frame_length, to_decode));
+
+        pa_assert_fp((size_t) written <= to_write);
+
+        p += decoded;
+        to_decode -= decoded;
+
+        d += written;
+        to_write -= written;
+    }
+
+    /* XXX eat remainder, may need to fix this if input frames are split across packets */
+    *processed = input_size;
+
+    return d - output_buffer;
+}
+
 const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_sbc = {
     .id = { A2DP_CODEC_SBC, 0, 0 },
-    .support_backchannel = false,
     .can_be_supported = can_be_supported,
     .can_accept_capabilities = can_accept_capabilities,
     .choose_remote_endpoint = choose_remote_endpoint,
@@ -964,7 +1374,6 @@ const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_sbc = {
 
 const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_sbc_xq_453 = {
     .id = { A2DP_CODEC_SBC, 0, 0 },
-    .support_backchannel = false,
     .can_be_supported = can_be_supported,
     .can_accept_capabilities = can_accept_capabilities_xq,
     .choose_remote_endpoint = choose_remote_endpoint_xq,
@@ -989,7 +1398,6 @@ const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_sbc_xq_453 = {
 
 const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_sbc_xq_512 = {
     .id = { A2DP_CODEC_SBC, 0, 0 },
-    .support_backchannel = false,
     .can_be_supported = can_be_supported,
     .can_accept_capabilities = can_accept_capabilities_xq,
     .choose_remote_endpoint = choose_remote_endpoint_xq,
@@ -1014,7 +1422,6 @@ const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_sbc_xq_512 = {
 
 const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_sbc_xq_552 = {
     .id = { A2DP_CODEC_SBC, 0, 0 },
-    .support_backchannel = false,
     .can_be_supported = can_be_supported,
     .can_accept_capabilities = can_accept_capabilities_xq,
     .choose_remote_endpoint = choose_remote_endpoint_xq,
@@ -1034,5 +1441,50 @@ const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_sbc_xq_552 = {
         .increase_encoder_bitrate = increase_encoder_bitrate,
         .encode_buffer = encode_buffer,
         .decode_buffer = decode_buffer,
+    },
+};
+
+/* FastStream codec is just SBC codec with fixed parameters.
+ *
+ * Sink stream parameters:
+ *     48.0kHz or 44.1kHz,
+ *     Blocks 16,
+ *     Sub-bands 8,
+ *     Joint Stereo,
+ *     Allocation method Loudness,
+ *     Bitpool = 29
+ * (data rate = 212kbps, packet size = (71+1)3 <= DM5 = 220, with 3 SBC frames).
+ * SBC frame size is 71 bytes, but FastStream is zero-padded to the even size (72).
+ *
+ * Source stream parameters:
+ *     16kHz,
+ *     Mono,
+ *     Blocks 16,
+ *     Sub-bands 8,
+ *     Allocation method Loudness,
+ *     Bitpool = 32
+ * (data rate = 72kbps, packet size = 723 <= DM5 = 220, with 3 SBC frames).
+ */
+
+const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_faststream = {
+    .id = { A2DP_CODEC_VENDOR, FASTSTREAM_VENDOR_ID, FASTSTREAM_CODEC_ID },
+    .can_be_supported = can_be_supported,
+    .can_accept_capabilities = can_accept_capabilities_faststream,
+    .choose_remote_endpoint = choose_remote_endpoint_faststream,
+    .fill_capabilities = fill_capabilities_faststream,
+    .is_configuration_valid = is_configuration_valid_faststream,
+    .fill_preferred_configuration = fill_preferred_configuration_faststream,
+    .bt_codec = {
+        .name = "faststream",
+        .description = "FastStream",
+        .support_backchannel = true,
+        .init = init_faststream,
+        .deinit = deinit,
+        .reset = reset_faststream,
+        .get_read_block_size = get_read_block_size_faststream,
+        .get_write_block_size = get_write_block_size_faststream,
+        .get_encoded_block_size = get_encoded_block_size_faststream,
+        .encode_buffer = encode_buffer_faststream,
+        .decode_buffer = decode_buffer_faststream,
     },
 };

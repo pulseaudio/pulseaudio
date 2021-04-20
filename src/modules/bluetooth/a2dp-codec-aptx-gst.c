@@ -556,7 +556,6 @@ static size_t decode_buffer_hd(void *codec_info, const uint8_t *input_buffer, si
 
 const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_aptx = {
     .id = { A2DP_CODEC_VENDOR, APTX_VENDOR_ID, APTX_CODEC_ID },
-    .support_backchannel = false,
     .can_be_supported = can_be_supported,
     .can_accept_capabilities = can_accept_capabilities,
     .choose_remote_endpoint = choose_remote_endpoint,
@@ -580,7 +579,6 @@ const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_aptx = {
 
 const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_aptx_hd = {
     .id = { A2DP_CODEC_VENDOR, APTX_HD_VENDOR_ID, APTX_HD_CODEC_ID },
-    .support_backchannel = false,
     .can_be_supported = can_be_supported,
     .can_accept_capabilities = can_accept_capabilities_hd,
     .choose_remote_endpoint = choose_remote_endpoint_hd,

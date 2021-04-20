@@ -26,6 +26,9 @@ typedef struct pa_bt_codec {
     /* Human readable codec description */
     const char *description;
 
+    /* True if codec is bi-directional and supports backchannel */
+    bool support_backchannel;
+
     /* Initialize codec, returns codec info data and set sample_spec,
      * for_encoding is true when codec_info is used for encoding,
      * for_backchannel is true when codec_info is used for backchannel */

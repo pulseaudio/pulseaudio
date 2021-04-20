@@ -42,9 +42,6 @@ typedef struct pa_a2dp_endpoint_conf {
     /* A2DP codec id */
     pa_a2dp_codec_id id;
 
-    /* True if codec is bi-directional and supports backchannel */
-    bool support_backchannel;
-
     /* Returns true if the codec can be supported on the system */
     bool (*can_be_supported)(bool for_encoding);
 
