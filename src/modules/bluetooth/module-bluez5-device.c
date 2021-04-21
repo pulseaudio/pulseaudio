@@ -1407,7 +1407,10 @@ static void thread_func(void *userdata) {
                          * If source and sink sample specifications are not equal,
                          * expected write size needs to be adjusted accordingly.
                          */
-                        bytes_to_write += n_read;
+                        if (pa_sample_spec_equal(&u->encoder_sample_spec, &u->decoder_sample_spec))
+                            bytes_to_write += n_read;
+                        else
+                            bytes_to_write += pa_usec_to_bytes(pa_bytes_to_usec(n_read, &u->decoder_sample_spec), &u->encoder_sample_spec);
                         blocks_to_write += bytes_to_write / u->write_block_size;
                         bytes_to_write = bytes_to_write % u->write_block_size;
                     }
