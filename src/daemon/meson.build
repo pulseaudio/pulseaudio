@@ -121,9 +121,7 @@ custom_target('default.pa',
 )
 
 system_conf = configuration_data()
-system_conf.merge_from(cdata)
-system_conf.set('PA_BINARY', cdata.get_unquoted('PA_BINARY'))
-system_conf.set('PA_SOEXT', cdata.get_unquoted('PA_SOEXT'))
+system_conf.merge_from(default_conf)
 
 system_template_file = configure_file(
   input : 'system.pa.in',
