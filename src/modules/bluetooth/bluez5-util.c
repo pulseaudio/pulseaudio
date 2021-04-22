@@ -534,7 +534,7 @@ static pa_volume_t pa_bluetooth_transport_set_volume(pa_bluetooth_transport *t, 
 
     pa_assert(t);
     pa_assert(t->device);
-    pa_assert(t->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK || t->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE);
+    pa_assert(pa_bluetooth_profile_is_a2dp(t->profile));
     pa_assert(t->device->discovery);
 
     gain = volume_to_a2dp_gain(volume);
@@ -593,6 +593,10 @@ static void pa_bluetooth_transport_remote_volume_changed(pa_bluetooth_transport 
     char volume_str[PA_VOLUME_SNPRINT_MAX];
 
     pa_assert(t);
+    pa_assert(t->device);
+
+    if (!t->device->avrcp_absolute_volume)
+        return;
 
     is_source = t->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE;
 
@@ -787,7 +791,7 @@ static void bluez5_transport_get_volume(pa_bluetooth_transport *t) {
     pa_assert(t->device);
     pa_assert(t->device->discovery);
 
-    pa_assert(t->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK || t->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE);
+    pa_assert(pa_bluetooth_profile_is_a2dp(t->profile));
 
     pa_assert_se(m = dbus_message_new_method_call(BLUEZ_SERVICE, t->path, DBUS_INTERFACE_PROPERTIES, "Get"));
     pa_assert_se(dbus_message_append_args(m,
@@ -800,6 +804,10 @@ static void bluez5_transport_get_volume(pa_bluetooth_transport *t) {
 
 void pa_bluetooth_transport_load_a2dp_sink_volume(pa_bluetooth_transport *t) {
     pa_assert(t);
+    pa_assert(t->device);
+
+    if (!t->device->avrcp_absolute_volume)
+        return;
 
     if (t->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK)
         /* A2DP Absolute Volume control (AVRCP 1.4) is optional */
@@ -2055,6 +2063,10 @@ bool pa_bluetooth_profile_should_attenuate_volume(pa_bluetooth_profile_t peer_pr
             pa_assert_not_reached();
     }
     pa_assert_not_reached();
+}
+
+bool pa_bluetooth_profile_is_a2dp(pa_bluetooth_profile_t profile) {
+    return profile == PA_BLUETOOTH_PROFILE_A2DP_SINK || profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE;
 }
 
 static const pa_a2dp_endpoint_conf *a2dp_sep_to_a2dp_endpoint_conf(const char *endpoint) {

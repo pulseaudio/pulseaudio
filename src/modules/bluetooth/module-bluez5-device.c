@@ -60,6 +60,7 @@ PA_MODULE_USAGE(
     "path=<device object path>"
     "autodetect_mtu=<boolean>"
     "output_rate_refresh_interval_ms=<interval between attempts to improve output rate in milliseconds>"
+    "avrcp_absolute_volume=<synchronize volume with peer, true by default>"
 );
 
 #define FIXED_LATENCY_PLAYBACK_A2DP (25 * PA_USEC_PER_MSEC)
@@ -71,6 +72,7 @@ static const char* const valid_modargs[] = {
     "path",
     "autodetect_mtu",
     "output_rate_refresh_interval_ms",
+    "avrcp_absolute_volume",
     NULL
 };
 
@@ -899,6 +901,9 @@ static void source_setup_volume_callback(pa_source *s) {
     pa_assert(u->source == s);
     pa_assert(u->transport);
 
+    if (pa_bluetooth_profile_is_a2dp(u->profile) && !u->transport->device->avrcp_absolute_volume)
+        return;
+
     /* Remote volume control has to be supported for the callback to make sense,
      * otherwise this source should continue performing attenuation in software
      * without HW_VOLUME_CTL.
@@ -1123,6 +1128,9 @@ static void sink_setup_volume_callback(pa_sink *s) {
     pa_assert(u);
     pa_assert(u->sink == s);
     pa_assert(u->transport);
+
+    if (pa_bluetooth_profile_is_a2dp(u->profile) && !u->transport->device->avrcp_absolute_volume)
+        return;
 
     /* Remote volume control has to be supported for the callback to make sense,
      * otherwise this sink should continue performing attenuation in software
@@ -2404,7 +2412,7 @@ static char *list_codecs(struct userdata *u) {
 
     pa_json_encoder_begin_element_array(encoder);
 
-    if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK || u->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE) {
+    if (pa_bluetooth_profile_is_a2dp(u->profile)) {
         is_a2dp_sink = u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK;
 
         a2dp_endpoints = is_a2dp_sink ? u->device->a2dp_sink_endpoints : u->device->a2dp_source_endpoints;
@@ -2620,7 +2628,7 @@ int pa__init(pa_module* m) {
     struct userdata *u;
     const char *path;
     pa_modargs *ma;
-    bool autodetect_mtu;
+    bool autodetect_mtu, avrcp_absolute_volume;
     char *message_handler_path;
     uint32_t output_rate_refresh_interval_ms;
 
@@ -2668,6 +2676,14 @@ int pa__init(pa_module* m) {
     }
 
     u->device->output_rate_refresh_interval_ms = output_rate_refresh_interval_ms;
+
+    avrcp_absolute_volume = true;
+    if (pa_modargs_get_value_boolean(ma, "avrcp_absolute_volume", &avrcp_absolute_volume) < 0) {
+        pa_log("Invalid boolean value for avrcp_absolute_volume parameter");
+        goto fail_free_modargs;
+    }
+
+    u->device->avrcp_absolute_volume = avrcp_absolute_volume;
 
     pa_modargs_free(ma);
 

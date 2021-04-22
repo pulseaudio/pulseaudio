@@ -133,6 +133,7 @@ struct pa_bluetooth_device {
     bool valid;
     bool autodetect_mtu;
     bool codec_switching_in_progress;
+    bool avrcp_absolute_volume;
     uint32_t output_rate_refresh_interval_ms;
 
     /* Device information */
@@ -204,6 +205,7 @@ pa_hook* pa_bluetooth_discovery_hook(pa_bluetooth_discovery *y, pa_bluetooth_hoo
 
 const char *pa_bluetooth_profile_to_string(pa_bluetooth_profile_t profile);
 bool pa_bluetooth_profile_should_attenuate_volume(pa_bluetooth_profile_t profile);
+bool pa_bluetooth_profile_is_a2dp(pa_bluetooth_profile_t profile);
 
 static inline bool pa_bluetooth_uuid_is_hsp_hs(const char *uuid) {
     return pa_streq(uuid, PA_BLUETOOTH_UUID_HSP_HS) || pa_streq(uuid, PA_BLUETOOTH_UUID_HSP_HS_ALT);
