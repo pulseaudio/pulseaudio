@@ -58,6 +58,12 @@ int deny_severity = LOG_WARNING;
 #include <systemd/sd-daemon.h>
 #endif
 
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#include <aclapi.h>
+#include <sddl.h>
+#endif
+
 #include <pulse/xmalloc.h>
 #include <pulse/util.h>
 
@@ -219,6 +225,31 @@ pa_socket_server* pa_socket_server_new_unix(pa_mainloop_api *m, const char *file
         * because not all OS check the access rights on the socket
         * inodes. */
         chmod(filename, 0777);
+
+#ifdef OS_IS_WIN32
+        /* https://docs.microsoft.com/en-us/windows/win32/secauthz/ace-strings */
+        /* https://docs.microsoft.com/en-us/windows/win32/secauthz/modifying-the-acls-of-an-object-in-c-- */
+        /* https://docs.microsoft.com/en-us/windows/win32/api/sddl/nf-sddl-convertstringsecuritydescriptortosecuritydescriptora */
+        PSECURITY_DESCRIPTOR sd;
+        if (ConvertStringSecurityDescriptorToSecurityDescriptorA(
+            "D:"                /* DACL */
+            "(A;;FRFW;;;WD)",   /* allow all users to read/write */
+            SDDL_REVISION_1, &sd, NULL
+        )) {
+            PACL acl;
+            BOOL acl_present, acl_default;
+            if (GetSecurityDescriptorDacl(sd, &acl_present, &acl, &acl_default)) {
+                if (SetNamedSecurityInfo(filename, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION, NULL, NULL, acl, NULL) != ERROR_SUCCESS) {
+                    pa_log_warn("Failed to set DACL for socket: failed to apply DACL: error %lu.", GetLastError());
+                }
+                LocalFree(acl);
+            } else {
+                pa_log_warn("Failed to set DACL for socket: failed to get security descriptor DACL: error %lu.", GetLastError());
+            }
+        } else {
+            pa_log_warn("Failed to set DACL for socket: failed to parse security descriptor: error %lu.", GetLastError());
+        }
+#endif
 
         if (listen(fd, 5) < 0) {
             pa_log("listen(): %s", pa_cstrerror(errno));
