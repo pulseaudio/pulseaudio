@@ -20,8 +20,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-03-08 16:26+0200\n"
-"PO-Revision-Date: 2021-03-24 08:55+0000\n"
-"Last-Translator: Göran Uddeborg <goeran@uddeborg.se>\n"
+"PO-Revision-Date: 2021-05-04 16:02+0000\n"
+"Last-Translator: Anders Jonsson <anders.jonsson@norsjovallen.se>\n"
 "Language-Team: Swedish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/sv/>\n"
 "Language: sv\n"
@@ -29,7 +29,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.5.1\n"
+"X-Generator: Weblate 4.6.1\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -1067,7 +1067,7 @@ msgstr "High fidelity capture (A2DP Source)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1957
 msgid "Headset Head Unit (HSP)"
-msgstr "Headset head unit (HSP)"
+msgstr "Headset-huvudenhet (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1970
 msgid "Headset Audio Gateway (HSP)"
@@ -1075,11 +1075,11 @@ msgstr "Headset audio gateway (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1983
 msgid "Handsfree Head Unit (HFP)"
-msgstr "Headset huvudenhet (HFP)"
+msgstr "Handsfree-huvudenhet (HFP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1996
 msgid "Handsfree Audio Gateway (HFP)"
-msgstr "Headset audio gateway (HFP)"
+msgstr "Handsfree audio gateway (HFP)"
 
 #: src/modules/echo-cancel/module-echo-cancel.c:59
 msgid ""
