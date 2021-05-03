@@ -2084,20 +2084,34 @@ int pa_cli_command_execute_line_stateful(pa_core *c, const char *s, pa_strbuf *b
 
             if (l == sizeof(META_INCLUDE)-1 && !strncmp(cs, META_INCLUDE, l)) {
                 struct stat st;
-                const char *filename = cs+l+strspn(cs+l, whitespace);
+                const char *fn = cs+l+strspn(cs+l, whitespace);
+
+                char *filename;
+#ifdef OS_IS_WIN32
+                if (strncmp(fn, PA_DEFAULT_CONFIG_DIR, strlen(PA_DEFAULT_CONFIG_DIR)) == 0)
+                    filename = pa_sprintf_malloc("%s" PA_PATH_SEP "etc" PA_PATH_SEP "pulse" PA_PATH_SEP "%s",
+                                            pa_win32_get_toplevel(NULL),
+                                            fn + strlen(PA_DEFAULT_CONFIG_DIR));
+                else
+#endif
+                filename = pa_xstrdup(fn);
 
                 if (stat(filename, &st) < 0) {
                     pa_log_warn("stat('%s'): %s", filename, pa_cstrerror(errno));
-                    if (*fail)
+                    if (*fail) {
+                        pa_xfree(filename);
                         return -1;
+                    }
                 } else {
                     if (S_ISDIR(st.st_mode)) {
                         DIR *d;
 
                         if (!(d = opendir(filename))) {
                             pa_log_warn("Failed to read '%s': %s", filename, pa_cstrerror(errno));
-                            if (*fail)
+                            if (*fail) {
+                                pa_xfree(filename);
                                 return -1;
+                            }
                         } else {
                             unsigned i, count;
                             char **sorted_files;
@@ -2143,14 +2157,18 @@ int pa_cli_command_execute_line_stateful(pa_core *c, const char *s, pa_strbuf *b
                                     pa_xfree(sorted_files[i]);
                                 }
                                 pa_xfree(sorted_files);
-                                if (failed)
+                                if (failed) {
+                                    pa_xfree(filename);
                                     return -1;
+                                }
                             }
                         }
                     } else if (pa_cli_command_execute_file(c, filename, buf, fail) < 0 && *fail) {
+                        pa_xfree(filename);
                         return -1;
                     }
                 }
+                pa_xfree(filename);
             } else if (l == sizeof(META_IFEXISTS)-1 && !strncmp(cs, META_IFEXISTS, l)) {
                 if (!ifstate) {
                     pa_strbuf_printf(buf, "Meta command %s is not valid in this context\n", cs);
