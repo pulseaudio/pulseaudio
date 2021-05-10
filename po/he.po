@@ -7,7 +7,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-01-22 09:11+0200\n"
-"PO-Revision-Date: 2021-03-26 21:01+0000\n"
+"PO-Revision-Date: 2021-05-11 06:02+0000\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/he/>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Weblate 4.5.1\n"
+"X-Generator: Weblate 4.6.2\n"
 "X-Poedit-Language: Hebrew\n"
 "X-Poedit-Country: Israel\n"
 
@@ -251,22 +251,22 @@ msgstr ""
 #: src/daemon/dumpmodules.c:60
 #, c-format
 msgid "No module information available\n"
-msgstr ""
+msgstr "אין מידע על המודול\n"
 
 #: src/daemon/dumpmodules.c:63
 #, c-format
 msgid "Version: %s\n"
-msgstr ""
+msgstr "גרסה: %s\n"
 
 #: src/daemon/dumpmodules.c:65
 #, c-format
 msgid "Description: %s\n"
-msgstr ""
+msgstr "תיאור: %s\n"
 
 #: src/daemon/dumpmodules.c:67
 #, c-format
 msgid "Author: %s\n"
-msgstr ""
+msgstr "יצירה: %s\n"
 
 #: src/daemon/dumpmodules.c:69
 #, c-format
@@ -926,7 +926,7 @@ msgstr "יחידת ראש של אוזניות (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1970
 msgid "Headset Audio Gateway (HSP)"
-msgstr ""
+msgstr "מגשר שמע לשפופרת (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1983
 msgid "Handsfree Head Unit (HFP)"
@@ -953,7 +953,7 @@ msgstr ""
 #. add on profile
 #: src/modules/macosx/module-coreaudio-device.c:825
 msgid "On"
-msgstr ""
+msgstr "פעיל"
 
 #: src/modules/module-allow-passthrough.c:71
 #: src/modules/module-always-sink.c:80
@@ -1013,7 +1013,7 @@ msgstr ""
 
 #: src/modules/module-null-sink.c:334
 msgid "Null Output"
-msgstr ""
+msgstr "פלט ריק"
 
 #: src/modules/module-null-sink.c:346 src/utils/pactl.c:1170
 #, c-format
@@ -1356,7 +1356,7 @@ msgstr ""
 
 #: src/pulsecore/core-util.h:97
 msgid "yes"
-msgstr ""
+msgstr "כן"
 
 #: src/pulsecore/core-util.h:97
 msgid "no"
@@ -1399,7 +1399,7 @@ msgstr "הגישה נדחתה"
 
 #: src/pulse/error.c:40
 msgid "Unknown command"
-msgstr ""
+msgstr "פקודה לא ידועה"
 
 #: src/pulse/error.c:41
 msgid "Invalid argument"
