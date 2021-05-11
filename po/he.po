@@ -7,7 +7,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-01-22 09:11+0200\n"
-"PO-Revision-Date: 2021-05-11 06:02+0000\n"
+"PO-Revision-Date: 2021-05-12 11:02+0000\n"
 "Last-Translator: Yaron Shahrabani <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/he/>\n"
@@ -1663,7 +1663,7 @@ msgstr ""
 #: src/utils/pacat.c:514 src/utils/pactl.c:1572
 #, c-format
 msgid "Connection failure: %s"
-msgstr ""
+msgstr "שגיאת התחברות: %s"
 
 #: src/utils/pacat.c:557
 msgid "Got EOF."
@@ -2486,11 +2486,11 @@ msgstr ""
 
 #: src/utils/pactl.c:1256
 msgid "remove"
-msgstr ""
+msgstr "הסרה"
 
 #: src/utils/pactl.c:1259 src/utils/pactl.c:1294
 msgid "unknown"
-msgstr ""
+msgstr "לא ידוע"
 
 #: src/utils/pactl.c:1267
 msgid "sink"
@@ -2498,7 +2498,7 @@ msgstr ""
 
 #: src/utils/pactl.c:1270
 msgid "source"
-msgstr ""
+msgstr "מקור"
 
 #: src/utils/pactl.c:1273
 msgid "sink-input"
@@ -2522,11 +2522,11 @@ msgstr ""
 
 #: src/utils/pactl.c:1288
 msgid "server"
-msgstr ""
+msgstr "שרת"
 
 #: src/utils/pactl.c:1291
 msgid "card"
-msgstr ""
+msgstr "כרטיס"
 
 #: src/utils/pactl.c:1300
 #, c-format
