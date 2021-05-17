@@ -223,8 +223,12 @@ static void process_render(struct userdata *u, pa_usec_t now) {
     /* Fill the buffer up the latency size */
     while (u->timestamp < now + u->block_usec) {
         pa_memchunk chunk;
+        size_t request_size;
 
-        pa_sink_render(u->sink, u->sink->thread_info.max_request, &chunk);
+        request_size = pa_usec_to_bytes(now + u->block_usec - u->timestamp, &u->sink->sample_spec);
+        request_size = PA_MIN(request_size, u->sink->thread_info.max_request);
+        pa_sink_render(u->sink, request_size, &chunk);
+
         pa_memblock_unref(chunk.memblock);
 
 /*         pa_log_debug("Ate %lu bytes.", (unsigned long) chunk.length); */
