@@ -60,6 +60,7 @@ PA_MODULE_USAGE(
     "path=<device object path>"
     "autodetect_mtu=<boolean>"
     "output_rate_refresh_interval_ms=<interval between attempts to improve output rate in milliseconds>"
+    "avrcp_absolute_volume=<synchronize volume with peer, true by default>"
 );
 
 #define FIXED_LATENCY_PLAYBACK_A2DP (25 * PA_USEC_PER_MSEC)
@@ -71,6 +72,7 @@ static const char* const valid_modargs[] = {
     "path",
     "autodetect_mtu",
     "output_rate_refresh_interval_ms",
+    "avrcp_absolute_volume",
     NULL
 };
 
@@ -899,12 +901,17 @@ static void source_setup_volume_callback(pa_source *s) {
     pa_assert(u->source == s);
     pa_assert(u->transport);
 
+    if (pa_bluetooth_profile_is_a2dp(u->profile) && !u->transport->device->avrcp_absolute_volume)
+        return;
+
     /* Remote volume control has to be supported for the callback to make sense,
      * otherwise this source should continue performing attenuation in software
      * without HW_VOLUME_CTL.
      * If the peer is an AG however backend-native unconditionally provides this
      * function, PA in the role of HS/HF is responsible for signalling support
      * by emitting an initial volume command.
+     * For A2DP bluez-util also unconditionally provides this function to keep
+     * the peer informed about volume changes.
      */
     if (!u->transport->set_source_volume)
         return;
@@ -921,6 +928,13 @@ static void source_setup_volume_callback(pa_source *s) {
         /* Send initial volume to peer, signalling support for volume control */
         u->transport->set_source_volume(u->transport, pa_cvolume_max(&s->real_volume));
     } else {
+        /* It is yet unknown how (if at all) volume is synchronized for bidirectional
+         * A2DP codecs.  Disallow attaching callbacks (and using HFP n_volume_steps)
+         * below to a pa_source if the peer is in A2DP_SINK role.  This assert should
+         * be replaced with the proper logic when bidirectional codecs are implemented.
+         */
+        pa_assert(u->profile != PA_BLUETOOTH_PROFILE_A2DP_SINK);
+
         if (s->set_volume == source_set_volume_cb)
             return;
 
@@ -930,7 +944,7 @@ static void source_setup_volume_callback(pa_source *s) {
         pa_source_set_soft_volume(s, NULL);
 
         pa_source_set_set_volume_callback(s, source_set_volume_cb);
-        s->n_volume_steps = 16;
+        s->n_volume_steps = HSP_MAX_GAIN + 1;
     }
 }
 
@@ -1115,6 +1129,9 @@ static void sink_setup_volume_callback(pa_sink *s) {
     pa_assert(u->sink == s);
     pa_assert(u->transport);
 
+    if (pa_bluetooth_profile_is_a2dp(u->profile) && !u->transport->device->avrcp_absolute_volume)
+        return;
+
     /* Remote volume control has to be supported for the callback to make sense,
      * otherwise this sink should continue performing attenuation in software
      * without HW_VOLUME_CTL.
@@ -1126,6 +1143,13 @@ static void sink_setup_volume_callback(pa_sink *s) {
         return;
 
     if (pa_bluetooth_profile_should_attenuate_volume(u->profile)) {
+        /* It is yet unknown how (if at all) volume is synchronized for bidirectional
+         * A2DP codecs.  Disallow attaching hooks to a pa_sink if the peer is in
+         * A2DP_SOURCE role.  This assert should be replaced with the proper logic
+         * when bidirectional codecs are implemented.
+         */
+        pa_assert(u->profile != PA_BLUETOOTH_PROFILE_A2DP_SOURCE);
+
         if (u->sink_volume_changed_slot)
             return;
 
@@ -1146,7 +1170,11 @@ static void sink_setup_volume_callback(pa_sink *s) {
         pa_sink_set_soft_volume(s, NULL);
 
         pa_sink_set_set_volume_callback(s, sink_set_volume_cb);
-        s->n_volume_steps = 16;
+
+        if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK)
+            s->n_volume_steps = A2DP_MAX_GAIN + 1;
+        else
+            s->n_volume_steps = HSP_MAX_GAIN + 1;
     }
 }
 
@@ -1667,6 +1695,22 @@ static int start_thread(struct userdata *u) {
     if (u->sink || u->source)
         if (u->bt_codec)
             pa_proplist_sets(u->card->proplist, PA_PROP_BLUETOOTH_CODEC, u->bt_codec->name);
+
+    /* Now that everything is set up we are ready to check for the Volume property.
+     * Sometimes its initial "change" notification arrives too early when the sink
+     * is not available or still in UNLINKED state; check it again here to know if
+     * our sink peer supports Absolute Volume; in that case we should not perform
+     * any attenuation but delegate all set_volume calls to the peer through this
+     * Volume property.
+     *
+     * Note that this works the other way around if the peer is in source profile:
+     * we are rendering audio and hence responsible for applying attenuation.  The
+     * set_volume callback is always registered, and Volume is always passed to
+     * BlueZ unconditionally.  BlueZ only sends a notification to the peer if it
+     * registered a notification request for absolute volume previously.
+     */
+    if (u->transport && u->sink)
+        pa_bluetooth_transport_load_a2dp_sink_volume(u->transport);
 
     return 0;
 }
@@ -2368,7 +2412,7 @@ static char *list_codecs(struct userdata *u) {
 
     pa_json_encoder_begin_element_array(encoder);
 
-    if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK || u->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE) {
+    if (pa_bluetooth_profile_is_a2dp(u->profile)) {
         is_a2dp_sink = u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK;
 
         a2dp_endpoints = is_a2dp_sink ? u->device->a2dp_sink_endpoints : u->device->a2dp_source_endpoints;
@@ -2584,7 +2628,7 @@ int pa__init(pa_module* m) {
     struct userdata *u;
     const char *path;
     pa_modargs *ma;
-    bool autodetect_mtu;
+    bool autodetect_mtu, avrcp_absolute_volume;
     char *message_handler_path;
     uint32_t output_rate_refresh_interval_ms;
 
@@ -2632,6 +2676,14 @@ int pa__init(pa_module* m) {
     }
 
     u->device->output_rate_refresh_interval_ms = output_rate_refresh_interval_ms;
+
+    avrcp_absolute_volume = true;
+    if (pa_modargs_get_value_boolean(ma, "avrcp_absolute_volume", &avrcp_absolute_volume) < 0) {
+        pa_log("Invalid boolean value for avrcp_absolute_volume parameter");
+        goto fail_free_modargs;
+    }
+
+    u->device->avrcp_absolute_volume = avrcp_absolute_volume;
 
     pa_modargs_free(ma);
 

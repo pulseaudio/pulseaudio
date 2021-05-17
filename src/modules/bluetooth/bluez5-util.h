@@ -52,6 +52,9 @@
 #define PA_BLUETOOTH_UUID_HFP_HF      "0000111e-0000-1000-8000-00805f9b34fb"
 #define PA_BLUETOOTH_UUID_HFP_AG      "0000111f-0000-1000-8000-00805f9b34fb"
 
+#define A2DP_MAX_GAIN 127
+#define HSP_MAX_GAIN 15
+
 typedef struct pa_bluetooth_transport pa_bluetooth_transport;
 typedef struct pa_bluetooth_device pa_bluetooth_device;
 typedef struct pa_bluetooth_adapter pa_bluetooth_adapter;
@@ -130,6 +133,7 @@ struct pa_bluetooth_device {
     bool valid;
     bool autodetect_mtu;
     bool codec_switching_in_progress;
+    bool avrcp_absolute_volume;
     uint32_t output_rate_refresh_interval_ms;
 
     /* Device information */
@@ -189,6 +193,7 @@ void pa_bluetooth_transport_set_state(pa_bluetooth_transport *t, pa_bluetooth_tr
 void pa_bluetooth_transport_put(pa_bluetooth_transport *t);
 void pa_bluetooth_transport_unlink(pa_bluetooth_transport *t);
 void pa_bluetooth_transport_free(pa_bluetooth_transport *t);
+void pa_bluetooth_transport_load_a2dp_sink_volume(pa_bluetooth_transport *t);
 
 bool pa_bluetooth_device_any_transport_connected(const pa_bluetooth_device *d);
 bool pa_bluetooth_device_switch_codec(pa_bluetooth_device *device, pa_bluetooth_profile_t profile, pa_hashmap *capabilities_hashmap, const pa_a2dp_endpoint_conf *endpoint_conf, void (*codec_switch_cb)(bool, pa_bluetooth_profile_t profile, void *), void *userdata);
@@ -200,6 +205,7 @@ pa_hook* pa_bluetooth_discovery_hook(pa_bluetooth_discovery *y, pa_bluetooth_hoo
 
 const char *pa_bluetooth_profile_to_string(pa_bluetooth_profile_t profile);
 bool pa_bluetooth_profile_should_attenuate_volume(pa_bluetooth_profile_t profile);
+bool pa_bluetooth_profile_is_a2dp(pa_bluetooth_profile_t profile);
 
 static inline bool pa_bluetooth_uuid_is_hsp_hs(const char *uuid) {
     return pa_streq(uuid, PA_BLUETOOTH_UUID_HSP_HS) || pa_streq(uuid, PA_BLUETOOTH_UUID_HSP_HS_ALT);
