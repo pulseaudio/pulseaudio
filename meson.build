@@ -164,6 +164,7 @@ cdata.set('top_srcdir', meson.source_root())
 # First some defaults to keep config file generation happy
 cdata.set('HAVE_COREAUDIO', 0)
 cdata.set('HAVE_WAVEOUT', 0)
+cdata.set('OS_IS_FREEBSD', 0)
 
 platform_socket_dep = []
 platform_dep = []
