@@ -121,14 +121,20 @@ static enum {
     SUSPEND_SOURCE,
     SET_CARD_PROFILE,
     SET_SINK_PORT,
+    GET_DEFAULT_SINK,
     SET_DEFAULT_SINK,
     SET_SOURCE_PORT,
+    GET_DEFAULT_SOURCE,
     SET_DEFAULT_SOURCE,
+    GET_SINK_VOLUME,
     SET_SINK_VOLUME,
+    GET_SOURCE_VOLUME,
     SET_SOURCE_VOLUME,
     SET_SINK_INPUT_VOLUME,
     SET_SOURCE_OUTPUT_VOLUME,
+    GET_SINK_MUTE,
     SET_SINK_MUTE,
+    GET_SOURCE_MUTE,
     SET_SOURCE_MUTE,
     SET_SINK_INPUT_MUTE,
     SET_SOURCE_OUTPUT_MUTE,
@@ -185,6 +191,30 @@ static void stat_callback(pa_context *c, const pa_stat_info *i, void *userdata) 
 
     pa_bytes_snprint(s, sizeof(s), i->scache_size);
     printf(_("Sample cache size: %s\n"), s);
+
+    complete_action();
+}
+
+static void get_default_sink(pa_context *c, const pa_server_info *i, void *userdata) {
+    if (!i) {
+        pa_log(_("Failed to get server information: %s"), pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    printf(_("%s\n"), i->default_sink_name);
+
+    complete_action();
+}
+
+static void get_default_source(pa_context *c, const pa_server_info *i, void *userdata) {
+    if (!i) {
+        pa_log(_("Failed to get server information: %s"), pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    printf(_("%s\n"), i->default_source_name);
 
     complete_action();
 }
@@ -1032,7 +1062,46 @@ static void fill_volume(pa_cvolume *cv, unsigned supported) {
         *cv = volume;
 }
 
+static void get_sink_mute_callback(pa_context *c, const pa_sink_info *i, int is_last, void *userdata) {
+    if (is_last < 0) {
+        pa_log(_("Failed to get sink information: %s"), pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    if (is_last)
+        return;
+
+    pa_assert(i);
+
+    printf(("Mute: %s\n"),
+           pa_yes_no_localised(i->mute));
+
+    complete_action();
+}
+
 static void get_sink_volume_callback(pa_context *c, const pa_sink_info *i, int is_last, void *userdata) {
+    if (is_last < 0) {
+        pa_log(_("Failed to get sink information: %s"), pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    if (is_last)
+        return;
+
+    pa_assert(i);
+
+    char cv[PA_CVOLUME_SNPRINT_VERBOSE_MAX];
+    printf(("Volume: %s\n"
+            "        balance %0.2f\n"),
+           pa_cvolume_snprint_verbose(cv, sizeof(cv), &i->volume, &i->channel_map, true),
+           pa_cvolume_get_balance(&i->volume, &i->channel_map));
+
+    complete_action();
+}
+
+static void set_sink_volume_callback(pa_context *c, const pa_sink_info *i, int is_last, void *userdata) {
     pa_cvolume cv;
 
     if (is_last < 0) {
@@ -1052,7 +1121,46 @@ static void get_sink_volume_callback(pa_context *c, const pa_sink_info *i, int i
     pa_operation_unref(pa_context_set_sink_volume_by_name(c, sink_name, &cv, simple_callback, NULL));
 }
 
+static void get_source_mute_callback(pa_context *c, const pa_source_info *i, int is_last, void *userdata) {
+    if (is_last < 0) {
+        pa_log(_("Failed to get source information: %s"), pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    if (is_last)
+        return;
+
+    pa_assert(i);
+
+    printf(("Mute: %s\n"),
+           pa_yes_no_localised(i->mute));
+
+    complete_action();
+}
+
 static void get_source_volume_callback(pa_context *c, const pa_source_info *i, int is_last, void *userdata) {
+    if (is_last < 0) {
+        pa_log(_("Failed to get source information: %s"), pa_strerror(pa_context_errno(c)));
+        quit(1);
+        return;
+    }
+
+    if (is_last)
+        return;
+
+    pa_assert(i);
+
+    char cv[PA_CVOLUME_SNPRINT_VERBOSE_MAX];
+    printf(("Volume: %s\n"
+            "        balance %0.2f\n"),
+           pa_cvolume_snprint_verbose(cv, sizeof(cv), &i->volume, &i->channel_map, true),
+           pa_cvolume_get_balance(&i->volume, &i->channel_map));
+
+    complete_action();
+}
+
+static void set_source_volume_callback(pa_context *c, const pa_source_info *i, int is_last, void *userdata) {
     pa_cvolume cv;
 
     if (is_last < 0) {
@@ -1481,6 +1589,10 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     o = pa_context_set_sink_port_by_name(c, sink_name, port_name, simple_callback, NULL);
                     break;
 
+                case GET_DEFAULT_SINK:
+                    o = pa_context_get_server_info(c, get_default_sink, NULL);
+                    break;
+
                 case SET_DEFAULT_SINK:
                     o = pa_context_set_default_sink(c, sink_name, simple_callback, NULL);
                     break;
@@ -1489,8 +1601,16 @@ static void context_state_callback(pa_context *c, void *userdata) {
                     o = pa_context_set_source_port_by_name(c, source_name, port_name, simple_callback, NULL);
                     break;
 
+                case GET_DEFAULT_SOURCE:
+                    o = pa_context_get_server_info(c, get_default_source, NULL);
+                    break;
+
                 case SET_DEFAULT_SOURCE:
                     o = pa_context_set_default_source(c, source_name, simple_callback, NULL);
+                    break;
+
+                case GET_SINK_MUTE:
+                    o = pa_context_get_sink_info_by_name(c, sink_name, get_sink_mute_callback, NULL);
                     break;
 
                 case SET_SINK_MUTE:
@@ -1498,6 +1618,10 @@ static void context_state_callback(pa_context *c, void *userdata) {
                         o = pa_context_get_sink_info_by_name(c, sink_name, sink_toggle_mute_callback, NULL);
                     else
                         o = pa_context_set_sink_mute_by_name(c, sink_name, mute, simple_callback, NULL);
+                    break;
+
+                case GET_SOURCE_MUTE:
+                    o = pa_context_get_source_info_by_name(c, source_name, get_source_mute_callback, NULL);
                     break;
 
                 case SET_SOURCE_MUTE:
@@ -1521,12 +1645,20 @@ static void context_state_callback(pa_context *c, void *userdata) {
                         o = pa_context_set_source_output_mute(c, source_output_idx, mute, simple_callback, NULL);
                     break;
 
-                case SET_SINK_VOLUME:
+                case GET_SINK_VOLUME:
                     o = pa_context_get_sink_info_by_name(c, sink_name, get_sink_volume_callback, NULL);
                     break;
 
-                case SET_SOURCE_VOLUME:
+                case SET_SINK_VOLUME:
+                    o = pa_context_get_sink_info_by_name(c, sink_name, set_sink_volume_callback, NULL);
+                    break;
+
+                case GET_SOURCE_VOLUME:
                     o = pa_context_get_source_info_by_name(c, source_name, get_source_volume_callback, NULL);
+                    break;
+
+                case SET_SOURCE_VOLUME:
+                    o = pa_context_get_source_info_by_name(c, source_name, set_source_volume_callback, NULL);
                     break;
 
                 case SET_SINK_INPUT_VOLUME:
@@ -1717,8 +1849,11 @@ static void help(const char *argv0) {
     printf("%s %s %s %s\n", argv0, _("[options]"), "move-(sink-input|source-output)", _("#N SINK|SOURCE"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "suspend-(sink|source)", _("NAME|#N 1|0"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-card-profile ", _("CARD PROFILE"));
+    printf("%s %s %s\n", argv0, _("[options]"), "get-default-(sink|source)");
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-default-(sink|source)", _("NAME"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink|source)-port", _("NAME|#N PORT"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "get-(sink|source)-volume", _("NAME|#N"));
+    printf("%s %s %s %s\n", argv0, _("[options]"), "get-(sink|source)-mute", _("NAME|#N"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink|source)-volume", _("NAME|#N VOLUME [VOLUME ...]"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink-input|source-output)-volume", _("#N VOLUME [VOLUME ...]"));
     printf("%s %s %s %s\n", argv0, _("[options]"), "set-(sink|source)-mute", _("NAME|#N 1|0|toggle"));
@@ -2017,6 +2152,9 @@ int main(int argc, char *argv[]) {
 
             sink_name = pa_xstrdup(argv[optind+1]);
 
+        } else if (pa_streq(argv[optind], "get-default-sink")) {
+            action = GET_DEFAULT_SINK;
+
         } else if (pa_streq(argv[optind], "set-source-port")) {
             action = SET_SOURCE_PORT;
 
@@ -2038,6 +2176,19 @@ int main(int argc, char *argv[]) {
 
             source_name = pa_xstrdup(argv[optind+1]);
 
+        } else if (pa_streq(argv[optind], "get-default-source")) {
+            action = GET_DEFAULT_SOURCE;
+
+        } else if (pa_streq(argv[optind], "get-sink-volume")) {
+            action = GET_SINK_VOLUME;
+
+            if (argc < optind+2) {
+                pa_log(_("You have to specify a sink name/index"));
+                goto quit;
+            }
+
+            sink_name = pa_xstrdup(argv[optind+1]);
+
         } else if (pa_streq(argv[optind], "set-sink-volume")) {
             action = SET_SINK_VOLUME;
 
@@ -2050,6 +2201,16 @@ int main(int argc, char *argv[]) {
 
             if (parse_volumes(argv+optind+2, argc-(optind+2)) < 0)
                 goto quit;
+
+        } else if (pa_streq(argv[optind], "get-source-volume")) {
+            action = GET_SOURCE_VOLUME;
+
+            if (argc < optind+2) {
+                pa_log(_("You have to specify a source name/index"));
+                goto quit;
+            }
+
+            source_name = pa_xstrdup(argv[optind+1]);
 
         } else if (pa_streq(argv[optind], "set-source-volume")) {
             action = SET_SOURCE_VOLUME;
@@ -2096,6 +2257,16 @@ int main(int argc, char *argv[]) {
             if (parse_volumes(argv+optind+2, argc-(optind+2)) < 0)
                 goto quit;
 
+        } else if (pa_streq(argv[optind], "get-sink-mute")) {
+            action = GET_SINK_MUTE;
+
+            if (argc < optind+2) {
+                pa_log(_("You have to specify a sink name/index"));
+                goto quit;
+            }
+
+            sink_name = pa_xstrdup(argv[optind+1]);
+
         } else if (pa_streq(argv[optind], "set-sink-mute")) {
             action = SET_SINK_MUTE;
 
@@ -2110,6 +2281,16 @@ int main(int argc, char *argv[]) {
             }
 
             sink_name = pa_xstrdup(argv[optind+1]);
+
+        } else if (pa_streq(argv[optind], "get-source-mute")) {
+            action = GET_SOURCE_MUTE;
+
+            if (argc < optind+2) {
+                pa_log(_("You have to specify a source name/index"));
+                goto quit;
+            }
+
+            source_name = pa_xstrdup(argv[optind+1]);
 
         } else if (pa_streq(argv[optind], "set-source-mute")) {
             action = SET_SOURCE_MUTE;

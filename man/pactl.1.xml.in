@@ -162,6 +162,11 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     </option>
 
     <option>
+      <p><opt>get-default-sink</opt></p>
+      <optdesc><p>Returns the symbolic name of the default sink.</p></optdesc>
+    </option>
+
+    <option>
       <p><opt>set-default-sink</opt> <arg>SINK</arg></p>
       <optdesc><p>Make the specified sink (identified by its symbolic name or numerical index) the default sink.</p></optdesc>
     </option>
@@ -169,6 +174,11 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     <option>
       <p><opt>set-sink-port</opt> <arg>SINK</arg> <arg>PORT</arg></p>
       <optdesc><p>Set the specified sink (identified by its symbolic name or numerical index) to the specified port (identified by its symbolic name).</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>get-default-source</opt></p>
+      <optdesc><p>Returns the symbolic name of the default source.</p></optdesc>
     </option>
 
     <option>
@@ -188,12 +198,23 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     </option>
 
     <option>
+      <p><opt>get-sink-volume</opt> <arg>SINK</arg></p>
+      <optdesc><p>Get the volume of the specified sink (identified by its symbolic name or numerical index) displayed in the same format as the `info` command.</p></optdesc>
+    </option>
+
+    <option>
       <p><opt>set-sink-volume</opt> <arg>SINK</arg> <arg>VOLUME [VOLUME ...]</arg></p>
       <optdesc><p>Set the volume of the specified sink (identified by its symbolic name or numerical index).
       <arg>VOLUME</arg> can be specified as an integer (e.g. 2000, 16384), a linear factor (e.g. 0.4, 1.100), a percentage
       (e.g.  10%, 100%) or a decibel value (e.g. 0dB, 20dB).  If the volume specification start with a + or - the volume
       adjustment will be relative to the current sink volume.  A single volume value affects all channels; if multiple
       volume values are given their number has to match the sink's number of channels.</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>get-source-volume</opt> <arg>SOURCE</arg></p>
+```
+      <optdesc><p>Get the volume of the specified source (identified by its symbolic name or numerical index) displayed in the same format as the `info` command.</p></optdesc>
     </option>
 
     <option>
@@ -222,8 +243,18 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     </option>
 
     <option>
+      <p><opt>get-sink-mute</opt> <arg>SINK</arg></p>
+      <optdesc><p>Get the mute status of the specified sink (identified by its symbolic name or numerical index).</p></optdesc>
+    </option>
+
+    <option>
       <p><opt>set-sink-mute</opt> <arg>SINK</arg> <arg>1|0|toggle</arg></p>
       <optdesc><p>Set the mute status of the specified sink (identified by its symbolic name or numerical index).</p></optdesc>
+    </option>
+
+    <option>
+      <p><opt>get-source-mute</opt> <arg>SOURCE</arg></p>
+      <optdesc><p>Get the mute status of the specified source (identified by its symbolic name or numerical index).</p></optdesc>
     </option>
 
     <option>
