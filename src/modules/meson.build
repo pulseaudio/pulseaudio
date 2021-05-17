@@ -304,7 +304,7 @@ foreach m : all_modules
   mod = shared_module(name,
     sources,
     headers,
-    include_directories : [configinc, topinc],
+    include_directories : [configinc, topinc, include_directories('.')],
     c_args : [pa_c_args, server_c_args, '-DPA_MODULE_NAME=' + name.underscorify()] + extra_flags,
     install : true,
     install_rpath : rpath_dirs,
