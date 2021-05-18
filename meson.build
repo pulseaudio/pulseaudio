@@ -561,8 +561,11 @@ if host_machine.cpu_family() == 'arm'
 endif
 # NEON checks are automatically done by the unstable-simd module
 
-# FIXME: make sure it's >= 2.2
-ltdl_dep = cc.find_library('ltdl', required : true)
+if get_option('daemon')
+  # FIXME: make sure it's >= 2.2
+  ltdl_dep = cc.find_library('ltdl', required : true)
+endif
+
 # FIXME: can meson support libtool -dlopen/-dlpreopen things?
 #        and do we still want to support this at all?
 cdata.set('DISABLE_LIBTOOL_PRELOAD', 1)
