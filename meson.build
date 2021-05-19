@@ -781,7 +781,9 @@ check_dep = dependency('check', version : '>= 0.9.10', required : get_option('te
 
 # Subdirs
 
-subdir('doxygen')
+if get_option('doxygen')
+  subdir('doxygen')
+endif
 subdir('po')
 if get_option('man')
   subdir('man')

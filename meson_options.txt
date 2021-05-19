@@ -1,6 +1,9 @@
 option('daemon',
        type : 'boolean', value : true,
        description : 'Enable building and installation of pulseaudio daemon and supporting configuration files')
+option('doxygen',
+       type : 'boolean', value : true,
+       description : 'Enable building and installation of documentation generated with doxygen')
 option('gcov',
        type : 'boolean', value : false,
        description : 'Enable optional gcov coverage analysis')
