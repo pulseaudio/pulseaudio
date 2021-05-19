@@ -41,10 +41,16 @@ static bool can_be_supported(bool for_encoding) {
 
     element_factory = gst_element_factory_find("ldacenc");
     if (element_factory == NULL) {
-        pa_log_info("LDAC encoder not found");
+        pa_log_info("LDAC encoder element `ldacenc` not found");
         return false;
     }
+    gst_object_unref(element_factory);
 
+    element_factory = gst_element_factory_find("rtpldacpay");
+    if (element_factory == NULL) {
+        pa_log_info("LDAC RTP payloader element `rtpldacpay` not found");
+        return false;
+    }
     gst_object_unref(element_factory);
 
     return true;
