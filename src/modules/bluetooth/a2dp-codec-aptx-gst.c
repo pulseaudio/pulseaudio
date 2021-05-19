@@ -39,7 +39,7 @@ static bool can_be_supported(bool for_encoding) {
     if (for_encoding) {
         element_factory = gst_element_factory_find("openaptxenc");
         if (element_factory == NULL) {
-            pa_log_info("aptX encoder not found");
+            pa_log_info("aptX encoder element `openaptxenc` not found");
             return false;
         }
 
@@ -47,7 +47,7 @@ static bool can_be_supported(bool for_encoding) {
     } else {
         element_factory = gst_element_factory_find("openaptxdec");
         if (element_factory == NULL) {
-            pa_log_info("aptX decoder not found");
+            pa_log_info("aptX decoder element `openaptxdec` not found");
             return false;
         }
 
