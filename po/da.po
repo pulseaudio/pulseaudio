@@ -8,7 +8,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-03-08 16:26+0200\n"
-"PO-Revision-Date: 2021-05-21 22:37+0000\n"
+"PO-Revision-Date: 2021-05-21 23:01+0000\n"
 "Last-Translator: scootergrisen <scootergrisen@gmail.com>\n"
 "Language-Team: Danish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/da/>\n"
@@ -1872,7 +1872,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() mislykkedes: %s"
 
 #: src/utils/pacat.c:676
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "%s\n"
@@ -1958,11 +1958,10 @@ msgstr ""
 "lydstyrke i området 0...65536\n"
 "      --rate=SAMPLEFREKVENS             Samplefrekvensen i Hz (standard er "
 "44100)\n"
-"      --format=SAMPLEFORMAT             Sampletypen, en af s16le, s16be, u8, "
-"float32le,\n"
-"                                        float32be, ulaw, alaw, s32le, s32be, "
-"s24le, s24be,\n"
-"                                        s24-32le, s24-32be (standard er "
+"      --format=SAMPLEFORMAT             Sampleformatet, se\n"
+"                                        https://www.freedesktop.org/wiki/"
+"Software/PulseAudio/Documentation/User/SupportedAudioFormats/\n"
+"                                        for mulige værdier (standard er "
 "s16ne)\n"
 "      --channels=KANALER                Antal kanaler, 1 for mono, 2 for "
 "stereo\n"
@@ -1981,12 +1980,12 @@ msgstr ""
 "      --no-remix                        Op- eller nedmiks ikke kanaler.\n"
 "      --no-remap                        Kortlæg kanaler efter indeks i "
 "stedet for navn.\n"
-"      --latency=BYTES                   Anmod den angive forsinkelse i "
-"bytes.\n"
+"      --latency=BYTES                   Anmod den angive forsinkelse i bytes."
+"\n"
 "      --process-time=BYTES              Anmod den angive procestid pr. "
 "anmodning i bytes.\n"
-"      --latency-msec=MSEK               Anmod den angive forsinkelse i "
-"msek.\n"
+"      --latency-msec=MSEK               Anmod den angive forsinkelse i msek."
+"\n"
 "      --process-time-msec=MSEK          Anmod den angive procestid pr. "
 "anmodning i msek.\n"
 "      --property=EGENSKAB=VÆRDI         Indstil den angivne egenskab til den "
@@ -2255,7 +2254,7 @@ msgstr "FRAMES"
 
 #: src/utils/pacmd.c:80 src/utils/pactl.c:1709
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
-msgstr ""
+msgstr "MODTAGER MEDDELELSE [MEDDELELSESPARAMETRE]"
 
 #: src/utils/pacmd.c:82
 #, c-format
@@ -2407,7 +2406,7 @@ msgstr "Ukendt"
 
 #: src/utils/pactl.c:254
 msgid "Aux"
-msgstr ""
+msgstr "Aux"
 
 #: src/utils/pactl.c:257
 msgid "Line"
@@ -2423,7 +2422,7 @@ msgstr "Håndsæt"
 
 #: src/utils/pactl.c:261
 msgid "Earpiece"
-msgstr ""
+msgstr "Øresnegl"
 
 #: src/utils/pactl.c:262
 msgid "SPDIF"
@@ -2503,13 +2502,13 @@ msgid "\tPorts:\n"
 msgstr "\tPorte:\n"
 
 #: src/utils/pactl.c:371 src/utils/pactl.c:479
-#, fuzzy, c-format
+#, c-format
 msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
-msgstr "\t\t%s: %s (sinks: %u, kilder: %u, prioritet: %u, tilgængelige: %s)\n"
+msgstr "\t\t%s: %s (type: %s, prioritet: %u%s%s, %s)\n"
 
 #: src/utils/pactl.c:373 src/utils/pactl.c:481 src/utils/pactl.c:645
 msgid ", availability group: "
-msgstr ""
+msgstr ", tilgængelighedsgruppe: "
 
 #: src/utils/pactl.c:378 src/utils/pactl.c:486
 #, c-format
@@ -2657,6 +2656,8 @@ msgstr "\tAktive profil: %s\n"
 msgid ""
 "\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s, %s)\n"
 msgstr ""
+"\t\t%s: %s (type: %s, prioritet: %u, forsinkelse-forskydning: %<PRId64> "
+"usec%s%s, %s)\n"
 
 #: src/utils/pactl.c:649
 #, c-format
@@ -2800,18 +2801,18 @@ msgid "Failure: %s"
 msgstr "Fejl: %s"
 
 #: src/utils/pactl.c:889
-#, fuzzy, c-format
+#, c-format
 msgid "Send message failed: %s"
-msgstr "read() mislykkedes: %s"
+msgstr "Send-meddelelse mislykkedes: %s"
 
 #: src/utils/pactl.c:906
 #, c-format
 msgid "list-handlers message failed: %s"
-msgstr ""
+msgstr "list-handlers-meddelelse mislykkedes: %s"
 
 #: src/utils/pactl.c:912 src/utils/pactl.c:947
 msgid "list-handlers message response could not be parsed correctly"
-msgstr ""
+msgstr "svar for list-handlers-meddelelse kunne ikke fortolkes korrekt"
 
 #: src/utils/pactl.c:984
 #, c-format
@@ -3145,15 +3146,16 @@ msgid "Invalid source output index specification"
 msgstr "Ugyldig specifikation for kildeoutput-indeks"
 
 #: src/utils/pactl.c:2150
-#, fuzzy
 msgid "You have to specify at least an object path and a message name"
-msgstr "Du skal angive et sinknavn/-indeks og et portnavn"
+msgstr "Du skal angive mindst en objektsti og et meddelelsesnavn"
 
 #: src/utils/pactl.c:2160
 msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
 msgstr ""
+"Overskydende argumenter angivet — de ignoreres. Bemærk at alle "
+"meddelelsesparametre skal angives som en enkelt streng."
 
 #: src/utils/pactl.c:2170
 msgid ""
@@ -3217,7 +3219,7 @@ msgid "WARNING: Child process terminated by signal %u\n"
 msgstr "ADVARSEL: Barneproces blev afsluttet af signalet %u\n"
 
 #: src/utils/pasuspender.c:228
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] -- PROGRAM [ARGUMENTS ...]\n"
 "\n"
@@ -3229,7 +3231,9 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
-"%s [tilvalg] ... \n"
+"%s [tilvalg] -- PROGRAM [ARGUMENTER ...]\n"
+"\n"
+"Hensæt PulseAudio midlertidigt mens PROGRAM kører.\n"
 "\n"
 "  -h, --help                            Vis denne hjælp\n"
 "      --version                         Vis version\n"
