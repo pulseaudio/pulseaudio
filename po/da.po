@@ -8,7 +8,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-03-08 16:26+0200\n"
-"PO-Revision-Date: 2021-04-16 13:02+0000\n"
+"PO-Revision-Date: 2021-05-21 22:37+0000\n"
 "Last-Translator: scootergrisen <scootergrisen@gmail.com>\n"
 "Language-Team: Danish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/da/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.5.3\n"
+"X-Generator: Weblate 4.6.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -559,6 +559,8 @@ msgid ""
 "Failed to initialize daemon due to errors while executing startup commands. "
 "Source of commands: %s"
 msgstr ""
+"Kunne ikke initiere dæmon pga. fejl under eksekvering af opstartskommandoer. "
+"Kilde af kommandoer: %s"
 
 #: src/daemon/main.c:1131
 msgid "Daemon startup without any loaded modules, refusing to work."
@@ -1214,7 +1216,6 @@ msgid "Virtual surround sink"
 msgstr "Virtuel surround-sink"
 
 #: src/modules/module-virtual-surround-sink.c:54
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "master=<name of sink to filter> sink_master=<name of sink to filter> "
@@ -1225,10 +1226,11 @@ msgid ""
 "this module is being loaded automatically> "
 msgstr ""
 "sink_name=<navn på sinken> sink_properties=<egenskaber for sinken> "
-"master=<name of sink to filter> sink_master=<navn på sink som skal "
+"master=<navn på sink som skal filtreres> sink_master=<navn på sink som skal "
 "filtreres> format=<sampleformat> rate=<samplefrekvens> channels=<antal "
 "kanaler> channel_map=<kanalkort> use_volume_sharing=<yes eller no> "
-"force_flat_volume=<yes eller no> hrir=/sti/til/venstre_hrir.wav "
+"force_flat_volume=<yes eller no> hrir=/sti/til/venstre_hrir.wav hrir_left=/"
+"sti/til/venstre_hrir.wav hrir_right=/sti/til/valgfri/højre_hrir.wav "
 "autoloaded=<indstil hvis modulet indlæses automatisk> "
 
 #: src/modules/raop/module-raop-discover.c:295
