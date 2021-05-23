@@ -98,13 +98,13 @@ class PaWebrtcTraceCallback : public webrtc::TraceCallback {
     void Print(webrtc::TraceLevel level, const char *message, int length)
     {
         if (level & webrtc::kTraceError || level & webrtc::kTraceCritical)
-            pa_log(message);
+            pa_log("%s", message);
         else if (level & webrtc::kTraceWarning)
-            pa_log_warn(message);
+            pa_log_warn("%s", message);
         else if (level & webrtc::kTraceInfo)
-            pa_log_info(message);
+            pa_log_info("%s", message);
         else
-            pa_log_debug(message);
+            pa_log_debug("%s", message);
     }
 };
 
