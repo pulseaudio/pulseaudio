@@ -1035,7 +1035,14 @@ int pa_context_connect(
         }
 
         /* The system wide instance via PF_LOCAL */
+#ifndef OS_IS_WIN32
         c->server_list = pa_strlist_prepend(c->server_list, PA_SYSTEM_RUNTIME_PATH PA_PATH_SEP PA_NATIVE_DEFAULT_UNIX_SOCKET);
+#else
+        /* see change_user in src/daemon/main.c */
+        char *run_path = pa_sprintf_malloc("%s" PA_PATH_SEP "run" PA_PATH_SEP PA_NATIVE_DEFAULT_UNIX_SOCKET, pa_win32_get_system_appdata());
+        c->server_list = pa_strlist_prepend(c->server_list, run_path);
+        pa_xfree(run_path);
+#endif
 
         /* The user instance via PF_LOCAL */
         c->server_list = prepend_per_user(c->server_list);

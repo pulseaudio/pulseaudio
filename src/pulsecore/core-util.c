@@ -83,6 +83,7 @@
 
 #ifdef HAVE_WINDOWS_H
 #include <windows.h>
+#include <shlobj.h>
 #endif
 
 #ifndef ENOTSUP
@@ -169,6 +170,15 @@ char *pa_win32_get_toplevel(HANDLE handle) {
     }
 
     return toplevel;
+}
+
+char *pa_win32_get_system_appdata() {
+    static char appdata[MAX_PATH] = {0};
+
+    if (!*appdata && SHGetFolderPathAndSubDirA(NULL, CSIDL_COMMON_APPDATA|CSIDL_FLAG_CREATE, NULL, SHGFP_TYPE_CURRENT, "PulseAudio", appdata) != S_OK)
+        return NULL;
+
+    return appdata;
 }
 
 #endif

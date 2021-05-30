@@ -60,6 +60,10 @@
 #include <systemd/sd-daemon.h>
 #endif
 
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#endif
+
 #include <pulse/client-conf.h>
 #include <pulse/mainloop.h>
 #include <pulse/mainloop-signal.h>
@@ -156,7 +160,44 @@ static void signal_callback(pa_mainloop_api* m, pa_signal_event *e, int sig, voi
     }
 }
 
-#if defined(HAVE_PWD_H) && defined(HAVE_GRP_H)
+
+#if defined(OS_IS_WIN32)
+
+static int change_user(void) {
+    pa_log_info("Overriding system runtime/config base dir to '%s'.", pa_win32_get_system_appdata());
+
+    /* On other platforms, these paths are compiled into PulseAudio. This isn't
+     * suitable on Windows. Firstly, Windows doesn't follow the FHS or use Unix
+     * paths and the build system can't handle Windows-style paths properly.
+     * Secondly, the idiomatic location for a service's state and shared data is
+     * ProgramData, and the location of special folders is dynamic on Windows.
+     * Also, this method of handling paths is consistent with how they are
+     * handled on Windows in other parts of PA. Note that this is only needed
+     * in system-wide mode since paths in user instances are already handled
+     * properly.
+     */
+
+    char *run_path = pa_sprintf_malloc("%s" PA_PATH_SEP "run", pa_win32_get_system_appdata());
+    char *lib_path = pa_sprintf_malloc("%s" PA_PATH_SEP "lib", pa_win32_get_system_appdata());
+
+    /* TODO: directory ACLs */
+
+    pa_set_env("HOME", run_path);
+    if (!getenv("PULSE_RUNTIME_PATH"))
+        pa_set_env("PULSE_RUNTIME_PATH", run_path);
+    if (!getenv("PULSE_CONFIG_PATH"))
+        pa_set_env("PULSE_CONFIG_PATH", lib_path);
+    if (!getenv("PULSE_STATE_PATH"))
+        pa_set_env("PULSE_STATE_PATH", lib_path);
+
+    pa_xfree(run_path);
+    pa_xfree(lib_path);
+
+    pa_log_info("Not changing user for system instance on Windows.");
+    return 0;
+}
+
+#elif defined(HAVE_PWD_H) && defined(HAVE_GRP_H)
 
 static int change_user(void) {
     struct passwd *pw;
@@ -377,7 +418,45 @@ fail:
 }
 #endif
 
+#ifdef OS_IS_WIN32
+#define SVC_NAME "PulseAudio"
+static bool is_svc = true;
+static int argc;
+static char **argv;
+static int real_main(int s_argc, char *s_argv[]);
+static SERVICE_STATUS_HANDLE svc_status;
+
+DWORD svc_callback(DWORD ctl, DWORD evt, LPVOID data, LPVOID userdata) {
+    pa_mainloop **m = userdata;
+    switch (ctl) {
+    case SERVICE_CONTROL_STOP:
+    case SERVICE_CONTROL_SHUTDOWN:
+        if (m) {
+            pa_log_info("Exiting.");
+            pa_mainloop_get_api(*m)->quit(pa_mainloop_get_api(*m), 0);
+        }
+        return NO_ERROR;
+    case SERVICE_CONTROL_INTERROGATE:
+        return NO_ERROR;
+    }
+    return ERROR_CALL_NOT_IMPLEMENTED;
+}
+
+int main(int p_argc, char *p_argv[]) {
+    argc = p_argc;
+    argv = p_argv;
+    if (StartServiceCtrlDispatcherA((SERVICE_TABLE_ENTRYA[]){
+        {SVC_NAME, (LPSERVICE_MAIN_FUNCTIONA) real_main},
+        {0},
+    })) return 0;
+    is_svc = false;
+    return real_main(0, NULL);
+}
+
+static int real_main(int s_argc, char *s_argv[]) {
+#else
 int main(int argc, char *argv[]) {
+#endif
     pa_core *c = NULL;
     pa_strbuf *buf = NULL;
     pa_daemon_conf *conf = NULL;
@@ -400,6 +479,23 @@ int main(int argc, char *argv[]) {
     pa_dbus_connection *lookup_service_bus = NULL; /* Always the user bus. */
     pa_dbus_connection *server_bus = NULL; /* The bus where we reserve org.pulseaudio.Server, either the user or the system bus. */
     bool start_server;
+#endif
+
+#ifdef OS_IS_WIN32
+    if (is_svc && !(svc_status = RegisterServiceCtrlHandlerExA(SVC_NAME, (LPHANDLER_FUNCTION_EX) svc_callback, &mainloop))) {
+        pa_log("Failed to register service control handler.");
+        goto finish;
+    }
+
+    if (is_svc) {
+        SetServiceStatus(svc_status, &(SERVICE_STATUS){
+            .dwServiceType      = SERVICE_WIN32,
+            .dwCurrentState     = SERVICE_START_PENDING,
+            .dwControlsAccepted = 0,
+            .dwWin32ExitCode    = NO_ERROR,
+            .dwWaitHint         = 3000,
+        });
+    }
 #endif
 
     pa_log_set_ident("pulseaudio");
@@ -1172,6 +1268,18 @@ int main(int argc, char *argv[]) {
     sd_notify(0, "READY=1");
 #endif
 
+#ifdef OS_IS_WIN32
+    if (is_svc) {
+        SetServiceStatus(svc_status, &(SERVICE_STATUS){
+            .dwServiceType      = SERVICE_WIN32,
+            .dwCurrentState     = SERVICE_RUNNING,
+            .dwControlsAccepted = SERVICE_ACCEPT_STOP|SERVICE_ACCEPT_SHUTDOWN,
+            .dwWin32ExitCode    = NO_ERROR,
+            .dwWaitHint         = 0,
+        });
+    }
+#endif
+
     retval = 0;
     if (pa_mainloop_run(mainloop, &retval) < 0)
         goto finish;
@@ -1180,6 +1288,18 @@ int main(int argc, char *argv[]) {
 
 #ifdef HAVE_SYSTEMD_DAEMON
     sd_notify(0, "STOPPING=1");
+#endif
+
+#ifdef OS_IS_WIN32
+    if (is_svc) {
+        SetServiceStatus(svc_status, &(SERVICE_STATUS){
+            .dwServiceType      = SERVICE_WIN32,
+            .dwCurrentState     = SERVICE_STOP_PENDING,
+            .dwControlsAccepted = 0,
+            .dwWin32ExitCode    = NO_ERROR,
+            .dwWaitHint         = 2000,
+        });
+    }
 #endif
 
 finish:
@@ -1247,6 +1367,18 @@ finish:
 
 #ifdef HAVE_DBUS
     dbus_shutdown();
+#endif
+
+#ifdef OS_IS_WIN32
+    if (is_svc) {
+        SetServiceStatus(svc_status, &(SERVICE_STATUS){
+            .dwServiceType      = SERVICE_WIN32,
+            .dwCurrentState     = SERVICE_STOPPED,
+            .dwControlsAccepted = 0,
+            .dwWin32ExitCode    = retval ? ERROR_PROCESS_ABORTED : NO_ERROR,
+            .dwWaitHint         = 0,
+        });
+    }
 #endif
 
     return retval;

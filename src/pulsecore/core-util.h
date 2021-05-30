@@ -310,6 +310,7 @@ bool pa_running_in_vm(void);
 
 #ifdef OS_IS_WIN32
 char *pa_win32_get_toplevel(HANDLE handle);
+char *pa_win32_get_system_appdata();
 #endif
 
 size_t pa_page_size(void);
