@@ -3005,7 +3005,16 @@ void pa_set_env(const char *key, const char *value) {
     /* This is not thread-safe */
 
 #ifdef OS_IS_WIN32
-    SetEnvironmentVariable(key, value);
+    int kl = strlen(key);
+    int vl = strlen(value);
+    char *tmp = pa_xmalloc(kl+vl+2);
+    memcpy(tmp, key, kl);
+    memcpy(tmp+kl+1, value, vl);
+    tmp[kl] = '=';
+    tmp[kl+1+vl] = '\0';
+    putenv(tmp);
+    /* Even though it should be safe to free it on Windows, we don't want to
+     * rely on undocumented behaviour. */
 #else
     setenv(key, value, 1);
 #endif
@@ -3017,7 +3026,14 @@ void pa_unset_env(const char *key) {
     /* This is not thread-safe */
 
 #ifdef OS_IS_WIN32
-    SetEnvironmentVariable(key, NULL);
+    int kl = strlen(key);
+    char *tmp = pa_xmalloc(kl+2);
+    memcpy(tmp, key, kl);
+    tmp[kl] = '=';
+    tmp[kl+1] = '\0';
+    putenv(tmp);
+    /* Even though it should be safe to free it on Windows, we don't want to
+     * rely on undocumented behaviour. */
 #else
     unsetenv(key);
 #endif
