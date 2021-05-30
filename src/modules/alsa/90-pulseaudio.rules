@@ -174,13 +174,15 @@ GOTO="pulseaudio_end"
 
 LABEL="pulseaudio_firewire_quirk"
 
-# Focusrite Saffire Pro 10/26 i/o has a quirk to disappear from IEEE 1394 bus when losing connections.
-# https://bugzilla.kernel.org/show_bug.cgi?id=199365
-ENV{ID_VENDOR_ID}=="0x00130e", ENV{ID_MODEL_ID}=="0x000003", ENV{PULSE_IGNORE}="1"
-# Both of Saffire Pro 10 i/o and Liquid Saffire 56 have the same ID_MODEL_ID
-# (0x000006), but Liquid Saffire 56 doesn't suffer from the problem, so we
-# can't use ID_MODEL_ID to identify the problematic card. ID_MODEL works
-# better here.
-ENV{ID_VENDOR_ID}=="0x00130e", ENV{ID_MODEL}=="Pro10IO" ENV{PULSE_IGNORE}="1"
+# Focusrite Saffire Pro 10 i/o and Pro 26 i/o have a quirk to disappear from
+# IEEE 1394 bus when breaking connections. This brings an issue for PulseAudio
+# to continue the routine for ever that:
+# - detecting sound card
+# - starting PCM substream
+# - stopping the PCM substream
+# - the card disappears
+# - the card appears
+# In detail, see: https://bugzilla.kernel.org/show_bug.cgi?id=199365
+ATTRS{vendor}=="0x00130e", ATTRS{model}=="0x00000[36]", ATTRS{units}=="0x00a02d:0x010001", ENV{PULSE_IGNORE}="1"
 
 LABEL="pulseaudio_end"
