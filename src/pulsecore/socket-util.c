@@ -243,7 +243,7 @@ int pa_unix_socket_is_stale(const char *fn) {
         if (errno == ECONNREFUSED)
             ret = 1;
 #else
-        if (WSAGetLastError() == WSAECONNREFUSED)
+        if (WSAGetLastError() == WSAECONNREFUSED || WSAGetLastError() == WSAEINVAL)
             ret = 1;
 #endif
     } else
