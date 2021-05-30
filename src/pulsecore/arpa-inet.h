@@ -12,7 +12,7 @@
 
 #include <pulsecore/socket.h>
 
-#if (_WIN32_WINNT <= 0x0600)
+#if (_WIN32_WINNT < 0x0600)
 
 const char *inet_ntop(int af, const void *src, char *dst, socklen_t cnt);
 
