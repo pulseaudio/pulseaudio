@@ -62,6 +62,8 @@
 
 #ifdef HAVE_WINDOWS_H
 #include <windows.h>
+#include <aclapi.h>
+#include <sddl.h>
 #endif
 
 #include <pulse/client-conf.h>
@@ -180,7 +182,58 @@ static int change_user(void) {
     char *run_path = pa_sprintf_malloc("%s" PA_PATH_SEP "run", pa_win32_get_system_appdata());
     char *lib_path = pa_sprintf_malloc("%s" PA_PATH_SEP "lib", pa_win32_get_system_appdata());
 
-    /* TODO: directory ACLs */
+    /* https://docs.microsoft.com/en-us/windows/win32/secauthz/ace-strings */
+    /* https://docs.microsoft.com/en-us/windows/win32/secauthz/modifying-the-acls-of-an-object-in-c-- */
+    /* https://docs.microsoft.com/en-us/windows/win32/api/sddl/nf-sddl-convertstringsecuritydescriptortosecuritydescriptora */
+    {
+        mkdir(run_path);
+        PSECURITY_DESCRIPTOR sd;
+        if (ConvertStringSecurityDescriptorToSecurityDescriptorA(
+            "D:PAI"                   /* DACL, disable inheritance from parent, enable propagation to children */
+            "(A;OICI;FA;;;SY)"        /* give system full access */
+            "(A;OICI;FA;;;CO)"        /* give owner full access */
+            "(A;OICI;FA;;;BA)"        /* give administrators full access */
+            "(A;OICI;0x1200a9;;;WD)", /* give everyone read/write/execute access */
+            SDDL_REVISION_1, &sd, NULL
+        )) {
+            PACL acl;
+            BOOL acl_present, acl_default;
+            if (GetSecurityDescriptorDacl(sd, &acl_present, &acl, &acl_default)) {
+                if (SetNamedSecurityInfo(run_path, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION | PROTECTED_DACL_SECURITY_INFORMATION, NULL, NULL, acl, NULL) != ERROR_SUCCESS) {
+                    pa_log_warn("Failed to set DACL for runtime dir: failed to apply DACL: error %lu.", GetLastError());
+                }
+                LocalFree(acl);
+            } else {
+                pa_log_warn("Failed to set DACL for runtime dir: failed to get security descriptor DACL: error %lu.", GetLastError());
+            }
+        } else {
+            pa_log_warn("Failed to set DACL for runtime dir: failed to parse security descriptor: error %lu.", GetLastError());
+        }
+    }
+    {
+        mkdir(lib_path);
+        PSECURITY_DESCRIPTOR sd;
+        if (ConvertStringSecurityDescriptorToSecurityDescriptorA(
+            "D:PAI"             /* DACL, disable inheritance from parent, enable propagation to children */
+            "(A;OICI;FA;;;SY)"  /* give system full access */
+            "(A;OICI;FA;;;CO)"  /* give owner full access */
+            "(A;OICI;FA;;;BA)", /* give administrators full access */
+            SDDL_REVISION_1, &sd, NULL
+        )) {
+            PACL acl;
+            BOOL acl_present, acl_default;
+            if (GetSecurityDescriptorDacl(sd, &acl_present, &acl, &acl_default)) {
+                if (SetNamedSecurityInfo(lib_path, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION | PROTECTED_DACL_SECURITY_INFORMATION, NULL, NULL, acl, NULL) != ERROR_SUCCESS) {
+                    pa_log_warn("Failed to set DACL for lib dir: failed to apply DACL: error %lu.", GetLastError());
+                }
+                LocalFree(acl);
+            } else {
+                pa_log_warn("Failed to set DACL for lib dir: failed to get security descriptor DACL: error %lu.", GetLastError());
+            }
+        } else {
+            pa_log_warn("Failed to set DACL for lib dir: failed to parse security descriptor: error %lu.", GetLastError());
+        }
+    }
 
     pa_set_env("HOME", run_path);
     if (!getenv("PULSE_RUNTIME_PATH"))
