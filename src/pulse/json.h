@@ -21,7 +21,6 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <pulsecore/hashmap.h>
 
 #define PA_DOUBLE_IS_EQUAL(x, y) (((x) - (y)) < 0.000001 && ((x) - (y)) > -0.000001)
 
@@ -50,9 +49,6 @@ bool pa_json_object_get_bool(const pa_json_object *o);
 const char* pa_json_object_get_string(const pa_json_object *o);
 
 const pa_json_object* pa_json_object_get_object_member(const pa_json_object *o, const char *name);
-
-/** Returns pa_hashmap (char* -> const pa_json_object*) to iterate over object members. \since 15.0 */
-const pa_hashmap *pa_json_object_get_object_member_hashmap(const pa_json_object *o);
 
 int pa_json_object_get_array_length(const pa_json_object *o);
 const pa_json_object* pa_json_object_get_array_member(const pa_json_object *o, int index);

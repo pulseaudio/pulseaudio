@@ -25,6 +25,7 @@
 
 #include <pulse/json.h>
 #include <pulse/xmalloc.h>
+#include <pulsecore/core-json.h>
 #include <pulsecore/core-util.h>
 
 START_TEST (string_test) {

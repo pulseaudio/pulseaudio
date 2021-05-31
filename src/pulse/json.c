@@ -25,24 +25,12 @@
 
 #include <pulse/json.h>
 #include <pulse/xmalloc.h>
+#include <pulsecore/core-json.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/hashmap.h>
 #include <pulsecore/strbuf.h>
 
 #define MAX_NESTING_DEPTH 20 /* Arbitrary number to make sure we don't have a stack overflow */
-
-struct pa_json_object {
-    pa_json_type type;
-
-    union {
-        int64_t int_value;
-        double double_value;
-        bool bool_value;
-        char *string_value;
-        pa_hashmap *object_values; /* name -> object */
-        pa_idxset *array_values; /* objects */
-    };
-};
 
 /* JSON encoder context type */
 typedef enum pa_json_context_type {
@@ -548,11 +536,6 @@ const char* pa_json_object_get_string(const pa_json_object *o) {
 const pa_json_object* pa_json_object_get_object_member(const pa_json_object *o, const char *name) {
     pa_assert(pa_json_object_get_type(o) == PA_JSON_TYPE_OBJECT);
     return pa_hashmap_get(o->object_values, name);
-}
-
-const pa_hashmap *pa_json_object_get_object_member_hashmap(const pa_json_object *o) {
-    pa_assert(pa_json_object_get_type(o) == PA_JSON_TYPE_OBJECT);
-    return o->object_values;
 }
 
 int pa_json_object_get_array_length(const pa_json_object *o) {
