@@ -27,7 +27,6 @@
 
 #include <arpa/inet.h>
 
-#include <pulse/json.h>
 #include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 #include <pulse/utf8.h>
@@ -37,6 +36,7 @@
 #include <pulsecore/core-rtclock.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/i18n.h>
+#include <pulsecore/json.h>
 #include <pulsecore/message-handler.h>
 #include <pulsecore/module.h>
 #include <pulsecore/modargs.h>

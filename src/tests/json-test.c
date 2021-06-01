@@ -23,9 +23,9 @@
 
 #include <check.h>
 
-#include <pulse/json.h>
 #include <pulse/xmalloc.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/json.h>
 
 START_TEST (string_test) {
     pa_json_object *o;

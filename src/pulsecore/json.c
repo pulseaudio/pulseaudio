@@ -23,10 +23,10 @@
 
 #include <math.h>
 
-#include <pulse/json.h>
 #include <pulse/xmalloc.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/hashmap.h>
+#include <pulsecore/json.h>
 #include <pulsecore/strbuf.h>
 
 #define MAX_NESTING_DEPTH 20 /* Arbitrary number to make sure we don't have a stack overflow */

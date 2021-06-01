@@ -47,7 +47,6 @@ libpulse_headers = [
   'format.h',
   'gccmacro.h',
   'introspect.h',
-  'json.h',
   'mainloop-api.h',
   'mainloop-signal.h',
   'mainloop.h',
