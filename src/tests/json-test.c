@@ -98,7 +98,7 @@ START_TEST(int_test) {
     unsigned int i;
     const char *ints_parse[] = { "1", "-1", "1234", "0" };
     const int64_t ints_compare[] = { 1, -1, 1234, 0 };
-    char *ulong_max_str;
+    char *uint64_max_str;
 
     for (i = 0; i < PA_ELEMENTSOF(ints_parse); i++) {
         o = pa_json_parse(ints_parse[i]);
@@ -111,10 +111,10 @@ START_TEST(int_test) {
     }
 
     /* test that parser would fail on integer overflow */
-    ulong_max_str = pa_sprintf_malloc("%"PRIu64, ULONG_MAX);
-    o = pa_json_parse(ulong_max_str);
+    uint64_max_str = pa_sprintf_malloc("%"PRIu64, UINT64_MAX);
+    o = pa_json_parse(uint64_max_str);
     fail_unless(o == NULL);
-    pa_xfree(ulong_max_str);
+    pa_xfree(uint64_max_str);
 }
 END_TEST
 
@@ -179,7 +179,7 @@ START_TEST(double_test) {
     }
 
     /* test that parser would fail on double exponent overflow */
-    very_large_double_str = pa_sprintf_malloc("%"PRIu64"e%"PRIu64, ULONG_MAX, ULONG_MAX);
+    very_large_double_str = pa_sprintf_malloc("%"PRIu64"e%"PRIu64, UINT64_MAX, UINT64_MAX);
     o = pa_json_parse(very_large_double_str);
     fail_unless(o == NULL);
     pa_xfree(very_large_double_str);
