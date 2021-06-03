@@ -12,7 +12,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-03-08 16:26+0200\n"
-"PO-Revision-Date: 2020-09-08 09:29+0000\n"
+"PO-Revision-Date: 2021-04-19 20:02+0000\n"
 "Last-Translator: Milo Casagrande <milo@milo.name>\n"
 "Language-Team: Italian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/it/>\n"
@@ -21,7 +21,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.2.2\n"
+"X-Generator: Weblate 4.6\n"
 
 # mamma mia che impressione
 #: src/daemon/cmdline.c:113
@@ -718,9 +718,8 @@ msgid "Analog Output"
 msgstr "Uscita analogica"
 
 #: src/modules/alsa/alsa-mixer.c:2808
-#, fuzzy
 msgid "Headphones 2"
-msgstr "Cuffie analogiche"
+msgstr "Cuffie 2"
 
 #: src/modules/alsa/alsa-mixer.c:2809
 msgid "Headphones Mono Output"
@@ -764,31 +763,27 @@ msgstr "Uscita gioco"
 
 #: src/modules/alsa/alsa-mixer.c:2819 src/modules/alsa/alsa-mixer.c:2820
 msgid "Chat Output"
-msgstr "Uscita conversazione"
+msgstr "Uscita chat"
 
 #: src/modules/alsa/alsa-mixer.c:2821
-#, fuzzy
 msgid "Chat Input"
-msgstr "Uscita conversazione"
+msgstr "Ingresso chat"
 
 #: src/modules/alsa/alsa-mixer.c:2822
-#, fuzzy
 msgid "Virtual Surround 7.1"
-msgstr "Sink surround virtuale"
+msgstr "Surround virtuale 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4562
 msgid "Analog Mono"
 msgstr "Mono analogico"
 
 #: src/modules/alsa/alsa-mixer.c:4563
-#, fuzzy
 msgid "Analog Mono (Left)"
-msgstr "Mono analogico"
+msgstr "Mono analogico (sinistra)"
 
 #: src/modules/alsa/alsa-mixer.c:4564
-#, fuzzy
 msgid "Analog Mono (Right)"
-msgstr "Mono analogico"
+msgstr "Mono analogico (destra)"
 
 #. Note: Not translated to "Analog Stereo Input", because the source
 #. * name gets "Input" appended to it automatically, so adding "Input"
@@ -815,9 +810,8 @@ msgid "Headset"
 msgstr "Cuffie con microfono"
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
-#, fuzzy
 msgid "Speakerphone"
-msgstr "Altoparlante"
+msgstr "Viva voce"
 
 #: src/modules/alsa/alsa-mixer.c:4577 src/modules/alsa/alsa-mixer.c:4578
 msgid "Multichannel"
@@ -893,11 +887,11 @@ msgstr "Surround digitale 5.1 (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4596
 msgid "Chat"
-msgstr ""
+msgstr "Chat"
 
 #: src/modules/alsa/alsa-mixer.c:4597
 msgid "Game"
-msgstr ""
+msgstr "Gioco"
 
 #: src/modules/alsa/alsa-mixer.c:4731
 msgid "Analog Mono Duplex"
@@ -921,7 +915,7 @@ msgstr "Duplex stereo"
 
 #: src/modules/alsa/alsa-mixer.c:4738
 msgid "Mono Chat + 7.1 Surround"
-msgstr ""
+msgstr "Chat mono + Surround 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4739 src/modules/alsa/module-alsa-card.c:197
 #: src/modules/bluetooth/module-bluez5-device.c:2138
@@ -1094,24 +1088,20 @@ msgid "High Fidelity Capture (A2DP Source)"
 msgstr "Registrazione ad alta fedeltà (sorgente A2DP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1957
-#, fuzzy
 msgid "Headset Head Unit (HSP)"
-msgstr "Unità headset head (HSP/HFP)"
+msgstr "Unità headset head (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1970
-#, fuzzy
 msgid "Headset Audio Gateway (HSP)"
-msgstr "Gateway headset audio (HSP/HFP)"
+msgstr "Gateway headset audio (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1983
-#, fuzzy
 msgid "Handsfree Head Unit (HFP)"
-msgstr "Unità headset head (HSP/HFP)"
+msgstr "Unità handsfree head (HFP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1996
-#, fuzzy
 msgid "Handsfree Audio Gateway (HFP)"
-msgstr "Gateway headset audio (HSP/HFP)"
+msgstr "Gateway handsfree audio (HFP)"
 
 #: src/modules/echo-cancel/module-echo-cancel.c:59
 msgid ""
@@ -2322,7 +2312,7 @@ msgstr "FRAME"
 
 #: src/utils/pacmd.c:80 src/utils/pactl.c:1709
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
-msgstr ""
+msgstr "DESTINATARIO MESSAGGIO [PARAMETRI_MESSAGGIO]"
 
 #: src/utils/pacmd.c:82
 #, c-format
@@ -2464,33 +2454,31 @@ msgstr ""
 
 #: src/utils/pactl.c:242
 msgid "availability unknown"
-msgstr ""
+msgstr "disponibilità sconosciuta"
 
 #: src/utils/pactl.c:243
 msgid "available"
-msgstr ""
+msgstr "disponibile"
 
 #: src/utils/pactl.c:244
 msgid "not available"
-msgstr ""
+msgstr "non disponibile"
 
 #: src/utils/pactl.c:253 src/utils/pactl.c:277
-#, fuzzy
 msgid "Unknown"
-msgstr "sconosciuto"
+msgstr "Sconosciuto"
 
 #: src/utils/pactl.c:254
 msgid "Aux"
-msgstr ""
+msgstr "Aux"
 
 #: src/utils/pactl.c:257
-#, fuzzy
 msgid "Line"
-msgstr "Line-In"
+msgstr "Line"
 
 #: src/utils/pactl.c:258
 msgid "Mic"
-msgstr ""
+msgstr "Mic"
 
 #: src/utils/pactl.c:260
 #, fuzzy
@@ -2499,37 +2487,35 @@ msgstr "Cuffie con microfono"
 
 #: src/utils/pactl.c:261
 msgid "Earpiece"
-msgstr ""
+msgstr "Auricolare"
 
 #: src/utils/pactl.c:262
 msgid "SPDIF"
-msgstr ""
+msgstr "SPDIF"
 
 #: src/utils/pactl.c:263
 msgid "HDMI"
-msgstr ""
+msgstr "HDMI"
 
 #: src/utils/pactl.c:264
 msgid "TV"
-msgstr ""
+msgstr "TV"
 
 #: src/utils/pactl.c:267
 msgid "USB"
-msgstr ""
+msgstr "USB"
 
 #: src/utils/pactl.c:268
-#, fuzzy
 msgid "Bluetooth"
-msgstr "Ingresso Bluetooth"
+msgstr "Bluetooth"
 
 #: src/utils/pactl.c:274
 msgid "Network"
-msgstr ""
+msgstr "Rete"
 
 #: src/utils/pactl.c:275
-#, fuzzy
 msgid "Analog"
-msgstr "Mono analogico"
+msgstr "Analogico"
 
 #: src/utils/pactl.c:299 src/utils/pactl.c:1020 src/utils/pactl.c:1098
 #, c-format
@@ -2584,13 +2570,14 @@ msgid "\tPorts:\n"
 msgstr "\tPorte:\n"
 
 #: src/utils/pactl.c:371 src/utils/pactl.c:479
-#, fuzzy, c-format
+#, c-format
 msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
-msgstr "\t\t%s: %s (sink: %u, sorgenti: %u, priorità: %u, disponibile: %s)\n"
+msgstr "\t\t%s: %s (tipo: %s, priorità: %u%s%s, %s)\n"
 
 #: src/utils/pactl.c:373 src/utils/pactl.c:481 src/utils/pactl.c:645
+#, fuzzy
 msgid ", availability group: "
-msgstr ""
+msgstr ", gruppo disponibilità: "
 
 #: src/utils/pactl.c:378 src/utils/pactl.c:486
 #, c-format
@@ -2738,6 +2725,7 @@ msgstr "\tProfilo attivo: %s\n"
 msgid ""
 "\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s, %s)\n"
 msgstr ""
+"\t\t%s: %s (tipo: %s, priorità: %u, offset latenza: %<PRId64> usec%s%s, %s)\n"
 
 #: src/utils/pactl.c:649
 #, c-format
@@ -2891,9 +2879,9 @@ msgid "Failure: %s"
 msgstr "Fallimento: %s"
 
 #: src/utils/pactl.c:889
-#, fuzzy, c-format
+#, c-format
 msgid "Send message failed: %s"
-msgstr "read() non riuscita: %s"
+msgstr "Invia messaggio non riuscito: %s"
 
 #: src/utils/pactl.c:906
 #, c-format

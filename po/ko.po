@@ -7,18 +7,19 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-03-08 16:26+0200\n"
-"PO-Revision-Date: 2018-06-21 15:10+0900\n"
-"Last-Translator: Sangchul Lee <sc11.lee@samsung.com>\n"
-"Language-Team: Korean\n"
+"PO-Revision-Date: 2021-04-13 06:02+0000\n"
+"Last-Translator: simmon <simmon@nplob.com>\n"
+"Language-Team: Korean <https://translate.fedoraproject.org/projects/"
+"pulseaudio/pulseaudio/ko/>\n"
 "Language: ko\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.8.7.1\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 4.5.3\n"
 
 #: src/daemon/cmdline.c:113
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -91,110 +92,101 @@ msgstr ""
 "%s [options]\n"
 "\n"
 "명령:\n"
-"  -h, --help                            도움말을 표시\n"
-"      --version                         버전을 표시      \n"
-"      --dump-conf                       기본 설정을 덤프\n"
-"      --dump-modules                    사용 가능한 모듈 목록을 덤프\n"
-"      --dump-resample-methods           사용 가능한 리샘플링 방법을 덤프\n"
-"      --cleanup-shm                     이전 공유 메모리 세그먼트를 삭제\n"
-"      --start                           데몬이 실행하지 않는 경우 데몬을 시"
-"작\n"
-"      -k  --kill                            실행중인 데몬을 종료\n"
-"      --check                           실행중인 데몬을 확인 (종료 코드를 반"
-"환할 경우에만)\n"
+" -h, --help 도움말을 표시\n"
+" --version 버전를 표시\n"
+" --dump-conf 기본 설정을 덤프\n"
+" --dump-modules 사용 가능한 모듈 목록을 덤프\n"
+" --dump-resample-methods 사용 가능한 리샘플링 방법을 덤프\n"
+" --cleanup-shm 이전 공유 메모리 세그먼트를 삭제\n"
+" --start 데몬이 실행하지 않는 경우 데몬을 시작\n"
+" -k --kill 실행중인 데몬을 종료\n"
+" --check 실행중인 데몬을 확인 (종료 코드를 반환할 경우에만)\n"
 "\n"
 "옵션:\n"
-"      --system[=BOOL]                   시스템 전역 인스턴스로 실행\n"
-"  -D, --daemonize[=BOOL]                시작 후 데몬화\n"
-"       --fail[=BOOL]                     시작 실패 시 종료\n"
-"       --high-priority[=BOOL]            높고 좋은 수준 설정 시도\n"
-"                                         (root로만 사용 가능, SUID 또는\n"
-"                                         상승된 RLIMIT_NICE에서)\n"
-"        --realtime[=BOOL]                 실시간 예약 활성화 시도\n"
-"                                         (root로망 사용 가능, SUID 또는\n"
-"                                         상승된 RLIMIT_RTPRIO에서)\n"
-"        --disallow-module-loading[=BOOL]   시작 후 사용자 요청 모듈 로드/언로"
-"드를\n"
-"                                                  허용하지 않음\n"
-"        --disallow-exit[=BOOL]            사용자 요청 종료를 허용하지 않음\n"
-"        --exit-idle-time=SECS             유휴 시간 및 지정된 시간 후\n"
-"                                          데몬을 종료\n"
-"        --scache-idle-time=SECS           유휴 시간 및 지정된 시간 후\n"
-"                                          자동 로드된 샘플을 언로드\n"
-"        --log-level[=LEVEL]               상세 설명 수준을 올리거나 설정\n"
-"   -v                                    상세 설명 수준을 올림\n"
-"        --log-target={auto,syslog,stderr,file:PATH,newfile:PATH} \n"
-"                                         로그 대상을 지정\n"
-"        --log-meta[=BOOL]                 로그 메세지에 코드 위치를 포함\n"
-"        --log-time[=BOOL]                  로그 메세지에 타임스탬프를 포함\n"
-"        --log-backtrace=FRAMES            로그 메세지에 역추적을 포함\n"
-"  -p, --dl-search-path=PATH              동적 공유 객체 (plugins)에 \n"
-"                                          검색 경로를 설정\n"
-"      --resample-method=METHOD          지정한 리샘플링 방법을 사용\n"
-"                                          (사용 가능한 값은 --dump-resample-"
-"methods\n"
-"                                          에서 참조)\n"
-"       --use-pid-file[=BOOL]             PID 파일 생성\n"
-"       --no-cpu-limit[=BOOL]             지원하는 플랫폼에 CPU 로드 제한기"
-"를\n"
-"                                         설치하지 않음.\n"
-"       --disable-shm[=BOOL]              공유 메모리 지원을 비활성화함.\n"
+" --system[=BOOL] 시스템 전역 인스턴스로 실행\n"
+" -D, --daemonize[=BOOL] 시작 후 데몬화\n"
+" --fail[=BOOL] 시작 실패 시 종료\n"
+" --high-priority[=BOOL] 높고 좋은 수준 설정 시도\n"
+" (root로만 사용 가능, SUID 또는\n"
+" 상승된 RLIMIT_NICE에서)\n"
+" --realtime[=BOOL] 실시간 예약 활성화 시도\n"
+" (root로망 사용 가능, SUID 또는\n"
+" 상승된 RLIMIT_RTPRIO에서)\n"
+" --disallow-module-loading[=BOOL] 시작 후 사용자 요청 모듈 로드/언로드를\n"
+" 허용하지 않음\n"
+" --disallow-exit[=BOOL] 사용자 요청 종료를 허용하지 않음\n"
+" --exit-idle-time=SECS 유휴 시간 및 지정된 시간 후\n"
+" 데몬을 종료\n"
+" --scache-idle-time=SECS 유휴 시간 및 지정된 시간 후\n"
+" 자동 로드된 샘플을 언로드\n"
+" --log-level[=LEVEL] 상세 설명 수준을 올리거나 설정\n"
+" -v 상세 설명 수준을 올림\n"
+" --log-target={auto,syslog,stderr,file:PATH,newfile:PATH}\n"
+" 로그 대상을 지정\n"
+" --log-meta[=BOOL] 로그 메세지에 코드 위치를 포함\n"
+" --log-time[=BOOL] 로그 메세지에 시간표기를 포함\n"
+" --log-backtrace=FRAMES 로그 메세지에 역추적을 포함\n"
+" -p, --dl-search-path=PATH 동적 공유 객체 (plugins)에\n"
+" 검색 경로를 설정\n"
+" --resample-method=METHOD 지정한 리샘플링 방법을 사용\n"
+" (사용 가능한 값은 --dump-resample-methods\n"
+" 에서 참조)\n"
+" --use-pid-file[=BOOL] PID 파일 생성\n"
+" --no-cpu-limit[=BOOL] 지원하는 플랫폼에 CPU 로드 제한기를\n"
+" 설치하지 않음.\n"
+" --disable-shm[=BOOL] 공유 메모리 지원을 비활성화함.\n"
 "\n"
 "시작 스크립트:\n"
-"   -L, --load=\"MODULE ARGUMENTS\"         지정된 인수와 함께 지정된 플러그"
-"인\n"
-"                                         모듈을 로드\n"
-"   -F, --file=FILENAME                   지정한 스크립트를 실행\n"
-"   -C                                    시작 후 실행 중인 TTY에서 명령행을\n"
-"                                         열음\n"
+" -L, --load=\"MODULE ARGUMENTS\" 지정된 인수와 함께 지정된 플러그인\n"
+" 모듈을 적재\n"
+" -F, --file=FILENAME 지정한 스크립트를 실행\n"
+" -C 시작 후 실행 중인 TTY에서 명령행을\n"
+" 열음\n"
 "\n"
-"   -n                                    디폴트 스크립트 파일을 로드하지 않"
-"음\n"
+" -n 기본 스크립트 파일을 적재하지 않음\n"
 
 #: src/daemon/cmdline.c:246
 msgid "--daemonize expects boolean argument"
-msgstr "--daemonize는 부울 인수를 예상합니다 "
+msgstr "--daemonize는 부울 인수를 예상합니다"
 
 #: src/daemon/cmdline.c:254
 msgid "--fail expects boolean argument"
-msgstr "--fail은 부울 인수를 예상합니다."
+msgstr "--fail은 부울 인수를 예상합니다"
 
 #: src/daemon/cmdline.c:265
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of debug, info, notice, warn, error)."
 msgstr ""
-"--log-level은 로깅 수준 인수를 예상합니다 (0..4 숫자 범위 또는 디버그, 정보, "
-"알림, 경고, 오류 중 하나)"
+"--log-level은 로그 수준 논의가 예상됩니다 (0..4 숫자 범위 내의 수 또는 디버그중의 하나, 정보, 알림, 경고, 오류)."
 
 #: src/daemon/cmdline.c:277
 msgid "--high-priority expects boolean argument"
-msgstr "--high-priority는 boolean 인수를 사용합니다."
+msgstr "--high-priority는 boolean 인수를 사용합니다"
 
 #: src/daemon/cmdline.c:285
 msgid "--realtime expects boolean argument"
-msgstr "--realtime은 boolean 인수를 사용합니다."
+msgstr "--realtime은 boolean 인수를 사용합니다"
 
 #: src/daemon/cmdline.c:293
 msgid "--disallow-module-loading expects boolean argument"
-msgstr "--disallow-module-loading는 boolean 인수를 사용합니다."
+msgstr "--disallow-module-loading는 boolean 인수를 사용합니다"
 
 #: src/daemon/cmdline.c:301
 msgid "--disallow-exit expects boolean argument"
-msgstr "--disallow-exit는 boolean 인수를 사용합니다."
+msgstr "--disallow-exit는 boolean 인수를 사용합니다"
 
 #: src/daemon/cmdline.c:309
 msgid "--use-pid-file expects boolean argument"
-msgstr "--use-pid-file는 boolean 인수를 사용합니다."
+msgstr "--use-pid-file는 boolean 인수를 사용합니다"
 
 #: src/daemon/cmdline.c:328
-#, fuzzy
 msgid ""
 "Invalid log target: use either 'syslog', 'journal', 'stderr' or 'auto' or a "
 "valid file name 'file:<path>', 'newfile:<path>'."
 msgstr ""
-"잘못된 로그 대상: 'syslog', 'stderr','auto' 또는 유효한 파일 이름 'file:"
-"<path>', 'newfile:<path>' 중에 하나를 사용하십시오."
+"잘못된 로그 대상: 'syslog', 'stderr','auto' 또는 유효한 파일 이름 'file:<path>', 'newfile:"
+"<path>' 중에 하나를 사용하십시오."
 
 #: src/daemon/cmdline.c:330
 msgid ""
@@ -206,11 +198,11 @@ msgstr ""
 
 #: src/daemon/cmdline.c:338
 msgid "--log-time expects boolean argument"
-msgstr "--log-time은 boolean 인수를 사용합니다."
+msgstr "--log-time은 boolean 인수를 사용합니다"
 
 #: src/daemon/cmdline.c:346
 msgid "--log-meta expects boolean argument"
-msgstr "--log-meta는 boolean 인수를 사용합니다."
+msgstr "--log-meta는 boolean 인수를 사용합니다"
 
 #: src/daemon/cmdline.c:366
 #, c-format
@@ -219,20 +211,19 @@ msgstr "'%s'는 잘못된 리샘플링 방법입니다."
 
 #: src/daemon/cmdline.c:373
 msgid "--system expects boolean argument"
-msgstr "--system는 boolean 인수를 사용합니다."
+msgstr "--system는 boolean 인수를 사용합니다"
 
 #: src/daemon/cmdline.c:381
 msgid "--no-cpu-limit expects boolean argument"
-msgstr "--no-cpu-limit는 boolean 인수를 사용합니다."
+msgstr "--no-cpu-limit는 boolean 인수를 사용합니다"
 
 #: src/daemon/cmdline.c:389
 msgid "--disable-shm expects boolean argument"
-msgstr "--disable-shm는 boolean 인수를 사용합니다."
+msgstr "--disable-shm는 boolean 인수를 사용합니다"
 
 #: src/daemon/cmdline.c:397
-#, fuzzy
 msgid "--enable-memfd expects boolean argument"
-msgstr "--realtime은 boolean 인수를 사용합니다."
+msgstr "--enable-memfd은 boolean 인수를 예상합니다"
 
 #: src/daemon/daemon-conf.c:270
 #, c-format
@@ -357,9 +348,9 @@ msgid "Path: %s\n"
 msgstr "경로: %s\n"
 
 #: src/daemon/ltdl-bind-now.c:75
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to open module %s: %s"
-msgstr "설정 파일 '%s' 열기 실패: %s"
+msgstr "모듈 열기 실패 '%s: %s"
 
 #: src/daemon/ltdl-bind-now.c:126
 msgid "Failed to find original lt_dlopen loader."
@@ -461,27 +452,20 @@ msgid ""
 msgstr "%s에 사용자가 설정한 서버, 이는 로컬에 있습니다. 상세히 조사합니다."
 
 #: src/daemon/main.c:729
-#, fuzzy
 msgid "Running in system mode, but --disallow-exit not set."
-msgstr ""
-"시스템 모드에서 실행중입니다. 하지만 --disallow-exit가 설정되지 않았습니다!"
+msgstr "시스템 모드에서 실행중입니다. 하지만 --disallow-exit가 설정되지 않았습니다."
 
 #: src/daemon/main.c:732
-#, fuzzy
 msgid "Running in system mode, but --disallow-module-loading not set."
-msgstr ""
-"시스템 모드에서 실행 중입니다. 하지만 --disallow-module-loading이 설정되어 있"
-"지 않습니다!"
+msgstr "시스템 모드에서 실행 중입니다. 하지만 --disallow-module-loading이 설정되어 있지 않습니다."
 
 #: src/daemon/main.c:735
-#, fuzzy
 msgid "Running in system mode, forcibly disabling SHM mode."
-msgstr "시스템 모드에서 실행 중입니다. 강제로 SHM 모드를 비활성화합니다!"
+msgstr "시스템 모드에서 실행 중입니다. 강제로 SHM 모드를 비활성화합니다."
 
 #: src/daemon/main.c:740
-#, fuzzy
 msgid "Running in system mode, forcibly disabling exit idle time."
-msgstr "시스템 모드에서 실행 중입니다. 강제로 exit 유휴 시간을 비활성화합니다!"
+msgstr "시스템 모드에서 실행 중입니다. 강제로 exit 유휴 시간을 비활성화합니다."
 
 #: src/daemon/main.c:773
 msgid "Failed to acquire stdio."
@@ -516,7 +500,6 @@ msgid "Failed to get machine ID"
 msgstr "머신 ID 가져오기 실패"
 
 #: src/daemon/main.c:996
-#, fuzzy
 msgid ""
 "OK, so you are running PA in system mode. Please make sure that you actually "
 "do want to do that.\n"
@@ -524,11 +507,10 @@ msgid ""
 "Documentation/User/WhatIsWrongWithSystemWide/ for an explanation why system "
 "mode is usually a bad idea."
 msgstr ""
-"PA가 시스템 모드로 동작하고 있습니다. 하지만 이것은 권장되지 않습니다.\n"
-"만약 의도대로 정상동작하지 않더라도 그것은 당신의 잘못입니다.\n"
-"시스템 모드가 좋지 않은 이유에 대해서는 다음 문서를 확인하시기 바랍니다. "
-"http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/"
-"WhatIsWrongWithSystemWide/ "
+"PA가 시스템 모드로 동작하고 있습니다. 하지만 이것은 권장되지 않습니다. 만약 의도대로 정상 동작하지 않더라도 그것은 당신의 잘못입니다."
+"\n"
+"시스템 모드가 좋지 않은 이유에 대해서는 다음 문서를 확인하시기 바랍니다. http://www.freedesktop.org/wiki/"
+"Software/PulseAudio/Documentation/User/WhatIsWrongWithSystemWide/."
 
 #: src/daemon/main.c:1012
 msgid "pa_pid_file_create() failed."
@@ -539,16 +521,15 @@ msgid "pa_core_new() failed."
 msgstr "pa_core_new() 실패."
 
 #: src/daemon/main.c:1119
-#, fuzzy
 msgid "command line arguments"
-msgstr "인수가 너무 많습니다."
+msgstr "명령 줄 인수"
 
 #: src/daemon/main.c:1126
 #, c-format
 msgid ""
 "Failed to initialize daemon due to errors while executing startup commands. "
 "Source of commands: %s"
-msgstr ""
+msgstr "시작 명령을 실행 할 때에 오류로 인해 데몬을 초기화 할 수 없습니다. 명령 소스: %s"
 
 #: src/daemon/main.c:1131
 msgid "Daemon startup without any loaded modules, refusing to work."
@@ -576,11 +557,11 @@ msgstr "도킹 스테이션 마이크"
 
 #: src/modules/alsa/alsa-mixer.c:2711
 msgid "Docking Station Line In"
-msgstr "도킹 스테이션 라인 입력 "
+msgstr "도킹스테이션 라인 입력"
 
 #: src/modules/alsa/alsa-mixer.c:2712 src/modules/alsa/alsa-mixer.c:2803
 msgid "Line In"
-msgstr "라인 입력 "
+msgstr "라인 입력"
 
 #: src/modules/alsa/alsa-mixer.c:2713 src/modules/alsa/alsa-mixer.c:2797
 #: src/modules/bluetooth/module-bluez5-device.c:1847
@@ -589,29 +570,29 @@ msgstr "마이크"
 
 #: src/modules/alsa/alsa-mixer.c:2714 src/modules/alsa/alsa-mixer.c:2798
 msgid "Front Microphone"
-msgstr "전면 마이크 "
+msgstr "전면 마이크"
 
 #: src/modules/alsa/alsa-mixer.c:2715 src/modules/alsa/alsa-mixer.c:2799
 msgid "Rear Microphone"
-msgstr "후면 마이크 "
+msgstr "후면 마이크"
 
 #: src/modules/alsa/alsa-mixer.c:2716
 msgid "External Microphone"
-msgstr "외부 마이크 "
+msgstr "외부 마이크"
 
 #: src/modules/alsa/alsa-mixer.c:2717 src/modules/alsa/alsa-mixer.c:2801
 msgid "Internal Microphone"
-msgstr "내부 마이크 "
+msgstr "내부 마이크"
 
 #: src/modules/alsa/alsa-mixer.c:2718 src/modules/alsa/alsa-mixer.c:2804
 #: src/utils/pactl.c:265
 msgid "Radio"
-msgstr "라디오 "
+msgstr "라디오"
 
 #: src/modules/alsa/alsa-mixer.c:2719 src/modules/alsa/alsa-mixer.c:2805
 #: src/utils/pactl.c:266
 msgid "Video"
-msgstr "비디오 "
+msgstr "비디오"
 
 #: src/modules/alsa/alsa-mixer.c:2720
 msgid "Automatic Gain Control"
@@ -661,30 +642,27 @@ msgstr "아날로그 입력"
 
 #: src/modules/alsa/alsa-mixer.c:2800
 msgid "Dock Microphone"
-msgstr "도킹 스테이션 마이크 "
+msgstr "도킹스테이션 마이크"
 
 #: src/modules/alsa/alsa-mixer.c:2802
-#, fuzzy
 msgid "Headset Microphone"
-msgstr "후면 마이크 "
+msgstr "후면 마이크"
 
 #: src/modules/alsa/alsa-mixer.c:2806
 msgid "Analog Output"
 msgstr "아날로그 출력"
 
 #: src/modules/alsa/alsa-mixer.c:2808
-#, fuzzy
 msgid "Headphones 2"
-msgstr "헤드폰"
+msgstr "헤드폰 2"
 
 #: src/modules/alsa/alsa-mixer.c:2809
-#, fuzzy
 msgid "Headphones Mono Output"
-msgstr "아날로그 모노 출력"
+msgstr "헤드폰 모노 출력"
 
 #: src/modules/alsa/alsa-mixer.c:2810
 msgid "Line Out"
-msgstr "라인 출력 "
+msgstr "라인 출력"
 
 #: src/modules/alsa/alsa-mixer.c:2811
 msgid "Analog Mono Output"
@@ -707,48 +685,40 @@ msgid "Digital Input (S/PDIF)"
 msgstr "디지털 입력 (S/PDIF)"
 
 #: src/modules/alsa/alsa-mixer.c:2816
-#, fuzzy
 msgid "Multichannel Input"
-msgstr "아날로그 4-채널 입력"
+msgstr "다채널 입력"
 
 #: src/modules/alsa/alsa-mixer.c:2817
-#, fuzzy
 msgid "Multichannel Output"
-msgstr "빈 출력"
+msgstr "다채널 출력"
 
 #: src/modules/alsa/alsa-mixer.c:2818
-#, fuzzy
 msgid "Game Output"
-msgstr "%s 출력"
+msgstr "게임 출력"
 
 #: src/modules/alsa/alsa-mixer.c:2819 src/modules/alsa/alsa-mixer.c:2820
-#, fuzzy
 msgid "Chat Output"
-msgstr "%s 출력"
+msgstr "대화 출력"
 
 #: src/modules/alsa/alsa-mixer.c:2821
-#, fuzzy
 msgid "Chat Input"
-msgstr "%s 입력"
+msgstr "대화 입력"
 
 #: src/modules/alsa/alsa-mixer.c:2822
-#, fuzzy
 msgid "Virtual Surround 7.1"
-msgstr "가상 서라운드 싱크 "
+msgstr "가상 서라운드 싱크"
 
 #: src/modules/alsa/alsa-mixer.c:4562
 msgid "Analog Mono"
-msgstr "아날로그 모노 "
+msgstr "아날로그 모노"
 
 #: src/modules/alsa/alsa-mixer.c:4563
-#, fuzzy
 msgid "Analog Mono (Left)"
-msgstr "아날로그 모노 "
+msgstr "아날로그 모노 (왼쪽)"
 
 #: src/modules/alsa/alsa-mixer.c:4564
-#, fuzzy
 msgid "Analog Mono (Right)"
-msgstr "아날로그 모노 "
+msgstr "아날로그 모노 (오른쪽)"
 
 #. Note: Not translated to "Analog Stereo Input", because the source
 #. * name gets "Input" appended to it automatically, so adding "Input"
@@ -758,7 +728,7 @@ msgstr "아날로그 모노 "
 #: src/modules/alsa/alsa-mixer.c:4565 src/modules/alsa/alsa-mixer.c:4573
 #: src/modules/alsa/alsa-mixer.c:4574
 msgid "Analog Stereo"
-msgstr "아날로그 스테레오 "
+msgstr "아날로그 스테레오"
 
 #: src/modules/alsa/alsa-mixer.c:4566 src/pulse/channelmap.c:103
 #: src/pulse/channelmap.c:771
@@ -772,16 +742,15 @@ msgstr "스테레오"
 #: src/modules/alsa/alsa-mixer.c:4575 src/modules/alsa/alsa-mixer.c:4733
 #: src/modules/bluetooth/module-bluez5-device.c:1835 src/utils/pactl.c:259
 msgid "Headset"
-msgstr ""
+msgstr "헤드셋"
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
-#, fuzzy
 msgid "Speakerphone"
-msgstr "스피커"
+msgstr "스피커폰"
 
 #: src/modules/alsa/alsa-mixer.c:4577 src/modules/alsa/alsa-mixer.c:4578
 msgid "Multichannel"
-msgstr ""
+msgstr "멀티채널"
 
 #: src/modules/alsa/alsa-mixer.c:4579
 msgid "Analog Surround 2.1"
@@ -853,11 +822,11 @@ msgstr "디지털 서라운드 5.1 (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4596
 msgid "Chat"
-msgstr ""
+msgstr "대화"
 
 #: src/modules/alsa/alsa-mixer.c:4597
 msgid "Game"
-msgstr ""
+msgstr "게임"
 
 #: src/modules/alsa/alsa-mixer.c:4731
 msgid "Analog Mono Duplex"
@@ -873,21 +842,20 @@ msgstr "아날로그 양방향 스테레오 (IEC958)"
 
 #: src/modules/alsa/alsa-mixer.c:4736
 msgid "Multichannel Duplex"
-msgstr ""
+msgstr "멀티채널 듀플렉스"
 
 #: src/modules/alsa/alsa-mixer.c:4737
-#, fuzzy
 msgid "Stereo Duplex"
-msgstr "아날로그 양방향 스테레오"
+msgstr "스테레오 듀플렉스"
 
 #: src/modules/alsa/alsa-mixer.c:4738
 msgid "Mono Chat + 7.1 Surround"
-msgstr ""
+msgstr "모노 Chat + 7.1 Surround"
 
 #: src/modules/alsa/alsa-mixer.c:4739 src/modules/alsa/module-alsa-card.c:197
 #: src/modules/bluetooth/module-bluez5-device.c:2138
 msgid "Off"
-msgstr "끄기 "
+msgstr "끄기"
 
 #: src/modules/alsa/alsa-mixer.c:4839
 #, c-format
@@ -900,7 +868,7 @@ msgid "%s Input"
 msgstr "%s 입력"
 
 #: src/modules/alsa/alsa-sink.c:652 src/modules/alsa/alsa-sink.c:842
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
 "nothing to write.\n"
@@ -910,13 +878,11 @@ msgid ""
 "returned 0 or another value < min_avail."
 msgstr ""
 "ALSA가 장치에 새 데이터를 쓰도록 재촉했지만 쓸 수 있는 것이 없습니다!\n"
-"이는 대부분 ALSA 드라이버 '%s'의 버그입니다. 이 문제를 ALSA 개발자에게 보고하"
-"십시오.\n"
-"POLLOUT 세트로 불러오려했지만 결과적으로 snd_pcm_avail()이 0 또는 다른 값 < "
-"min_avail을 반환했습니다. "
+"이는 대부분 ALSA 드라이버 '%s'의 버그입니다. 이 문제를 ALSA 개발자에게 보고하십시오.\n"
+"POLLOUT 세트로 불러 오려했지만 결과적으로 snd_pcm_avail()이 0 또는 다른 값 < min_avail을 반환했습니다."
 
 #: src/modules/alsa/alsa-source.c:611 src/modules/alsa/alsa-source.c:777
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
 "nothing to read.\n"
@@ -926,13 +892,11 @@ msgid ""
 "returned 0 or another value < min_avail."
 msgstr ""
 "ALSA가 장치에 새 데이터를 읽도록 재촉했지만 읽을 수 있는 것이 없습니다!\n"
-"이는 대부분 ALSA 드라이버 '%s'의 버그입니다. 이 문제를 ALSA 개발자에게 보고하"
-"십시오.\n"
-"POLLIN 세트로 불러오려했지만 결과적으로 snd_pcm_avail()이 0 또는 다른 값 < "
-"min_avail을 반환했습니다. "
+"이는 대부분 ALSA 드라이버 '%s'의 버그입니다. 이 문제를 ALSA 개발자에게 보고하십시오.\n"
+"POLLIN 세트로 불러오려했지만 결과적으로 snd_pcm_avail()이 0 또는 다른 값 < min_avail을 반환했습니다."
 
 #: src/modules/alsa/alsa-util.c:1183 src/modules/alsa/alsa-util.c:1277
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu byte (%lu "
 "ms).\n"
@@ -945,11 +909,10 @@ msgid_plural ""
 "to the ALSA developers."
 msgstr[0] ""
 "snd_pcm_avail()이 %lu 바이트 (%lu ms)의 매우 큰 값을 반환했습니다.\n"
-"ALSA 드라이버 '%s'의 오류일 수 있습니다. ALSA 개발자에게 이 문제를 보고해주시"
-"기 바랍니다."
+"ALSA 드라이버 '%s'의 오류일 수 있습니다. ALSA 개발자에게 이 문제를 보고해주시기 바랍니다."
 
 #: src/modules/alsa/alsa-util.c:1249
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li byte (%s"
 "%lu ms).\n"
@@ -962,8 +925,7 @@ msgid_plural ""
 "to the ALSA developers."
 msgstr[0] ""
 "snd_pcm_delay()가 %li 바이트 (%s%lu ms)의 매우 큰 값을 반환했습니다.\n"
-"ALSA 드라이버 '%s'의 오류일 수 있습니다. ALSA 개발자에게 이 문제를 보고해주시"
-"기 바랍니다."
+"ALSA 드라이버 '%s'의 오류일 수 있습니다. ALSA 개발자에게 이 문제를 보고해주시기 바랍니다."
 
 #: src/modules/alsa/alsa-util.c:1296
 #, c-format
@@ -979,7 +941,7 @@ msgstr ""
 "시기 바랍니다."
 
 #: src/modules/alsa/alsa-util.c:1339
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu byte "
 "(%lu ms).\n"
@@ -992,76 +954,68 @@ msgid_plural ""
 "to the ALSA developers."
 msgstr[0] ""
 "snd_pcm_mmap_begin()이 %lu 바이트 (%lu ms)의 매우 큰 값을 반환했습니다.\n"
-"ALSA 드라이버 '%s'의 오류일 수 있습니다. ALSA 개발자에게 이 문제를 보고해 주"
-"시기 바랍니다."
+"ALSA 드라이버 '%s'의 오류일 수 있습니다. ALSA 개발자에게 이 문제를 보고해 주시기 바랍니다."
 
 #: src/modules/bluetooth/module-bluez5-device.c:1828
 #: src/modules/bluetooth/module-bluez5-device.c:1854
 #: src/modules/bluetooth/module-bluez5-device.c:1861
-#, fuzzy
 msgid "Bluetooth Input"
-msgstr "블루투스 출력 "
+msgstr "블루투스 출력"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1829
 #: src/modules/bluetooth/module-bluez5-device.c:1848
 msgid "Bluetooth Output"
-msgstr "블루투스 출력 "
+msgstr "블루투스 출력"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1841 src/utils/pactl.c:270
-#, fuzzy
 msgid "Handsfree"
-msgstr "핸즈프리 게이트웨이"
+msgstr "핸즈프리"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1862
-#, fuzzy
 msgid "Headphone"
 msgstr "헤드폰"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1868 src/utils/pactl.c:269
 msgid "Portable"
-msgstr ""
+msgstr "이동식"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1874 src/utils/pactl.c:271
 msgid "Car"
-msgstr ""
+msgstr "자동차"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1880 src/utils/pactl.c:272
 msgid "HiFi"
-msgstr ""
+msgstr "하이파이"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1886 src/utils/pactl.c:273
 msgid "Phone"
-msgstr ""
+msgstr "전화기"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1933
-#, fuzzy
 msgid "High Fidelity Playback (A2DP Sink)"
-msgstr "고품질 재생 (A2DP)"
+msgstr "고 충실도 재생 (A2DP Sink)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1945
-#, fuzzy
 msgid "High Fidelity Capture (A2DP Source)"
-msgstr "고품질 녹음 (A2DP)"
+msgstr "고 충실도 순간찍기 (A2DP Source)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1957
 msgid "Headset Head Unit (HSP)"
-msgstr ""
+msgstr "헤드셋 헤드 유닛 (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1970
 msgid "Headset Audio Gateway (HSP)"
-msgstr ""
+msgstr "헤드셋 오디오 게이트웨어 (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1983
 msgid "Handsfree Head Unit (HFP)"
-msgstr ""
+msgstr "핸즈프리 헤드 유닛 (HFP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1996
-#, fuzzy
 msgid "Handsfree Audio Gateway (HFP)"
-msgstr "블루투스 핸즈프리 게이트웨이 "
+msgstr "블루투스 핸즈프리 게이트웨이 (HFP)"
 
 #: src/modules/echo-cancel/module-echo-cancel.c:59
-#, fuzzy
 msgid ""
 "source_name=<name for the source> source_properties=<properties for the "
 "source> source_master=<name of source to filter> sink_name=<name for the "
@@ -1074,14 +1028,12 @@ msgid ""
 "loaded automatically> use_volume_sharing=<yes or no> use_master_format=<yes "
 "or no> "
 msgstr ""
-"source_name=<소스의 이름> source_properties=<소스에 속성들을 지정> "
-"source_master=<필터를 적용할 소스의 이름> sink_name=<싱크의 이름> "
-"sink_properties=<싱크에 속성들을 지정> sink_master=<필터를 적용할 싱크의 이름"
-"> adjust_time=<샘플 레이트 재조정을 몇 초 단위로 할 것인지 지정> "
-"adjust_threshold=<드리프트가 몇 ms 이후부터 재조정을 할 것인지 지정> format=<"
-"샘플 형식> rate=<샘플 레이트> channels=<채널 수> channel_map=<채널 맵> "
-"aec_method=<사용 할 구현체> aec_args=<AEC 엔진의 인자들> save_aec=<AEC 데이터"
-"를 /tmp 안에 저장> autoloaded=<이 모듈이 자동으로 로드된다면 설정하십시오> "
+"source_name=<소스의 이름> source_properties=<소스에 속성들을 지정> source_master=<필터를 적용할 "
+"소스의 이름> sink_name=<싱크의 이름> sink_properties=<싱크에 속성들을 지정> sink_master=<필터를 "
+"적용할 싱크의 이름> adjust_time=<샘플 레이트 재조정을 몇 초 단위로 할 것인지 지정> "
+"adjust_threshold=<드리프트가 몇 ms 이후부터 재조정을 할 것인지 지정> format=<샘플 형식> rate=<샘플 "
+"레이트> channels=<채널 수> channel_map=<채널 맵> aec_method=<사용 할 구현체> aec_args=<AEC "
+"엔진의 인자들> save_aec=<AEC 데이터를 /tmp 안에 저장> autoloaded=<이 모듈이 자동으로 로드된다면 설정하십시오> "
 "use_volume_sharing=<yes 또는 no> "
 
 #. add on profile
@@ -1096,16 +1048,15 @@ msgstr "가짜 출력"
 
 #: src/modules/module-always-sink.c:34
 msgid "Always keeps at least one sink loaded even if it's a null one"
-msgstr "빈 싱크를 포함하여 최소한 하나 이상의 싱크가 존재해야 합니다."
+msgstr "빈 싱크를 포함하여 최소한 하나 이상의 싱크가 존재해야 합니다"
 
 #: src/modules/module-always-source.c:35
-#, fuzzy
 msgid "Always keeps at least one source loaded even if it's a null one"
-msgstr "빈 싱크를 포함하여 최소한 하나 이상의 싱크가 존재해야 합니다."
+msgstr "빈 싱크를 포함하여 최소한 하나 이상의 싱크가 존재해야 합니다"
 
 #: src/modules/module-equalizer-sink.c:68
 msgid "General Purpose Equalizer"
-msgstr "일반적 목적의 이퀼라이저 "
+msgstr "일반적 목적의 이퀼라이저"
 
 #: src/modules/module-equalizer-sink.c:72
 msgid ""
@@ -1123,7 +1074,7 @@ msgstr ""
 #: src/modules/module-equalizer-sink.c:1217
 #, c-format
 msgid "FFT based equalizer on %s"
-msgstr ""
+msgstr "고속퓨리에변환 기반 이퀄라이저 동작 %s"
 
 #: src/modules/module-filter-apply.c:47
 msgid "autoclean=<automatically unload unused filters?>"
@@ -1134,7 +1085,6 @@ msgid "Virtual LADSPA sink"
 msgstr "가상 LADSPA 싱크"
 
 #: src/modules/module-ladspa-sink.c:54
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "sink_input_properties=<properties for the sink input> master=<name of sink "
@@ -1146,13 +1096,12 @@ msgid ""
 "separated list of output LADSPA port names> autoloaded=<set if this module "
 "is being loaded automatically> "
 msgstr ""
-"sink_name=<싱크의 이름> sink_properties=<싱크에 속성들을 지정> master=<필터"
-"를 적용할 싱크의 이름> sink_master=<필터를 적용할 싱크의 이름> format=<샘플 "
-"형식> rate=<샘플 레이트> channels=<채널 수> channel_map=<입력 채널 맵> "
-"plugin=<ladspa 플러그인 이름> label=<ladspa 플러그인 레이블> control=<쉼표로 "
-"구분된 입력 제어값> input_ladspaport_map=<쉼표로 구분된 LADSPA 입력포트 이름"
-"의 목록> output_ladspaport_map=<쉼표로 구분된 LADSPA 출력포트 이름의 목록> "
-"autoloaded=<이 모듈이 자동으로 로드된다면 설정하십시오> "
+"sink_name=<싱크의 이름> sink_properties=<싱크에 속성들을 지정> master=<필터를 적용할 싱크의 이름> "
+"sink_master=<필터를 적용할 싱크의 이름> format=<샘플 형식> rate=<샘플 레이트> channels=<채널 수> "
+"channel_map=<입력 채널 맵> plugin=<ladspa 플러그인 이름> label=<ladspa 플러그인 레이블> "
+"control=<쉼표로 구분된 입력 제어값> input_ladspaport_map=<쉼표로 구분된 LADSPA 입력포트 이름의 목록> "
+"output_ladspaport_map=<쉼표로 구분된 LADSPA 출력포트 이름의 목록> autoloaded=<이 모듈이 자동으로 "
+"로드된다면 설정하십시오> "
 
 #: src/modules/module-null-sink.c:46
 msgid "Clocked NULL sink"
@@ -1189,20 +1138,19 @@ msgstr "호스트 @HOSTNAME@의 오디오"
 #: src/modules/module-tunnel-source-new.c:305
 #, c-format
 msgid "Tunnel for %s@%s"
-msgstr ""
+msgstr "%s@%s 위한 터널"
 
 #: src/modules/module-tunnel-sink-new.c:564
 #: src/modules/module-tunnel-source-new.c:540
 #, c-format
 msgid "Tunnel to %s/%s"
-msgstr ""
+msgstr "%s/%s가는 터널"
 
 #: src/modules/module-virtual-surround-sink.c:50
 msgid "Virtual surround sink"
-msgstr "가상 서라운드 싱크 "
+msgstr "가상 서라운드 싱크"
 
 #: src/modules/module-virtual-surround-sink.c:54
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "master=<name of sink to filter> sink_master=<name of sink to filter> "
@@ -1212,20 +1160,18 @@ msgid ""
 "left_hrir.wav hrir_right=/path/to/optional/right_hrir.wav autoloaded=<set if "
 "this module is being loaded automatically> "
 msgstr ""
-"sink_name=<싱크의 이름> sink_properties=<싱크에 속성들을 지정> master=<필터"
-"를 적용할 싱크의 이름> sink_master=<필터를 적용할 싱크의 이름> format=<샘플 "
-"형식> rate=<샘플 레이트> channels=<채널 수> channel_map=<채널 맵> "
-"use_volume_sharing=<yes 또는 no> force_flat_volume=<yes 또는 no> hrir=/path/"
-"to/left_hrir.wav autoloaded=<이 모듈이 자동으로 로드된다면 설정하십시오> "
+"sink_name=<싱크의 이름> sink_properties=<싱크에 속성들을 지정> master=<필터를 적용할 싱크의 이름> "
+"sink_master=<필터를 적용할 싱크의 이름> format=<샘플 형식> rate=<샘플 레이트> channels=<채널 수> "
+"channel_map=<채널 맵> use_volume_sharing=<yes 또는 no> force_flat_volume=<yes 또는 "
+"no> hrir=/path/to/left_hrir.wav autoloaded=<이 모듈이 자동으로 로드된다면 설정하십시오> "
 
 #: src/modules/raop/module-raop-discover.c:295
-#, fuzzy
 msgid "Unknown device model"
-msgstr "알 수 없는 오류 코드"
+msgstr "알 수 없는 장치 모델"
 
 #: src/modules/raop/raop-sink.c:655
 msgid "RAOP standard profile"
-msgstr ""
+msgstr "RAOP 표준 프로파일"
 
 #: src/modules/reserve-wrap.c:149
 msgid "PulseAudio Sound Server"
@@ -1459,11 +1405,11 @@ msgstr "서라운드 7.1"
 
 #: src/pulse/client-conf-x11.c:61 src/utils/pax11publish.c:97
 msgid "xcb_connect() failed"
-msgstr "xcb_connect() 실패 "
+msgstr "xcb_connect() 실패"
 
 #: src/pulse/client-conf-x11.c:66 src/utils/pax11publish.c:102
 msgid "xcb_connection_has_error() returned true"
-msgstr "xcb_connection_has_error()가 true를 반환했습니다 "
+msgstr "xcb_connection_has_error()가 true를 반환했습니다"
 
 #: src/pulse/client-conf-x11.c:102
 msgid "Failed to parse cookie data"
@@ -1482,26 +1428,23 @@ msgstr "waitpid(): %s"
 #: src/pulse/context.c:1481
 #, c-format
 msgid "Received message for unknown extension '%s'"
-msgstr "알 수 없는 확장자 '%s'에 대해 전송된 메세지 "
+msgstr "알 수 없는 확장자 '%s'에 대해 전송된 메세지"
 
 #: src/pulse/direction.c:37
-#, fuzzy
 msgid "input"
 msgstr "입력"
 
 #: src/pulse/direction.c:39
-#, fuzzy
 msgid "output"
-msgstr "%s 출력"
+msgstr "출력"
 
 #: src/pulse/direction.c:41
 msgid "bidirectional"
-msgstr ""
+msgstr "양방향"
 
 #: src/pulse/direction.c:43
-#, fuzzy
 msgid "invalid"
-msgstr "(잘못됨)"
+msgstr "유효하지 않음"
 
 #: src/pulsecore/core-util.c:1780
 #, c-format
@@ -1510,43 +1453,43 @@ msgid ""
 "e.g. happen if you try to connect to a non-root PulseAudio as a root user, "
 "over the native protocol. Don't do that.)"
 msgstr ""
+"XDG_RUNTIME_DIR (%s)는 우리(uid %d)가 아니라 uid %d가 소유합니다! (기본적인 통신규약을 통해 비-root가 "
+"PluseAudio에 root 사용자로 연결을 시도할 때에 예를 들어 발생 할 수 있습니다. 그렇게 하지 않습니다.)"
 
 #: src/pulsecore/core-util.h:97
 msgid "yes"
-msgstr ""
+msgstr "예"
 
 #: src/pulsecore/core-util.h:97
-#, fuzzy
 msgid "no"
-msgstr "모노"
+msgstr "아니요"
 
 #: src/pulsecore/lock-autospawn.c:141 src/pulsecore/lock-autospawn.c:227
 msgid "Cannot access autospawn lock."
 msgstr "autospawn 잠금에 액세스할 수 없습니다."
 
 #: src/pulsecore/log.c:165
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to open target file '%s'."
-msgstr "오디오 파일을 열 수 없습니다."
+msgstr "대상 파일 '%s 열기에 실패하였습니다."
 
 #: src/pulsecore/log.c:188
 #, c-format
 msgid ""
 "Tried to open target file '%s', '%s.1', '%s.2' ... '%s.%d', but all failed."
-msgstr ""
+msgstr "대상 파일 '%s', '%s.1', '%s.2' ... '%s.%d'을 열기 시도하였으나, 실패하였습니다."
 
 #: src/pulsecore/log.c:651
-#, fuzzy
 msgid "Invalid log target."
-msgstr "[%s:%u] 잘못된 로그 대상 '%s'."
+msgstr "잘못된 기록 대상."
 
 #: src/pulsecore/sink.c:3535
 msgid "Built-in Audio"
-msgstr "내장 오디오 "
+msgstr "내장 오디오"
 
 #: src/pulsecore/sink.c:3540
 msgid "Modem"
-msgstr "모뎀 "
+msgstr "모뎀"
 
 #: src/pulse/error.c:38
 msgid "OK"
@@ -1566,7 +1509,7 @@ msgstr "잘못된 인수"
 
 #: src/pulse/error.c:42
 msgid "Entity exists"
-msgstr "엔티티가 있음 "
+msgstr "실재가 있음"
 
 #: src/pulse/error.c:43
 msgid "No such entity"
@@ -1585,13 +1528,12 @@ msgid "Timeout"
 msgstr "제한 시간"
 
 #: src/pulse/error.c:47
-#, fuzzy
 msgid "No authentication key"
-msgstr "인증 키가 없음 "
+msgstr "인증 키가 없음"
 
 #: src/pulse/error.c:48
 msgid "Internal error"
-msgstr "내부 오류 "
+msgstr "내부 오류"
 
 #: src/pulse/error.c:49
 msgid "Connection terminated"
@@ -1607,19 +1549,19 @@ msgstr "잘못된 서버"
 
 #: src/pulse/error.c:52
 msgid "Module initialization failed"
-msgstr "모듈 초기화 실패 "
+msgstr "모듈 초기화 실패"
 
 #: src/pulse/error.c:53
 msgid "Bad state"
-msgstr "잘못된 상태 "
+msgstr "잘못된 상태"
 
 #: src/pulse/error.c:54
 msgid "No data"
-msgstr "데이터 없음 "
+msgstr "자료 없음"
 
 #: src/pulse/error.c:55
 msgid "Incompatible protocol version"
-msgstr "호환되지 않는 프로토콜 버전"
+msgstr "호환되지 않는 통신규약 버전"
 
 #: src/pulse/error.c:56
 msgid "Too large"
@@ -1635,19 +1577,19 @@ msgstr "알 수 없는 오류 코드"
 
 #: src/pulse/error.c:59
 msgid "No such extension"
-msgstr "이러한 확장자가 없음 "
+msgstr "이러한 확장자가 없음"
 
 #: src/pulse/error.c:60
 msgid "Obsolete functionality"
-msgstr "사용하지 않는 기능 "
+msgstr "사용하지 않는 기능"
 
 #: src/pulse/error.c:61
 msgid "Missing implementation"
-msgstr "누락된 실행 "
+msgstr "누락된 실행"
 
 #: src/pulse/error.c:62
 msgid "Client forked"
-msgstr "클라이언트가 포크됨 "
+msgstr "클라이언트가 포크됨"
 
 #: src/pulse/error.c:63
 msgid "Input/Output error"
@@ -1655,7 +1597,7 @@ msgstr "입/출력 오류"
 
 #: src/pulse/error.c:64
 msgid "Device or resource busy"
-msgstr "장치 또는 자원이 사용중입니다."
+msgstr "장치 또는 자원이 사용중입니다"
 
 #: src/pulse/sample.c:179
 #, c-format
@@ -1693,7 +1635,7 @@ msgstr "재생 스트림이 배출되었습니다."
 
 #: src/utils/pacat.c:150
 msgid "Draining connection to server."
-msgstr "서버에 배출 연결"
+msgstr "서버에 연결을 비우기."
 
 #: src/utils/pacat.c:163
 #, c-format
@@ -1732,12 +1674,12 @@ msgstr "버퍼 지표: maxlength=%u, fragsize=%u"
 #: src/utils/pacat.c:338
 #, c-format
 msgid "Using sample spec '%s', channel map '%s'."
-msgstr "샘플 사양 '%s', 채널 맵 '%s' 사용. "
+msgstr "샘플 사양 '%s', 채널 맵 '%s' 사용."
 
 #: src/utils/pacat.c:342
-#, fuzzy, c-format
+#, c-format
 msgid "Connected to device %s (index: %u, suspended: %s)."
-msgstr "장치 %s에 연결 (%u, %s중단됨)."
+msgstr "장치 %s에 연결되었습니다 (%u, %s중단되었습니다)."
 
 #: src/utils/pacat.c:352
 #, c-format
@@ -1772,7 +1714,7 @@ msgstr "스트림 시작됨.%s"
 #: src/utils/pacat.c:393
 #, c-format
 msgid "Stream moved to device %s (%u, %ssuspended).%s"
-msgstr "스트림이 장치 %s 로 이동했습니다 (%u, %s중단됨).%s"
+msgstr "스트림이 장치 %s 로 이동했습니다 (%u, %s중단되었습니다).%s"
 
 #: src/utils/pacat.c:393
 msgid "not "
@@ -1792,9 +1734,8 @@ msgid "Cork request stack is empty: uncorking stream"
 msgstr "Cork 요청 스택이 비어 있습니다: uncorking stream"
 
 #: src/utils/pacat.c:425
-#, fuzzy
 msgid "Warning: Received more uncork requests than cork requests."
-msgstr "경고: cork 요청 보다 uncork 요청을 더 많이 받았습니다!"
+msgstr "경고: cork 요청 보다 uncork 요청을 더 많이 받았습니다."
 
 #: src/utils/pacat.c:450
 #, c-format
@@ -1812,9 +1753,9 @@ msgid "pa_stream_connect_playback() failed: %s"
 msgstr "pa_stream_connect_playback() 실패: %s"
 
 #: src/utils/pacat.c:497
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to set monitor stream: %s"
-msgstr "스트림 배출 실패: %s"
+msgstr "모니터 스트림 설정에 실패하였습니다: %s"
 
 #: src/utils/pacat.c:501
 #, c-format
@@ -1828,7 +1769,7 @@ msgstr "연결 실패: %s"
 
 #: src/utils/pacat.c:557
 msgid "Got EOF."
-msgstr "EOF 받음"
+msgstr "EOF 받음."
 
 #: src/utils/pacat.c:581
 #, c-format
@@ -1860,7 +1801,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() 실패: %s"
 
 #: src/utils/pacat.c:676
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "%s\n"
@@ -1926,78 +1867,80 @@ msgid ""
 "index INDEX.\n"
 msgstr ""
 "%s [options]\n"
+"%s\n"
 "\n"
-"  -h, --help                            도움말 표시\n"
-"      --version                         버전 표시\n"
+"명령:\n"
+" -h, --help 도움말을 표시\n"
+" --version 버전을 표시\n"
+" --dump-conf 기본 설정을 덤프\n"
+" --dump-modules 사용 가능한 모듈 목록을 덤프\n"
+" --dump-resample-methods 사용 가능한 리샘플링 방법을 덤프\n"
+" --cleanup-shm 이전 공유 메모리 세그먼트를 삭제\n"
+" --start 데몬이 실행하지 않는 경우 데몬을 시작\n"
+" -k --kill 실행중인 데몬을 종료\n"
+" --check 실행중인 데몬을 확인 (종료 코드를 반환할 경우에만)\n"
 "\n"
-"  -r, --record                          기록을 위한 연결 생성\n"
-"  -p, --playback                        재생을 위한 연결 생성\n"
-"\n"
-"-v, --verbose                        실행 상세 설명을 활성화\n"
-"\n"
-"  -s, --server=SERVER                   연결할 서버 이름\n"
-"  -d, --device=DEVICE                   연결할 싱크/소스 이름\n"
-"  -n, --client-name=NAME                서버에서 클라이언트 호출 방법\n"
-"      --stream-name=NAME                서버에서 스트림 호출 방법\n"
-"      --volume=VOLUME                   초기 (선형) 볼륨을 0...65536 범위에"
-"서 지정\n"
-"      --rate=SAMPLERATE                 샘플 레이트를 Hz 단위로 지정 (기본"
-"값: 44100)\n"
-"      --format=SAMPLEFORMAT             샘플 유형을 다음 중 하나로 지정 "
-"s16le, s16be, u8, float32le,\n"
-"                                        float32be, ulaw, alaw, s32le, s32be, "
-"s24le, s24be,\n"
-"                                        s24-32le, s24-32be (기본값: s16ne)\n"
-"      --channels=CHANNELS               채널 수를 지정, 1 (모노의 경우), 2 "
-"(스테레오의 경우)\n"
-"                                        (기본값: 2)\n"
-"      --channel-map=CHANNELMAP          기본값 대신 사용할 채널 맵\n"
-"      --fix-format                      연결된 스트림이 싱크에서 샘플 포맷"
-"을\n"
-"                                        취득.\n"
-"      --fix-rate                        연결된 스트림이 싱크에서 샘플링 속도"
-"를\n"
-"                                        취득.\n"
-"      --fix-channels                    연결된 스트림이 싱크에서 채널 수와 채"
-"널\n"
-"                                        맵을 취득.\n"
-"      --no-remix                        채널을 업믹스 또는 다운믹스하지 않"
-"음.\n"
-"      --no-remap                        이름 대신 인덱스로 채널을 맵핑.\n"
-"      --latency=BYTES                   지정된 대기 시간을 바이트 단위로 요"
-"구.\n"
-"      --process-time=BYTES              요청당 지정된 처리 시간을 바이트 단위"
-"로 요구.\n"
-"      --latency-msec=MSEC               지정된 대기 시간을 msec 단위로 요"
-"구.\n"
-"      --process-time-msec=MSEC          요청당 지정된 처리 시간을 msec 단위"
-"로 요구.\n"
-"      --property=PROPERTY=VALUE         지정된 값에 지정된 속성 설정.\n"
-"      --raw                             원 PCM 데이터 녹음/재생.\n"
-"      --passthrough                     통과 데이터\n"
-"      --file-format[=FFORMAT]           포맷된 PCM 데이터 녹음/재생.\n"
-"      --list-file-formats               사용 가능한 파일 형식 목록.\n"
+"옵션:\n"
+" --system[=BOOL] 시스템 전역 인스턴스로 실행\n"
+" -D, --daemonize[=BOOL] 시작 후 데몬화\n"
+" --fail[=BOOL] 시작 실패 시 종료\n"
+" --high-priority[=BOOL] 높고 좋은 수준 설정 시도\n"
+" (root로만 사용 가능, SUID 또는\n"
+" 상승된 RLIMIT_NICE에서)\n"
+" --realtime[=BOOL] 실시간 예약 활성화 시도\n"
+" (root로망 사용 가능, SUID 또는\n"
+" 상승된 RLIMIT_RTPRIO에서)\n"
+" --disallow-module-loading[=BOOL] 시작 후 사용자 요청 모듈 로드/언로드를\n"
+" 허용하지 않음\n"
+" --disallow-exit[=BOOL] 사용자 요청 종료를 허용하지 않음\n"
+" --exit-idle-time=SECS 유휴 시간 및 지정된 시간 후\n"
+" 데몬을 종료\n"
+" --scache-idle-time=SECS 유휴 시간 및 지정된 시간 후\n"
+" 자동 로드된 샘플을 언로드\n"
+" --log-level[=LEVEL] 상세 설명 수준을 올리거나 설정\n"
+" -v 상세 설명 수준을 올림\n"
+" --log-target={auto,syslog,stderr,file:PATH,newfile:PATH}\n"
+" 로그 대상을 지정\n"
+" --log-meta[=BOOL] 로그 메세지에 코드 위치를 포함\n"
+" --log-time[=BOOL] 로그 메세지에 타임스탬프를 포함\n"
+" --log-backtrace=FRAMES 로그 메세지에 역추적을 포함\n"
+" -p, --dl-search-path=PATH 동적 공유 객체 (plugins)에\n"
+" 검색 경로를 설정\n"
+" --resample-method=METHOD 지정한 리샘플링 방법을 사용\n"
+" (사용 가능한 값은 --dump-resample-methods\n"
+" 에서 참조)\n"
+" --use-pid-file[=BOOL] PID 파일 생성\n"
+" --no-cpu-limit[=BOOL] 지원하는 플랫폼에 CPU 로드 제한기를\n"
+" 설치하지 않음.\n"
+" --disable-shm[=BOOL] 공유 메모리 지원을 비활성화함.\n"
+"시작 스크립트:\n"
+" -L, --load=\"MODULE ARGUMENTS\" 지정된 인수와 함께 지정된 플러그인\n"
+" 모듈을 적재\n"
+" -F, --file=FILENAME 지정한 스크립트를 실행\n"
+" -C 시작 후 실행 중인 TTY에서 명령행을\n"
+" 열음\n"
+" -n 기본 스크립트 파일을 적재하지 않음\n"
 
 #: src/utils/pacat.c:793
 msgid "Play back encoded audio files on a PulseAudio sound server."
-msgstr ""
+msgstr "PulseAudio 소리 서버에서 부호화된 오디오 파일을 뒤로 재생합니다."
 
 #: src/utils/pacat.c:797
 msgid ""
 "Capture audio data from a PulseAudio sound server and write it to a file."
-msgstr ""
+msgstr "PluseAudio 소리 서버에서 오디오 자료 순간찍기하고 파일에 이를 씁니다."
 
 #: src/utils/pacat.c:801
 msgid ""
 "Capture audio data from a PulseAudio sound server and write it to STDOUT or "
 "the specified file."
-msgstr ""
+msgstr "PulseAudio 소리 서버에서 오디오 자료 순간찍기와 STDOUT 또는 지정된 파일에 이를 작성합니다."
 
 #: src/utils/pacat.c:805
 msgid ""
 "Play back audio data from STDIN or the specified file on a PulseAudio sound "
 "server."
-msgstr ""
+msgstr "PulseAudio 소리 서버에 STDIN 또는 지정된 파일에서 오디오 자료를 뒤로 재생합니다."
 
 #: src/utils/pacat.c:819
 #, c-format
@@ -2047,11 +1990,11 @@ msgstr "알 수 없는 파일 포맷 %s."
 
 #: src/utils/pacat.c:1000
 msgid "Failed to parse the argument for --monitor-stream"
-msgstr ""
+msgstr "--monitor-stream 을 위한 인수 구분 분석에 실패하였습니다"
 
 #: src/utils/pacat.c:1011
 msgid "Invalid sample specification"
-msgstr "잘못된 샘플 사양 "
+msgstr "잘못된 샘플 사양"
 
 #: src/utils/pacat.c:1021
 #, c-format
@@ -2091,7 +2034,7 @@ msgstr "경고: 채널 맵을 파일에서 확인할 수 없습니다."
 
 #: src/utils/pacat.c:1099
 msgid "Channel map doesn't match sample specification"
-msgstr "채널 맵은 샘플 사양과 일치하지 않습니다."
+msgstr "채널 맵은 샘플 사양과 일치하지 않습니다"
 
 #: src/utils/pacat.c:1110
 msgid "Warning: failed to write channel map to file."
@@ -2151,7 +2094,7 @@ msgstr "이름|#N"
 #: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:1695
 #: src/utils/pactl.c:1701
 msgid "NAME"
-msgstr "이름 "
+msgstr "이름"
 
 #: src/utils/pacmd.c:54
 msgid "NAME|#N VOLUME"
@@ -2187,11 +2130,11 @@ msgstr "이름 싱크|#N"
 
 #: src/utils/pacmd.c:64 src/utils/pacmd.c:65
 msgid "NAME FILENAME"
-msgstr "이름 파일이름 "
+msgstr "이름 파일이름"
 
 #: src/utils/pacmd.c:66
 msgid "PATHNAME"
-msgstr "경로 이름 "
+msgstr "경로이름"
 
 #: src/utils/pacmd.c:67
 msgid "FILENAME SINK|#N"
@@ -2207,7 +2150,7 @@ msgstr "1|0"
 
 #: src/utils/pacmd.c:72 src/utils/pactl.c:1700
 msgid "CARD PROFILE"
-msgstr "카드 프로파일 "
+msgstr "카드 프로파일"
 
 #: src/utils/pacmd.c:73 src/utils/pactl.c:1702
 msgid "NAME|#N PORT"
@@ -2219,23 +2162,22 @@ msgstr "카드-이름|카드-#N 포트 오프셋"
 
 #: src/utils/pacmd.c:75
 msgid "TARGET"
-msgstr "대상 "
+msgstr "대상"
 
 #: src/utils/pacmd.c:76
-#, fuzzy
 msgid "NUMERIC-LEVEL"
-msgstr "숫자 레벨 "
+msgstr "숫자 레벨"
 
 #: src/utils/pacmd.c:79
 msgid "FRAMES"
-msgstr "프레임 "
+msgstr "프레임"
 
 #: src/utils/pacmd.c:80 src/utils/pactl.c:1709
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
-msgstr ""
+msgstr "수신인 메시지 [ 메시지_매개변수]"
 
 #: src/utils/pacmd.c:82
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "  -h, --help                            Show this help\n"
@@ -2243,8 +2185,8 @@ msgid ""
 "When no command is given pacmd starts in the interactive mode.\n"
 msgstr ""
 "\n"
-"  -h, --help                            도움말 표시\n"
-"      --version                         버전 표시\n"
+"  -h, --help 도움말 표시\n"
+" --version 버전 표시\n"
 "명령이 없을 경우 pacdm은 상호 대화식 모드에서 시작합니다\n"
 
 #: src/utils/pacmd.c:129
@@ -2302,17 +2244,17 @@ msgid "Failed to get statistics: %s"
 msgstr "통계 검색 실패: %s"
 
 #: src/utils/pactl.c:175
-#, fuzzy, c-format
+#, c-format
 msgid "Currently in use: %u block containing %s bytes total.\n"
 msgid_plural "Currently in use: %u blocks containing %s bytes total.\n"
-msgstr[0] "현재 사용 중: %u 블록 (총 %s 바이트를 포함하고 있음).\n"
+msgstr[0] "현재 사용 중: %u 블록 포함 되어 있는 %s bytes 총계.\n"
 
 #: src/utils/pactl.c:181
-#, fuzzy, c-format
+#, c-format
 msgid "Allocated during whole lifetime: %u block containing %s bytes total.\n"
 msgid_plural ""
 "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
-msgstr[0] "전체 수명 기간 동안 할당: %u 블록 (총 %s 바이트를 포함하고 있음).\n"
+msgstr[0] "전체 수명 기간 동안 할당: %u 블록 포함 되어 있는 %s bytes 총계.\n"
 
 #: src/utils/pactl.c:187
 #, c-format
@@ -2338,7 +2280,7 @@ msgstr ""
 "라이브러리 프로토콜 버전: %u\n"
 "서버 프로토콜 버전: %u\n"
 "로컬 동작: %s\n"
-"클라이언트 인덱스: %u\n"
+"클라이언트 개요: %u\n"
 "타일 크기: %zu\n"
 
 #: src/utils/pactl.c:217
@@ -2366,71 +2308,67 @@ msgstr ""
 
 #: src/utils/pactl.c:242
 msgid "availability unknown"
-msgstr ""
+msgstr "가용성을 알 수 없음"
 
 #: src/utils/pactl.c:243
 msgid "available"
-msgstr ""
+msgstr "사용 가능"
 
 #: src/utils/pactl.c:244
 msgid "not available"
-msgstr ""
+msgstr "사용할 수 없음"
 
 #: src/utils/pactl.c:253 src/utils/pactl.c:277
-#, fuzzy
 msgid "Unknown"
-msgstr "알 수 없음 "
+msgstr "알 수 없음"
 
 #: src/utils/pactl.c:254
 msgid "Aux"
-msgstr ""
+msgstr "Aux"
 
 #: src/utils/pactl.c:257
-#, fuzzy
 msgid "Line"
-msgstr "라인 입력 "
+msgstr "라인 입력"
 
 #: src/utils/pactl.c:258
 msgid "Mic"
-msgstr ""
+msgstr "Mic"
 
 #: src/utils/pactl.c:260
 msgid "Handset"
-msgstr ""
+msgstr "핸드셋"
 
 #: src/utils/pactl.c:261
 msgid "Earpiece"
-msgstr ""
+msgstr "이어폰"
 
 #: src/utils/pactl.c:262
 msgid "SPDIF"
-msgstr ""
+msgstr "SPDIF"
 
 #: src/utils/pactl.c:263
 msgid "HDMI"
-msgstr ""
+msgstr "HDMI"
 
 #: src/utils/pactl.c:264
 msgid "TV"
-msgstr ""
+msgstr "텔레비전"
 
 #: src/utils/pactl.c:267
 msgid "USB"
-msgstr ""
+msgstr "USB"
 
 #: src/utils/pactl.c:268
-#, fuzzy
 msgid "Bluetooth"
-msgstr "블루투스 출력 "
+msgstr "블루투스"
 
 #: src/utils/pactl.c:274
 msgid "Network"
-msgstr ""
+msgstr "네트워크"
 
 #: src/utils/pactl.c:275
-#, fuzzy
 msgid "Analog"
-msgstr "아날로그 모노 "
+msgstr "아날로그"
 
 #: src/utils/pactl.c:299 src/utils/pactl.c:1020 src/utils/pactl.c:1098
 #, c-format
@@ -2438,7 +2376,7 @@ msgid "Failed to get sink information: %s"
 msgstr "싱크 정보를 가져올 수 없습니다: %s"
 
 #: src/utils/pactl.c:325
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Sink #%u\n"
 "\tState: %s\n"
@@ -2468,7 +2406,7 @@ msgstr ""
 "\t소유자 모듈: %u\n"
 "\t무음: %s\n"
 "\t볼륨: %s%s%s\n"
-"\t        균형 %0.2f\n"
+"\t균형 %0.2f\n"
 "\t기본 볼륨: %s%s%s\n"
 "\t모니터 소스: %s\n"
 "\t지연시간: %0.0f usec, 설정 %0.0f usec\n"
@@ -2484,11 +2422,11 @@ msgstr "\t포트:\n"
 #: src/utils/pactl.c:371 src/utils/pactl.c:479
 #, c-format
 msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
-msgstr ""
+msgstr "\t\t%s: %s (유형: %s, 순위: %u%s%s, %s)\n"
 
 #: src/utils/pactl.c:373 src/utils/pactl.c:481 src/utils/pactl.c:645
 msgid ", availability group: "
-msgstr ""
+msgstr ", 가용성 그룹: "
 
 #: src/utils/pactl.c:378 src/utils/pactl.c:486
 #, c-format
@@ -2506,7 +2444,7 @@ msgid "Failed to get source information: %s"
 msgstr "소스 정보를 가져올 수 없습니다: %s"
 
 #: src/utils/pactl.c:434
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Source #%u\n"
 "\tState: %s\n"
@@ -2550,7 +2488,7 @@ msgstr ""
 #: src/utils/pactl.c:800 src/utils/pactl.c:851 src/utils/pactl.c:852
 #: src/utils/pactl.c:858
 msgid "n/a"
-msgstr "해당 없음 "
+msgstr "해당 없음"
 
 #: src/utils/pactl.c:503 src/utils/pactl.c:977
 #, c-format
@@ -2624,7 +2562,7 @@ msgstr "\t프로파일:\n"
 #: src/utils/pactl.c:629
 #, c-format
 msgid "\t\t%s: %s (sinks: %u, sources: %u, priority: %u, available: %s)\n"
-msgstr ""
+msgstr "\t\t%s: %s (sinks: %u, sources: %u, priority: %u, available: %s)\n"
 
 #: src/utils/pactl.c:634
 #, c-format
@@ -2636,6 +2574,7 @@ msgstr "\t활성 프로파일: %s\n"
 msgid ""
 "\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s, %s)\n"
 msgstr ""
+"\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s, %s)\n"
 
 #: src/utils/pactl.c:649
 #, c-format
@@ -2657,7 +2596,7 @@ msgid "Failed to get sink input information: %s"
 msgstr "싱크 입력 정보를 가져올 수 없습니다: %s"
 
 #: src/utils/pactl.c:700
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Sink Input #%u\n"
 "\tDriver: %s\n"
@@ -2688,8 +2627,8 @@ msgstr ""
 "\t코르크: %s\n"
 "\t무음: %s\n"
 "\t볼륨: %s\n"
-"\t        %s\n"
-"\t        균형 %0.2f\n"
+"\t %s\n"
+"\t균형 %0.2f\n"
 "\t버퍼 지연 시간: %0.0f usec\n"
 "\t싱크 지연 시간: %0.0f usec\n"
 "\t리샘플링 방법: %s\n"
@@ -2702,7 +2641,7 @@ msgid "Failed to get source output information: %s"
 msgstr "소스 출력 정보를 가져올 수 없습니다: %s"
 
 #: src/utils/pactl.c:770
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Source Output #%u\n"
 "\tDriver: %s\n"
@@ -2733,13 +2672,12 @@ msgstr ""
 "\t코르크: %s\n"
 "\t무음: %s\n"
 "\t볼륨: %s\n"
-"\t        %s\n"
-"\t        균형 %0.2f\n"
+"\t 균형 %0.2f\n"
 "\t버퍼 지연 시간: %0.0f usec\n"
 "\t소스 지연 시간: %0.0f usec\n"
 "\t리샘플링 방법: %s\n"
 "\t속성:\n"
-"\t\t%s\n"
+"\t%s\n"
 
 #: src/utils/pactl.c:811
 #, c-format
@@ -2747,7 +2685,7 @@ msgid "Failed to get sample information: %s"
 msgstr "샘플 정보를 가져올 수 없습니다: %s"
 
 #: src/utils/pactl.c:838
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Sample #%u\n"
 "\tName: %s\n"
@@ -2767,14 +2705,14 @@ msgstr ""
 "\t샘플 사양: %s\n"
 "\t채널맵: %s\n"
 "\t볼륨: %s\n"
-"\t        %s\n"
-"\t        균형 %0.2f\n"
+"\t %s\n"
+"\t균형 %0.2f\n"
 "\t길이: %0.1fs\n"
 "\t크기: %s\n"
 "\t레이지: %s\n"
 "\t파일 이름: %s\n"
 "\t속성:\n"
-"\t\t%s\n"
+"\t%s\n"
 
 #: src/utils/pactl.c:866 src/utils/pactl.c:876
 #, c-format
@@ -2782,23 +2720,23 @@ msgid "Failure: %s"
 msgstr "오류: %s"
 
 #: src/utils/pactl.c:889
-#, fuzzy, c-format
+#, c-format
 msgid "Send message failed: %s"
-msgstr "read() 실패: %s"
+msgstr "메시지 보내기 실패: %s"
 
 #: src/utils/pactl.c:906
 #, c-format
 msgid "list-handlers message failed: %s"
-msgstr ""
+msgstr "목록-처리자 메시지에 실패하였습니다: %s"
 
 #: src/utils/pactl.c:912 src/utils/pactl.c:947
 msgid "list-handlers message response could not be parsed correctly"
-msgstr ""
+msgstr "목록-처리자 메시지 응답은 정확하게 구문 분석 할 수 없습니다"
 
 #: src/utils/pactl.c:984
 #, c-format
 msgid "Failed to unload module: Module %s not loaded"
-msgstr "모듈 언로드에 실패했습니다: 모듈 %s 불러오기 실패 "
+msgstr "모듈 비적재에 실패했습니다: 모듈 %s 불러오기 실패"
 
 #: src/utils/pactl.c:1002
 #, c-format
@@ -2808,7 +2746,7 @@ msgid ""
 msgid_plural ""
 "Failed to set volume: You tried to set volumes for %d channels, whereas "
 "channel(s) supported = %d\n"
-msgstr[0] ""
+msgstr[0] "볼률 설정에 실패하였습니다: %d 채널을 위한 볼률 설정을 시도합니다, 그렇지만 지원하는 채널 = %d 합니다\n"
 
 #: src/utils/pactl.c:1213
 #, c-format
@@ -2821,55 +2759,55 @@ msgstr "파일의 조기 종료"
 
 #: src/utils/pactl.c:1250
 msgid "new"
-msgstr "새로운 "
+msgstr "새로운"
 
 #: src/utils/pactl.c:1253
 msgid "change"
-msgstr "변경 "
+msgstr "변경"
 
 #: src/utils/pactl.c:1256
 msgid "remove"
-msgstr "제거 "
+msgstr "제거"
 
 #: src/utils/pactl.c:1259 src/utils/pactl.c:1294
 msgid "unknown"
-msgstr "알 수 없음 "
+msgstr "알 수 없음"
 
 #: src/utils/pactl.c:1267
 msgid "sink"
-msgstr "싱크 "
+msgstr "싱크"
 
 #: src/utils/pactl.c:1270
 msgid "source"
-msgstr "소스 "
+msgstr "소스"
 
 #: src/utils/pactl.c:1273
 msgid "sink-input"
-msgstr "싱크-입력 "
+msgstr "싱크-입력"
 
 #: src/utils/pactl.c:1276
 msgid "source-output"
-msgstr "소스-출력 "
+msgstr "소스-출력"
 
 #: src/utils/pactl.c:1279
 msgid "module"
-msgstr "모듈 "
+msgstr "모듈"
 
 #: src/utils/pactl.c:1282
 msgid "client"
-msgstr "클라이언트 "
+msgstr "클라이언트"
 
 #: src/utils/pactl.c:1285
 msgid "sample-cache"
-msgstr "샘플-캐시 "
+msgstr "샘플-캐쉬"
 
 #: src/utils/pactl.c:1288
 msgid "server"
-msgstr "서버 "
+msgstr "서버"
 
 #: src/utils/pactl.c:1291
 msgid "card"
-msgstr ""
+msgstr "카드"
 
 #: src/utils/pactl.c:1300
 #, c-format
@@ -2882,21 +2820,19 @@ msgstr "SIGINT를 받았습니다. 종료합니다."
 
 #: src/utils/pactl.c:1611
 msgid "Invalid volume specification"
-msgstr "잘못된 볼륨 사양 "
+msgstr "잘못된 볼륨 사양"
 
 #: src/utils/pactl.c:1634
 msgid "Volume outside permissible range.\n"
 msgstr "볼륨이 허용 범위를 벗어납니다.\n"
 
 #: src/utils/pactl.c:1647
-#, fuzzy
 msgid "Invalid number of volume specifications.\n"
-msgstr "잘못된 볼륨 사양 "
+msgstr "볼륨 사양의 수가 잘못되었습니다.\n"
 
 #: src/utils/pactl.c:1659
-#, fuzzy
 msgid "Inconsistent volume specification.\n"
-msgstr "잘못된 볼륨 사양 "
+msgstr "볼륨 사양이 일치하지 않습니다.\n"
 
 #: src/utils/pactl.c:1689 src/utils/pactl.c:1690 src/utils/pactl.c:1691
 #: src/utils/pactl.c:1692 src/utils/pactl.c:1693 src/utils/pactl.c:1694
@@ -2915,30 +2851,27 @@ msgstr "[유형]"
 
 #: src/utils/pactl.c:1693
 msgid "FILENAME [NAME]"
-msgstr "파일 이름 [이름]"
+msgstr "파일이름 [NAME]"
 
 #: src/utils/pactl.c:1694
 msgid "NAME [SINK]"
 msgstr "이름 [싱크]"
 
 #: src/utils/pactl.c:1703
-#, fuzzy
 msgid "NAME|#N VOLUME [VOLUME ...]"
-msgstr "이름|#N 볼륨"
+msgstr "이름|#N VOLUME [VOLUME ...]"
 
 #: src/utils/pactl.c:1704
 msgid "#N VOLUME [VOLUME ...]"
-msgstr ""
+msgstr "#N VOLUME [볼륨 ...]"
 
 #: src/utils/pactl.c:1705
-#, fuzzy
 msgid "NAME|#N 1|0|toggle"
-msgstr "이름|#N 1|0"
+msgstr "이름|#N 1|0|toggle"
 
 #: src/utils/pactl.c:1706
-#, fuzzy
 msgid "#N 1|0|toggle"
-msgstr "#N 1|0"
+msgstr "#N 1|0|toggle"
 
 #: src/utils/pactl.c:1707
 msgid "#N FORMATS"
@@ -2951,6 +2884,9 @@ msgid ""
 "The special names @DEFAULT_SINK@, @DEFAULT_SOURCE@ and @DEFAULT_MONITOR@\n"
 "can be used to specify the default sink, source and monitor.\n"
 msgstr ""
+"\n"
+"특별한 이름 @DEFAULT_SINK@, @DEFAULT_SOURCE@ and @DEFAULT_MONITOR@은\n"
+"기본싱크, 소스 및 모니터를 지정하는데 사용 할 수 있습니다.\n"
 
 #: src/utils/pactl.c:1714
 #, c-format
@@ -2965,11 +2901,11 @@ msgid ""
 "server\n"
 msgstr ""
 "\n"
-"  -h, --help                            도움말 표시\n"
-"      --version                         버전 표시\n"
+"  -h, --help 도움말 표시\n"
+" --version 버전 표시\n"
 "\n"
-"  -s, --server=SERVER                   연결할 서버 이름\n"
-"  -n, --client-name=NAME                서버에서 클라이언트 호출 방법\n"
+" -s, --server=SERVER 연결할 서버 이름\n"
+" -n, --client-name=NAME 서버에서 클라이언트 호출 방법\n"
 
 #: src/utils/pactl.c:1755
 #, c-format
@@ -2989,7 +2925,7 @@ msgstr "아무것도 지정하지 않거나 다움 중 하나을 지정합니다
 
 #: src/utils/pactl.c:1822
 msgid "Please specify a sample file to load"
-msgstr "로딩할 샘플 파일을 지정하십시오 "
+msgstr "적재 할 샘플 파일을 지정하십시오"
 
 #: src/utils/pactl.c:1835
 msgid "Failed to open sound file."
@@ -3001,19 +2937,19 @@ msgstr "경고: 파일에서 샘플 사양을 지정할 수 없습니다."
 
 #: src/utils/pactl.c:1857
 msgid "You have to specify a sample name to play"
-msgstr "재생할 샘플 이름을 지정해야 합니다."
+msgstr "재생할 샘플 이름을 지정해야 합니다"
 
 #: src/utils/pactl.c:1869
 msgid "You have to specify a sample name to remove"
-msgstr "제거할 샘플 이름을 지정해야 합니다."
+msgstr "제거할 샘플 이름을 지정해야 합니다"
 
 #: src/utils/pactl.c:1878
 msgid "You have to specify a sink input index and a sink"
-msgstr "싱크 입력 인덱스와 싱크를 지정해야 합니다."
+msgstr "싱크 입력 인덱스와 싱크를 지정해야 합니다"
 
 #: src/utils/pactl.c:1888
 msgid "You have to specify a source output index and a source"
-msgstr "소스 출력 인덱스와 소스를 지정해야 합니다."
+msgstr "소스 출력 인덱스와 소스를 지정해야 합니다"
 
 #: src/utils/pactl.c:1903
 msgid "You have to specify a module name and arguments."
@@ -3021,7 +2957,7 @@ msgstr "모듈 이름과 인수를 지정해야 합니다."
 
 #: src/utils/pactl.c:1923
 msgid "You have to specify a module index or name"
-msgstr "모듈 인덱스 또는 이름을 지정해야 합니다 "
+msgstr "모듈 인덱스 또는 이름을 지정해야 합니다"
 
 #: src/utils/pactl.c:1936
 msgid ""
@@ -3029,9 +2965,8 @@ msgid ""
 msgstr "하나 이상의 싱크를 지정할 수 없습니다. 부울 값을 지정해야 합니다."
 
 #: src/utils/pactl.c:1941 src/utils/pactl.c:1961
-#, fuzzy
 msgid "Invalid suspend specification."
-msgstr "잘못된 샘플 사양 "
+msgstr "일시 중지 사양이 잘못되었습니다."
 
 #: src/utils/pactl.c:1956
 msgid ""
@@ -3041,37 +2976,35 @@ msgstr "하나 이상의 소스를 지정할 수 없습니다. 부울 값을 지
 
 #: src/utils/pactl.c:1973
 msgid "You have to specify a card name/index and a profile name"
-msgstr "카드 이름/인덱스와 프로파일 이름을 지정해야 합니다."
+msgstr "카드 이름/인덱스와 프로파일 이름을 지정해야 합니다"
 
 #: src/utils/pactl.c:1984
 msgid "You have to specify a sink name/index and a port name"
-msgstr "싱크 이름/인덱스와 포트 이름을 지정해야 합니다."
+msgstr "싱크 이름/인덱스와 포트 이름을 지정해야 합니다"
 
 #: src/utils/pactl.c:1995
-#, fuzzy
 msgid "You have to specify a sink name"
-msgstr "모듈 인덱스 또는 이름을 지정해야 합니다 "
+msgstr "모듈 인덱스 또는 이름을 지정해야 합니다"
 
 #: src/utils/pactl.c:2005
 msgid "You have to specify a source name/index and a port name"
-msgstr "소스 이름/인덱스와 포트 이름을 지정해야 합니다."
+msgstr "소스 이름/인덱스와 포트 이름을 지정해야 합니다"
 
 #: src/utils/pactl.c:2016
-#, fuzzy
 msgid "You have to specify a source name"
-msgstr "모듈 인덱스 또는 이름을 지정해야 합니다 "
+msgstr "모듈 인덱스 또는 이름을 지정해야 합니다"
 
 #: src/utils/pactl.c:2026
 msgid "You have to specify a sink name/index and a volume"
-msgstr "싱크 이름/인덱스와 볼륨을 지정해야 합니다."
+msgstr "싱크 이름/인덱스와 볼륨을 지정해야 합니다"
 
 #: src/utils/pactl.c:2039
 msgid "You have to specify a source name/index and a volume"
-msgstr "소스 이름/인덱스와 볼륨을 지정해야 합니다."
+msgstr "소스 이름/인덱스와 볼륨을 지정해야 합니다"
 
 #: src/utils/pactl.c:2052
 msgid "You have to specify a sink input index and a volume"
-msgstr "싱크 입력 인덱스와 볼륨을 지정해야 합니다."
+msgstr "싱크 입력 인덱스와 볼륨을 지정해야 합니다"
 
 #: src/utils/pactl.c:2057
 msgid "Invalid sink input index"
@@ -3079,75 +3012,69 @@ msgstr "잘못된 싱크 입력 인덱스"
 
 #: src/utils/pactl.c:2068
 msgid "You have to specify a source output index and a volume"
-msgstr "소스 출력 인덱스와 볼륨을 지정해야 합니다 "
+msgstr "소스 출력 인덱스와 볼륨을 지정해야 합니다"
 
 #: src/utils/pactl.c:2073
 msgid "Invalid source output index"
-msgstr "잘못된 소스 출력 인덱스 "
+msgstr "잘못된 소스 출력 인덱스"
 
 #: src/utils/pactl.c:2084
-#, fuzzy
 msgid ""
 "You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"
-msgstr "싱크 이름/인덱스와 무음 부울을 지정해야 합니다."
+msgstr "싱크 이름/인덱스와 무음 부울을 지정해야 합니다"
 
 #: src/utils/pactl.c:2089 src/utils/pactl.c:2104 src/utils/pactl.c:2124
 #: src/utils/pactl.c:2142
 msgid "Invalid mute specification"
-msgstr "잘못된 무음 사양 "
+msgstr "잘못된 무음 사양"
 
 #: src/utils/pactl.c:2099
-#, fuzzy
 msgid ""
 "You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
-msgstr "소스 이름/인덱스와 무음 부울을 지정해야 합니다."
+msgstr "소스 이름/인덱스와 무음 부울을 지정해야 합니다 (0, 1, 또는 '토글')"
 
 #: src/utils/pactl.c:2114
-#, fuzzy
 msgid ""
 "You have to specify a sink input index and a mute action (0, 1, or 'toggle')"
-msgstr "싱크 입력 인덱스와 무음 부울을 지정해야 합니다."
+msgstr "싱크 입력 인덱스와 무음 부울을 지정해야 합니다. (0, 1, or '토글')"
 
 #: src/utils/pactl.c:2119
 msgid "Invalid sink input index specification"
-msgstr "잘못된 싱크 입력 인덱스 사양 "
+msgstr "잘못된 싱크 입력 인덱스 사양"
 
 #: src/utils/pactl.c:2132
-#, fuzzy
 msgid ""
 "You have to specify a source output index and a mute action (0, 1, or "
 "'toggle')"
-msgstr "소스 출력 인덱스와 무음 부울을 지정해야 합니다."
+msgstr "소스 출력 인덱스와 무음 부울을 지정해야 합니다. (0, 1, or '토글')"
 
 #: src/utils/pactl.c:2137
 msgid "Invalid source output index specification"
-msgstr "잘못된 소스 출력 인덱스 사양 "
+msgstr "잘못된 소스 출력 인덱스 사양"
 
 #: src/utils/pactl.c:2150
-#, fuzzy
 msgid "You have to specify at least an object path and a message name"
-msgstr "싱크 이름/인덱스와 포트 이름을 지정해야 합니다."
+msgstr "최소한 객체 경로와 메시지 이름을 지정해야만 합니다"
 
 #: src/utils/pactl.c:2160
 msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
-msgstr ""
+msgstr "초과 인수가 주어지면, 이들은 무시될 것입니다. 모든 메시지 변수는 단일 문자열로 주어져야 합니다."
 
 #: src/utils/pactl.c:2170
 msgid ""
 "You have to specify a sink index and a semicolon-separated list of supported "
 "formats"
-msgstr ""
-"싱크 인덱스 및 지원하는 형식의 세미콜론으로 분리된 목록을 지정해야 합니다 "
+msgstr "싱크 인덱스 및 지원하는 형식의 세미콜론으로 분리된 목록을 지정해야 합니다"
 
 #: src/utils/pactl.c:2182
 msgid "You have to specify a card name/index, a port name and a latency offset"
-msgstr "카드 이름/인덱스, 포트 이름 및 지연 오프셋을 지정해야 합니다 "
+msgstr "카드 이름/인덱스, 포트 이름 및 지연 오프셋을 지정해야 합니다"
 
 #: src/utils/pactl.c:2189
 msgid "Could not parse latency offset"
-msgstr "지연 오프셋을 분석할 수 없습니다 "
+msgstr "지연 오프셋을 분석할 수 없습니다"
 
 #: src/utils/pactl.c:2201
 msgid "No valid command specified."
@@ -3194,7 +3121,7 @@ msgid "WARNING: Child process terminated by signal %u\n"
 msgstr "경고: 자식 프로세스가 시그널 %u에 의해 종료되었습니다.\n"
 
 #: src/utils/pasuspender.c:228
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] -- PROGRAM [ARGUMENTS ...]\n"
 "\n"
@@ -3206,11 +3133,13 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
-"%s [옵션] ... \n"
+"%s [옵션] -- 프로그램 -[ 인수 ...]\n"
 "\n"
-"  -h, --help                            도움말 표시\n"
-"      --version                         버전 표시\n"
-"  -s, --server=SERVER                   연결할 서버 이름\n"
+"프로그램이 동작 할 때에 일시적으로 PulseAudio를 중지합니다.\n"
+"\n"
+" -h, --help 도움말 표시\n"
+" --version 버전 표시\n"
+" -s, --server=SERVER 연결할 서버 이름\n"
 "\n"
 
 #: src/utils/pasuspender.c:267
