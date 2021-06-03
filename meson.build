@@ -169,6 +169,10 @@ cdata.set('OS_IS_FREEBSD', 0)
 platform_socket_dep = []
 platform_dep = []
 
+if host_machine.endian() == 'big'
+  cdata.set('WORDS_BIGENDIAN', 1)
+endif
+
 # FIXME: This was not tested. Maybe some flags should better be CFLAGS,
 # rather than ending up in the config.h file?
 if host_machine.system() == 'darwin'
