@@ -23,13 +23,13 @@
 #include <config.h>
 #endif
 
-#include <pulse/json.h>
 #include <pulse/internal.h>
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/core-format.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/i18n.h>
+#include <pulsecore/json.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/strbuf.h>
 

@@ -36,9 +36,9 @@
 
 #include <pulse/pulseaudio.h>
 #include <pulse/ext-device-restore.h>
-#include <pulse/json.h>
 
 #include <pulsecore/i18n.h>
+#include <pulsecore/json.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>

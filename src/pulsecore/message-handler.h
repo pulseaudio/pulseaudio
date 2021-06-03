@@ -19,7 +19,7 @@
 ***/
 
 #include <pulsecore/core.h>
-#include <pulse/json.h>
+#include <pulsecore/json.h>
 
 /* Message handler types and functions */
 
