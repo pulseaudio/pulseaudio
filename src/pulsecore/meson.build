@@ -172,16 +172,37 @@ endif
 
 # FIXME: SIMD support (ORC)
 simd = import('unstable-simd')
-libpulsecore_simd = simd.check('libpulsecore_simd',
-  mmx : ['remap_mmx.c', 'svolume_mmx.c'],
-  sse : ['remap_sse.c', 'sconv_sse.c', 'svolume_sse.c'],
-  neon : ['remap_neon.c', 'sconv_neon.c', 'mix_neon.c'],
-  c_args : [pa_c_args],
-  include_directories : [configinc, topinc],
-  implicit_include_directories : false,
-  compiler : cc)
-libpulsecore_simd_lib = libpulsecore_simd[0]
-cdata.merge_from(libpulsecore_simd[1])
+simd_variants = [
+  { 'mmx' : ['remap_mmx.c', 'svolume_mmx.c'] },
+  { 'sse' : ['remap_sse.c', 'sconv_sse.c', 'svolume_sse.c'] },
+  { 'neon' : ['remap_neon.c', 'sconv_neon.c', 'mix_neon.c'] },
+]
+
+libpulsecore_simd_lib = []
+
+foreach simd_kwargs : simd_variants
+
+  if host_machine.cpu_family() == 'arm' and 'neon' in simd_kwargs
+    if not cc.compiles('''
+        #include <arm_neon.h>
+        int main() {
+            return sizeof(uint8x8_t) + sizeof(int32x4_t) + sizeof(float32x4_t);
+        }
+        ''', name : 'neon code')
+      continue
+    endif
+  endif
+
+  libpulsecore_simd = simd.check('libpulsecore_simd',
+    kwargs : simd_kwargs,
+    c_args : [pa_c_args],
+    include_directories : [configinc, topinc],
+    implicit_include_directories : false,
+    compiler : cc)
+
+  libpulsecore_simd_lib += libpulsecore_simd[0]
+  cdata.merge_from(libpulsecore_simd[1])
+endforeach
 
 if host_machine.system() == 'windows'
   libpulsecore_sources += ['mutex-win32.c',
