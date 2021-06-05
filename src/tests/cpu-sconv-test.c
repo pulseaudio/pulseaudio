@@ -134,7 +134,7 @@ static void run_conv_test_s16_to_float(
 }
 #endif /* defined (__arm__) && defined (__linux__) && defined (HAVE_NEON) */
 
-#if defined (__i386__) || defined (__amd64__)
+#if (defined (__i386__) || defined (__amd64__)) && defined (HAVE_SSE)
 START_TEST (sconv_sse2_test) {
     pa_cpu_x86_flag_t flags = 0;
     pa_convert_func_t orig_func, sse2_func;
@@ -188,7 +188,7 @@ START_TEST (sconv_sse_test) {
     run_conv_test_float_to_s16(sse_func, orig_func, 7, true, true);
 }
 END_TEST
-#endif /* defined (__i386__) || defined (__amd64__) */
+#endif /* (defined (__i386__) || defined (__amd64__)) && defined (HAVE_SSE) */
 
 #if defined (__arm__) && defined (__linux__) && defined (HAVE_NEON)
 START_TEST (sconv_neon_test) {
@@ -244,7 +244,7 @@ int main(int argc, char *argv[]) {
     s = suite_create("CPU");
 
     tc = tcase_create("sconv");
-#if defined (__i386__) || defined (__amd64__)
+#if (defined (__i386__) || defined (__amd64__)) && defined (HAVE_SSE)
     tcase_add_test(tc, sconv_sse2_test);
     tcase_add_test(tc, sconv_sse_test);
 #endif
