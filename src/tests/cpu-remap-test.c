@@ -358,7 +358,7 @@ START_TEST (rearrange_special_test) {
 }
 END_TEST
 
-#if defined (__i386__) || defined (__amd64__)
+#if (defined (__i386__) || defined (__amd64__)) && defined (HAVE_MMX)
 START_TEST (remap_mmx_test) {
     pa_cpu_x86_flag_t flags = 0;
     pa_init_remap_func_t init_func, orig_init_func;
@@ -382,7 +382,9 @@ START_TEST (remap_mmx_test) {
     remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S16NE, 1, 2, false);
 }
 END_TEST
+#endif /* (defined (__i386__) || defined (__amd64__)) && defined (HAVE_MMX) */
 
+#if (defined (__i386__) || defined (__amd64__)) && defined (HAVE_SSE)
 START_TEST (remap_sse2_test) {
     pa_cpu_x86_flag_t flags = 0;
     pa_init_remap_func_t init_func, orig_init_func;
@@ -406,7 +408,7 @@ START_TEST (remap_sse2_test) {
     remap_init_test_channels(init_func, orig_init_func, PA_SAMPLE_S16NE, 1, 2, false);
 }
 END_TEST
-#endif /* defined (__i386__) || defined (__amd64__) */
+#endif /* (defined (__i386__) || defined (__amd64__)) && defined (HAVE_SSE) */
 
 #if defined (__arm__) && defined (__linux__) && defined (HAVE_NEON)
 START_TEST (remap_neon_test) {
@@ -513,8 +515,10 @@ int main(int argc, char *argv[]) {
 
     tc = tcase_create("remap");
     tcase_add_test(tc, remap_special_test);
-#if defined (__i386__) || defined (__amd64__)
+#if (defined (__i386__) || defined (__amd64__)) && defined (HAVE_MMX)
     tcase_add_test(tc, remap_mmx_test);
+#endif
+#if (defined (__i386__) || defined (__amd64__)) && defined (HAVE_SSE)
     tcase_add_test(tc, remap_sse2_test);
 #endif
 #if defined (__arm__) && defined (__linux__) && defined (HAVE_NEON)

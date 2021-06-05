@@ -114,16 +114,20 @@ bool pa_cpu_init_x86(pa_cpu_x86_flag_t *flags) {
     pa_cpu_get_x86_flags(flags);
 
     /* activate various optimisations */
+#ifdef HAVE_MMX
     if (*flags & PA_CPU_X86_MMX) {
         pa_volume_func_init_mmx(*flags);
         pa_remap_func_init_mmx(*flags);
     }
+#endif
 
+#ifdef HAVE_SSE
     if (*flags & (PA_CPU_X86_SSE | PA_CPU_X86_SSE2)) {
         pa_volume_func_init_sse(*flags);
         pa_remap_func_init_sse(*flags);
         pa_convert_func_init_sse(*flags);
     }
+#endif
 
     return true;
 #else /* defined (__i386__) || defined (__amd64__) */
