@@ -650,6 +650,16 @@ static pa_json_context_type_t json_encoder_context_pop(pa_json_encoder *encoder)
     return type;
 }
 
+bool pa_json_encoder_is_empty(pa_json_encoder *encoder) {
+    pa_json_context_type_t type;
+
+    pa_assert(encoder);
+    pa_assert(encoder->context);
+
+    type = encoder->context->type;
+    return type == PA_JSON_CONTEXT_EMPTY;
+}
+
 pa_json_encoder *pa_json_encoder_new(void) {
     pa_json_encoder *encoder;
 

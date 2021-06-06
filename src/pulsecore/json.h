@@ -71,6 +71,8 @@ void pa_json_encoder_free(pa_json_encoder *encoder);
 /** Convert pa_json_encoder to string, free pa_json_encoder structure.
  * The returned string needs to be freed with pa_xree(). \since 15.0 */
 char *pa_json_encoder_to_string_free(pa_json_encoder *encoder);
+/** Check if a pa_json_encoder is empty (nothing has been added). \since 16.0 */
+bool pa_json_encoder_is_empty(pa_json_encoder *encoder);
 
 /** Start appending JSON object element by writing an opening brace. \since 15.0 */
 void pa_json_encoder_begin_element_object(pa_json_encoder *encoder);
