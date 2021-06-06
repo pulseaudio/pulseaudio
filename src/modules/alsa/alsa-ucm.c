@@ -1438,10 +1438,13 @@ int pa_alsa_ucm_set_profile(pa_alsa_ucm_config *ucm, pa_card *card, pa_alsa_prof
     if (new_profile == old_profile)
         return 0;
 
-    if (new_profile == NULL)
+    if (new_profile == NULL) {
         profile = SND_USE_CASE_VERB_INACTIVE;
-    else
+        verb = NULL;
+    } else {
         profile = new_profile->name;
+        verb = new_profile->ucm_context.verb;
+    }
 
     /* change verb */
     pa_log_info("Set UCM verb to %s", profile);
@@ -1449,17 +1452,7 @@ int pa_alsa_ucm_set_profile(pa_alsa_ucm_config *ucm, pa_card *card, pa_alsa_prof
         pa_log("Failed to set verb %s", profile);
         ret = -1;
     }
-
-    /* find active verb */
-    ucm->active_verb = NULL;
-    PA_LLIST_FOREACH(verb, ucm->verbs) {
-        const char *verb_name;
-        verb_name = pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_NAME);
-        if (pa_streq(verb_name, profile)) {
-            ucm->active_verb = verb;
-            break;
-        }
-    }
+    ucm->active_verb = verb;
 
     update_mixer_paths(card->ports, profile);
     return ret;
@@ -1832,6 +1825,7 @@ static int ucm_create_profile(
     p->profile_set = ps;
     p->name = pa_xstrdup(verb_name);
     p->description = pa_xstrdup(verb_desc);
+    p->ucm_context.verb = verb;
 
     p->output_mappings = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
     p->input_mappings = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
