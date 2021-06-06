@@ -249,8 +249,7 @@ static int card_set_profile(pa_card *c, pa_card_profile *new_profile) {
 
     /* if UCM is available for this card then update the verb */
     if (u->use_ucm) {
-        if (pa_alsa_ucm_set_profile(&u->ucm, c, nd->profile ? nd->profile->name : NULL,
-                    od->profile ? od->profile->name : NULL) < 0) {
+        if (pa_alsa_ucm_set_profile(&u->ucm, c, nd->profile, od->profile) < 0) {
             ret = -1;
             goto finish;
         }
@@ -302,7 +301,7 @@ static void init_profile(struct userdata *u) {
 
     if (d->profile && u->use_ucm) {
         /* Set initial verb */
-        if (pa_alsa_ucm_set_profile(ucm, u->card, d->profile->name, NULL) < 0) {
+        if (pa_alsa_ucm_set_profile(ucm, u->card, d->profile, NULL) < 0) {
             pa_log("Failed to set ucm profile %s", d->profile->name);
             return;
         }
