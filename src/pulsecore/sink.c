@@ -3431,6 +3431,8 @@ int pa_sink_set_port(pa_sink *s, const char *name, bool save) {
         return 0;
     }
 
+    s->port_changing = true;
+
     if (s->set_port(s, port) < 0)
         return -PA_ERR_NOENTITY;
 
@@ -3447,6 +3449,8 @@ int pa_sink_set_port(pa_sink *s, const char *name, bool save) {
     pa_core_update_default_sink(s->core);
 
     pa_hook_fire(&s->core->hooks[PA_CORE_HOOK_SINK_PORT_CHANGED], s);
+
+    s->port_changing = false;
 
     return 0;
 }
