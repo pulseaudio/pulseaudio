@@ -3377,6 +3377,10 @@ static void card_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_car
             }
         }
     }
+
+    if (c->version >= 35) {
+        pa_tagstruct_put_boolean(t, card->profile_is_sticky);
+    }
 }
 
 static void module_fill_tagstruct(pa_native_connection *c, pa_tagstruct *t, pa_module *module) {
@@ -4819,6 +4823,49 @@ static void command_set_card_profile(pa_pdispatch *pd, uint32_t command, uint32_
     pa_pstream_send_simple_ack(c->pstream, tag);
 }
 
+static void command_set_card_profile_is_sticky(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
+    uint32_t idx = PA_INVALID_INDEX;
+    const char *name = NULL;
+    pa_card *card = NULL;
+    bool profile_is_sticky;
+    int ret;
+
+    pa_native_connection_assert_ref(c);
+    pa_assert(t);
+
+    if (pa_tagstruct_getu32(t, &idx) < 0 ||
+        pa_tagstruct_gets(t, &name) < 0 ||
+        pa_tagstruct_get_boolean(t, &profile_is_sticky) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+    CHECK_VALIDITY(c->pstream, !name || pa_namereg_is_valid_name(name), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, (idx != PA_INVALID_INDEX) ^ (name != NULL), tag, PA_ERR_INVALID);
+
+    if (idx != PA_INVALID_INDEX)
+        card = pa_idxset_get_by_index(c->protocol->core->cards, idx);
+    else
+        card = pa_namereg_get(c->protocol->core, name, PA_NAMEREG_CARD);
+
+    CHECK_VALIDITY(c->pstream, card, tag, PA_ERR_NOENTITY);
+
+    pa_log_info("Application \"%s\" requests change to card profile_is_sticky flag. card = %s, profile_is_sticky = %s",
+                pa_strnull(pa_proplist_gets(c->client->proplist, PA_PROP_APPLICATION_NAME)),
+                card->name,
+                pa_yes_no(profile_is_sticky));
+
+    if ((ret = pa_card_set_profile_is_sticky(card, profile_is_sticky)) < 0) {
+        pa_pstream_send_error(c->pstream, tag, -ret);
+        return;
+    }
+
+    pa_pstream_send_simple_ack(c->pstream, tag);
+}
+
 static void command_set_sink_or_source_port(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
     pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
     uint32_t idx = PA_INVALID_INDEX;
@@ -5023,6 +5070,8 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_REGISTER_MEMFD_SHMID] = command_register_memfd_shmid,
 
     [PA_COMMAND_SEND_OBJECT_MESSAGE] = command_send_object_message,
+
+    [PA_COMMAND_SET_CARD_PROFILE_IS_STICKY] = command_set_card_profile_is_sticky,
 
     [PA_COMMAND_EXTENSION] = command_extension
 };

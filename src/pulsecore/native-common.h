@@ -190,6 +190,9 @@ enum {
     /* Supported since protocol v34 (14.0) */
     PA_COMMAND_SEND_OBJECT_MESSAGE,
 
+    /* Supported since protocol v35 (15.0) */
+    PA_COMMAND_SET_CARD_PROFILE_IS_STICKY,
+
     PA_COMMAND_MAX
 };
 

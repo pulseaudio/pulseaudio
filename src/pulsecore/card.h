@@ -83,6 +83,7 @@ struct pa_card {
     pa_device_port *preferred_output_port;
 
     bool save_profile:1;
+    bool profile_is_sticky:1;
 
     pa_suspend_cause_t suspend_cause;
 
@@ -139,6 +140,8 @@ void pa_card_free(pa_card *c);
 void pa_card_add_profile(pa_card *c, pa_card_profile *profile);
 
 int pa_card_set_profile(pa_card *c, pa_card_profile *profile, bool save);
+
+int pa_card_set_profile_is_sticky(pa_card *c, bool profile_is_sticky);
 
 void pa_card_set_preferred_port(pa_card *c, pa_direction_t direction, pa_device_port *port);
 

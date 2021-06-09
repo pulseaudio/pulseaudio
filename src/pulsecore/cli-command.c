@@ -132,6 +132,7 @@ static int pa_cli_command_update_source_proplist(pa_core *c, pa_tokenizer *t, pa
 static int pa_cli_command_update_sink_input_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
 static int pa_cli_command_update_source_output_proplist(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
 static int pa_cli_command_card_profile(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
+static int pa_cli_command_card_profile_is_sticky(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
 static int pa_cli_command_sink_port(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
 static int pa_cli_command_source_port(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
 static int pa_cli_command_port_offset(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail);
@@ -167,6 +168,7 @@ static const struct command commands[] = {
     { "set-default-sink",        pa_cli_command_sink_default,       "Set the default sink (args: index|name)", 2},
     { "set-default-source",      pa_cli_command_source_default,     "Set the default source (args: index|name)", 2},
     { "set-card-profile",        pa_cli_command_card_profile,       "Change the profile of a card (args: index|name, profile-name)", 3},
+    { "set-card-profile-is-sticky", pa_cli_command_card_profile_is_sticky,  "Set if card profile selection should be sticky instead of being automated (args: index|name, bool)", 3},
     { "set-sink-port",           pa_cli_command_sink_port,          "Change the port of a sink (args: index|name, port-name)", 3},
     { "set-source-port",         pa_cli_command_source_port,        "Change the port of a source (args: index|name, port-name)", 3},
     { "set-port-latency-offset", pa_cli_command_port_offset,        "Change the latency of a port (args: card-index|card-name, port-name, latency-offset)", 4},
@@ -1677,6 +1679,44 @@ static int pa_cli_command_card_profile(pa_core *c, pa_tokenizer *t, pa_strbuf *b
     return 0;
 }
 
+static int pa_cli_command_card_profile_is_sticky(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
+    const char *n, *sw;
+    pa_card *card;
+    int card_profile_is_sticky;
+
+    pa_core_assert_ref(c);
+    pa_assert(t);
+    pa_assert(buf);
+    pa_assert(fail);
+
+    if (!(n = pa_tokenizer_get(t, 1))) {
+        pa_strbuf_puts(buf, "You need to specify a card either by its name or its index.\n");
+        return -1;
+    }
+
+    if (!(sw = pa_tokenizer_get(t, 2))) {
+        pa_strbuf_puts(buf, "You need to specify card profile sticky flag (0/1).\n");
+        return -1;
+    }
+
+    if (!(card = pa_namereg_get(c, n, PA_NAMEREG_CARD))) {
+        pa_strbuf_puts(buf, "No card found by this name or index.\n");
+        return -1;
+    }
+
+    if ((card_profile_is_sticky = pa_parse_boolean(sw)) < 0) {
+        pa_strbuf_puts(buf, "Failed to parse card profile sticky flag.\n");
+        return -1;
+    }
+
+    if (pa_card_set_profile_is_sticky(card, card_profile_is_sticky) < 0) {
+        pa_strbuf_printf(buf, "Failed to set card profile sticky flag to '%s'.\n", pa_yes_no(card_profile_is_sticky));
+        return -1;
+    }
+
+    return 0;
+}
+
 static int pa_cli_command_sink_port(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool *fail) {
     const char *n, *p;
     pa_sink *sink;
@@ -1898,6 +1938,7 @@ static int pa_cli_command_dump(pa_core *c, pa_tokenizer *t, pa_strbuf *buf, bool
         }
 
         pa_strbuf_printf(buf, "set-card-profile %s %s\n", card->name, card->active_profile->name);
+        pa_strbuf_printf(buf, "set-card-profile-is-sticky %s %s\n", card->name, pa_yes_no(card->profile_is_sticky));
     }
 
     nl = false;

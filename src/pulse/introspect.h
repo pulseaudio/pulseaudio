@@ -613,6 +613,7 @@ typedef struct pa_card_info {
     pa_card_port_info **ports;           /**< Array of pointers to ports, or NULL. Array is terminated by an entry set to NULL. */
     pa_card_profile_info2** profiles2;    /**< Array of pointers to available profiles, or NULL. Array is terminated by an entry set to NULL. \since 5.0 */
     pa_card_profile_info2* active_profile2; /**< Pointer to active profile in the array, or NULL. \since 5.0 */
+    int profile_is_sticky;               /**< Whether profile is sticky or selected automatically. \since 15.0 */
 } pa_card_info;
 
 /** Callback prototype for pa_context_get_card_info_...() \since 0.9.15 */
@@ -632,6 +633,12 @@ pa_operation* pa_context_set_card_profile_by_index(pa_context *c, uint32_t idx, 
 
 /** Change the profile of a card. \since 0.9.15 */
 pa_operation* pa_context_set_card_profile_by_name(pa_context *c, const char*name, const char*profile, pa_context_success_cb_t cb, void *userdata);
+
+/** Set card profile selection to be sticky. \since 15.0 */
+pa_operation* pa_context_set_card_profile_is_sticky_by_index(pa_context *c, uint32_t idx, int flag, pa_context_success_cb_t cb, void *userdata);
+
+/** Set card profile selection to be sticky. \since 15.0 */
+pa_operation* pa_context_set_card_profile_is_sticky_by_name(pa_context *c, const char*name, int flag, pa_context_success_cb_t cb, void *userdata);
 
 /** Set the latency offset of a port. \since 3.0 */
 pa_operation* pa_context_set_port_latency_offset(pa_context *c, const char *card_name, const char *port_name, int64_t offset, pa_context_success_cb_t cb, void *userdata);
