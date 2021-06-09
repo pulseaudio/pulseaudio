@@ -137,6 +137,11 @@ static int try_to_switch_profile(pa_device_port *port) {
     void *state;
     unsigned best_prio = 0;
 
+    if (port->card->profile_is_sticky) {
+        pa_log_info("Keeping sticky card profile '%s'", port->card->active_profile->name);
+        return -1;
+    }
+
     pa_log_debug("Finding best profile for port %s, preferred = %s",
                  port->name, pa_strnull(port->preferred_profile));
 
@@ -391,6 +396,11 @@ static pa_hook_result_t card_profile_available_hook_callback(pa_core *c, pa_card
     if (!pa_streq(profile->name, card->active_profile->name))
         return PA_HOOK_OK;
 
+    if (card->profile_is_sticky) {
+        pa_log_info("Keeping sticky card profile '%s'", profile->name);
+        return PA_HOOK_OK;
+    }
+
     pa_log_debug("Active profile %s on card %s became unavailable, switching to another profile", profile->name, card->name);
     pa_card_set_profile(card, find_best_profile(card), false);
 
@@ -553,7 +563,7 @@ static pa_hook_result_t card_profile_changed_callback(pa_core *core, pa_card *ca
 
     /* This profile change wasn't initiated by the user, so it doesn't signal
      * a change in the user's port preferences. */
-    if (!card->save_profile)
+    if (!card->profile_is_sticky)
         return PA_HOOK_OK;
 
     update_preferred_input_port(card, old_profile, new_profile);

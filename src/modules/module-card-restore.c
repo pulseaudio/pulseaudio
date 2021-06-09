@@ -67,7 +67,7 @@ struct userdata {
     bool restore_bluetooth_profile;
 };
 
-#define ENTRY_VERSION 4
+#define ENTRY_VERSION 5
 
 struct port_info {
     char *name;
@@ -80,6 +80,7 @@ struct entry {
     pa_hashmap *ports; /* Port name -> struct port_info */
     char *preferred_input_port;
     char *preferred_output_port;
+    bool profile_is_sticky; /* since version 5; must be restored together with profile name */
 };
 
 static void save_time_callback(pa_mainloop_api*a, pa_time_event* e, const struct timeval *t, void *userdata) {
@@ -153,8 +154,9 @@ static struct entry *entry_from_card(pa_card *card) {
     pa_assert(card);
 
     entry = entry_new();
-    if (card->save_profile)
-        entry->profile = pa_xstrdup(card->active_profile->name);
+
+    entry->profile_is_sticky = card->profile_is_sticky;
+    entry->profile = pa_xstrdup(card->active_profile->name);
 
     PA_HASHMAP_FOREACH(port, card->ports, state) {
         p_info = port_info_new(port);
@@ -189,6 +191,9 @@ static bool entrys_equal(struct entry *a, struct entry *b) {
     if (!pa_safe_streq(a->preferred_output_port, b->preferred_output_port))
         return false;
 
+    if (a->profile_is_sticky != b->profile_is_sticky)
+        return false;
+
     return true;
 }
 
@@ -216,6 +221,8 @@ static bool entry_write(struct userdata *u, const char *name, const struct entry
 
     pa_tagstruct_puts(t, e->preferred_input_port);
     pa_tagstruct_puts(t, e->preferred_output_port);
+
+    pa_tagstruct_put_boolean(t, e->profile_is_sticky);
 
     key.data = (char *) name;
     key.size = strlen(name);
@@ -342,6 +349,14 @@ static struct entry* entry_read(struct userdata *u, const char *name) {
         e->preferred_output_port = pa_xstrdup(preferred_output_port);
     }
 
+    if (version >= 5) {
+        bool profile_is_sticky;
+        if (pa_tagstruct_get_boolean(t, &profile_is_sticky) < 0)
+            goto fail;
+
+        e->profile_is_sticky = profile_is_sticky;
+    }
+
     if (!pa_tagstruct_eof(t))
         goto fail;
 
@@ -378,7 +393,7 @@ fail:
 static void show_full_info(pa_card *card) {
     pa_assert(card);
 
-    if (card->save_profile)
+    if (card->profile_is_sticky)
         pa_log_info("Storing profile and port latency offsets for card %s.", card->name);
     else
         pa_log_info("Storing port latency offsets for card %s.", card->name);
@@ -392,8 +407,6 @@ static pa_hook_result_t card_put_hook_callback(pa_core *c, pa_card *card, struct
     entry = entry_from_card(card);
 
     if ((old = entry_read(u, card->name))) {
-        if (!card->save_profile)
-            entry->profile = pa_xstrdup(old->profile);
         if (entrys_equal(entry, old))
             goto finish;
     }
@@ -437,11 +450,9 @@ static pa_hook_result_t card_profile_changed_callback(pa_core *c, pa_card *card,
 
     pa_assert(card);
 
-    if (!card->save_profile)
-        return PA_HOOK_OK;
-
     if ((entry = entry_read(u, card->name))) {
         pa_xfree(entry->profile);
+        entry->profile_is_sticky = card->profile_is_sticky;
         entry->profile = pa_xstrdup(card->active_profile->name);
         pa_log_info("Storing card profile for card %s.", card->name);
     } else {
@@ -565,6 +576,12 @@ static pa_hook_result_t card_choose_initial_profile_callback(pa_core *core, pa_c
             goto finish;
     }
 
+    card->profile_is_sticky = e->profile_is_sticky;
+    pa_log_info("Profile '%s' was previously %s for card %s.",
+            e->profile,
+            card->profile_is_sticky ? "sticky" : "automatically selected",
+            card->name);
+
     if (e->profile[0]) {
         pa_card_profile *profile;
 
@@ -572,7 +589,7 @@ static pa_hook_result_t card_choose_initial_profile_callback(pa_core *core, pa_c
         if (profile) {
             if (profile->available != PA_AVAILABLE_NO) {
                 pa_log_info("Restoring profile '%s' for card %s.", profile->name, card->name);
-                pa_card_set_profile(card, profile, true);
+                pa_card_set_profile(card, profile, card->profile_is_sticky);
             } else
                 pa_log_debug("Not restoring profile %s for card %s, because the profile is currently unavailable.",
                              profile->name, card->name);
