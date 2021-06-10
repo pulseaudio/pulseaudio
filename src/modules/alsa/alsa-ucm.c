@@ -732,13 +732,16 @@ static void ucm_set_media_roles(pa_alsa_ucm_modifier *modifier, pa_alsa_ucm_devi
     }
 }
 
-static void convert_to_conflicting(pa_alsa_ucm_verb *verb, pa_alsa_ucm_device *dev)
+/* Treat non-supported devices as conflicting devices */
+static void convert_supported_to_conflicting(pa_alsa_ucm_verb *verb, pa_alsa_ucm_device *dev)
 {
     pa_alsa_ucm_device *verbdev, *d;
     uint32_t idx;
     int found;
 
-    dev->conflicting_devices = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+    if (!dev->conflicting_devices)
+        dev->conflicting_devices = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+
     PA_LLIST_FOREACH(verbdev, verb->devices) {
         found = false;
         PA_IDXSET_FOREACH(d, dev->supported_devices, idx)
@@ -753,7 +756,8 @@ static void convert_to_conflicting(pa_alsa_ucm_verb *verb, pa_alsa_ucm_device *d
     dev->supported_devices = NULL;
 }
 
-static void append_lost_relationship(pa_alsa_ucm_verb *verb, pa_alsa_ucm_device *dev) {
+/* Ensure missing relationships in UCM are populated */
+static void append_missing_relationship(pa_alsa_ucm_verb *verb, pa_alsa_ucm_device *dev) {
     uint32_t idx;
     pa_alsa_ucm_device *d;
 
@@ -763,7 +767,7 @@ static void append_lost_relationship(pa_alsa_ucm_verb *verb, pa_alsa_ucm_device 
                 d->conflicting_devices = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
             if (pa_idxset_put(d->conflicting_devices, dev, NULL) == 0)
-                pa_log_warn("Add lost conflicting device %s to %s",
+                pa_log_warn("Add missing conflicting device %s to %s",
                         pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME),
                         pa_proplist_gets(d->proplist, PA_ALSA_PROP_UCM_NAME));
         }
@@ -775,12 +779,12 @@ static void append_lost_relationship(pa_alsa_ucm_verb *verb, pa_alsa_ucm_device 
                 d->supported_devices = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
             if (pa_idxset_put(d->supported_devices, dev, NULL) == 0)
-                pa_log_warn("Add lost supported device %s to %s",
+                pa_log_warn("Add missing supported device %s to %s",
                         pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME),
                         pa_proplist_gets(d->proplist, PA_ALSA_PROP_UCM_NAME));
         }
 
-        convert_to_conflicting(verb, dev);
+        convert_supported_to_conflicting(verb, dev);
     }
 }
 
@@ -904,9 +908,10 @@ int pa_alsa_ucm_get_verb(snd_use_case_mgr_t *uc_mgr, const char *verb_name, cons
         /* Devices properties */
         ucm_get_device_property(d, uc_mgr, verb, dev_name);
     }
+
     /* make conflicting or supported device mutual */
     PA_LLIST_FOREACH(d, verb->devices)
-        append_lost_relationship(verb, d);
+        append_missing_relationship(verb, d);
 
     PA_LLIST_FOREACH(mod, verb->modifiers) {
         const char *mod_name = pa_proplist_gets(mod->proplist, PA_ALSA_PROP_UCM_NAME);
@@ -1374,7 +1379,7 @@ void pa_alsa_ucm_add_ports(
     pa_xfree(merged_roles);
 }
 
-static int switch_off_combined_devices(pa_alsa_ucm_config *ucm, pa_idxset *set)
+static int switch_off_conflicting_devices(pa_alsa_ucm_config *ucm, pa_idxset *set)
 {
     pa_alsa_ucm_device *dev, *dev2;
     uint32_t idx, idx2;
@@ -1385,9 +1390,9 @@ static int switch_off_combined_devices(pa_alsa_ucm_config *ucm, pa_idxset *set)
     PA_IDXSET_FOREACH(dev, set, idx)
         PA_IDXSET_FOREACH(dev2, dev->conflicting_devices, idx2) {
             const char *name = pa_proplist_gets(dev2->proplist, PA_ALSA_PROP_UCM_NAME);
-            pa_log_debug("Disable ucm combined device %s", name);
+            pa_log_debug("Disable ucm conflicting device %s", name);
             if (snd_use_case_set(ucm->ucm_mgr, "_disdev", name) > 0) {
-                pa_log("Failed to disable ucm combined device %s", name);
+                pa_log("Failed to disable ucm conflicting device %s", name);
                 ret = -1;
             }
         }
@@ -1435,9 +1440,9 @@ int pa_alsa_ucm_set_profile(pa_alsa_ucm_config *ucm, pa_card *card, pa_alsa_prof
         }
     }
 
-    /* Switch off the combined devices */
+    /* Switch off conflicting devices of the combined devices */
     if (ret == 0 && new_profile)
-        ret = switch_off_combined_devices(new_profile->ucm_context.ucm, new_profile->ucm_context.combined_devices);
+        ret = switch_off_conflicting_devices(new_profile->ucm_context.ucm, new_profile->ucm_context.combined_devices);
 
     /* select volume controls on ports */
     PA_HASHMAP_FOREACH(port, card->ports, state) {
