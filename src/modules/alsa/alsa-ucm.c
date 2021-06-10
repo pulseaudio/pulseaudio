@@ -81,11 +81,11 @@ struct ucm_info {
     unsigned priority;
 };
 
-typedef struct {
+struct conflict_pcm {
     bool is_sink;
     char *pcm_name;
     pa_idxset *ucm_devices;
-} pa_alsa_conflict_pcm;
+};
 
 static pa_alsa_jack* ucm_get_jack(pa_alsa_ucm_config *ucm, pa_alsa_ucm_device *device);
 static void device_set_jack(pa_alsa_ucm_device *device, pa_alsa_jack *jack);
@@ -2112,7 +2112,7 @@ static void ucm_probe_profile_set(pa_alsa_ucm_config *ucm, pa_alsa_profile_set *
 }
 
 static void ucm_analyze_add_device(pa_idxset *top, const char *name, const char *pcm_name, bool is_sink) {
-    pa_alsa_conflict_pcm *pcm;
+    struct conflict_pcm *pcm;
     uint32_t idx;
 
     PA_IDXSET_FOREACH(pcm, top, idx) {
@@ -2120,7 +2120,7 @@ static void ucm_analyze_add_device(pa_idxset *top, const char *name, const char 
 	    break;
     }
     if (!pcm) {
-        pcm = pa_xnew0(pa_alsa_conflict_pcm, 1);
+        pcm = pa_xnew0(struct conflict_pcm, 1);
         pcm->is_sink = is_sink;
         pcm->pcm_name = pa_xstrdup(pcm_name);
         pcm->ucm_devices = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
@@ -2153,7 +2153,7 @@ static pa_idxset *ucm_analyze_conflicting(pa_alsa_ucm_verb *verb) {
 }
 
 static void ucm_analyze_conflicting_free(pa_idxset *top) {
-    pa_alsa_conflict_pcm *pcm;
+    struct conflict_pcm *pcm;
     uint32_t idx;
 
     PA_IDXSET_FOREACH(pcm, top, idx) {
@@ -2186,7 +2186,7 @@ static void ucm_analyze_create_profile(
 
 /* return -1: normal device handling, 0 = combination is not selected, 1 = combination is selected */
 static int ucm_analyze_is_combination(pa_idxset *top, const char *name, uint32_t combination) {
-    pa_alsa_conflict_pcm *pcm;
+    struct conflict_pcm *pcm;
     uint32_t idx, idx2, devices, remainder;
     char *name2;
     int res = -1;
@@ -2211,8 +2211,8 @@ static void ucm_analyze_iterate(
         pa_alsa_ucm_verb *verb, pa_idxset *top) {
 
     pa_idxset *set, *cset;
-    pa_alsa_conflict_pcm *pcm;
     pa_alsa_ucm_device *dev;
+    struct conflict_pcm *pcm;
     char *verb_extra_name;
     uint32_t combination, combinations, idx, extra_priority;
 
