@@ -35,3 +35,15 @@ Object path: /card/bluez_card.XX_XX_XX_XX_XX_XX/bluez
 Message: switch-codec
 Parameters: "codec name"
 Return value: none
+
+Description: Set if card profile selection should be sticky instead of being automated
+Object path: /card/<card_name>
+Message: set-profile-sticky
+Parameters: JSON "true" or "false"
+Return value: none
+
+Description: Get if card profile selection should be sticky instead of being automated
+Object path: /card/<card_name>
+Message: get-profile-sticky
+Parameters: None
+Return value: JSON "true" or "false"
