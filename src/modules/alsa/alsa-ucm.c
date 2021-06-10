@@ -1410,13 +1410,12 @@ int pa_alsa_ucm_set_profile(pa_alsa_ucm_config *ucm, pa_card *card, pa_alsa_prof
     char *verb_name, *s;
 
     if (new_profile == old_profile)
-        return ret;
-    else if (new_profile == NULL || old_profile == NULL)
-        profile = new_profile && new_profile->name ? new_profile->name : SND_USE_CASE_VERB_INACTIVE;
-    else if (!pa_streq(new_profile->name ? new_profile->name : "", old_profile->name ? old_profile->name : ""))
-        profile = new_profile->name ? new_profile->name : SND_USE_CASE_VERB_INACTIVE;
+        return 0;
+
+    if (new_profile == NULL)
+        profile = SND_USE_CASE_VERB_INACTIVE;
     else
-        return ret;
+        profile = new_profile->name;
 
     verb_name = pa_xstrdup(profile);
     s = strstr(verb_name, " (");
