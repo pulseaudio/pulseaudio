@@ -739,7 +739,7 @@ static void rfcomm_io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_i
         } else if (sscanf(buf, "AT+XAPL=%04x-%04x-%04x,%d", &vendor, &product, &version, &features) == 4) {
             if (features & 0x2)
                 /* claim, that we support battery status reports */
-                rfcomm_write_response(fd, "+XAPL=iPhone,2");
+                rfcomm_write_response(fd, "+XAPL=iPhone,6");
             do_reply = true;
         } else if (sscanf(buf, "AT+IPHONEACCEV=%d", &num) == 1) {
             char *substr = strchr(buf, ',');
