@@ -61,6 +61,7 @@ struct hfp_config {
     int state;
     bool support_codec_negotiation;
     bool support_msbc;
+    bool supports_indicators;
     int selected_codec;
 };
 
@@ -76,6 +77,7 @@ enum hfp_hf_features {
     HFP_HF_ESTATUS = 5,
     HFP_HF_ECALL = 6,
     HFP_HF_CODECS = 7,
+    HFP_HF_INDICATORS = 8,
 };
 
 enum hfp_ag_features {
@@ -89,12 +91,13 @@ enum hfp_ag_features {
     HFP_AG_ECALL = 7,
     HFP_AG_EERR = 8,
     HFP_AG_CODECS = 9,
+    HFP_AG_INDICATORS = 10,
 };
 
 /* gateway features we support, which is as little as we can get away with */
 static uint32_t hfp_features =
     /* HFP 1.6 requires this */
-    (1 << HFP_AG_ESTATUS ) | (1 << HFP_AG_CODECS);
+    (1 << HFP_AG_ESTATUS ) | (1 << HFP_AG_CODECS) | (1 << HFP_AG_INDICATORS);
 
 #define HSP_AG_PROFILE "/Profile/HSPAGProfile"
 #define HFP_AG_PROFILE "/Profile/HFPAGProfile"
@@ -559,7 +562,7 @@ static pa_volume_t set_source_volume(pa_bluetooth_transport *t, pa_volume_t volu
 static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf)
 {
     struct hfp_config *c = t->config;
-    int val;
+    int indicator, val;
     char str[5];
     const char *r;
     size_t len;
@@ -574,6 +577,7 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
         c->capabilities = val;
         pa_log_info("HFP capabilities returns 0x%x", val);
         rfcomm_write_response(fd, "+BRSF: %d", hfp_features);
+        c->supports_indicators = !!(1 << HFP_HF_INDICATORS);
         c->state = 1;
 
         return true;
@@ -605,7 +609,7 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
         /* we declare minimal no indicators */
         rfcomm_write_response(fd, "+CIND: "
                      /* many indicators can be supported, only call and
-                      * callheld are mandatory, so that's all we repy */
+                      * callheld are mandatory, so that's all we reply */
                      "(\"service\",(0-1)),"
                      "(\"call\",(0-1)),"
                      "(\"callsetup\",(0-3)),"
@@ -655,6 +659,35 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
             transport_put(t);
         }
 
+        return true;
+    } else if (c->supports_indicators && pa_startswith(buf, "AT+BIND=?")) {
+        // Support battery indication
+        rfcomm_write_response(fd, "+BIND: (2)");
+        return true;
+    } else if (c->supports_indicators && pa_startswith(buf, "AT+BIND?")) {
+        // Battery indication is enabled
+        rfcomm_write_response(fd, "+BIND: 2,1");
+        return true;
+    } else if (c->supports_indicators && pa_startswith(buf, "AT+BIND=")) {
+        // If this comma-separated list contains `2`, the HF is
+        // able to report values for the battery indicator.
+        return true;
+    } else if (c->supports_indicators && sscanf(buf, "AT+BIEV=%u,%u", &indicator, &val)) {
+        switch (indicator) {
+            case 2:
+                pa_log_notice("Battery Level: %d%%", val);
+                if (val < 0 || val > 100) {
+                    pa_log_error("Battery HF indicator %d out of [0, 100] range", val);
+                    rfcomm_write_response(fd, "ERROR");
+                    return false;
+                }
+                pa_bluetooth_device_report_battery_level(t->device, val, "HFP 1.7 HF indicator");
+                break;
+            default:
+                pa_log_error("Unknown HF indicator %u", indicator);
+                rfcomm_write_response(fd, "ERROR");
+                return false;
+        }
         return true;
     } if (c->state == 4) {
         /* the ack for the codec setting may take a while. we need
