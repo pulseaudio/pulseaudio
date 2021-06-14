@@ -85,6 +85,9 @@ int main(int argc, char *argv[]) {
 #if !GLIB_CHECK_VERSION(2,36,0)
     g_type_init();
 #endif
+#if GLIB_CHECK_VERSION(2,68,0)
+    g_log_writer_default_set_use_stderr(true);
+#endif
 
     /* gsettings-data-convert copies data from GConf to GSettings. The
      * conversion is defined in the pulseaudio.convert file. The conversion is
