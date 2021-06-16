@@ -106,6 +106,7 @@ struct pa_source {
     bool save_port:1;
     bool save_volume:1;
     bool save_muted:1;
+    bool port_changing:1;
 
     /* Saved volume state while we're in passthrough mode */
     pa_cvolume saved_volume;

@@ -1494,6 +1494,7 @@ static void sink_set_volume_cb(pa_sink *s) {
     pa_cvolume r;
     char volume_buf[PA_CVOLUME_SNPRINT_VERBOSE_MAX];
     bool deferred_volume = !!(s->flags & PA_SINK_DEFERRED_VOLUME);
+    bool write_to_hw = !deferred_volume;
 
     pa_assert(u);
     pa_assert(u->mixer_path);
@@ -1502,7 +1503,14 @@ static void sink_set_volume_cb(pa_sink *s) {
     /* Shift up by the base volume */
     pa_sw_cvolume_divide_scalar(&r, &s->real_volume, s->base_volume);
 
-    if (pa_alsa_path_set_volume(u->mixer_path, u->mixer_handle, &s->channel_map, &r, deferred_volume, !deferred_volume) < 0)
+    /* If the set_volume() is called because of ucm active_port changing, the
+     * volume should be written to hw immediately, otherwise this volume will be
+     * overridden by calling get_volume_cb() which is called by
+     * _disdev/_enadev() -> io_mixer_callback() */
+    if (u->ucm_context && s->port_changing)
+	write_to_hw = true;
+
+    if (pa_alsa_path_set_volume(u->mixer_path, u->mixer_handle, &s->channel_map, &r, deferred_volume, write_to_hw) < 0)
         return;
 
     /* Shift down by the base volume, so that 0dB becomes maximum volume */
