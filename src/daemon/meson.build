@@ -100,7 +100,7 @@ default_conf = configuration_data()
 default_conf.merge_from(cdata)
 default_conf.set('PA_BINARY', cdata.get_unquoted('PA_BINARY'))
 default_conf.set('PA_SOEXT', cdata.get_unquoted('PA_SOEXT'))
-default_conf.set10('HAVE_AF_UNIX', cc.has_header('sys/un.h'))
+default_conf.set10('HAVE_AF_UNIX', cc.has_header('sys/un.h') ? true : cc.has_header('winsock2.h'))
 default_conf.set10('OS_IS_WIN32', host_machine.system() == 'windows')
 default_conf.set10('HAVE_MKFIFO', cc.has_function('mkfifo'))
 
