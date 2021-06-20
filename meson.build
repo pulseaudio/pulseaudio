@@ -614,8 +614,9 @@ if dbus_dep.found()
   cdata.set('HAVE_DBUS', 1)
 endif
 
-gio_dep = dependency('gio-2.0', version : '>= 2.26.0', required : get_option('gsettings'))
-if gio_dep.found()
+gio_dep = dependency('gio-2.0', version : '>= 2.26.0')
+if get_option('gsettings').enabled()
+  assert(gio_dep.found(), 'GSettings support needs glib I/O library (GIO)')
   cdata.set('HAVE_GSETTINGS', 1)
 endif
 
@@ -760,6 +761,7 @@ gstrtp_dep = dependency('gstreamer-rtp-1.0', required : get_option('gstreamer'))
 
 have_gstreamer = false
 if gst_dep.found() and gstapp_dep.found() and gstrtp_dep.found()
+  assert(gio_dep.found(), 'GStreamer-based RTP needs glib I/O library (GIO)')
   have_gstreamer = true
 endif
 
