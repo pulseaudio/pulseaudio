@@ -153,6 +153,7 @@ int main(int argc, char *argv[]) {
     s = suite_create("Thread");
     tc = tcase_create("thread");
     tcase_add_test(tc, thread_test);
+    tcase_set_timeout(tc, 60 * 60);
     suite_add_tcase(s, tc);
 
     sr = srunner_create(s);
