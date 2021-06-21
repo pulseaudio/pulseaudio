@@ -706,7 +706,9 @@ endif
 
 sbc_dep = dependency('sbc', version : '>= 1.0', required : false)
 
-if get_option('bluez5')
+bluez_dep = dependency('bluez', required : get_option('bluez5'))
+
+if bluez_dep.found()
   assert(dbus_dep.found(), 'BlueZ requires D-Bus support')
   assert(sbc_dep.found(), 'BlueZ requires SBC support')
   cdata.set('HAVE_SBC', 1)
@@ -914,9 +916,9 @@ summary = [
   'Enable Async DNS:              @0@'.format(asyncns_dep.found()),
   'Enable LIRC:                   @0@'.format(lirc_dep.found()),
   'Enable D-Bus:                  @0@'.format(dbus_dep.found()),
-  '  Enable BlueZ 5:              @0@'.format(get_option('bluez5')),
-  '    Enable native headsets:    @0@'.format(get_option('bluez5-native-headset')),
-  '    Enable  ofono headsets:    @0@'.format(get_option('bluez5-ofono-headset')),
+  '  Enable BlueZ 5:              @0@'.format(cdata.has('HAVE_BLUEZ_5')),
+  '    Enable native headsets:    @0@'.format(cdata.has('HAVE_BLUEZ_5_NATIVE_HEADSET')),
+  '    Enable  ofono headsets:    @0@'.format(cdata.has('HAVE_BLUEZ_5_OFONO_HEADSET')),
   '    Enable GStreamer based codecs: @0@'.format(have_bluez5_gstreamer),
   'Enable udev:                   @0@'.format(udev_dep.found()),
   '  Enable HAL->udev compat:     @0@'.format(get_option('hal-compat')),

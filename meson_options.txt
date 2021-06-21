@@ -85,7 +85,7 @@ option('avahi',
        type : 'feature', value : 'auto',
        description : 'Optional Avahi support')
 option('bluez5',
-       type : 'boolean', value : 'true',
+       type : 'feature', value : 'auto',
        description : 'Optional BlueZ 5 support')
 option('bluez5-gstreamer',
        type : 'feature', value: 'auto',
