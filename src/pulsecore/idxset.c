@@ -381,6 +381,39 @@ at_end:
     return NULL;
 }
 
+void *pa_idxset_reverse_iterate(pa_idxset *s, void **state, uint32_t *idx) {
+    struct idxset_entry *e;
+
+    pa_assert(s);
+    pa_assert(state);
+
+    if (*state == (void*) -1)
+        goto at_end;
+
+    if ((!*state && !s->iterate_list_tail))
+        goto at_end;
+
+    e = *state ? *state : s->iterate_list_tail;
+
+    if (e->iterate_previous)
+        *state = e->iterate_previous;
+    else
+        *state = (void*) -1;
+
+    if (idx)
+        *idx = e->idx;
+
+    return e->data;
+
+at_end:
+    *state = (void *) -1;
+
+    if (idx)
+        *idx = PA_IDXSET_INVALID;
+
+    return NULL;
+}
+
 void* pa_idxset_steal_first(pa_idxset *s, uint32_t *idx) {
     void *data;
 
@@ -399,6 +432,24 @@ void* pa_idxset_steal_first(pa_idxset *s, uint32_t *idx) {
     return data;
 }
 
+void* pa_idxset_steal_last(pa_idxset *s, uint32_t *idx) {
+    void *data;
+
+    pa_assert(s);
+
+    if (!s->iterate_list_tail)
+        return NULL;
+
+    data = s->iterate_list_tail->data;
+
+    if (idx)
+        *idx = s->iterate_list_tail->idx;
+
+    remove_entry(s, s->iterate_list_tail);
+
+    return data;
+}
+
 void* pa_idxset_first(pa_idxset *s, uint32_t *idx) {
     pa_assert(s);
 
@@ -412,6 +463,21 @@ void* pa_idxset_first(pa_idxset *s, uint32_t *idx) {
         *idx = s->iterate_list_head->idx;
 
     return s->iterate_list_head->data;
+}
+
+void* pa_idxset_last(pa_idxset *s, uint32_t *idx) {
+    pa_assert(s);
+
+    if (!s->iterate_list_tail) {
+        if (idx)
+            *idx = PA_IDXSET_INVALID;
+        return NULL;
+    }
+
+    if (idx)
+        *idx = s->iterate_list_tail->idx;
+
+    return s->iterate_list_tail->data;
 }
 
 void *pa_idxset_next(pa_idxset *s, uint32_t *idx) {
@@ -444,6 +510,50 @@ void *pa_idxset_next(pa_idxset *s, uint32_t *idx) {
          * the next following */
 
         for ((*idx)++; *idx < s->current_index; (*idx)++) {
+
+            hash = *idx % NBUCKETS;
+
+            if ((e = index_scan(s, hash, *idx))) {
+                *idx = e->idx;
+                return e->data;
+            }
+        }
+
+        *idx = PA_IDXSET_INVALID;
+        return NULL;
+    }
+}
+
+void *pa_idxset_previous(pa_idxset *s, uint32_t *idx) {
+    struct idxset_entry *e;
+    unsigned hash;
+
+    pa_assert(s);
+    pa_assert(idx);
+
+    if (*idx == PA_IDXSET_INVALID)
+        return NULL;
+
+    hash = *idx % NBUCKETS;
+
+    if ((e = index_scan(s, hash, *idx))) {
+
+        e = e->iterate_previous;
+
+        if (e) {
+            *idx = e->idx;
+            return e->data;
+        } else {
+            *idx = PA_IDXSET_INVALID;
+            return NULL;
+        }
+
+    } else {
+
+        /* If the entry passed doesn't exist anymore we try to find
+         * the preceding one. */
+
+        for ((*idx)--; *idx < s->current_index; (*idx)--) {
 
             hash = *idx % NBUCKETS;
 
