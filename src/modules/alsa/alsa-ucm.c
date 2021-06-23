@@ -1404,7 +1404,7 @@ void pa_alsa_ucm_add_ports(
 /* Change UCM verb and device to match selected card profile */
 int pa_alsa_ucm_set_profile(pa_alsa_ucm_config *ucm, pa_card *card, pa_alsa_profile *new_profile, pa_alsa_profile *old_profile) {
     int ret = 0;
-    const char *profile;
+    const char *verb_name, *profile_name;
     pa_alsa_ucm_verb *verb;
     pa_device_port *port;
     pa_alsa_ucm_port_data *data;
@@ -1414,17 +1414,20 @@ int pa_alsa_ucm_set_profile(pa_alsa_ucm_config *ucm, pa_card *card, pa_alsa_prof
         return 0;
 
     if (new_profile == NULL) {
-        profile = SND_USE_CASE_VERB_INACTIVE;
         verb = NULL;
+        profile_name = SND_USE_CASE_VERB_INACTIVE;
+        verb_name = SND_USE_CASE_VERB_INACTIVE;
     } else {
-        profile = new_profile->name;
         verb = new_profile->ucm_context.verb;
+        profile_name = new_profile->name;
+        verb_name = pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_NAME);
     }
 
     /* change verb */
-    pa_log_info("Set UCM verb to %s", profile);
-    if ((snd_use_case_set(ucm->ucm_mgr, "_verb", profile)) < 0) {
-        pa_log("Failed to set verb %s", profile);
+    pa_log_info("Set profile to %s", profile_name);
+    pa_log_info("Set UCM verb to %s", verb_name);
+    if ((snd_use_case_set(ucm->ucm_mgr, "_verb", verb_name)) < 0) {
+        pa_log("Failed to set verb %s", verb_name);
         ret = -1;
     }
     ucm->active_verb = verb;
@@ -1432,7 +1435,7 @@ int pa_alsa_ucm_set_profile(pa_alsa_ucm_config *ucm, pa_card *card, pa_alsa_prof
     /* select volume controls on ports */
     PA_HASHMAP_FOREACH(port, card->ports, state) {
         data = PA_DEVICE_PORT_DATA(port);
-        data->path = pa_hashmap_get(data->paths, profile);
+        data->path = pa_hashmap_get(data->paths, profile_name);
     }
 
     return ret;
@@ -1772,8 +1775,8 @@ static int ucm_create_profile(
         pa_alsa_ucm_config *ucm,
         pa_alsa_profile_set *ps,
         pa_alsa_ucm_verb *verb,
-        const char *verb_name,
-        const char *verb_desc) {
+        const char *profile_name,
+        const char *profile_desc) {
 
     pa_alsa_profile *p;
     pa_alsa_ucm_device *dev;
@@ -1781,18 +1784,19 @@ static int ucm_create_profile(
     int i = 0;
     const char *name, *sink, *source;
     unsigned int priority;
+    const char *verb_name = pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_NAME);
 
     pa_assert(ps);
 
-    if (pa_hashmap_get(ps->profiles, verb_name)) {
-        pa_log("Verb %s already exists", verb_name);
+    if (pa_hashmap_get(ps->profiles, profile_name)) {
+        pa_log("Profile %s already exists", profile_name);
         return -1;
     }
 
     p = pa_xnew0(pa_alsa_profile, 1);
     p->profile_set = ps;
-    p->name = pa_xstrdup(verb_name);
-    p->description = pa_xstrdup(verb_desc);
+    p->name = pa_xstrdup(profile_name);
+    p->description = pa_xstrdup(profile_desc);
     p->ucm_context.ucm = ucm;
     p->ucm_context.verb = verb;
 
@@ -2005,14 +2009,18 @@ static void ucm_probe_profile_set(pa_alsa_ucm_config *ucm, pa_alsa_profile_set *
     void *state;
     pa_alsa_profile *p;
     pa_alsa_mapping *m;
+    const char *verb_name;
     uint32_t idx;
 
     PA_HASHMAP_FOREACH(p, ps->profiles, state) {
-        /* change verb */
-        pa_log_info("Set ucm verb to %s", p->name);
+        pa_log_info("Probing profile %s", p->name);
 
-        if ((snd_use_case_set(ucm->ucm_mgr, "_verb", p->name)) < 0) {
-            pa_log("Failed to set verb %s", p->name);
+        /* change verb */
+        verb_name = pa_proplist_gets(p->ucm_context.verb->proplist, PA_ALSA_PROP_UCM_NAME);
+        pa_log_info("Set ucm verb to %s", verb_name);
+
+        if ((snd_use_case_set(ucm->ucm_mgr, "_verb", verb_name)) < 0) {
+            pa_log("Failed to set verb %s", verb_name);
             p->supported = false;
             continue;
         }
