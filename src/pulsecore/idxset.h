@@ -107,6 +107,18 @@ unsigned pa_idxset_size(pa_idxset*s);
 /* Return true of the idxset is empty */
 bool pa_idxset_isempty(pa_idxset *s);
 
+/* Return true if s and t have no entries in common */
+bool pa_idxset_isdisjoint(pa_idxset *s, pa_idxset *t);
+
+/* Return true if all entries in s are also in t */
+bool pa_idxset_issubset(pa_idxset *s, pa_idxset *t);
+
+/* Return true if all entries in t are also in s */
+bool pa_idxset_issuperset(pa_idxset *s, pa_idxset *t);
+
+/* Return true if s and t have all entries in common */
+bool pa_idxset_equals(pa_idxset *s, pa_idxset *t);
+
 /* Duplicate the idxset. This will not copy the actual indexes. If copy_func is
  * set, each entry is copied using the provided function, otherwise a shallow
  * copy will be made. */
