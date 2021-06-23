@@ -627,3 +627,73 @@ pa_idxset *pa_idxset_copy(pa_idxset *s, pa_copy_func_t copy_func) {
 
     return copy;
 }
+
+pa_idxset *pa_idxset_union(pa_idxset *s, pa_idxset *t) {
+    pa_idxset *ret;
+    struct idxset_entry *i;
+
+    pa_assert(s);
+    pa_assert(t);
+
+    ret = pa_idxset_new(s->hash_func, s->compare_func);
+
+    for (i = s->iterate_list_head; i; i = i->iterate_next)
+        pa_idxset_put(ret, i->data, NULL);
+
+    for (i = t->iterate_list_head; i; i = i->iterate_next)
+        pa_idxset_put(ret, i->data, NULL);
+
+    return ret;
+}
+
+pa_idxset *pa_idxset_intersection(pa_idxset *s, pa_idxset *t) {
+    pa_idxset *ret;
+    struct idxset_entry *i;
+
+    pa_assert(s);
+    pa_assert(t);
+
+    ret = pa_idxset_new(s->hash_func, s->compare_func);
+
+    for (i = s->iterate_list_head; i; i = i->iterate_next)
+        if (pa_idxset_contains(t, i->data))
+            pa_idxset_put(ret, i->data, NULL);
+
+    return ret;
+}
+
+pa_idxset *pa_idxset_difference(pa_idxset *s, pa_idxset *t) {
+    pa_idxset *ret;
+    struct idxset_entry *i;
+
+    pa_assert(s);
+    pa_assert(t);
+
+    ret = pa_idxset_new(s->hash_func, s->compare_func);
+
+    for (i = s->iterate_list_head; i; i = i->iterate_next)
+        if (!pa_idxset_contains(t, i->data))
+            pa_idxset_put(ret, i->data, NULL);
+
+    return ret;
+}
+
+pa_idxset *pa_idxset_symmetric_difference(pa_idxset *s, pa_idxset *t) {
+    pa_idxset *ret;
+    struct idxset_entry *i;
+
+    pa_assert(s);
+    pa_assert(t);
+
+    ret = pa_idxset_new(s->hash_func, s->compare_func);
+
+    for (i = s->iterate_list_head; i; i = i->iterate_next)
+        if (!pa_idxset_contains(t, i->data))
+            pa_idxset_put(ret, i->data, NULL);
+
+    for (i = t->iterate_list_head; i; i = i->iterate_next)
+        if (!pa_idxset_contains(s, i->data))
+            pa_idxset_put(ret, i->data, NULL);
+
+    return ret;
+}

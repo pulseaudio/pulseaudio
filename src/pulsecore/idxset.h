@@ -131,6 +131,18 @@ bool pa_idxset_equals(pa_idxset *s, pa_idxset *t);
  * copy will be made. */
 pa_idxset *pa_idxset_copy(pa_idxset *s, pa_copy_func_t copy_func);
 
+/* Return a new idxset which has all entries of both idxsets. */
+pa_idxset *pa_idxset_union(pa_idxset *s, pa_idxset *t);
+
+/* Return a new idxset which has entries common to both idxsets. */
+pa_idxset *pa_idxset_intersection(pa_idxset *s, pa_idxset *t);
+
+/* Return a new idxset of entries in s that are not in t. */
+pa_idxset *pa_idxset_difference(pa_idxset *s, pa_idxset *t);
+
+/* Return a new idxset of entries in either s or t, but not in both. */
+pa_idxset *pa_idxset_symmetric_difference(pa_idxset *s, pa_idxset *t);
+
 /* A macro to ease iteration through all entries */
 #define PA_IDXSET_FOREACH(e, s, idx) \
     for ((e) = pa_idxset_first((s), &(idx)); (e); (e) = pa_idxset_next((s), &(idx)))
