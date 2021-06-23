@@ -88,18 +88,25 @@ void* pa_idxset_rrobin(pa_idxset *s, uint32_t *idx);
 
 /* Iterate through the idxset. At first iteration state should be NULL */
 void *pa_idxset_iterate(pa_idxset *s, void **state, uint32_t *idx);
+void *pa_idxset_reverse_iterate(pa_idxset *s, void **state, uint32_t *idx);
 
-/* Return the oldest entry in the idxset and remove it. If idx is not NULL fill in its index in *idx */
+/* Return the oldest or newest entry in the idxset and remove it.
+ * If idx is not NULL fill in its index in *idx */
 void* pa_idxset_steal_first(pa_idxset *s, uint32_t *idx);
+void* pa_idxset_steal_last(pa_idxset *s, uint32_t *idx);
 
-/* Return the oldest entry in the idxset. Fill in its index in *idx. */
+/* Return the oldest or newest entry in the idxset.
+ * Fill in its index in *idx. */
 void* pa_idxset_first(pa_idxset *s, uint32_t *idx);
+void* pa_idxset_last(pa_idxset *s, uint32_t *idx);
 
-/* Return the entry following the entry indexed by *idx.  After the
- * call *index contains the index of the returned
- * object. pa_idxset_first() and pa_idxset_next() may be used to
- * iterate through the set.*/
+/* Return the entry following or preceding the entry indexed by *idx.
+ * After the call *index contains the index of the returned object.
+ * pa_idxset_first() and pa_idxset_next() may be used to iterate through
+ * the set. pa_idxset_last() and pa_idxset_previous() may be used to
+ * iterate through the set in reverse. */
 void *pa_idxset_next(pa_idxset *s, uint32_t *idx);
+void *pa_idxset_previous(pa_idxset *s, uint32_t *idx);
 
 /* Return the current number of entries in the idxset */
 unsigned pa_idxset_size(pa_idxset*s);
