@@ -470,6 +470,40 @@ bool pa_idxset_isempty(pa_idxset *s) {
     return s->n_entries == 0;
 }
 
+bool pa_idxset_isdisjoint(pa_idxset *s, pa_idxset *t) {
+    struct idxset_entry *i;
+
+    pa_assert(s);
+    pa_assert(t);
+
+    for (i = s->iterate_list_head; i; i = i->iterate_next)
+        if (pa_idxset_contains(t, i->data))
+            return false;
+
+    return true;
+}
+
+bool pa_idxset_issubset(pa_idxset *s, pa_idxset *t) {
+    struct idxset_entry *i;
+
+    pa_assert(s);
+    pa_assert(t);
+
+    for (i = s->iterate_list_head; i; i = i->iterate_next)
+        if (!pa_idxset_contains(t, i->data))
+            return false;
+
+    return true;
+}
+
+bool pa_idxset_issuperset(pa_idxset *s, pa_idxset *t) {
+    return pa_idxset_issubset(t, s);
+}
+
+bool pa_idxset_equals(pa_idxset *s, pa_idxset *t) {
+    return pa_idxset_issubset(s, t) && pa_idxset_issuperset(s, t);
+}
+
 pa_idxset *pa_idxset_copy(pa_idxset *s, pa_copy_func_t copy_func) {
     pa_idxset *copy;
     struct idxset_entry *i;
