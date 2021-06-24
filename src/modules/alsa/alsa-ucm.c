@@ -1468,7 +1468,9 @@ static void alsa_mapping_add_ucm_device(pa_alsa_mapping *m, pa_alsa_ucm_device *
     const char *new_desc, *mdev;
     bool is_sink = m->direction == PA_ALSA_DIRECTION_OUTPUT;
 
-    pa_idxset_put(m->ucm_context.ucm_devices, device, NULL);
+    /* Add device, return if it was already included. */
+    if (pa_idxset_put(m->ucm_context.ucm_devices, device, NULL) != 0)
+        return;
 
     new_desc = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_DESCRIPTION);
     cur_desc = m->description;
@@ -1497,7 +1499,9 @@ static void alsa_mapping_add_ucm_modifier(pa_alsa_mapping *m, pa_alsa_ucm_modifi
     const char *new_desc, *mod_name, *channel_str;
     uint32_t channels = 0;
 
-    pa_idxset_put(m->ucm_context.ucm_modifiers, modifier, NULL);
+    /* Add modifier, return if it was already included. */
+    if (pa_idxset_put(m->ucm_context.ucm_modifiers, modifier, NULL) != 0)
+        return;
 
     new_desc = pa_proplist_gets(modifier->proplist, PA_ALSA_PROP_UCM_DESCRIPTION);
     cur_desc = m->description;
