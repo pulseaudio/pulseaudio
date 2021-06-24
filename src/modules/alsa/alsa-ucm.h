@@ -221,11 +221,8 @@ struct pa_alsa_ucm_modifier {
 
     pa_proplist *proplist;
 
-    int n_confdev;
-    int n_suppdev;
-
-    const char **conflicting_devices;
-    const char **supported_devices;
+    pa_idxset *conflicting_devices;
+    pa_idxset *supported_devices;
 
     pa_direction_t action_direction;
 
