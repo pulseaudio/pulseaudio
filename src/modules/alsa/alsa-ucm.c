@@ -1472,7 +1472,7 @@ static void alsa_mapping_add_ucm_device(pa_alsa_mapping *m, pa_alsa_ucm_device *
 
     new_desc = pa_proplist_gets(device->proplist, PA_ALSA_PROP_UCM_DESCRIPTION);
     cur_desc = m->description;
-    if (cur_desc)
+    if (cur_desc && !pa_streq(cur_desc, new_desc))
         m->description = pa_sprintf_malloc("%s + %s", cur_desc, new_desc);
     else
         m->description = pa_xstrdup(new_desc);
@@ -1501,7 +1501,7 @@ static void alsa_mapping_add_ucm_modifier(pa_alsa_mapping *m, pa_alsa_ucm_modifi
 
     new_desc = pa_proplist_gets(modifier->proplist, PA_ALSA_PROP_UCM_DESCRIPTION);
     cur_desc = m->description;
-    if (cur_desc)
+    if (cur_desc && !pa_streq(cur_desc, new_desc))
         m->description = pa_sprintf_malloc("%s + %s", cur_desc, new_desc);
     else
         m->description = pa_xstrdup(new_desc);
