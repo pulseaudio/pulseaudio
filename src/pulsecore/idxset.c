@@ -258,6 +258,20 @@ void* pa_idxset_get_by_data(pa_idxset*s, const void *p, uint32_t *idx) {
     return e->data;
 }
 
+bool pa_idxset_contains(pa_idxset *s, const void *p) {
+    unsigned hash;
+    struct idxset_entry *e;
+
+    pa_assert(s);
+
+    hash = s->hash_func(p) % NBUCKETS;
+
+    if (!(e = data_scan(s, hash, p)))
+        return false;
+
+    return e->data == p;
+}
+
 void* pa_idxset_remove_by_index(pa_idxset*s, uint32_t idx) {
     struct idxset_entry *e;
     unsigned hash;

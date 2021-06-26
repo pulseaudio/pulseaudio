@@ -66,6 +66,9 @@ void* pa_idxset_get_by_index(pa_idxset*s, uint32_t idx);
 /* Get the entry by its data. The index is returned in *idx */
 void* pa_idxset_get_by_data(pa_idxset*s, const void *p, uint32_t *idx);
 
+/* Return true if item is in idxset */
+bool pa_idxset_contains(pa_idxset *s, const void *p);
+
 /* Similar to pa_idxset_get_by_index(), but removes the entry from the idxset. */
 void* pa_idxset_remove_by_index(pa_idxset*s, uint32_t idx);
 
