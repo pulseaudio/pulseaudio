@@ -15,7 +15,7 @@ msgstr ""
 "issues/new\n"
 "POT-Creation-Date: 2021-03-08 16:26+0200\n"
 "PO-Revision-Date: 2021-06-28 15:04+0000\n"
-"Last-Translator: Emilio Herrera <ehespinosa57@gmail.com>\n"
+"Last-Translator: Toni Estevez <toni.estevez@gmail.com>\n"
 "Language-Team: Spanish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/es/>\n"
 "Language: es\n"
@@ -214,13 +214,12 @@ msgid "--use-pid-file expects boolean argument"
 msgstr "--use pid-file espera un argumento booleano"
 
 #: src/daemon/cmdline.c:328
-#, fuzzy
 msgid ""
 "Invalid log target: use either 'syslog', 'journal', 'stderr' or 'auto' or a "
 "valid file name 'file:<path>', 'newfile:<path>'."
 msgstr ""
-"El tipo de registro no es válido; use 'syslog', 'journal', 'stderr', 'auto' "
-"o un nombre de fichero válido con 'file:<ruta>' o 'newfile:<ruta>'."
+"El objetivo del registro no es válido; use «syslog», «journal», «stderr», "
+"«auto» o un nombre de archivo válido con «file:<ruta>» o «newfile:<ruta>»."
 
 #: src/daemon/cmdline.c:330
 msgid ""
@@ -1164,7 +1163,6 @@ msgid "Virtual LADSPA sink"
 msgstr "Destino virtual LADSPA"
 
 #: src/modules/module-ladspa-sink.c:54
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "sink_input_properties=<properties for the sink input> master=<name of sink "
@@ -1177,13 +1175,15 @@ msgid ""
 "is being loaded automatically> "
 msgstr ""
 "sink_name=<nombre para el destino> sink_properties=<propiedades para el "
-"destino> master=<nombre del destino a filtrar> format=<formato de muestra> "
-"rate=<tasa de muestra> channels=<número de canales> channel_map=<mapeo de "
-"canales de entrada> plugin=<nombre del complemento ladspa> label=<etiqueta "
-"del complemento ladspa> control=<lista separada por comas de valores de "
-"control de entrada> input_ladspaport_map=<lista separada por comas de "
-"nombres de puertos de entrada LADSPA> output_ladspaport_map=<lista separada "
-"por comas de nombres de puertos de salida LADSPA>"
+"destino> master=<nombre del destino para filtrar> format=<formato de "
+"muestra> rate=<tasa de muestreo> channels=<número de canales> "
+"channel_map=<mapa de los canales de entrada> plugin=<nombre del complemento "
+"LADSPA> label=<etiqueta del complemento LADSPA> control=<lista de los "
+"valores de control de entrada separados por comas> "
+"input_ladspaport_map=<lista de los nombres de puertos de entrada LADSPA "
+"separados por comas> output_ladspaport_map=<lista de los nombres de puertos "
+"de salida LADSPA separados por comas> autoloaded=<seleccionar si este módulo "
+"se carga automáticamente> "
 
 #: src/modules/module-null-sink.c:46
 msgid "Clocked NULL sink"
@@ -1233,7 +1233,6 @@ msgid "Virtual surround sink"
 msgstr "Destino envolvente virtual"
 
 #: src/modules/module-virtual-surround-sink.c:54
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "master=<name of sink to filter> sink_master=<name of sink to filter> "
@@ -1244,19 +1243,18 @@ msgid ""
 "this module is being loaded automatically> "
 msgstr ""
 "sink_name=<nombre para el destino> sink_properties=<propiedades para el "
-"destino> master=<nombre del destino a filtrar> format=<formato de muestra> "
-"rate=<tasa de muestra> channels=<número de canales> channel_map=<mapa de "
-"canales> use_volume_sharing=<yes o no> force_flat_volume=<yes o no> hrir=/"
-"ruta/a/left_hrir.wav "
+"destino> master=<nombre del destino para filtrar> format=<formato de "
+"muestra> rate=<tasa de muestreo> channels=<número de canales> "
+"channel_map=<mapa de canales> use_volume_sharing=<yes o no> "
+"force_flat_volume=<yes o no> hrir=/ruta/a/left_hrir.wav "
 
 #: src/modules/raop/module-raop-discover.c:295
-#, fuzzy
 msgid "Unknown device model"
-msgstr "Código de error desconocido"
+msgstr "Modelo de dispositivo desconocido"
 
 #: src/modules/raop/raop-sink.c:655
 msgid "RAOP standard profile"
-msgstr ""
+msgstr "Perfil estándar de RAOP"
 
 #: src/modules/reserve-wrap.c:149
 msgid "PulseAudio Sound Server"
@@ -1532,15 +1530,16 @@ msgid "invalid"
 msgstr "inválido"
 
 #: src/pulsecore/core-util.c:1780
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "XDG_RUNTIME_DIR (%s) is not owned by us (uid %d), but by uid %d! (This could "
 "e.g. happen if you try to connect to a non-root PulseAudio as a root user, "
 "over the native protocol. Don't do that.)"
 msgstr ""
-"¡Los propietarios de XDG_RUNTIME_DIR (%s) no somos nosotrs (uid %d), sino "
-"uid %d! Puede pasar, por ejemplo, al intentar conectarse mediante protocolo "
-"nativo a un PulseAudio de usuario siendo root. No haga eso."
+"XDG_RUNTIME_DIR (%s) no es de nuestra propiedad (usuario %d), sino del "
+"usuario %d. Puede pasar, por ejemplo, al intentar conectarse como "
+"superusuario a un servidor PulseAudio que se ejecuta sin privilegios de "
+"administrador mediante el protocolo nativo. No lo haga."
 
 #: src/pulsecore/core-util.h:97
 msgid "yes"
@@ -1822,9 +1821,8 @@ msgid "Cork request stack is empty: uncorking stream"
 msgstr "La pila de peticiones de pausa está vacía: reactivando flujo"
 
 #: src/utils/pacat.c:425
-#, fuzzy
 msgid "Warning: Received more uncork requests than cork requests."
-msgstr "Aviso: ¡se han recibido más peticiones de reactivación que de pausa!"
+msgstr "Aviso: se han recibido más peticiones de reactivación que de pausa."
 
 #: src/utils/pacat.c:450
 #, c-format
@@ -2014,23 +2012,30 @@ msgstr ""
 #: src/utils/pacat.c:793
 msgid "Play back encoded audio files on a PulseAudio sound server."
 msgstr ""
+"Reproducir archivos de audio codificados en un servidor de sonido PulseAudio."
 
 #: src/utils/pacat.c:797
 msgid ""
 "Capture audio data from a PulseAudio sound server and write it to a file."
 msgstr ""
+"Capturar los datos de audio de un servidor de sonido PulseAudio y "
+"escribirlos en un archivo."
 
 #: src/utils/pacat.c:801
 msgid ""
 "Capture audio data from a PulseAudio sound server and write it to STDOUT or "
 "the specified file."
 msgstr ""
+"Capturar los datos de audio de un servidor de sonido PulseAudio y "
+"escribirlos en STDOUT o en el archivo especificado."
 
 #: src/utils/pacat.c:805
 msgid ""
 "Play back audio data from STDIN or the specified file on a PulseAudio sound "
 "server."
 msgstr ""
+"Reproducir datos de audio desde STDIN o el archivo especificado en un "
+"servidor de sonido PulseAudio."
 
 #: src/utils/pacat.c:819
 #, c-format
@@ -2259,7 +2264,6 @@ msgid "TARGET"
 msgstr "DESTINO"
 
 #: src/utils/pacmd.c:76
-#, fuzzy
 msgid "NUMERIC-LEVEL"
 msgstr "NIVEL-NUMÉRICO"
 
@@ -2269,7 +2273,7 @@ msgstr "LOTES"
 
 #: src/utils/pacmd.c:80 src/utils/pactl.c:1709
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
-msgstr ""
+msgstr "MENSAJE DEL DESTINATARIO [PARÁMETETROS_DEL_MENSAJE]"
 
 #: src/utils/pacmd.c:82
 #, c-format
