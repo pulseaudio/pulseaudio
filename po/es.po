@@ -14,8 +14,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-03-08 16:26+0200\n"
-"PO-Revision-Date: 2021-04-13 06:02+0000\n"
-"Last-Translator: Toni Estevez <toni.estevez@gmail.com>\n"
+"PO-Revision-Date: 2021-06-28 15:04+0000\n"
+"Last-Translator: Emilio Herrera <ehespinosa57@gmail.com>\n"
 "Language-Team: Spanish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/es/>\n"
 "Language: es\n"
@@ -23,11 +23,11 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.5.3\n"
+"X-Generator: Weblate 4.7\n"
 "X-Poedit-Language: Spanish\n"
 
 #: src/daemon/cmdline.c:113
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -113,8 +113,8 @@ msgstr ""
 "  -k  --kill                            Mata un demonio en ejecución\n"
 "      --check                           Comprueba si hay un demonio en "
 "marcha\n"
-"                                        (sólo devuelve el código de "
-"retorno)\n"
+"                                        (sólo devuelve el código de retorno)"
+"\n"
 "\n"
 "OPCIONES:\n"
 "      --system[=BOOL]                   Se ejecuta como instancia de "
@@ -1890,7 +1890,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() falló: %s"
 
 #: src/utils/pacat.c:676
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "%s\n"
@@ -1956,6 +1956,8 @@ msgid ""
 "index INDEX.\n"
 msgstr ""
 "%s [opciones]\n"
+"%s\n"
+"\n"
 "\n"
 "  -h, --help                         Muestra esta ayuda\n"
 "      --version                      Muestra la versión\n"
@@ -1975,10 +1977,10 @@ msgstr ""
 "      --volume=VOLUMEN               Volumen inicial (lineal) de 0 a 65536\n"
 "      --rate=TASA                    Tasa de muestreo en Hz (pred. 44100)\n"
 "      --format=FORMATO               Tipo de muestra: s16le, s16be, u8,\n"
-"                                     float32le, float32be, ulaw, alaw, "
-"s32le,\n"
-"                                     s32be, s24le, s24be, s24-32le, "
-"s24-32be\n"
+"                                     float32le, float32be, ulaw, alaw, s32le,"
+"\n"
+"                                     s32be, s24le, s24be, s24-32le, s24-"
+"32be\n"
 "                                     (pred. s16ne)\n"
 "      --channels=CANALES             Número de canales: 1 mono, 2 estéreo\n"
 "                                     (pred. 2)\n"
@@ -2338,19 +2340,19 @@ msgid "Failed to get statistics: %s"
 msgstr "Error al intentar obtener estadísticas: %s"
 
 #: src/utils/pactl.c:175
-#, fuzzy, c-format
+#, c-format
 msgid "Currently in use: %u block containing %s bytes total.\n"
 msgid_plural "Currently in use: %u blocks containing %s bytes total.\n"
-msgstr[0] "Actualmente en uso: %u bloques conteniendo %s bytes en total.\n"
+msgstr[0] "Actualmente en uso: %u bloque conteniendo %s bytes en total.\n"
 msgstr[1] "Actualmente en uso: %u bloques conteniendo %s bytes en total.\n"
 
 #: src/utils/pactl.c:181
-#, fuzzy, c-format
+#, c-format
 msgid "Allocated during whole lifetime: %u block containing %s bytes total.\n"
 msgid_plural ""
 "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
 msgstr[0] ""
-"Ubicados durante a lo largo del tiempo: %u bloques conteniendo %s bytes en "
+"Ubicados durante a lo largo del tiempo: %u bloque conteniendo %s bytes en "
 "total.\n"
 msgstr[1] ""
 "Ubicados durante a lo largo del tiempo: %u bloques conteniendo %s bytes en "
@@ -2408,11 +2410,11 @@ msgstr ""
 
 #: src/utils/pactl.c:242
 msgid "availability unknown"
-msgstr ""
+msgstr "disponibilidad desconocida"
 
 #: src/utils/pactl.c:243
 msgid "available"
-msgstr ""
+msgstr "disponible"
 
 #: src/utils/pactl.c:244
 msgid "not available"
