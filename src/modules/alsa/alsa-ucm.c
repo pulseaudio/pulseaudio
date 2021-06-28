@@ -89,7 +89,7 @@ static pa_alsa_ucm_device *verb_find_device(pa_alsa_ucm_verb *verb, const char *
 
 
 static void ucm_port_data_init(pa_alsa_ucm_port_data *port, pa_alsa_ucm_config *ucm, pa_device_port *core_port,
-                               pa_alsa_ucm_device **devices, unsigned n_devices);
+                               pa_idxset *devices);
 static void ucm_port_data_free(pa_device_port *port);
 static void ucm_port_update_available(pa_alsa_ucm_port_data *port);
 
@@ -885,13 +885,14 @@ static void set_eld_devices(pa_hashmap *hash)
     pa_alsa_ucm_device *dev;
     const char *eld_mixer_device_name;
     void *state;
-    int idx, eld_device;
+    int eld_device;
+    uint32_t idx;
 
     PA_HASHMAP_FOREACH(port, hash, state) {
         data = PA_DEVICE_PORT_DATA(port);
         eld_mixer_device_name = NULL;
         eld_device = -1;
-        PA_DYNARRAY_FOREACH(dev, data->devices, idx) {
+        PA_IDXSET_FOREACH(dev, data->devices, idx) {
             if (dev->eld_device >= 0 && dev->eld_mixer_device_name) {
                 if (eld_device >= 0 && eld_device != dev->eld_device) {
                     pa_log_error("The ELD device is already set!");
@@ -916,13 +917,13 @@ static void probe_volumes(pa_hashmap *hash, bool is_sink, snd_pcm_t *pcm_handle,
     snd_mixer_t *mixer_handle;
     const char *profile, *mdev, *mdev2;
     void *state, *state2;
-    int idx;
+    uint32_t idx;
 
     PA_HASHMAP_FOREACH(port, hash, state) {
         data = PA_DEVICE_PORT_DATA(port);
 
         mdev = NULL;
-        PA_DYNARRAY_FOREACH(dev, data->devices, idx) {
+        PA_IDXSET_FOREACH(dev, data->devices, idx) {
             mdev2 = get_mixer_device(dev, is_sink);
             if (mdev && mdev2 && !pa_streq(mdev, mdev2)) {
                 pa_log_error("Two mixer device names found ('%s', '%s'), using s/w volume", mdev, mdev2);
@@ -1072,29 +1073,17 @@ static void ucm_add_port_combination(
         pa_core *core) {
 
     pa_device_port *port;
-    int i;
-    int num = pa_idxset_size(devices);
     uint32_t idx;
     unsigned priority;
     char *name, *desc, *tmp;
     const char *direction;
     const char *profile;
-    pa_alsa_ucm_device *sorted[num], *dev;
+    pa_alsa_ucm_device *dev;
     pa_alsa_ucm_port_data *data;
     pa_alsa_ucm_volume *vol;
     pa_alsa_jack *jack, *jack2;
     pa_device_port_type_t type, type2;
     void *state;
-
-    i = 0;
-    PA_IDXSET_FOREACH(dev, devices, idx) {
-        sorted[i] = dev;
-        i++;
-    }
-
-    /* Sort by alphabetical order so as to have a deterministic naming scheme
-     * for combination ports */
-    qsort(&sorted[0], num, sizeof(pa_alsa_ucm_device *), pa_alsa_ucm_device_cmp);
 
     name = devset_name(devices, "+");
     tmp = pa_sprintf_malloc("%s%s", is_sink ? PA_UCM_PRE_TAG_OUTPUT : PA_UCM_PRE_TAG_INPUT, name);
@@ -1111,11 +1100,11 @@ static void ucm_add_port_combination(
     /* Make combination ports always have lower priority */
     priority = is_sink ? devset_playback_priority(devices, true) : devset_capture_priority(devices, true);
 
-    dev = sorted[0];
+    dev = pa_idxset_first(devices, &idx);
     jack = ucm_get_jack(context->ucm, dev);
     type = dev->type;
 
-    for (i = 1; i < num; i++) {
+    for (; dev; dev = pa_idxset_next(devices, &idx)) {
         jack2 = ucm_get_jack(context->ucm, dev);
         if (jack2) {
             if (jack && jack != jack2)
@@ -1147,15 +1136,16 @@ static void ucm_add_port_combination(
         pa_device_port_new_data_done(&port_data);
 
         data = PA_DEVICE_PORT_DATA(port);
-        ucm_port_data_init(data, context->ucm, port, sorted, num);
+        ucm_port_data_init(data, context->ucm, port, devices);
         port->impl_free = ucm_port_data_free;
 
         pa_hashmap_put(ports, port->name, port);
         pa_log_debug("Add port %s: %s", port->name, port->description);
 
-        if (num == 1) {
+        if (pa_idxset_size(devices) == 1) {
             /* To keep things simple and not worry about stacking controls, we only support hardware volumes on non-combination
              * ports. */
+            dev = pa_idxset_first(devices, NULL);
             data = PA_DEVICE_PORT_DATA(port);
 
             PA_HASHMAP_FOREACH_KV(profile, vol, is_sink ? dev->playback_volumes : dev->capture_volumes, state) {
@@ -1174,7 +1164,6 @@ static void ucm_add_port_combination(
                     pa_hashmap_put(data->paths, pa_xstrdup(profile), path);
 
                     /* Add path also to already created empty path set */
-                    dev = sorted[0];
                     if (is_sink)
                         pa_hashmap_put(dev->playback_mapping->output_path_set->paths, pa_xstrdup(vol->mixer_elem), path);
                     else
@@ -1201,27 +1190,6 @@ static void ucm_add_port_combination(
         pa_hashmap_put(hash, port->name, port);
         pa_device_port_ref(port);
     }
-}
-
-static int ucm_port_contains(const char *port_name, const char *dev_name, bool is_sink) {
-    int ret = 0;
-    const char *r;
-    const char *state = NULL;
-    size_t len;
-
-    if (!port_name || !dev_name)
-        return false;
-
-    port_name += is_sink ? strlen(PA_UCM_PRE_TAG_OUTPUT) : strlen(PA_UCM_PRE_TAG_INPUT);
-
-    while ((r = pa_split_in_place(port_name, "+", &len, &state))) {
-        if (strlen(dev_name) == len && !strncmp(r, dev_name, len)) {
-            ret = 1;
-            break;
-        }
-    }
-
-    return ret;
 }
 
 static bool devset_supports_device(pa_idxset *devices, pa_alsa_ucm_device *dev) {
@@ -1342,7 +1310,6 @@ void pa_alsa_ucm_add_ports_combination(
 
     while ((devices = iterate_device_subsets(context->ucm_devices, &state))) {
         ucm_add_port_combination(p, context, is_sink, devices, ports, cp, core);
-        pa_idxset_free(devices, NULL);
     }
 
     /* ELD devices */
@@ -1446,6 +1413,7 @@ int pa_alsa_ucm_set_port(pa_alsa_ucm_mapping_context *context, pa_device_port *p
     int i;
     int ret = 0;
     pa_alsa_ucm_config *ucm;
+    pa_alsa_ucm_port_data *ucm_port;
     const char **enable_devs;
     int enable_num = 0;
     uint32_t idx;
@@ -1455,6 +1423,7 @@ int pa_alsa_ucm_set_port(pa_alsa_ucm_mapping_context *context, pa_device_port *p
 
     ucm = context->ucm;
     pa_assert(ucm->ucm_mgr);
+    ucm_port = PA_DEVICE_PORT_DATA(port);
 
     enable_devs = pa_xnew(const char *, pa_idxset_size(context->ucm_devices));
 
@@ -1462,7 +1431,7 @@ int pa_alsa_ucm_set_port(pa_alsa_ucm_mapping_context *context, pa_device_port *p
     PA_IDXSET_FOREACH(dev, context->ucm_devices, idx) {
         const char *dev_name = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME);
 
-        if (ucm_port_contains(port->name, dev_name, is_sink))
+        if (pa_idxset_contains(ucm_port->devices, dev))
             enable_devs[enable_num++] = dev_name;
         else {
             pa_log_debug("Disable ucm device %s", dev_name);
@@ -2266,13 +2235,6 @@ void pa_alsa_ucm_roled_stream_end(pa_alsa_ucm_config *ucm, const char *role, pa_
     }
 }
 
-static void device_add_ucm_port(pa_alsa_ucm_device *device, pa_alsa_ucm_port_data *port) {
-    pa_assert(device);
-    pa_assert(port);
-
-    pa_dynarray_append(device->ucm_ports, port);
-}
-
 static void device_set_jack(pa_alsa_ucm_device *device, pa_alsa_jack *jack) {
     pa_assert(device);
     pa_assert(jack);
@@ -2329,8 +2291,9 @@ void pa_alsa_ucm_device_update_available(pa_alsa_ucm_device *device) {
 }
 
 static void ucm_port_data_init(pa_alsa_ucm_port_data *port, pa_alsa_ucm_config *ucm, pa_device_port *core_port,
-                               pa_alsa_ucm_device **devices, unsigned n_devices) {
-    unsigned i;
+                               pa_idxset *devices) {
+    pa_alsa_ucm_device *dev;
+    uint32_t idx;
 
     pa_assert(ucm);
     pa_assert(core_port);
@@ -2338,12 +2301,11 @@ static void ucm_port_data_init(pa_alsa_ucm_port_data *port, pa_alsa_ucm_config *
 
     port->ucm = ucm;
     port->core_port = core_port;
-    port->devices = pa_dynarray_new(NULL);
+    port->devices = devices;
     port->eld_device = -1;
 
-    for (i = 0; i < n_devices; i++) {
-        pa_dynarray_append(port->devices, devices[i]);
-        device_add_ucm_port(devices[i], port);
+    PA_IDXSET_FOREACH(dev, devices, idx) {
+        pa_dynarray_append(dev->ucm_ports, port);
     }
 
     port->paths = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, pa_xfree,
@@ -2360,7 +2322,7 @@ static void ucm_port_data_free(pa_device_port *port) {
     ucm_port = PA_DEVICE_PORT_DATA(port);
 
     if (ucm_port->devices)
-        pa_dynarray_free(ucm_port->devices);
+        pa_idxset_free(ucm_port->devices, NULL);
 
     if (ucm_port->paths)
         pa_hashmap_free(ucm_port->paths);
@@ -2370,12 +2332,12 @@ static void ucm_port_data_free(pa_device_port *port) {
 
 static void ucm_port_update_available(pa_alsa_ucm_port_data *port) {
     pa_alsa_ucm_device *device;
-    unsigned idx;
+    uint32_t idx;
     pa_available_t available = PA_AVAILABLE_YES;
 
     pa_assert(port);
 
-    PA_DYNARRAY_FOREACH(device, port->devices, idx) {
+    PA_IDXSET_FOREACH(device, port->devices, idx) {
         if (device->available == PA_AVAILABLE_UNKNOWN)
             available = PA_AVAILABLE_UNKNOWN;
         else if (device->available == PA_AVAILABLE_NO) {
