@@ -267,13 +267,19 @@ void io_event_cb(
 
     struct userdata *u = userdata;
 
-    if (handle_event(u) < 0) {
-
-        if (u->io_event) {
-            u->core->mainloop->io_free(u->io_event);
-            u->io_event = NULL;
-        }
-
-        pa_module_unload_request(u->module, true);
+    if (events & (PA_IO_EVENT_HANGUP|PA_IO_EVENT_ERROR)) {
+        pa_log("Lost I/O connection in module \"%s\"", u->module->name);
+        goto fail;
     }
+
+    if (handle_event(u) >= 0)
+        return;
+
+fail:
+    if (u->io_event) {
+        u->core->mainloop->io_free(u->io_event);
+        u->io_event = NULL;
+    }
+
+    pa_module_unload_request(u->module, true);
 }

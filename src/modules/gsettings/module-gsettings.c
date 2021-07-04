@@ -64,7 +64,7 @@ int pa__init(pa_module*m) {
     u->io_event = m->core->mainloop->io_new(
             m->core->mainloop,
             u->fd,
-            PA_IO_EVENT_INPUT,
+            PA_IO_EVENT_INPUT | PA_IO_EVENT_HANGUP | PA_IO_EVENT_ERROR,
             io_event_cb,
             u);
 
