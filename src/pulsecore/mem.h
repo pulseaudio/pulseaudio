@@ -49,7 +49,7 @@ static inline bool pa_mem_type_is_shared(pa_mem_type_t t) {
     return (t == PA_MEM_TYPE_SHARED_POSIX) || (t == PA_MEM_TYPE_SHARED_MEMFD);
 }
 
-static inline bool pa_memfd_is_locally_supported() {
+static inline bool pa_memfd_is_locally_supported(void) {
 #if defined(HAVE_CREDS) && defined(HAVE_MEMFD)
     return true;
 #else
