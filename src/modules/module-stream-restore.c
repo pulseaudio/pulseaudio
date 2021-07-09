@@ -1175,7 +1175,7 @@ static struct entry *entry_read(struct userdata *u, const char *name) {
     pa_datum_free(&data);
 
 #ifdef STREAM_RESTORE_CLEAR_OLD_DEVICES
-    if (version < ENTRY_VERSION && e->device_valid) {
+    if (version < 2 && e->device_valid) {
         /* Prior to PulseAudio 14.0, GNOME's sound settings overwrote the
          * routing for all entries in the stream-restore database when
          * selecting a device. PulseAudio 14.0 prevents that from happening,
