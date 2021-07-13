@@ -1346,45 +1346,40 @@ void pa_alsa_ucm_add_ports(
 }
 
 /* Change UCM verb and device to match selected card profile */
-int pa_alsa_ucm_set_profile(pa_alsa_ucm_config *ucm, pa_card *card, const char *new_profile, const char *old_profile) {
+int pa_alsa_ucm_set_profile(pa_alsa_ucm_config *ucm, pa_card *card, pa_alsa_profile *new_profile, pa_alsa_profile *old_profile) {
     int ret = 0;
-    const char *profile;
+    const char *verb_name, *profile_name;
     pa_alsa_ucm_verb *verb;
     pa_device_port *port;
     pa_alsa_ucm_port_data *data;
     void *state;
 
     if (new_profile == old_profile)
-        return ret;
-    else if (new_profile == NULL || old_profile == NULL)
-        profile = new_profile ? new_profile : SND_USE_CASE_VERB_INACTIVE;
-    else if (!pa_streq(new_profile, old_profile))
-        profile = new_profile;
-    else
-        return ret;
+        return 0;
+
+    if (new_profile == NULL) {
+        verb = NULL;
+        profile_name = SND_USE_CASE_VERB_INACTIVE;
+        verb_name = SND_USE_CASE_VERB_INACTIVE;
+    } else {
+        verb = new_profile->ucm_context.verb;
+        profile_name = new_profile->name;
+        verb_name = pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_NAME);
+    }
 
     /* change verb */
-    pa_log_info("Set UCM verb to %s", profile);
-    if ((snd_use_case_set(ucm->ucm_mgr, "_verb", profile)) < 0) {
-        pa_log("Failed to set verb %s", profile);
+    pa_log_info("Set profile to %s", profile_name);
+    pa_log_info("Set UCM verb to %s", verb_name);
+    if ((snd_use_case_set(ucm->ucm_mgr, "_verb", verb_name)) < 0) {
+        pa_log("Failed to set verb %s", verb_name);
         ret = -1;
     }
-
-    /* find active verb */
-    ucm->active_verb = NULL;
-    PA_LLIST_FOREACH(verb, ucm->verbs) {
-        const char *verb_name;
-        verb_name = pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_NAME);
-        if (pa_streq(verb_name, profile)) {
-            ucm->active_verb = verb;
-            break;
-        }
-    }
+    ucm->active_verb = verb;
 
     /* select volume controls on ports */
     PA_HASHMAP_FOREACH(port, card->ports, state) {
         data = PA_DEVICE_PORT_DATA(port);
-        data->path = pa_hashmap_get(data->paths, profile);
+        data->path = pa_hashmap_get(data->paths, profile_name);
     }
 
     return ret;
@@ -1567,7 +1562,6 @@ static pa_alsa_mapping* ucm_alsa_mapping_get(pa_alsa_ucm_config *ucm, pa_alsa_pr
 static int ucm_create_mapping_direction(
         pa_alsa_ucm_config *ucm,
         pa_alsa_profile_set *ps,
-        pa_alsa_profile *p,
         pa_alsa_ucm_device *device,
         const char *verb_name,
         const char *device_name,
@@ -1597,7 +1591,6 @@ static int ucm_create_mapping_direction(
         m->device_strings[0] = pa_xstrdup(device_str);
         m->direction = is_sink ? PA_ALSA_DIRECTION_OUTPUT : PA_ALSA_DIRECTION_INPUT;
 
-        ucm_add_mapping(p, m);
         if (rate)
             m->sample_spec.rate = rate;
         pa_channel_map_init_extend(&m->channel_map, channels, PA_CHANNEL_MAP_ALSA);
@@ -1619,7 +1612,6 @@ static int ucm_create_mapping_direction(
 static int ucm_create_mapping_for_modifier(
         pa_alsa_ucm_config *ucm,
         pa_alsa_profile_set *ps,
-        pa_alsa_profile *p,
         pa_alsa_ucm_modifier *modifier,
         const char *verb_name,
         const char *mod_name,
@@ -1646,8 +1638,6 @@ static int ucm_create_mapping_for_modifier(
         m->direction = is_sink ? PA_ALSA_DIRECTION_OUTPUT : PA_ALSA_DIRECTION_INPUT;
         /* Modifier sinks should not be routed to by default */
         m->priority = 0;
-
-        ucm_add_mapping(p, m);
     } else if (!m->ucm_context.ucm_modifiers) /* share pcm with device */
         m->ucm_context.ucm_modifiers = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
@@ -1659,7 +1649,6 @@ static int ucm_create_mapping_for_modifier(
 static int ucm_create_mapping(
         pa_alsa_ucm_config *ucm,
         pa_alsa_profile_set *ps,
-        pa_alsa_profile *p,
         pa_alsa_ucm_device *device,
         const char *verb_name,
         const char *device_name,
@@ -1674,9 +1663,9 @@ static int ucm_create_mapping(
     }
 
     if (sink)
-        ret = ucm_create_mapping_direction(ucm, ps, p, device, verb_name, device_name, sink, true);
+        ret = ucm_create_mapping_direction(ucm, ps, device, verb_name, device_name, sink, true);
     if (ret == 0 && source)
-        ret = ucm_create_mapping_direction(ucm, ps, p, device, verb_name, device_name, source, false);
+        ret = ucm_create_mapping_direction(ucm, ps, device, verb_name, device_name, source, false);
 
     return ret;
 }
@@ -1748,27 +1737,29 @@ static int ucm_create_profile(
         pa_alsa_ucm_config *ucm,
         pa_alsa_profile_set *ps,
         pa_alsa_ucm_verb *verb,
-        const char *verb_name,
-        const char *verb_desc) {
+        pa_idxset *mappings,
+        const char *profile_name,
+        const char *profile_desc,
+        unsigned int profile_priority) {
 
     pa_alsa_profile *p;
-    pa_alsa_ucm_device *dev;
-    pa_alsa_ucm_modifier *mod;
-    int i = 0;
-    const char *name, *sink, *source;
-    unsigned int priority;
+    pa_alsa_mapping *map;
+    uint32_t idx;
 
     pa_assert(ps);
 
-    if (pa_hashmap_get(ps->profiles, verb_name)) {
-        pa_log("Verb %s already exists", verb_name);
+    if (pa_hashmap_get(ps->profiles, profile_name)) {
+        pa_log("Profile %s already exists", profile_name);
         return -1;
     }
 
     p = pa_xnew0(pa_alsa_profile, 1);
     p->profile_set = ps;
-    p->name = pa_xstrdup(verb_name);
-    p->description = pa_xstrdup(verb_desc);
+    p->name = pa_xstrdup(profile_name);
+    p->description = pa_xstrdup(profile_desc);
+    p->priority = profile_priority;
+    p->ucm_context.ucm = ucm;
+    p->ucm_context.verb = verb;
 
     p->output_mappings = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
     p->input_mappings = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
@@ -1776,10 +1767,33 @@ static int ucm_create_profile(
     p->supported = true;
     pa_hashmap_put(ps->profiles, p->name, p);
 
-    /* TODO: get profile priority from policy management */
-    priority = verb->priority;
+    PA_IDXSET_FOREACH(map, mappings, idx)
+        ucm_add_mapping(p, map);
 
-    if (priority == 0) {
+    pa_alsa_profile_dump(p);
+
+    return 0;
+}
+
+static int ucm_create_verb_profiles(
+        pa_alsa_ucm_config *ucm,
+        pa_alsa_profile_set *ps,
+        pa_alsa_ucm_verb *verb,
+        const char *verb_name,
+        const char *verb_desc) {
+
+    pa_idxset *mappings;
+    pa_alsa_ucm_device *dev;
+    pa_alsa_ucm_modifier *mod;
+    int i = 0;
+    int ret = 0;
+    const char *name, *sink, *source;
+    unsigned int verb_priority;
+
+    /* TODO: get profile priority from policy management */
+    verb_priority = verb->priority;
+
+    if (verb_priority == 0) {
         char *verb_cmp, *c;
         c = verb_cmp = pa_xstrdup(verb_name);
         while (*c) {
@@ -1788,14 +1802,14 @@ static int ucm_create_profile(
         }
         for (i = 0; verb_info[i].id; i++) {
             if (strcasecmp(verb_info[i].id, verb_cmp) == 0) {
-                priority = verb_info[i].priority;
+                verb_priority = verb_info[i].priority;
                 break;
             }
         }
         pa_xfree(verb_cmp);
     }
 
-    p->priority = priority;
+    mappings = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
     PA_LLIST_FOREACH(dev, verb->devices) {
         pa_alsa_jack *jack;
@@ -1806,7 +1820,12 @@ static int ucm_create_profile(
         sink = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_SINK);
         source = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_SOURCE);
 
-        ucm_create_mapping(ucm, ps, p, dev, verb_name, name, sink, source);
+        ucm_create_mapping(ucm, ps, dev, verb_name, name, sink, source);
+
+        if (dev->playback_mapping)
+            pa_idxset_put(mappings, dev->playback_mapping, NULL);
+        if (dev->capture_mapping)
+            pa_idxset_put(mappings, dev->capture_mapping, NULL);
 
         jack = ucm_get_jack(ucm, dev);
         if (jack)
@@ -1857,14 +1876,21 @@ static int ucm_create_profile(
         source = pa_proplist_gets(mod->proplist, PA_ALSA_PROP_UCM_SOURCE);
 
         if (sink)
-            ucm_create_mapping_for_modifier(ucm, ps, p, mod, verb_name, name, sink, true);
+            ucm_create_mapping_for_modifier(ucm, ps, mod, verb_name, name, sink, true);
         else if (source)
-            ucm_create_mapping_for_modifier(ucm, ps, p, mod, verb_name, name, source, false);
+            ucm_create_mapping_for_modifier(ucm, ps, mod, verb_name, name, source, false);
+
+        if (mod->playback_mapping)
+            pa_idxset_put(mappings, mod->playback_mapping, NULL);
+        if (mod->capture_mapping)
+            pa_idxset_put(mappings, mod->capture_mapping, NULL);
     }
 
-    pa_alsa_profile_dump(p);
+    ret = ucm_create_profile(ucm, ps, verb, mappings, verb_name, verb_desc, verb_priority);
 
-    return 0;
+    pa_idxset_free(mappings, NULL);
+
+    return ret;
 }
 
 static void mapping_init_eld(pa_alsa_mapping *m, snd_pcm_t *pcm)
@@ -1979,14 +2005,18 @@ static void ucm_probe_profile_set(pa_alsa_ucm_config *ucm, pa_alsa_profile_set *
     void *state;
     pa_alsa_profile *p;
     pa_alsa_mapping *m;
+    const char *verb_name;
     uint32_t idx;
 
     PA_HASHMAP_FOREACH(p, ps->profiles, state) {
-        /* change verb */
-        pa_log_info("Set ucm verb to %s", p->name);
+        pa_log_info("Probing profile %s", p->name);
 
-        if ((snd_use_case_set(ucm->ucm_mgr, "_verb", p->name)) < 0) {
-            pa_log("Failed to set verb %s", p->name);
+        /* change verb */
+        verb_name = pa_proplist_gets(p->ucm_context.verb->proplist, PA_ALSA_PROP_UCM_NAME);
+        pa_log_info("Set ucm verb to %s", verb_name);
+
+        if ((snd_use_case_set(ucm->ucm_mgr, "_verb", verb_name)) < 0) {
+            pa_log("Failed to set verb %s", verb_name);
             p->supported = false;
             continue;
         }
@@ -2066,7 +2096,7 @@ pa_alsa_profile_set* pa_alsa_ucm_add_profile_set(pa_alsa_ucm_config *ucm, pa_cha
             continue;
         }
 
-        ucm_create_profile(ucm, ps, verb, verb_name, verb_desc);
+        ucm_create_verb_profiles(ucm, ps, verb, verb_name, verb_desc);
     }
 
     ucm_probe_profile_set(ucm, ps);
@@ -2366,7 +2396,7 @@ pa_alsa_profile_set* pa_alsa_ucm_add_profile_set(pa_alsa_ucm_config *ucm, pa_cha
     return NULL;
 }
 
-int pa_alsa_ucm_set_profile(pa_alsa_ucm_config *ucm, pa_card *card, const char *new_profile, const char *old_profile) {
+int pa_alsa_ucm_set_profile(pa_alsa_ucm_config *ucm, pa_card *card, pa_alsa_profile *new_profile, pa_alsa_profile *old_profile) {
     return -1;
 }
 
