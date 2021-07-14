@@ -139,6 +139,7 @@ struct pa_bluetooth_discovery {
     pa_hashmap *adapters;
     pa_hashmap *devices;
     pa_hashmap *transports;
+    pa_bluetooth_profile_status_t profiles_status[PA_BLUETOOTH_PROFILE_COUNT];
 
     int headset_backend;
     pa_bluetooth_backend *ofono_backend, *native_backend;
@@ -188,6 +189,14 @@ static const char *check_variant_property(DBusMessageIter *i) {
     }
 
     return key;
+}
+
+pa_bluetooth_profile_status_t profile_status_get(pa_bluetooth_discovery *y, pa_bluetooth_profile_t profile) {
+    return y->profiles_status[profile];
+}
+
+void profile_status_set(pa_bluetooth_discovery *y, pa_bluetooth_profile_t profile, pa_bluetooth_profile_status_t status) {
+    y->profiles_status[profile] = status;
 }
 
 pa_bluetooth_transport *pa_bluetooth_transport_new(pa_bluetooth_device *d, const char *owner, const char *path,
@@ -1173,6 +1182,7 @@ static pa_bluetooth_adapter* adapter_create(pa_bluetooth_discovery *y, const cha
     a = pa_xnew0(pa_bluetooth_adapter, 1);
     a->discovery = y;
     a->path = pa_xstrdup(path);
+    a->uuids = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func, NULL, pa_xfree);
 
     pa_hashmap_put(y->adapters, a->path, a);
 
@@ -1373,6 +1383,31 @@ static void parse_adapter_properties(pa_bluetooth_adapter *a, DBusMessageIter *i
             dbus_message_iter_get_basic(&variant_i, &value);
             a->address = pa_xstrdup(value);
             a->valid = true;
+        } else if (dbus_message_iter_get_arg_type(&variant_i) == DBUS_TYPE_ARRAY) {
+            DBusMessageIter ai;
+            dbus_message_iter_recurse(&variant_i, &ai);
+
+            if (dbus_message_iter_get_arg_type(&ai) == DBUS_TYPE_STRING && pa_streq(key, "UUIDs")) {
+                pa_hashmap_remove_all(a->uuids);
+                while (dbus_message_iter_get_arg_type(&ai) != DBUS_TYPE_INVALID) {
+                    const char *value;
+                    char *uuid;
+
+                    dbus_message_iter_get_basic(&ai, &value);
+
+                    if (pa_hashmap_get(a->uuids, value)) {
+                        dbus_message_iter_next(&ai);
+                        continue;
+                    }
+
+                    uuid = pa_xstrdup(value);
+                    pa_hashmap_put(a->uuids, uuid, uuid);
+
+                    pa_log_debug("%s: %s", key, value);
+                    dbus_message_iter_next(&ai);
+                }
+                pa_hook_fire(pa_bluetooth_discovery_hook(a->discovery, PA_BLUETOOTH_HOOK_ADAPTER_UUIDS_CHANGED), a);
+            }
         }
 
         dbus_message_iter_next(&element_i);

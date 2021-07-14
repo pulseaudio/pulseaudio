@@ -41,6 +41,7 @@ struct pa_bluetooth_backend {
   pa_core *core;
   pa_dbus_connection *connection;
   pa_bluetooth_discovery *discovery;
+  pa_hook_slot *adapter_uuids_changed_slot;
   bool enable_shared_profiles;
   bool enable_hsp_hs;
   bool enable_hfp_hf;
@@ -484,46 +485,50 @@ static void register_profile_reply(DBusPendingCall *pending, void *userdata) {
     DBusMessage *r;
     pa_dbus_pending *p;
     pa_bluetooth_backend *b;
-    char *profile;
+    pa_bluetooth_profile_t profile;
 
     pa_assert(pending);
     pa_assert_se(p = userdata);
     pa_assert_se(b = p->context_data);
-    pa_assert_se(profile = p->call_data);
+    pa_assert_se(profile = (pa_bluetooth_profile_t)p->call_data);
     pa_assert_se(r = dbus_pending_call_steal_reply(pending));
 
     if (dbus_message_is_error(r, BLUEZ_ERROR_NOT_SUPPORTED)) {
-        pa_log_info("Couldn't register profile %s because it is disabled in BlueZ", profile);
+        pa_log_info("Couldn't register profile %s because it is disabled in BlueZ", pa_bluetooth_profile_to_string(profile));
+        profile_status_set(b->discovery, profile, PA_BLUETOOTH_PROFILE_STATUS_ACTIVE);
         goto finish;
     }
 
     if (dbus_message_get_type(r) == DBUS_MESSAGE_TYPE_ERROR) {
         pa_log_error(BLUEZ_PROFILE_MANAGER_INTERFACE ".RegisterProfile() failed: %s: %s", dbus_message_get_error_name(r),
                      pa_dbus_get_error_message(r));
+        profile_status_set(b->discovery, profile, PA_BLUETOOTH_PROFILE_STATUS_ACTIVE);
         goto finish;
     }
+
+    profile_status_set(b->discovery, profile, PA_BLUETOOTH_PROFILE_STATUS_REGISTERED);
 
 finish:
     dbus_message_unref(r);
 
     PA_LLIST_REMOVE(pa_dbus_pending, b->pending, p);
     pa_dbus_pending_free(p);
-
-    pa_xfree(profile);
 }
 
-static void register_profile(pa_bluetooth_backend *b, const char *profile, const char *uuid) {
+static void register_profile(pa_bluetooth_backend *b, const char *object, const char *uuid, pa_bluetooth_profile_t profile) {
     DBusMessage *m;
     DBusMessageIter i, d;
     dbus_bool_t autoconnect;
     dbus_uint16_t version, chan;
 
-    pa_log_debug("Registering Profile %s %s", profile, uuid);
+    pa_assert(profile_status_get(b->discovery, profile) == PA_BLUETOOTH_PROFILE_STATUS_ACTIVE);
+
+    pa_log_debug("Registering Profile %s %s", pa_bluetooth_profile_to_string(profile), uuid);
 
     pa_assert_se(m = dbus_message_new_method_call(BLUEZ_SERVICE, "/org/bluez", BLUEZ_PROFILE_MANAGER_INTERFACE, "RegisterProfile"));
 
     dbus_message_iter_init_append(m, &i);
-    pa_assert_se(dbus_message_iter_append_basic(&i, DBUS_TYPE_OBJECT_PATH, &profile));
+    pa_assert_se(dbus_message_iter_append_basic(&i, DBUS_TYPE_OBJECT_PATH, &object));
     pa_assert_se(dbus_message_iter_append_basic(&i, DBUS_TYPE_STRING, &uuid));
     dbus_message_iter_open_container(&i, DBUS_TYPE_ARRAY,
                                      DBUS_DICT_ENTRY_BEGIN_CHAR_AS_STRING
@@ -543,7 +548,8 @@ static void register_profile(pa_bluetooth_backend *b, const char *profile, const
     }
     dbus_message_iter_close_container(&i, &d);
 
-    send_and_add_to_pending(b, m, register_profile_reply, pa_xstrdup(profile));
+    profile_status_set(b->discovery, profile, PA_BLUETOOTH_PROFILE_STATUS_REGISTERING);
+    send_and_add_to_pending(b, m, register_profile_reply, (void *)profile);
 }
 
 static void transport_put(pa_bluetooth_transport *t)
@@ -976,6 +982,26 @@ static DBusHandlerResult profile_handler(DBusConnection *c, DBusMessage *m, void
     return DBUS_HANDLER_RESULT_HANDLED;
 }
 
+static pa_hook_result_t adapter_uuids_changed_cb(pa_bluetooth_discovery *y, const pa_bluetooth_adapter *a, pa_bluetooth_backend *b) {
+    pa_assert(y);
+    pa_assert(a);
+    pa_assert(b);
+
+    if (profile_status_get(y, PA_BLUETOOTH_PROFILE_HSP_HS) == PA_BLUETOOTH_PROFILE_STATUS_ACTIVE &&
+        !pa_hashmap_get(a->uuids, PA_BLUETOOTH_UUID_HSP_AG))
+        register_profile(b, HSP_AG_PROFILE, PA_BLUETOOTH_UUID_HSP_AG, PA_BLUETOOTH_PROFILE_HSP_HS);
+
+    if (profile_status_get(y, PA_BLUETOOTH_PROFILE_HSP_AG) == PA_BLUETOOTH_PROFILE_STATUS_ACTIVE &&
+        !pa_hashmap_get(a->uuids, PA_BLUETOOTH_UUID_HSP_HS))
+        register_profile(b, HSP_HS_PROFILE, PA_BLUETOOTH_UUID_HSP_HS, PA_BLUETOOTH_PROFILE_HSP_AG);
+
+    if (profile_status_get(y, PA_BLUETOOTH_PROFILE_HFP_HF) == PA_BLUETOOTH_PROFILE_STATUS_ACTIVE &&
+        !pa_hashmap_get(a->uuids, PA_BLUETOOTH_UUID_HFP_AG))
+        register_profile(b, HFP_AG_PROFILE, PA_BLUETOOTH_UUID_HFP_AG, PA_BLUETOOTH_PROFILE_HFP_HF);
+
+    return PA_HOOK_OK;
+}
+
 static void profile_init(pa_bluetooth_backend *b, pa_bluetooth_profile_t profile) {
     static const DBusObjectPathVTable vtable_profile = {
         .message_function = profile_handler,
@@ -1004,11 +1030,15 @@ static void profile_init(pa_bluetooth_backend *b, pa_bluetooth_profile_t profile
     }
 
     pa_assert_se(dbus_connection_register_object_path(pa_dbus_connection_get(b->connection), object_name, &vtable_profile, b));
-    register_profile(b, object_name, uuid);
+
+    profile_status_set(b->discovery, profile, PA_BLUETOOTH_PROFILE_STATUS_ACTIVE);
+    register_profile(b, object_name, uuid, profile);
 }
 
 static void profile_done(pa_bluetooth_backend *b, pa_bluetooth_profile_t profile) {
     pa_assert(b);
+
+    profile_status_set(b->discovery, profile, PA_BLUETOOTH_PROFILE_STATUS_INACTIVE);
 
     switch (profile) {
         case PA_BLUETOOTH_PROFILE_HSP_HS:
@@ -1070,6 +1100,10 @@ pa_bluetooth_backend *pa_bluetooth_native_backend_new(pa_core *c, pa_bluetooth_d
     backend->enable_hfp_hf = pa_bluetooth_discovery_get_enable_native_hfp_hf(y);
     backend->enable_hsp_hs = pa_bluetooth_discovery_get_enable_native_hsp_hs(y);
 
+    backend->adapter_uuids_changed_slot =
+        pa_hook_connect(pa_bluetooth_discovery_hook(y, PA_BLUETOOTH_HOOK_ADAPTER_UUIDS_CHANGED), PA_HOOK_NORMAL,
+                        (pa_hook_cb_t) adapter_uuids_changed_cb, backend);
+
     if (!backend->enable_hsp_hs && !backend->enable_hfp_hf)
         pa_log_warn("Both HSP HS and HFP HF bluetooth profiles disabled in native backend. Native backend will not register for headset connections.");
 
@@ -1086,6 +1120,9 @@ void pa_bluetooth_native_backend_free(pa_bluetooth_backend *backend) {
     pa_assert(backend);
 
     pa_dbus_free_pending_list(&backend->pending);
+
+    if (backend->adapter_uuids_changed_slot)
+        pa_hook_slot_free(backend->adapter_uuids_changed_slot);
 
     if (backend->enable_shared_profiles)
         native_backend_apply_profile_registration_change(backend, false);
