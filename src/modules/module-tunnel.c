@@ -79,6 +79,7 @@ PA_MODULE_USAGE(
         "format=<sample format> "
         "channels=<number of channels> "
         "rate=<sample rate> "
+        "latency_msec=<fixed latency in ms> "
         "channel_map=<channel map>");
 #else
 PA_MODULE_DESCRIPTION("Tunnel module for sources");
@@ -92,6 +93,7 @@ PA_MODULE_USAGE(
         "format=<sample format> "
         "channels=<number of channels> "
         "rate=<sample rate> "
+        "latency_msec=<fixed latency in ms> "
         "channel_map=<channel map>");
 #endif
 
@@ -106,6 +108,7 @@ static const char* const valid_modargs[] = {
     "format",
     "channels",
     "rate",
+    "latency_msec",
 #ifdef TUNNEL_SINK
     "sink_name",
     "sink_properties",
@@ -121,7 +124,7 @@ static const char* const valid_modargs[] = {
 
 #define DEFAULT_TIMEOUT 5
 
-#define LATENCY_INTERVAL (10*PA_USEC_PER_SEC)
+#define LATENCY_INTERVAL (1*PA_USEC_PER_SEC)
 
 #define MIN_NETWORK_LATENCY_USEC (8*PA_USEC_PER_MSEC)
 
@@ -131,21 +134,22 @@ enum {
     SINK_MESSAGE_REQUEST = PA_SINK_MESSAGE_MAX,
     SINK_MESSAGE_REMOTE_SUSPEND,
     SINK_MESSAGE_UPDATE_LATENCY,
+    SINK_MESSAGE_GET_LATENCY_SNAPSHOT,
     SINK_MESSAGE_POST
 };
 
-#define DEFAULT_TLENGTH_MSEC 150
-#define DEFAULT_MINREQ_MSEC 25
+#define DEFAULT_LATENCY_MSEC 100
 
 #else
 
 enum {
     SOURCE_MESSAGE_POST = PA_SOURCE_MESSAGE_MAX,
     SOURCE_MESSAGE_REMOTE_SUSPEND,
-    SOURCE_MESSAGE_UPDATE_LATENCY
+    SOURCE_MESSAGE_UPDATE_LATENCY,
+    SOURCE_MESSAGE_GET_LATENCY_SNAPSHOT
 };
 
-#define DEFAULT_FRAGSIZE_MSEC 25
+#define DEFAULT_LATENCY_MSEC 25
 
 #endif
 
@@ -211,8 +215,11 @@ struct userdata {
     uint32_t ctag;
     uint32_t device_index;
     uint32_t channel;
+    uint32_t latency;
 
-    int64_t counter, counter_delta;
+    int64_t counter;
+    uint64_t receive_counter;
+    uint64_t receive_snapshot;
 
     bool remote_corked:1;
     bool remote_suspended:1;
@@ -517,6 +524,13 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             return 0;
         }
 
+        case SINK_MESSAGE_GET_LATENCY_SNAPSHOT: {
+            int64_t *send_counter = data;
+
+            *send_counter = u->counter;
+            return 0;
+        }
+
         case SINK_MESSAGE_REQUEST:
 
             pa_assert(offset > 0);
@@ -559,7 +573,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
 
             pa_pstream_send_memblock(u->pstream, u->channel, 0, PA_SEEK_RELATIVE, chunk);
 
-            u->counter_delta += (int64_t) chunk->length;
+            u->receive_counter += chunk->length;
 
             return 0;
     }
@@ -625,6 +639,13 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
             yr = pa_smoother_get(u->smoother, pa_rtclock_now());
 
             *usec = (int64_t)yr - yl;
+            return 0;
+        }
+
+        case SOURCE_MESSAGE_GET_LATENCY_SNAPSHOT: {
+            int64_t *send_counter = data;
+
+            *send_counter = u->counter;
             return 0;
         }
 
@@ -779,6 +800,9 @@ static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, uint
     struct timeval local, remote, now;
     pa_sample_spec *ss;
     int64_t delay;
+#ifdef TUNNEL_SINK
+    uint64_t send_counter;
+#endif
 
     pa_assert(pd);
     pa_assert(u);
@@ -826,7 +850,7 @@ static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, uint
     pa_gettimeofday(&now);
 
     /* Calculate transport usec */
-    if (pa_timeval_cmp(&local, &remote) < 0 && pa_timeval_cmp(&remote, &now)) {
+    if (pa_timeval_cmp(&local, &remote) < 0 && pa_timeval_cmp(&remote, &now) < 0) {
         /* local and remote seem to have synchronized clocks */
 #ifdef TUNNEL_SINK
         u->transport_usec = pa_timeval_diff(&remote, &local);
@@ -859,11 +883,12 @@ static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, uint
     delay += (int64_t) u->transport_usec;
 #endif
 
-    /* Now correct by what we have have read/written since we requested the update */
+    /* Now correct by what we have have written since we requested the update. This
+     * is not necessary for the source, because if data is received between request
+     * and reply, it was already posted before we requested the source latency. */
 #ifdef TUNNEL_SINK
-    delay += (int64_t) pa_bytes_to_usec((uint64_t) u->counter_delta, ss);
-#else
-    delay -= (int64_t) pa_bytes_to_usec((uint64_t) u->counter_delta, ss);
+    pa_asyncmsgq_send(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_GET_LATENCY_SNAPSHOT, &send_counter, 0, NULL);
+    delay += (int64_t) pa_bytes_to_usec(send_counter - u->receive_snapshot, ss);
 #endif
 
 #ifdef TUNNEL_SINK
@@ -901,7 +926,7 @@ static void request_latency(struct userdata *u) {
     pa_pdispatch_register_reply(u->pdispatch, tag, DEFAULT_TIMEOUT, stream_get_latency_callback, u, NULL);
 
     u->ignore_latency_before = tag;
-    u->counter_delta = 0;
+    u->receive_snapshot = u->receive_counter;
 }
 
 /* Called from main context */
@@ -1658,11 +1683,11 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
         u->maxlength = 4*1024*1024;
 
 #ifdef TUNNEL_SINK
-    u->tlength = (uint32_t) pa_usec_to_bytes(PA_USEC_PER_MSEC * DEFAULT_TLENGTH_MSEC, &u->sink->sample_spec);
-    u->minreq = (uint32_t) pa_usec_to_bytes(PA_USEC_PER_MSEC * DEFAULT_MINREQ_MSEC, &u->sink->sample_spec);
+    u->tlength = (uint32_t) pa_usec_to_bytes(PA_USEC_PER_MSEC * u->latency, &u->sink->sample_spec);
+    u->minreq = (uint32_t) pa_usec_to_bytes(PA_USEC_PER_MSEC * u->latency / 4, &u->sink->sample_spec);
     u->prebuf = u->tlength;
 #else
-    u->fragsize = (uint32_t) pa_usec_to_bytes(PA_USEC_PER_MSEC * DEFAULT_FRAGSIZE_MSEC, &u->source->sample_spec);
+    u->fragsize = (uint32_t) pa_usec_to_bytes(PA_USEC_PER_MSEC * u->latency, &u->source->sample_spec);
 #endif
 
 #ifdef TUNNEL_SINK
@@ -1823,7 +1848,7 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
 
     pa_asyncmsgq_send(u->source->asyncmsgq, PA_MSGOBJECT(u->source), SOURCE_MESSAGE_POST, PA_UINT_TO_PTR(seek), offset, chunk);
 
-    u->counter_delta += (int64_t) chunk->length;
+    u->receive_counter += chunk->length;
 }
 #endif
 
@@ -1932,6 +1957,7 @@ int pa__init(pa_module*m) {
     pa_sample_spec ss;
     pa_channel_map map;
     char *dn = NULL;
+    uint32_t latency_msec;
 #ifdef TUNNEL_SINK
     pa_sink_new_data data;
 #else
@@ -1979,7 +2005,9 @@ int pa__init(pa_module*m) {
     u->ignore_latency_before = 0;
     u->transport_usec = u->thread_transport_usec = 0;
     u->remote_suspended = u->remote_corked = false;
-    u->counter = u->counter_delta = 0;
+    u->counter = 0;
+    u->receive_snapshot = 0;
+    u->receive_counter = 0;
 
     u->rtpoll = pa_rtpoll_new();
 
@@ -1992,6 +2020,15 @@ int pa__init(pa_module*m) {
         pa_log("Failed to parse argument \"auto\".");
         goto fail;
     }
+
+    /* Allow latencies between 5ms and 500ms */
+    latency_msec = DEFAULT_LATENCY_MSEC;
+    if (pa_modargs_get_value_u32(ma, "latency_msec", &latency_msec) < 0 || latency_msec < 5 || latency_msec > 500) {
+        pa_log("Invalid latency specification");
+        goto fail;
+    }
+
+    u->latency = latency_msec;
 
     cookie_path = pa_modargs_get_value(ma, "cookie", NULL);
     server = pa_xstrdup(pa_modargs_get_value(ma, "server", NULL));
@@ -2174,6 +2211,7 @@ int pa__init(pa_module*m) {
 
     pa_sink_set_asyncmsgq(u->sink, u->thread_mq.inq);
     pa_sink_set_rtpoll(u->sink, u->rtpoll);
+    pa_sink_set_fixed_latency(u->sink, latency_msec * PA_USEC_PER_MSEC);
 
 #else
 
@@ -2214,6 +2252,7 @@ int pa__init(pa_module*m) {
 
     pa_source_set_asyncmsgq(u->source, u->thread_mq.inq);
     pa_source_set_rtpoll(u->source, u->rtpoll);
+    pa_source_set_fixed_latency(u->source, latency_msec * PA_USEC_PER_MSEC);
 
     u->mcalign = pa_mcalign_new(pa_frame_size(&u->source->sample_spec));
 #endif
