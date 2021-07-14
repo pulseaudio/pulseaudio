@@ -55,13 +55,13 @@ typedef struct pa_a2dp_endpoint_conf {
      * (const char *endpoint -> const pa_a2dp_codec_capabilities *capability)
      * and returns corresponding endpoint key (or NULL when there is no valid),
      * for_encoder is true when capabilities hash map is used for encoding */
-    const char *(*choose_remote_endpoint)(const pa_hashmap *capabilities_hashmap, const pa_sample_spec *default_sample_spec, bool for_encoding);
+    const char *(*choose_remote_endpoint)(const pa_hashmap *capabilities_hashmap, const pa_sample_spec *spec, bool for_encoding);
     /* Fill codec capabilities, returns size of filled buffer */
     uint8_t (*fill_capabilities)(uint8_t capabilities_buffer[MAX_A2DP_CAPS_SIZE]);
     /* Validate codec configuration, returns true on success */
     bool (*is_configuration_valid)(const uint8_t *config_buffer, uint8_t config_size);
     /* Fill preferred codec configuration, returns size of filled buffer or 0 on failure */
-    uint8_t (*fill_preferred_configuration)(const pa_sample_spec *default_sample_spec, const uint8_t *capabilities_buffer, uint8_t capabilities_size, uint8_t config_buffer[MAX_A2DP_CAPS_SIZE]);
+    uint8_t (*fill_preferred_configuration)(const pa_sample_spec *spec, const uint8_t *capabilities_buffer, uint8_t capabilities_size, uint8_t config_buffer[MAX_A2DP_CAPS_SIZE]);
 
     /* Bluetooth codec */
     pa_bt_codec bt_codec;

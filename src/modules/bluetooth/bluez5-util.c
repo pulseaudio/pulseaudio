@@ -405,7 +405,6 @@ bool pa_bluetooth_device_switch_codec(pa_bluetooth_device *device, pa_bluetooth_
     uint8_t config[MAX_A2DP_CAPS_SIZE];
     uint8_t config_size;
     bool is_a2dp_sink;
-    pa_hashmap *all_endpoints;
     char *pa_endpoint;
     const char *endpoint;
 
@@ -420,13 +419,8 @@ bool pa_bluetooth_device_switch_codec(pa_bluetooth_device *device, pa_bluetooth_
 
     is_a2dp_sink = profile == PA_BLUETOOTH_PROFILE_A2DP_SINK;
 
-    all_endpoints = NULL;
-    all_endpoints = pa_hashmap_get(is_a2dp_sink ? device->a2dp_sink_endpoints : device->a2dp_source_endpoints,
-            &endpoint_conf->id);
-    pa_assert(all_endpoints);
-
     pa_assert_se(endpoint = endpoint_conf->choose_remote_endpoint(capabilities_hashmap, &device->discovery->core->default_sample_spec, is_a2dp_sink));
-    pa_assert_se(capabilities = pa_hashmap_get(all_endpoints, endpoint));
+    pa_assert_se(capabilities = pa_hashmap_get(capabilities_hashmap, endpoint));
 
     config_size = endpoint_conf->fill_preferred_configuration(&device->discovery->core->default_sample_spec,
             capabilities->buffer, capabilities->size, config);
