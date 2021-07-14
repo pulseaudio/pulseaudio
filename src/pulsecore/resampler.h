@@ -73,6 +73,12 @@ typedef enum pa_resample_flags {
     PA_RESAMPLER_CONSUME_LFE   = 0x0040U,
 } pa_resample_flags_t;
 
+/* Currently, the soxr reampler has the largest delay of all supported resamplers.
+ * The maximum value below has been obtained empirically and contains a safety
+ * margin of about 3ms. If the resampler configuration is changed or additional
+ * resamplers are added, the constant must be re-evaluated. */
+#define PA_RESAMPLER_MAX_DELAY_USEC 33000
+
 struct pa_resampler {
     pa_resample_method_t method;
     pa_resample_flags_t flags;
@@ -108,6 +114,10 @@ struct pa_resampler {
 
     pa_remap_t remap;
     bool map_required;
+
+    double in_frames;
+    double out_frames;
+    unsigned gcd;
 
     pa_lfe_filter_t *lfe_filter;
 
@@ -147,8 +157,11 @@ void pa_resampler_set_output_rate(pa_resampler *r, uint32_t rate);
 /* Reinitialize state of the resampler, possibly due to seeking or other discontinuities */
 void pa_resampler_reset(pa_resampler *r);
 
+/* Prepare resampler for use by running some old data through it. */
+size_t pa_resampler_prepare(pa_resampler *r, pa_memblockq *history_queue, size_t amount);
+
 /* Rewind resampler */
-void pa_resampler_rewind(pa_resampler *r, size_t out_frames);
+size_t pa_resampler_rewind(pa_resampler *r, size_t out_bytes, pa_memblockq *history_queue, size_t amount);
 
 /* Return the resampling method of the resampler object */
 pa_resample_method_t pa_resampler_get_method(pa_resampler *r);
@@ -161,6 +174,18 @@ const char *pa_resample_method_to_string(pa_resample_method_t m);
 
 /* Return 1 when the specified resampling method is supported */
 int pa_resample_method_supported(pa_resample_method_t m);
+
+/* Get delay of the resampler in input frames */
+double pa_resampler_get_delay(pa_resampler *r, bool allow_negative);
+
+/* Get delay of the resampler in usec */
+pa_usec_t pa_resampler_get_delay_usec(pa_resampler *r);
+
+/* Get the GCD of input and outpu rate */
+unsigned pa_resampler_get_gcd(pa_resampler *r);
+
+/* Get maximum number of history frames */
+size_t pa_resampler_get_max_history(pa_resampler *r);
 
 const pa_channel_map* pa_resampler_input_channel_map(pa_resampler *r);
 const pa_sample_spec* pa_resampler_input_sample_spec(pa_resampler *r);

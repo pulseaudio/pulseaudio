@@ -22,8 +22,10 @@
 #endif
 
 #include <string.h>
+#include <math.h>
 
 #include <pulse/xmalloc.h>
+#include <pulse/timeval.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/strbuf.h>
@@ -120,6 +122,24 @@ static int (* const init_table[])(pa_resampler *r) = {
 #endif
 };
 
+static void calculate_gcd(pa_resampler *r) {
+    unsigned gcd, n;
+
+    pa_assert(r);
+
+    gcd = r->i_ss.rate;
+    n = r->o_ss.rate;
+
+    while (n != 0) {
+        unsigned tmp = gcd;
+
+        gcd = n;
+        n = tmp % n;
+    }
+
+    r->gcd = gcd;
+}
+
 static pa_resample_method_t choose_auto_resampler(pa_resample_flags_t flags) {
     pa_resample_method_t method;
 
@@ -163,9 +183,6 @@ static pa_resample_method_t fix_method(
             }
             /* Else fall through */
         case PA_RESAMPLER_FFMPEG:
-        case PA_RESAMPLER_SOXR_MQ:
-        case PA_RESAMPLER_SOXR_HQ:
-        case PA_RESAMPLER_SOXR_VHQ:
             if (flags & PA_RESAMPLER_VARIABLE_RATE) {
                 pa_log_info("Resampler '%s' cannot do variable rate, reverting to resampler 'auto'.", pa_resample_method_to_string(method));
                 method = PA_RESAMPLER_AUTO;
@@ -349,10 +366,13 @@ pa_resampler* pa_resampler_new(
     r->mempool = pool;
     r->method = method;
     r->flags = flags;
+    r->in_frames = 0;
+    r->out_frames = 0;
 
     /* Fill sample specs */
     r->i_ss = *a;
     r->o_ss = *b;
+    calculate_gcd(r);
 
     if (am)
         r->i_cm = *am;
@@ -479,7 +499,12 @@ void pa_resampler_set_input_rate(pa_resampler *r, uint32_t rate) {
     if (r->i_ss.rate == rate)
         return;
 
+    /* Recalculate delay counters */
+    r->in_frames = pa_resampler_get_delay(r, false);
+    r->out_frames = 0;
+
     r->i_ss.rate = rate;
+    calculate_gcd(r);
 
     r->impl.update_rates(r);
 }
@@ -492,7 +517,12 @@ void pa_resampler_set_output_rate(pa_resampler *r, uint32_t rate) {
     if (r->o_ss.rate == rate)
         return;
 
+    /* Recalculate delay counters */
+    r->in_frames = pa_resampler_get_delay(r, false);
+    r->out_frames = 0;
+
     r->o_ss.rate = rate;
+    calculate_gcd(r);
 
     r->impl.update_rates(r);
 
@@ -500,34 +530,73 @@ void pa_resampler_set_output_rate(pa_resampler *r, uint32_t rate) {
         pa_lfe_filter_update_rate(r->lfe_filter, rate);
 }
 
+/* pa_resampler_request() and pa_resampler_result() should be as exact as
+ * possible to ensure that no samples are lost or duplicated during rewinds.
+ * Ignore the leftover buffer, the value appears to be wrong for ffmpeg
+ * and 0 in all other cases. If the resampler is NULL it means that no
+ * resampling is necessary and the input length equals the output length.
+ * FIXME: These functions are not exact for the soxr resamplers because
+ * soxr uses a different algorithm. */
 size_t pa_resampler_request(pa_resampler *r, size_t out_length) {
-    pa_assert(r);
+    size_t in_length;
 
-    /* Let's round up here to make it more likely that the caller will get at
-     * least out_length amount of data from pa_resampler_run().
-     *
-     * We don't take the leftover into account here. If we did, then it might
-     * be in theory possible that this function would return 0 and
-     * pa_resampler_run() would also return 0. That could lead to infinite
-     * loops. When the leftover is ignored here, such loops would eventually
-     * terminate, because the leftover would grow each round, finally
-     * surpassing the minimum input threshold of the resampler. */
-    return ((((uint64_t) ((out_length + r->o_fz-1) / r->o_fz) * r->i_ss.rate) + r->o_ss.rate-1) / r->o_ss.rate) * r->i_fz;
+    if (!r || out_length == 0)
+        return out_length;
+
+    /* Convert to output frames */
+    out_length = out_length / r->o_fz;
+
+    /* Convert to input frames. The equation matches exactly the
+     * behavior of the used resamplers and will calculate the
+     * minimum number of input frames that are needed to produce
+     * the given number of output frames. */
+    in_length = (out_length - 1) * r->i_ss.rate / r->o_ss.rate + 1;
+
+    /* Convert to input length */
+    return in_length * r->i_fz;
 }
 
 size_t pa_resampler_result(pa_resampler *r, size_t in_length) {
-    size_t frames;
+    size_t out_length;
 
-    pa_assert(r);
+    if (!r)
+        return in_length;
 
-    /* Let's round up here to ensure that the caller will always allocate big
-     * enough output buffer. */
+    /* Convert to intput frames */
+    in_length = in_length / r->i_fz;
 
-    frames = (in_length + r->i_fz - 1) / r->i_fz;
-    if (*r->have_leftover)
-        frames += r->leftover_buf->length / r->w_fz;
+     /* soxr processes samples in blocks, depending on the ratio.
+      * Therefore samples  that do not fit into a block must be
+      * ignored. */
+    if (r->method == PA_RESAMPLER_SOXR_MQ || r->method == PA_RESAMPLER_SOXR_HQ || r->method == PA_RESAMPLER_SOXR_VHQ) {
+        double ratio;
+        size_t block_size;
+        int k;
 
-    return (((uint64_t) frames * r->o_ss.rate + r->i_ss.rate - 1) / r->i_ss.rate) * r->o_fz;
+        ratio = (double)r->i_ss.rate / (double)r->o_ss.rate;
+
+        for (k = 0; k < 7; k++) {
+            if (ratio < pow(2, k + 1))
+                break;
+        }
+        block_size = pow(2, k);
+        in_length = in_length - in_length % block_size;
+    }
+
+    /* Convert to output frames. This matches exactly the algorithm
+     * used by the resamplers except for the soxr resamplers. */
+
+     out_length = in_length * r->o_ss.rate / r->i_ss.rate;
+     if ((double)in_length * (double)r->o_ss.rate / (double)r->i_ss.rate - out_length > 0)
+         out_length++;
+     /* The libsamplerate resamplers return one sample more if the result is integral and the ratio is not integral. */
+     else if (r->method >= PA_RESAMPLER_SRC_SINC_BEST_QUALITY && r->method <= PA_RESAMPLER_SRC_SINC_FASTEST && r->i_ss.rate > r->o_ss.rate && r->i_ss.rate % r->o_ss.rate > 0 && (double)in_length * (double)r->o_ss.rate / (double)r->i_ss.rate - out_length <= 0)
+         out_length++;
+     else if (r->method == PA_RESAMPLER_SRC_ZERO_ORDER_HOLD && r->i_ss.rate > r->o_ss.rate && (double)in_length * (double)r->o_ss.rate / (double)r->i_ss.rate - out_length <= 0)
+         out_length++;
+
+    /* Convert to output length */
+    return out_length * r->o_fz;
 }
 
 size_t pa_resampler_max_block_size(pa_resampler *r) {
@@ -586,20 +655,89 @@ void pa_resampler_reset(pa_resampler *r) {
         pa_lfe_filter_reset(r->lfe_filter);
 
     *r->have_leftover = false;
+
+    r->in_frames = 0;
+    r->out_frames = 0;
 }
 
-void pa_resampler_rewind(pa_resampler *r, size_t out_frames) {
+/* This function runs amount bytes of data from the history queue through the
+ * resampler and discards the result. The history queue is unchanged after the
+ * call. This is used to preload a resampler after a reset. Returns the number
+ * of frames produced by the resampler. */
+size_t pa_resampler_prepare(pa_resampler *r, pa_memblockq *history_queue, size_t amount) {
+    size_t history_bytes, max_block_size, out_size;
+    int64_t to_run;
+
     pa_assert(r);
 
-    /* For now, we don't have any rewindable resamplers, so we just
-       reset the resampler instead (and hope that nobody hears the difference). */
-    if (r->impl.reset)
+    if (!history_queue || amount == 0)
+        return 0;
+
+    /* Rewind the LFE filter by the amount of history data. */
+    history_bytes = pa_resampler_result(r, amount);
+    if (r->lfe_filter)
+        pa_lfe_filter_rewind(r->lfe_filter, history_bytes);
+
+    pa_memblockq_rewind(history_queue, amount);
+    max_block_size = pa_resampler_max_block_size(r);
+    to_run = amount;
+    out_size = 0;
+
+    while (to_run > 0) {
+        pa_memchunk in_chunk, out_chunk;
+        size_t current;
+
+        current = PA_MIN(to_run, (int64_t) max_block_size);
+
+        /* Get data from memblockq */
+        if (pa_memblockq_peek_fixed_size(history_queue, current, &in_chunk) < 0) {
+            pa_log_warn("Could not read history data for resampler.");
+
+            /* Restore queue to original state and reset resampler */
+            pa_memblockq_drop(history_queue, to_run);
+            pa_resampler_reset(r);
+            return out_size;
+        }
+
+        /* Run the resampler */
+        pa_resampler_run(r, &in_chunk, &out_chunk);
+
+        /* Discard result */
+        if (out_chunk.length != 0) {
+            out_size += out_chunk.length;
+            pa_memblock_unref(out_chunk.memblock);
+        }
+
+        pa_memblock_unref(in_chunk.memblock);
+        pa_memblockq_drop(history_queue, current);
+        to_run -= current;
+    }
+
+    return out_size;
+}
+
+size_t pa_resampler_rewind(pa_resampler *r, size_t out_bytes, pa_memblockq *history_queue, size_t amount) {
+    pa_assert(r);
+
+    /* For now, we don't have any rewindable resamplers, so we just reset
+     * the resampler if we cannot rewind using pa_resampler_prepare(). */
+    if (r->impl.reset && !history_queue)
         r->impl.reset(r);
 
     if (r->lfe_filter)
-        pa_lfe_filter_rewind(r->lfe_filter, out_frames);
+        pa_lfe_filter_rewind(r->lfe_filter, out_bytes);
 
-    *r->have_leftover = false;
+    if (!history_queue) {
+        *r->have_leftover = false;
+
+        r->in_frames = 0;
+        r->out_frames = 0;
+    }
+
+    if (history_queue && amount > 0)
+        return pa_resampler_prepare(r, history_queue, amount);
+
+    return 0;
 }
 
 pa_resample_method_t pa_resampler_get_method(pa_resampler *r) {
@@ -1469,6 +1607,7 @@ void pa_resampler_run(pa_resampler *r, const pa_memchunk *in, pa_memchunk *out) 
     pa_assert(in->length % r->i_fz == 0);
 
     buf = (pa_memchunk*) in;
+    r->in_frames += buf->length / r->i_fz;
     buf = convert_to_work_format(r, buf);
 
     /* Try to save resampling effort: if we have more output channels than
@@ -1487,6 +1626,7 @@ void pa_resampler_run(pa_resampler *r, const pa_memchunk *in, pa_memchunk *out) 
     if (buf->length) {
         buf = convert_from_work_format(r, buf);
         *out = *buf;
+        r->out_frames += buf->length / r->o_fz;
 
         if (buf == in)
             pa_memblock_ref(buf->memblock);
@@ -1494,6 +1634,47 @@ void pa_resampler_run(pa_resampler *r, const pa_memchunk *in, pa_memchunk *out) 
             pa_memchunk_reset(buf);
     } else
         pa_memchunk_reset(out);
+}
+
+/* Get delay in input frames. Some resamplers may have negative delay. */
+double pa_resampler_get_delay(pa_resampler *r, bool allow_negative) {
+    double frames;
+
+    frames = r->out_frames * r->i_ss.rate / r->o_ss.rate;
+    if (frames >= r->in_frames && !allow_negative)
+        return 0;
+    return r->in_frames - frames;
+}
+
+/* Get delay in usec */
+pa_usec_t pa_resampler_get_delay_usec(pa_resampler *r) {
+
+    if (!r)
+        return 0;
+
+    return (pa_usec_t) (pa_resampler_get_delay(r, false) * PA_USEC_PER_SEC / r->i_ss.rate);
+}
+
+/* Get GCD of input and output rate. */
+unsigned pa_resampler_get_gcd(pa_resampler *r) {
+    pa_assert(r);
+
+    return r->gcd;
+}
+
+/* Get maximum resampler history. The resamplers have finite impulse response, so really old
+ * data (more than 2x the resampler latency) cannot affect the output. This means, that in an
+ * ideal case, we should re-run 2 - 3 times the resampler delay through the resampler when it
+ * is rewound. On the other hand this would mean for high sample rates that more than 25000
+ * samples would need to be used (384k * 33ms). Therefore limit the history to 1.5 times the
+ * maximum resampler delay, which should be fully sufficient in most cases and allows to run
+ * at least more than one delay through the resampler in case of high rates. */
+size_t pa_resampler_get_max_history(pa_resampler *r) {
+
+    if (!r)
+        return 0;
+
+    return (uint64_t) PA_RESAMPLER_MAX_DELAY_USEC * r->i_ss.rate * 3 / PA_USEC_PER_SEC / 2;
 }
 
 /*** copy (noop) implementation ***/

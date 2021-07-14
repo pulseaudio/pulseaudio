@@ -132,6 +132,7 @@ static void speex_reset(pa_resampler *r) {
     state = r->impl.data;
 
     pa_assert_se(speex_resampler_reset_mem(state) == 0);
+    speex_resampler_skip_zeros(state);
 }
 
 static void speex_free(pa_resampler *r) {
@@ -171,6 +172,8 @@ int pa_resampler_speex_init(pa_resampler *r) {
 
     if (!(state = speex_resampler_init(r->work_channels, r->i_ss.rate, r->o_ss.rate, q, &err)))
         return -1;
+
+    speex_resampler_skip_zeros(state);
 
     r->impl.data = state;
 
