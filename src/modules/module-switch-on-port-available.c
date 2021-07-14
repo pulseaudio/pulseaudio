@@ -26,11 +26,29 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/device-port.h>
 #include <pulsecore/hashmap.h>
+#include <pulsecore/modargs.h>
+
+/* Ignore HDMI devices by default. HDMI monitors don't necessarily have audio
+ * output on them, and even if they do, waking up from sleep or changing
+ * monitor resolution may appear as a plugin event, which causes trouble if the
+ * user doesn't want to use the monitor for audio. */
+#define DEFAULT_BLACKLIST_PORTS "hdmi"
+#define DEFAULT_BLACKLIST_PROFILES "hdmi"
 
 PA_MODULE_AUTHOR("David Henningsson");
 PA_MODULE_DESCRIPTION("Switches ports and profiles when devices are plugged/unplugged");
 PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_VERSION(PACKAGE_VERSION);
+PA_MODULE_USAGE(
+        "blacklist_ports=<regex, ignore matching ports> "
+        "blacklist_profiles=<regex, ignore matching card profiles> "
+);
+
+static const char* const valid_modargs[] = {
+    "blacklist_ports",
+    "blacklist_profiles",
+    NULL,
+};
 
 struct card_info {
     struct userdata *userdata;
@@ -44,6 +62,8 @@ struct card_info {
 
 struct userdata {
     pa_hashmap *card_infos; /* pa_card -> struct card_info */
+    char *blacklist_ports;
+    char *blacklist_profiles;
 };
 
 static void card_info_new(struct userdata *u, pa_card *card) {
@@ -296,8 +316,12 @@ static void switch_from_port(pa_device_port *port, struct port_pointers pp) {
 }
 
 
-static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port *port, void* userdata) {
+static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port *port, struct userdata *u) {
     struct port_pointers pp = find_port_pointers(port);
+
+    pa_assert(c);
+    pa_assert(port);
+    pa_assert(u);
 
     if (!port->card) {
         pa_log_warn("Port %s does not have a card", port->name);
@@ -311,6 +335,12 @@ static pa_hook_result_t port_available_hook_callback(pa_core *c, pa_device_port 
      * module-switch-on-port-available. */
     if (pa_safe_streq(pa_proplist_gets(port->card->proplist, PA_PROP_DEVICE_BUS), "bluetooth"))
         return PA_HOOK_OK;
+
+    /* Ignore ports matching the blacklist regex */
+    if (u->blacklist_ports && (pa_match(u->blacklist_ports, port->name) > 0)) {
+        pa_log_info("Ignoring blacklisted port %s", port->name);
+        return PA_HOOK_OK;
+    }
 
     switch (port->available) {
     case PA_AVAILABLE_UNKNOWN:
@@ -387,6 +417,7 @@ static pa_card_profile *find_best_profile(pa_card *card) {
 static pa_hook_result_t card_profile_available_hook_callback(pa_core *c, pa_card_profile *profile, struct userdata *u) {
     pa_card *card;
 
+    pa_assert(u);
     pa_assert(profile);
     pa_assert_se(card = profile->card);
 
@@ -401,6 +432,12 @@ static pa_hook_result_t card_profile_available_hook_callback(pa_core *c, pa_card
         return PA_HOOK_OK;
     }
 
+    /* Ignore p matching the blacklist regex */
+    if (u->blacklist_profiles && (pa_match(u->blacklist_profiles, profile->name) > 0)) {
+        pa_log_info("Ignoring blacklisted card profile %s", profile->name);
+        return PA_HOOK_OK;
+    }
+
     pa_log_debug("Active profile %s on card %s became unavailable, switching to another profile", profile->name, card->name);
     pa_card_set_profile(card, find_best_profile(card), false);
 
@@ -408,7 +445,7 @@ static pa_hook_result_t card_profile_available_hook_callback(pa_core *c, pa_card
 
 }
 
-static void handle_all_unavailable(pa_core *core) {
+static void handle_all_unavailable(pa_core *core, struct userdata *u) {
     pa_card *card;
     uint32_t state;
 
@@ -418,7 +455,7 @@ static void handle_all_unavailable(pa_core *core) {
 
         PA_HASHMAP_FOREACH(port, card->ports, state2) {
             if (port->available == PA_AVAILABLE_NO)
-                port_available_hook_callback(core, port, NULL);
+                port_available_hook_callback(core, port, u);
         }
     }
 }
@@ -591,14 +628,48 @@ static pa_hook_result_t sink_port_changed_callback(pa_core *core, pa_sink *sink,
 }
 
 int pa__init(pa_module*m) {
+    pa_modargs *ma;
     struct userdata *u;
     pa_card *card;
     uint32_t idx;
 
     pa_assert(m);
 
+    if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
+        pa_log("Failed to parse module arguments");
+        return -1;
+    }
+
     u = m->userdata = pa_xnew0(struct userdata, 1);
     u->card_infos = pa_hashmap_new(NULL, NULL);
+
+    u->blacklist_ports = pa_xstrdup(pa_modargs_get_value(ma, "blacklist_ports", DEFAULT_BLACKLIST_PORTS));
+
+    /* An empty string disables all blacklisting. */
+    if (!*u->blacklist_ports) {
+        pa_xfree(u->blacklist_ports);
+        u->blacklist_ports = NULL;
+    }
+
+    if (u->blacklist_ports != NULL && !pa_is_regex_valid(u->blacklist_ports)) {
+        pa_log_error("A port blacklist pattern was provided but is not a valid regex");
+        pa_xfree(u->blacklist_ports);
+        goto fail;
+    }
+
+    u->blacklist_profiles = pa_xstrdup(pa_modargs_get_value(ma, "blacklist_profiles", DEFAULT_BLACKLIST_PROFILES));
+
+    /* An empty string disables all blacklisting. */
+    if (!*u->blacklist_profiles) {
+        pa_xfree(u->blacklist_profiles);
+        u->blacklist_profiles = NULL;
+    }
+
+    if (u->blacklist_profiles != NULL && !pa_is_regex_valid(u->blacklist_profiles)) {
+        pa_log_error("A card profile blacklist pattern was provided but is not a valid regex");
+        pa_xfree(u->blacklist_profiles);
+        goto fail;
+    }
 
     PA_IDXSET_FOREACH(card, m->core->cards, idx)
         card_info_new(u, card);
@@ -609,9 +680,9 @@ int pa__init(pa_module*m) {
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SOURCE_NEW],
                            PA_HOOK_NORMAL, (pa_hook_cb_t) source_new_hook_callback, NULL);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_PORT_AVAILABLE_CHANGED],
-                           PA_HOOK_LATE, (pa_hook_cb_t) port_available_hook_callback, NULL);
+                           PA_HOOK_LATE, (pa_hook_cb_t) port_available_hook_callback, u);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_PROFILE_AVAILABLE_CHANGED],
-                           PA_HOOK_LATE, (pa_hook_cb_t) card_profile_available_hook_callback, NULL);
+                           PA_HOOK_LATE, (pa_hook_cb_t) card_profile_available_hook_callback, u);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_PUT],
                            PA_HOOK_NORMAL, (pa_hook_cb_t) card_put_hook_callback, u);
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_CARD_UNLINK],
@@ -623,9 +694,19 @@ int pa__init(pa_module*m) {
     pa_module_hook_connect(m, &m->core->hooks[PA_CORE_HOOK_SINK_PORT_CHANGED],
                            PA_HOOK_NORMAL, (pa_hook_cb_t) sink_port_changed_callback, NULL);
 
-    handle_all_unavailable(m->core);
+    handle_all_unavailable(m->core, u);
+
+    pa_modargs_free(ma);
 
     return 0;
+
+fail:
+    if (ma)
+        pa_modargs_free(ma);
+
+    pa__done(m);
+
+    return -1;
 }
 
 void pa__done(pa_module *module) {
@@ -641,6 +722,12 @@ void pa__done(pa_module *module) {
         card_info_free(info);
 
     pa_hashmap_free(u->card_infos);
+
+    if (u->blacklist_ports)
+        pa_xfree(u->blacklist_ports);
+
+    if (u->blacklist_profiles)
+        pa_xfree(u->blacklist_profiles);
 
     pa_xfree(u);
 }
