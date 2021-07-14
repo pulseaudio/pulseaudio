@@ -258,6 +258,20 @@ void* pa_idxset_get_by_data(pa_idxset*s, const void *p, uint32_t *idx) {
     return e->data;
 }
 
+bool pa_idxset_contains(pa_idxset *s, const void *p) {
+    unsigned hash;
+    struct idxset_entry *e;
+
+    pa_assert(s);
+
+    hash = s->hash_func(p) % NBUCKETS;
+
+    if (!(e = data_scan(s, hash, p)))
+        return false;
+
+    return e->data == p;
+}
+
 void* pa_idxset_remove_by_index(pa_idxset*s, uint32_t idx) {
     struct idxset_entry *e;
     unsigned hash;
@@ -367,6 +381,39 @@ at_end:
     return NULL;
 }
 
+void *pa_idxset_reverse_iterate(pa_idxset *s, void **state, uint32_t *idx) {
+    struct idxset_entry *e;
+
+    pa_assert(s);
+    pa_assert(state);
+
+    if (*state == (void*) -1)
+        goto at_end;
+
+    if ((!*state && !s->iterate_list_tail))
+        goto at_end;
+
+    e = *state ? *state : s->iterate_list_tail;
+
+    if (e->iterate_previous)
+        *state = e->iterate_previous;
+    else
+        *state = (void*) -1;
+
+    if (idx)
+        *idx = e->idx;
+
+    return e->data;
+
+at_end:
+    *state = (void *) -1;
+
+    if (idx)
+        *idx = PA_IDXSET_INVALID;
+
+    return NULL;
+}
+
 void* pa_idxset_steal_first(pa_idxset *s, uint32_t *idx) {
     void *data;
 
@@ -385,6 +432,24 @@ void* pa_idxset_steal_first(pa_idxset *s, uint32_t *idx) {
     return data;
 }
 
+void* pa_idxset_steal_last(pa_idxset *s, uint32_t *idx) {
+    void *data;
+
+    pa_assert(s);
+
+    if (!s->iterate_list_tail)
+        return NULL;
+
+    data = s->iterate_list_tail->data;
+
+    if (idx)
+        *idx = s->iterate_list_tail->idx;
+
+    remove_entry(s, s->iterate_list_tail);
+
+    return data;
+}
+
 void* pa_idxset_first(pa_idxset *s, uint32_t *idx) {
     pa_assert(s);
 
@@ -398,6 +463,21 @@ void* pa_idxset_first(pa_idxset *s, uint32_t *idx) {
         *idx = s->iterate_list_head->idx;
 
     return s->iterate_list_head->data;
+}
+
+void* pa_idxset_last(pa_idxset *s, uint32_t *idx) {
+    pa_assert(s);
+
+    if (!s->iterate_list_tail) {
+        if (idx)
+            *idx = PA_IDXSET_INVALID;
+        return NULL;
+    }
+
+    if (idx)
+        *idx = s->iterate_list_tail->idx;
+
+    return s->iterate_list_tail->data;
 }
 
 void *pa_idxset_next(pa_idxset *s, uint32_t *idx) {
@@ -444,6 +524,50 @@ void *pa_idxset_next(pa_idxset *s, uint32_t *idx) {
     }
 }
 
+void *pa_idxset_previous(pa_idxset *s, uint32_t *idx) {
+    struct idxset_entry *e;
+    unsigned hash;
+
+    pa_assert(s);
+    pa_assert(idx);
+
+    if (*idx == PA_IDXSET_INVALID)
+        return NULL;
+
+    hash = *idx % NBUCKETS;
+
+    if ((e = index_scan(s, hash, *idx))) {
+
+        e = e->iterate_previous;
+
+        if (e) {
+            *idx = e->idx;
+            return e->data;
+        } else {
+            *idx = PA_IDXSET_INVALID;
+            return NULL;
+        }
+
+    } else {
+
+        /* If the entry passed doesn't exist anymore we try to find
+         * the preceding one. */
+
+        for ((*idx)--; *idx < s->current_index; (*idx)--) {
+
+            hash = *idx % NBUCKETS;
+
+            if ((e = index_scan(s, hash, *idx))) {
+                *idx = e->idx;
+                return e->data;
+            }
+        }
+
+        *idx = PA_IDXSET_INVALID;
+        return NULL;
+    }
+}
+
 unsigned pa_idxset_size(pa_idxset*s) {
     pa_assert(s);
 
@@ -454,6 +578,40 @@ bool pa_idxset_isempty(pa_idxset *s) {
     pa_assert(s);
 
     return s->n_entries == 0;
+}
+
+bool pa_idxset_isdisjoint(pa_idxset *s, pa_idxset *t) {
+    struct idxset_entry *i;
+
+    pa_assert(s);
+    pa_assert(t);
+
+    for (i = s->iterate_list_head; i; i = i->iterate_next)
+        if (pa_idxset_contains(t, i->data))
+            return false;
+
+    return true;
+}
+
+bool pa_idxset_issubset(pa_idxset *s, pa_idxset *t) {
+    struct idxset_entry *i;
+
+    pa_assert(s);
+    pa_assert(t);
+
+    for (i = s->iterate_list_head; i; i = i->iterate_next)
+        if (!pa_idxset_contains(t, i->data))
+            return false;
+
+    return true;
+}
+
+bool pa_idxset_issuperset(pa_idxset *s, pa_idxset *t) {
+    return pa_idxset_issubset(t, s);
+}
+
+bool pa_idxset_equals(pa_idxset *s, pa_idxset *t) {
+    return pa_idxset_issubset(s, t) && pa_idxset_issuperset(s, t);
 }
 
 pa_idxset *pa_idxset_copy(pa_idxset *s, pa_copy_func_t copy_func) {
