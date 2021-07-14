@@ -103,6 +103,7 @@ struct userdata {
     pa_core *core;
 
     pa_hook_slot *device_connection_changed_slot;
+    pa_hook_slot *device_battery_level_changed_slot;
     pa_hook_slot *transport_state_changed_slot;
     pa_hook_slot *transport_sink_volume_changed_slot;
     pa_hook_slot *transport_source_volume_changed_slot;
@@ -186,8 +187,8 @@ static pa_bluetooth_form_factor_t form_factor_from_class(uint32_t class_of_devic
     };
 
     /*
-     * See Bluetooth Assigned Numbers:
-     * https://www.bluetooth.org/Technical/AssignedNumbers/baseband.htm
+     * See Bluetooth Assigned Numbers for Baseband
+     * https://www.bluetooth.com/specifications/assigned-numbers/baseband/
      */
     major = (class_of_device >> 8) & 0x1F;
     minor = (class_of_device >> 2) & 0x3F;
@@ -2157,6 +2158,12 @@ static int add_card(struct userdata *u) {
     data.name = pa_sprintf_malloc("bluez_card.%s", d->address);
     data.namereg_fail = false;
 
+    if (d->has_battery_level) {
+        // See device_battery_level_changed_cb
+        uint8_t level = d->battery_level;
+        pa_proplist_setf(data.proplist, "bluetooth.battery", "%d%%", level);
+    }
+
     create_card_ports(u, data.ports);
 
     PA_HASHMAP_FOREACH(uuid, d->uuids, state) {
@@ -2291,6 +2298,25 @@ static pa_hook_result_t device_connection_changed_cb(pa_bluetooth_discovery *y, 
 
     pa_log_debug("Unloading module for device %s", d->path);
     pa_module_unload(u->module, true);
+
+    return PA_HOOK_OK;
+}
+
+static pa_hook_result_t device_battery_level_changed_cb(pa_bluetooth_discovery *y, const pa_bluetooth_device *d, struct userdata *u) {
+    uint8_t level;
+
+    pa_assert(d);
+    pa_assert(u);
+
+    if (d != u->device)
+        return PA_HOOK_OK;
+
+    if (d->has_battery_level) {
+        level = d->battery_level;
+        pa_proplist_setf(u->card->proplist, "bluetooth.battery", "%d%%", level);
+    } else {
+        pa_proplist_unset(u->card->proplist, "bluetooth.battery");
+    }
 
     return PA_HOOK_OK;
 }
@@ -2691,6 +2717,10 @@ int pa__init(pa_module* m) {
         pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_DEVICE_CONNECTION_CHANGED),
                         PA_HOOK_NORMAL, (pa_hook_cb_t) device_connection_changed_cb, u);
 
+    u->device_battery_level_changed_slot =
+        pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_DEVICE_BATTERY_LEVEL_CHANGED),
+                        PA_HOOK_NORMAL, (pa_hook_cb_t) device_battery_level_changed_cb, u);
+
     u->transport_state_changed_slot =
         pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_TRANSPORT_STATE_CHANGED),
                         PA_HOOK_NORMAL, (pa_hook_cb_t) transport_state_changed_cb, u);
@@ -2766,6 +2796,9 @@ void pa__done(pa_module *m) {
 
     if (u->device_connection_changed_slot)
         pa_hook_slot_free(u->device_connection_changed_slot);
+
+    if (u->device_battery_level_changed_slot)
+        pa_hook_slot_free(u->device_battery_level_changed_slot);
 
     if (u->transport_state_changed_slot)
         pa_hook_slot_free(u->transport_state_changed_slot);

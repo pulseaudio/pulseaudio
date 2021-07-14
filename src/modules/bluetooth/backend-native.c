@@ -61,6 +61,7 @@ struct hfp_config {
     int state;
     bool support_codec_negotiation;
     bool support_msbc;
+    bool supports_indicators;
     int selected_codec;
 };
 
@@ -76,6 +77,7 @@ enum hfp_hf_features {
     HFP_HF_ESTATUS = 5,
     HFP_HF_ECALL = 6,
     HFP_HF_CODECS = 7,
+    HFP_HF_INDICATORS = 8,
 };
 
 enum hfp_ag_features {
@@ -89,12 +91,13 @@ enum hfp_ag_features {
     HFP_AG_ECALL = 7,
     HFP_AG_EERR = 8,
     HFP_AG_CODECS = 9,
+    HFP_AG_INDICATORS = 10,
 };
 
 /* gateway features we support, which is as little as we can get away with */
 static uint32_t hfp_features =
     /* HFP 1.6 requires this */
-    (1 << HFP_AG_ESTATUS ) | (1 << HFP_AG_CODECS);
+    (1 << HFP_AG_ESTATUS ) | (1 << HFP_AG_CODECS) | (1 << HFP_AG_INDICATORS);
 
 #define HSP_AG_PROFILE "/Profile/HSPAGProfile"
 #define HFP_AG_PROFILE "/Profile/HFPAGProfile"
@@ -559,7 +562,7 @@ static pa_volume_t set_source_volume(pa_bluetooth_transport *t, pa_volume_t volu
 static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf)
 {
     struct hfp_config *c = t->config;
-    int val;
+    int indicator, val;
     char str[5];
     const char *r;
     size_t len;
@@ -574,6 +577,7 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
         c->capabilities = val;
         pa_log_info("HFP capabilities returns 0x%x", val);
         rfcomm_write_response(fd, "+BRSF: %d", hfp_features);
+        c->supports_indicators = !!(1 << HFP_HF_INDICATORS);
         c->state = 1;
 
         return true;
@@ -605,7 +609,7 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
         /* we declare minimal no indicators */
         rfcomm_write_response(fd, "+CIND: "
                      /* many indicators can be supported, only call and
-                      * callheld are mandatory, so that's all we repy */
+                      * callheld are mandatory, so that's all we reply */
                      "(\"service\",(0-1)),"
                      "(\"call\",(0-1)),"
                      "(\"callsetup\",(0-3)),"
@@ -656,6 +660,35 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
         }
 
         return true;
+    } else if (c->supports_indicators && pa_startswith(buf, "AT+BIND=?")) {
+        // Support battery indication
+        rfcomm_write_response(fd, "+BIND: (2)");
+        return true;
+    } else if (c->supports_indicators && pa_startswith(buf, "AT+BIND?")) {
+        // Battery indication is enabled
+        rfcomm_write_response(fd, "+BIND: 2,1");
+        return true;
+    } else if (c->supports_indicators && pa_startswith(buf, "AT+BIND=")) {
+        // If this comma-separated list contains `2`, the HF is
+        // able to report values for the battery indicator.
+        return true;
+    } else if (c->supports_indicators && sscanf(buf, "AT+BIEV=%u,%u", &indicator, &val)) {
+        switch (indicator) {
+            case 2:
+                pa_log_notice("Battery Level: %d%%", val);
+                if (val < 0 || val > 100) {
+                    pa_log_error("Battery HF indicator %d out of [0, 100] range", val);
+                    rfcomm_write_response(fd, "ERROR");
+                    return false;
+                }
+                pa_bluetooth_device_report_battery_level(t->device, val, "HFP 1.7 HF indicator");
+                break;
+            default:
+                pa_log_error("Unknown HF indicator %u", indicator);
+                rfcomm_write_response(fd, "ERROR");
+                return false;
+        }
+        return true;
     } if (c->state == 4) {
         /* the ack for the codec setting may take a while. we need
          * to reply OK to everything else until then */
@@ -686,6 +719,11 @@ static void rfcomm_io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_i
 
     if (events & (PA_IO_EVENT_HANGUP|PA_IO_EVENT_ERROR)) {
         pa_log_info("Lost RFCOMM connection.");
+        // TODO: Keep track of which profile is the current battery provider,
+        // only deregister if it is us currently providing these levels.
+        // (Also helpful to fill the 'Source' property)
+        // We might also move this to Profile1::RequestDisconnection
+        pa_bluetooth_device_deregister_battery(t->device);
         goto fail;
     }
 
@@ -693,7 +731,9 @@ static void rfcomm_io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_i
         char buf[512];
         ssize_t len;
         int gain, dummy;
-        bool  do_reply = false;
+        bool do_reply = false;
+        int vendor, product, version, features;
+        int num;
 
         len = pa_read(fd, buf, 511, NULL);
         if (len < 0) {
@@ -734,9 +774,55 @@ static void rfcomm_io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_i
             do_reply = true;
         } else if (sscanf(buf, "AT+CKPD=%d", &dummy) == 1) {
             do_reply = true;
+        } else if (sscanf(buf, "AT+XAPL=%04x-%04x-%04x,%d", &vendor, &product, &version, &features) == 4) {
+            if (features & 0x2)
+                /* claim, that we support battery status reports */
+                rfcomm_write_response(fd, "+XAPL=iPhone,6");
+            do_reply = true;
+        } else if (sscanf(buf, "AT+IPHONEACCEV=%d", &num) == 1) {
+            char *substr = buf, *keystr;
+            int key, val, i;
+
+            do_reply = true;
+
+            for (i = 0; i < num; ++i) {
+                keystr = strchr(substr, ',');
+                if (!keystr) {
+                    pa_log_warn("%s misses key for argument #%d", buf, i);
+                    do_reply = false;
+                    break;
+                }
+                keystr++;
+                substr = strchr(keystr, ',');
+                if (!substr) {
+                    pa_log_warn("%s misses value for argument #%d", buf, i);
+                    do_reply = false;
+                    break;
+                }
+                substr++;
+
+                key = atoi(keystr);
+                val = atoi(substr);
+
+                switch (key) {
+                    case 1:
+                        pa_log_notice("Battery Level: %d0%%", val + 1);
+                        pa_bluetooth_device_report_battery_level(t->device, (val + 1) * 10, "Apple accessory indication");
+                        break;
+                    case 2:
+                        pa_log_notice("Dock Status: %s", val ? "docked" : "undocked");
+                        break;
+                    default:
+                        pa_log_debug("Unexpected IPHONEACCEV key %#x", key);
+                        break;
+                }
+            }
+            if (!do_reply)
+                rfcomm_write_response(fd, "ERROR");
         } else if (t->config) { /* t->config is only non-null for hfp profile */
             do_reply = hfp_rfcomm_handle(fd, t, buf);
         } else {
+            rfcomm_write_response(fd, "ERROR");
             do_reply = false;
         }
 
