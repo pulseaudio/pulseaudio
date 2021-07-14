@@ -73,8 +73,6 @@ static void* internal_thread_func(void *userdata) {
     pthread_setname_np(t->name);
 #endif
 
-    t->id = pthread_self();
-
     PA_STATIC_TLS_SET(current_thread, t);
 
     pa_atomic_inc(&t->running);
