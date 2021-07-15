@@ -71,6 +71,7 @@ static void handle_sink_get_monitor_source(DBusConnection *conn, DBusMessage *ms
 static void handle_sink_get_all(DBusConnection *conn, DBusMessage *msg, void *userdata);
 
 static void handle_source_get_monitor_of_sink(DBusConnection *conn, DBusMessage *msg, void *userdata);
+static void handle_source_get_priority(DBusConnection *conn, DBusMessage *msg, void *userdata);
 
 static void handle_source_get_all(DBusConnection *conn, DBusMessage *msg, void *userdata);
 
@@ -139,6 +140,7 @@ enum sink_property_handler_index {
 
 enum source_property_handler_index {
     SOURCE_PROPERTY_HANDLER_MONITOR_OF_SINK,
+    SOURCE_PROPERTY_HANDLER_PRIORITY,
     SOURCE_PROPERTY_HANDLER_MAX
 };
 
@@ -175,7 +177,8 @@ static pa_dbus_property_handler sink_property_handlers[SINK_PROPERTY_HANDLER_MAX
 };
 
 static pa_dbus_property_handler source_property_handlers[SOURCE_PROPERTY_HANDLER_MAX] = {
-    [SOURCE_PROPERTY_HANDLER_MONITOR_OF_SINK] = { .property_name = "MonitorOfSink", .type = "o", .get_cb = handle_source_get_monitor_of_sink, .set_cb = NULL }
+    [SOURCE_PROPERTY_HANDLER_MONITOR_OF_SINK] = { .property_name = "MonitorOfSink", .type = "o", .get_cb = handle_source_get_monitor_of_sink, .set_cb = NULL },
+    [SOURCE_PROPERTY_HANDLER_PRIORITY] = { .property_name = "Priority", .type = "u", .get_cb = handle_source_get_priority, .set_cb = NULL }
 };
 
 enum method_handler_index {
@@ -1052,6 +1055,19 @@ static void handle_source_get_monitor_of_sink(DBusConnection *conn, DBusMessage 
     pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_OBJECT_PATH, &monitor_of_sink);
 }
 
+static void handle_source_get_priority(DBusConnection *conn, DBusMessage *msg, void *userdata) {
+    pa_dbusiface_device *d = userdata;
+
+    pa_assert(conn);
+    pa_assert(msg);
+    pa_assert(d);
+    pa_assert(d->type == PA_DEVICE_TYPE_SOURCE);
+
+    unsigned priority = d->source->priority;
+
+    pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &priority);
+}
+
 static void handle_source_get_all(DBusConnection *conn, DBusMessage *msg, void *userdata) {
     pa_dbusiface_device *d = userdata;
     DBusMessage *reply = NULL;
@@ -1074,6 +1090,10 @@ static void handle_source_get_all(DBusConnection *conn, DBusMessage *msg, void *
 
     if (monitor_of_sink)
         pa_dbus_append_basic_variant_dict_entry(&dict_iter, property_handlers[SOURCE_PROPERTY_HANDLER_MONITOR_OF_SINK].property_name, DBUS_TYPE_OBJECT_PATH, &monitor_of_sink);
+
+    unsigned priority = d->source->priority;
+
+    pa_dbus_send_basic_variant_reply(conn, msg, DBUS_TYPE_UINT32, &priority);
 
     pa_assert_se(dbus_message_iter_close_container(&msg_iter, &dict_iter));
 
