@@ -12,7 +12,11 @@ pa_version_str = meson.project_version()
 # (e.g.: v11.99.1-3-gad14bdb24 -> v11.99.1)
 version_split = pa_version_str.split('-')[0].split('.')
 pa_version_major = version_split[0].split('v')[0]
-pa_version_minor = version_split[1]
+if version_split.length() > 1
+  pa_version_minor = version_split[1]
+else
+  pa_version_minor = '0'
+endif
 if version_split.length() > 2
   pa_version_micro = version_split[2]
 else
