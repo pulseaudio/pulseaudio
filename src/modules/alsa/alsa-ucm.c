@@ -90,6 +90,8 @@ static pa_alsa_ucm_device *verb_find_device(pa_alsa_ucm_verb *verb, const char *
 
 static void ucm_port_data_init(pa_alsa_ucm_port_data *port, pa_alsa_ucm_config *ucm, pa_device_port *core_port,
                                pa_alsa_ucm_device **devices, unsigned n_devices);
+static void ucm_port_add_devices(pa_device_port *port, pa_alsa_ucm_device **pdevices, int num);
+static void device_add_ucm_port(pa_alsa_ucm_device *device, pa_alsa_ucm_port_data *port);
 static void ucm_port_data_free(pa_device_port *port);
 static void ucm_port_update_available(pa_alsa_ucm_port_data *port);
 
@@ -982,6 +984,61 @@ fail:
     }
 }
 
+static int devs_have_same_property(pa_alsa_ucm_device *dev1,
+				   pa_alsa_ucm_device *dev2,
+				   const char *prop)
+{
+	const char *val1, *val2;
+
+	/* check whether the 2 devices have the exactly same property */
+	val1 = pa_proplist_gets(dev1->proplist, prop);
+	val2 = pa_proplist_gets(dev2->proplist, prop);
+	if (val1 && val2)
+		return pa_streq(val1, val2);
+
+	return 1;
+}
+
+static void ucm_port_add_devices(pa_device_port *port,
+				 pa_alsa_ucm_device **pdevices,
+				 int num)
+{
+	pa_alsa_ucm_device *device;
+	pa_alsa_ucm_port_data *portdata;
+	unsigned idx;
+	int found, i;
+
+	pa_assert(port);
+
+	portdata = PA_DEVICE_PORT_DATA(port);
+	for (i = 0; i < num; i++) {
+		found = 0;
+		PA_DYNARRAY_FOREACH(device, portdata->devices, idx) {
+			if (pdevices[i] == device) {
+				found = 1;
+				break;
+			} else {
+				if (!devs_have_same_property(pdevices[i], device, PA_ALSA_PROP_UCM_PLAYBACK_CHANNELS))
+					pa_log_warn("port %s has different playback channel devices\n", port->name);
+				if (!devs_have_same_property(pdevices[i], device, PA_ALSA_PROP_UCM_PLAYBACK_RATE))
+					pa_log_warn("port %s has different playback rate devices\n", port->name);
+				if (!devs_have_same_property(pdevices[i], device, PA_ALSA_PROP_UCM_PLAYBACK_PRIORITY))
+					pa_log_warn("port %s has different playback priority devices\n", port->name);
+				if (!devs_have_same_property(pdevices[i], device, PA_ALSA_PROP_UCM_CAPTURE_CHANNELS))
+					pa_log_warn("port %s has different capture channel devices\n", port->name);
+				if (!devs_have_same_property(pdevices[i], device, PA_ALSA_PROP_UCM_CAPTURE_RATE))
+					pa_log_warn("port %s has different capture rate devices\n", port->name);
+				if (!devs_have_same_property(pdevices[i], device, PA_ALSA_PROP_UCM_CAPTURE_PRIORITY))
+					pa_log_warn("port %s has different capture priority devices\n", port->name);
+			}
+		}
+		if (found == 0) {
+			pa_dynarray_append(portdata->devices, pdevices[i]);
+			device_add_ucm_port(pdevices[i], portdata);
+		}
+	}
+}
+
 static void ucm_add_port_combination(
         pa_hashmap *hash,
         pa_alsa_ucm_mapping_context *context,
@@ -1088,34 +1145,40 @@ static void ucm_add_port_combination(
 
         pa_hashmap_put(ports, port->name, port);
         pa_log_debug("Add port %s: %s", port->name, port->description);
+    }
 
-        if (num == 1) {
-            /* To keep things simple and not worry about stacking controls, we only support hardware volumes on non-combination
-             * ports. */
-            data = PA_DEVICE_PORT_DATA(port);
+    /* If the pdevices are not added to the portdata, let's add them */
+    ucm_port_add_devices(port, pdevices, num);
 
-            PA_HASHMAP_FOREACH_KV(profile, vol, is_sink ? dev->playback_volumes : dev->capture_volumes, state) {
-                pa_alsa_path *path = pa_alsa_path_synthesize(vol->mixer_elem,
-                                                             is_sink ? PA_ALSA_DIRECTION_OUTPUT : PA_ALSA_DIRECTION_INPUT);
+    /* It needs to setup the paths when setup the profiles */
+    if (num == 1 && cp) {
+        /*
+         * To keep things simple and not worry about stacking controls,
+         * we only support hardware volumes on non-combination ports.
+         */
+        data = PA_DEVICE_PORT_DATA(port);
 
-                if (!path)
-                    pa_log_warn("Failed to set up volume control: %s", vol->mixer_elem);
-                else {
-                    if (vol->master_elem) {
-                        pa_alsa_element *e = pa_alsa_element_get(path, vol->master_elem, false);
-                        e->switch_use = PA_ALSA_SWITCH_MUTE;
-                        e->volume_use = PA_ALSA_VOLUME_MERGE;
-                    }
+        PA_HASHMAP_FOREACH_KV(profile, vol, is_sink ? dev->playback_volumes : dev->capture_volumes, state) {
+            pa_alsa_path *path = pa_alsa_path_synthesize(vol->mixer_elem,
+                                                         is_sink ? PA_ALSA_DIRECTION_OUTPUT : PA_ALSA_DIRECTION_INPUT);
 
-                    pa_hashmap_put(data->paths, pa_xstrdup(profile), path);
-
-                    /* Add path also to already created empty path set */
-                    dev = sorted[0];
-                    if (is_sink)
-                        pa_hashmap_put(dev->playback_mapping->output_path_set->paths, pa_xstrdup(vol->mixer_elem), path);
-                    else
-                        pa_hashmap_put(dev->capture_mapping->input_path_set->paths, pa_xstrdup(vol->mixer_elem), path);
+            if (!path)
+                pa_log_warn("Failed to set up volume control: %s", vol->mixer_elem);
+            else {
+                if (vol->master_elem) {
+                    pa_alsa_element *e = pa_alsa_element_get(path, vol->master_elem, false);
+                    e->switch_use = PA_ALSA_SWITCH_MUTE;
+                    e->volume_use = PA_ALSA_VOLUME_MERGE;
                 }
+
+                pa_hashmap_put(data->paths, pa_xstrdup(profile), path);
+
+                /* Add path also to already created empty path set */
+                dev = sorted[0];
+                if (is_sink)
+                    pa_hashmap_put(dev->playback_mapping->output_path_set->paths, pa_xstrdup(vol->mixer_elem), path);
+                else
+                    pa_hashmap_put(dev->capture_mapping->input_path_set->paths, pa_xstrdup(vol->mixer_elem), path);
             }
         }
     }
