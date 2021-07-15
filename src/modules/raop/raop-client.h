@@ -53,6 +53,7 @@ typedef enum pa_raop_state {
     PA_RAOP_AUTHENTICATED,
     PA_RAOP_CONNECTED,
     PA_RAOP_RECORDING,
+    PA_RAOP_VOLUME_INIT,
     PA_RAOP_DISCONNECTED
 } pa_raop_state_t;
 
@@ -82,5 +83,8 @@ ssize_t pa_raop_client_send_audio_packet(pa_raop_client *c, pa_memchunk *block, 
 
 typedef void (*pa_raop_client_state_cb_t)(pa_raop_state_t state, void *userdata);
 void pa_raop_client_set_state_callback(pa_raop_client *c, pa_raop_client_state_cb_t callback, void *userdata);
+void pa_raop_client_set_tport(pa_raop_client *c, int udp_tport);
+void pa_raop_client_set_initial_volume(pa_raop_client *c, pa_volume_t initial_volume);
+void pa_raop_client_send_progress (pa_raop_client *c);
 
 #endif

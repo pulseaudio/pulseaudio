@@ -71,6 +71,7 @@ struct pa_rtsp_client {
     char *last_header;
     pa_strbuf *header_buffer;
     pa_headerlist* response_headers;
+    int content_length;
 
     char *localip;
     char *url;
@@ -146,7 +147,7 @@ static void headers_read(pa_rtsp_client *c) {
     pa_assert(c->callback);
 
     /* Deal with a SETUP response */
-    if (STATE_SETUP == c->state) {
+    if (STATE_SETUP == c->state && c->status == STATUS_OK) {
         const char* token_state = NULL;
         const char* pc = NULL;
         c->session = pa_xstrdup(pa_headerlist_gets(c->response_headers, "Session"));
@@ -187,6 +188,12 @@ static void headers_read(pa_rtsp_client *c) {
     c->callback(c, c->state, c->status, c->response_headers, c->userdata);
 }
 
+static void stream_callback(pa_ioline *line, void *userdata) {
+    pa_rtsp_client *c = userdata;
+
+    headers_read(c);
+}
+
 static void line_callback(pa_ioline *line, const char *s, void *userdata) {
     pa_rtsp_client *c = userdata;
     char *delimpos;
@@ -218,6 +225,7 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
 
         c->status = STATUS_OK;
         c->waiting = 0;
+        c->content_length = 0;
         goto exit;
     } else if (c->waiting && pa_streq(s2, "RTSP/1.0 401 Unauthorized")) {
         if (c->response_headers)
@@ -225,6 +233,14 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
         c->response_headers = pa_headerlist_new();
 
         c->status = STATUS_UNAUTHORIZED;
+        c->waiting = 0;
+        goto exit;
+    } else if (c->waiting && pa_streq(s2, "RTSP/1.0 403 Forbidden")) {
+        if (c->response_headers)
+            pa_headerlist_free(c->response_headers);
+        c->response_headers = pa_headerlist_new();
+
+        c->status = STATUS_FORBIDDEN;
         c->waiting = 0;
         goto exit;
     } else if (c->waiting) {
@@ -253,7 +269,13 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
         }
 
         pa_log_debug("Full response received. Dispatching");
-        headers_read(c);
+
+        if (c->content_length!=0) {
+            pa_ioline_set_streamcallback(line, stream_callback, c->content_length, c);
+        } else {
+            headers_read(c);
+        }
+
         goto exit;
     }
 
@@ -274,6 +296,8 @@ static void line_callback(pa_ioline *line, const char *s, void *userdata) {
         /* This is not a continuation header so let's dump the full
           header/value into our proplist */
         pa_headerlist_puts(c->response_headers, c->last_header, tmp);
+        if (pa_headerlist_gets(c->response_headers, "Content-Length"))
+            pa_atoi(pa_headerlist_gets(c->response_headers, "Content-Length"), &c->content_length);
         pa_xfree(tmp);
         pa_xfree(c->last_header);
         c->last_header = NULL;
@@ -532,6 +556,22 @@ int pa_rtsp_options(pa_rtsp_client *c) {
 
     c->url = (char *)"*";
     rv = rtsp_exec(c, "OPTIONS", NULL, NULL, 0, NULL);
+
+    c->url = url;
+    return rv;
+}
+
+int pa_rtsp_auth_setup(pa_rtsp_client *c, const char* key) {
+    char *url;
+    int rv;
+
+    pa_assert(c);
+
+    url = c->url;
+    c->state = STATE_AUTH_SETUP;
+
+    c->url = (char *)"/auth-setup";
+    rv = rtsp_exec(c, "POST", "application/octet-stream", key, 1, NULL);
 
     c->url = url;
     return rv;

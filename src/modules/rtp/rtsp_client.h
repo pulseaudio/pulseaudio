@@ -37,6 +37,7 @@ typedef enum pa_rtsp_state {
   STATE_OPTIONS,
   STATE_ANNOUNCE,
   STATE_SETUP,
+  STATE_AUTH_SETUP,
   STATE_RECORD,
   STATE_SET_PARAMETER,
   STATE_FLUSH,
@@ -48,6 +49,7 @@ typedef enum pa_rtsp_status {
   STATUS_OK             = 200,
   STATUS_BAD_REQUEST    = 400,
   STATUS_UNAUTHORIZED   = 401,
+  STATUS_FORBIDDEN      = 403,
   STATUS_NO_RESPONSE    = 444,
   STATUS_INTERNAL_ERROR = 500
 } pa_rtsp_status_t;
@@ -79,5 +81,6 @@ int pa_rtsp_record(pa_rtsp_client *c, uint16_t *seq, uint32_t *rtptime);
 int pa_rtsp_setparameter(pa_rtsp_client *c, const char *param);
 int pa_rtsp_flush(pa_rtsp_client *c, uint16_t seq, uint32_t rtptime);
 int pa_rtsp_teardown(pa_rtsp_client *c);
+int pa_rtsp_auth_setup(pa_rtsp_client *c, const char* auth_key);
 
 #endif

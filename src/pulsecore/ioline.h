@@ -31,6 +31,7 @@
 typedef struct pa_ioline pa_ioline;
 
 typedef void (*pa_ioline_cb_t)(pa_ioline*io, const char *s, void *userdata);
+typedef void (*pa_stream_cb_t)(pa_ioline*io, void *userdata);
 typedef void (*pa_ioline_drain_cb_t)(pa_ioline *io, void *userdata);
 
 pa_ioline* pa_ioline_new(pa_iochannel *io);
@@ -46,6 +47,9 @@ void pa_ioline_printf(pa_ioline *s, const char *format, ...) PA_GCC_PRINTF_ATTR(
 
 /* Set the callback function that is called for every received line */
 void pa_ioline_set_callback(pa_ioline*io, pa_ioline_cb_t callback, void *userdata);
+
+/* Set the callback function that is called once maxbyte has been reached */
+void pa_ioline_set_streamcallback(pa_ioline*io, pa_stream_cb_t callback, size_t maxbyte, void *userdata);
 
 /* Set the callback function that is called when everything has been written */
 void pa_ioline_set_drain_callback(pa_ioline*io, pa_ioline_drain_cb_t callback, void *userdata);

@@ -112,6 +112,7 @@ struct pa_raop_client {
     int udp_sfd;
     int udp_cfd;
     int udp_tfd;
+    int udp_tport;
 
     pa_raop_packet_buffer *pbuf;
 
@@ -129,6 +130,8 @@ struct pa_raop_client {
 
     pa_raop_client_state_cb_t state_callback;
     void *state_userdata;
+
+    pa_volume_t initial_volume;
 };
 
 /* Audio TCP packet header [16x8] (cf. rfc4571):
@@ -884,7 +887,7 @@ static void rtsp_stream_cb(pa_rtsp_client *rtsp, pa_rtsp_state_t state, pa_rtsp_
             char *url;
             int ipv;
 
-            pa_log_debug("RAOP: CONNECTED");
+            pa_log_debug("RAOP: CONNECT");
 
             ip = pa_rtsp_localip(c->rtsp);
             if (pa_is_ip6_address(ip)) {
@@ -966,27 +969,34 @@ connect_finish:
             break;
         }
 
-        case STATE_ANNOUNCE: {
-            uint16_t cport = DEFAULT_UDP_CONTROL_PORT;
-            uint16_t tport = DEFAULT_UDP_TIMING_PORT;
+        case STATE_ANNOUNCE:
+        case STATE_AUTH_SETUP: {
             char *trs = NULL;
 
-            pa_log_debug("RAOP: ANNOUNCE");
+            uint16_t cport = DEFAULT_UDP_CONTROL_PORT;
+            uint16_t tport = DEFAULT_UDP_TIMING_PORT;
+
+            pa_log_debug("RAOP: ANNOUNCE or AUTH-SETUP");
 
             if (c->protocol == PA_RAOP_PROTOCOL_TCP) {
                 trs = pa_sprintf_malloc(
                     "RTP/AVP/TCP;unicast;interleaved=0-1;mode=record");
             } else if (c->protocol == PA_RAOP_PROTOCOL_UDP) {
-                c->udp_cfd = open_bind_udp_socket(c, &cport);
-                c->udp_tfd  = open_bind_udp_socket(c, &tport);
-                if (c->udp_cfd < 0 || c->udp_tfd < 0)
-                    goto annonce_error;
-
+                if (state == STATE_ANNOUNCE) {
+                    c->udp_cfd = open_bind_udp_socket(c, &cport);
+                    c->udp_tfd = open_bind_udp_socket(c, &tport);
+                    if (c->udp_cfd < 0 || c->udp_tfd < 0)
+                        goto annonce_error;
+                }
                 trs = pa_sprintf_malloc(
                     "RTP/AVP/UDP;unicast;interleaved=0-1;mode=record;"
                     "control_port=%d;timing_port=%d",
                     cport, tport);
             }
+
+            if (state == STATE_ANNOUNCE)
+                if (c->state_callback)
+                    c->state_callback(PA_RAOP_CONNECTED, c->state_userdata);
 
             pa_rtsp_setup(c->rtsp, trs);
 
@@ -1011,128 +1021,153 @@ connect_finish:
         }
 
         case STATE_SETUP: {
-            pa_socket_client *sc = NULL;
-            uint32_t sport = DEFAULT_UDP_AUDIO_PORT;
-            uint32_t cport =0, tport = 0;
-            char *ajs, *token, *pc, *trs;
-            const char *token_state = NULL;
-            char delimiters[] = ";";
+            if (status == STATUS_FORBIDDEN) {
+                struct {
+                    uint32_t ci1;
+                    uint32_t ci2;
+                } rci;
+                pa_log_debug("RAOP: SETUP - FORBIDDEN");
 
-            pa_log_debug("RAOP: SETUP");
+                pa_random(&rci, sizeof(rci));
+                c->sci = pa_sprintf_malloc("%08x%08x", rci.ci1, rci.ci2);
+                pa_rtsp_add_header(c->rtsp, "Client-Instance", c->sci);
 
-            ajs = pa_xstrdup(pa_headerlist_gets(headers, "Audio-Jack-Status"));
-
-            if (ajs) {
-                c->jack_type = JACK_TYPE_ANALOG;
-                c->jack_status = JACK_STATUS_DISCONNECTED;
-
-                while ((token = pa_split(ajs, delimiters, &token_state))) {
-                    if ((pc = strstr(token, "="))) {
-                      *pc = 0;
-                      if (pa_streq(token, "type") && pa_streq(pc + 1, "digital"))
-                          c->jack_type = JACK_TYPE_DIGITAL;
-                    } else {
-                        if (pa_streq(token, "connected"))
-                            c->jack_status = JACK_STATUS_CONNECTED;
-                    }
-                    pa_xfree(token);
+                // Airplay 2 devices require additional authentication step
+                // It is actually useful to authenticate AirTunes server, not the device (see pa_rtsp_auth_setup for more details)
+                if (pa_rtsp_auth_setup(
+                        c->rtsp,
+                        "\x01\x4e\xea\xd0\x4e\xa9\x2e\x47\x69\xd2\xe1\xfb\xd0\x96\x81\xd5\x94\xa8\xef\x18\x45\x4a\x24\xae\xaf\xb3\x14\x97\x0d\xa0\xb5\xa3\x49"
+                ) < 0) {
+                    pa_log_error("RAOP: Unable to POST auth-setup");
                 }
 
-            } else {
-                pa_log_warn("\"Audio-Jack-Status\" missing in RTSP setup response");
+                break;
             }
 
-            sport = pa_rtsp_serverport(c->rtsp);
-            if (sport <= 0)
-                goto setup_error;
+            if (status == STATUS_OK) {
+                pa_socket_client *sc = NULL;
+                uint32_t sport = DEFAULT_UDP_AUDIO_PORT;
+                uint32_t cport = 0, tport = 0;
+                char *ajs, *token, *pc, *trs;
+                const char *token_state = NULL;
+                char delimiters[] = ";";
 
-            token_state = NULL;
-            if (c->protocol == PA_RAOP_PROTOCOL_TCP) {
-                if (!(sc = pa_socket_client_new_string(c->core->mainloop, true, c->host, sport)))
-                    goto setup_error;
+                pa_log_debug("RAOP: SETUP");
 
-                pa_socket_client_ref(sc);
-                pa_socket_client_set_callback(sc, tcp_connection_cb, c);
+                ajs = pa_xstrdup(pa_headerlist_gets(headers, "Audio-Jack-Status"));
 
-                pa_socket_client_unref(sc);
-                sc = NULL;
-            } else if (c->protocol == PA_RAOP_PROTOCOL_UDP) {
-                trs = pa_xstrdup(pa_headerlist_gets(headers, "Transport"));
+                if (ajs) {
+                    c->jack_type = JACK_TYPE_ANALOG;
+                    c->jack_status = JACK_STATUS_DISCONNECTED;
 
-                if (trs) {
-                    /* Now parse out the server port component of the response. */
-                    while ((token = pa_split(trs, delimiters, &token_state))) {
+                    while ((token = pa_split(ajs, delimiters, &token_state))) {
                         if ((pc = strstr(token, "="))) {
                             *pc = 0;
-                            if (pa_streq(token, "control_port")) {
-                                if (pa_atou(pc + 1, &cport) < 0)
-                                    goto setup_error_parse;
-                            }
-                            if (pa_streq(token, "timing_port")) {
-                                if (pa_atou(pc + 1, &tport) < 0)
-                                    goto setup_error_parse;
-                            }
-                            *pc = '=';
+                            if (pa_streq(token, "type") && pa_streq(pc + 1, "digital"))
+                                c->jack_type = JACK_TYPE_DIGITAL;
+                        } else {
+                            if (pa_streq(token, "connected"))
+                                c->jack_status = JACK_STATUS_CONNECTED;
                         }
                         pa_xfree(token);
                     }
-                    pa_xfree(trs);
+
                 } else {
-                    pa_log_warn("\"Transport\" missing in RTSP setup response");
+                    pa_log_warn("\"Audio-Jack-Status\" missing in RTSP setup response");
                 }
 
-                if (cport <= 0 || tport <= 0)
+                sport = pa_rtsp_serverport(c->rtsp);
+                if (sport <= 0)
                     goto setup_error;
 
-                if ((c->udp_sfd = connect_udp_socket(c, -1, sport)) <= 0)
-                    goto setup_error;
-                if ((c->udp_cfd = connect_udp_socket(c, c->udp_cfd, cport)) <= 0)
-                    goto setup_error;
-                if ((c->udp_tfd = connect_udp_socket(c, c->udp_tfd, tport)) <= 0)
-                    goto setup_error;
+                token_state = NULL;
+                if (c->protocol == PA_RAOP_PROTOCOL_TCP) {
+                    if (!(sc = pa_socket_client_new_string(c->core->mainloop, true, c->host, sport)))
+                        goto setup_error;
 
-                pa_log_debug("Connection established (UDP;control_port=%d;timing_port=%d)", cport, tport);
+                    pa_socket_client_ref(sc);
+                    pa_socket_client_set_callback(sc, tcp_connection_cb, c);
 
-                /* Send an initial UDP packet so a connection tracking firewall
-                 * knows the src_ip:src_port <-> dest_ip:dest_port relation
-                 * and accepts the incoming timing packets.
-                 */
-                send_initial_udp_timing_packet(c);
-                pa_log_debug("Sent initial timing packet to UDP port %d", tport);
+                    pa_socket_client_unref(sc);
+                    sc = NULL;
+                } else if (c->protocol == PA_RAOP_PROTOCOL_UDP) {
+                    trs = pa_xstrdup(pa_headerlist_gets(headers, "Transport"));
+
+                    if (trs) {
+                        /* Now parse out the server port component of the response. */
+                        while ((token = pa_split(trs, delimiters, &token_state))) {
+                            if ((pc = strstr(token, "="))) {
+                                *pc = 0;
+                                if (pa_streq(token, "control_port")) {
+                                    if (pa_atou(pc + 1, &cport) < 0)
+                                        goto setup_error_parse;
+                                }
+                                if (pa_streq(token, "timing_port")) {
+                                    if (pa_atou(pc + 1, &tport) < 0)
+                                        goto setup_error_parse;
+                                }
+                                *pc = '=';
+                            }
+                            pa_xfree(token);
+                        }
+                        pa_xfree(trs);
+                    } else {
+                        pa_log_warn("\"Transport\" missing in RTSP setup response");
+                    }
+
+                    if (cport <= 0 || tport <= 0)
+                        goto setup_error;
+
+                    /* Send an initial UDP packet so a connection tracking firewall
+                    * knows the src_ip:src_port <-> dest_ip:dest_port relation
+                    * and accepts the incoming timing packets.
+                    */
+                    send_initial_udp_timing_packet(c);
+                    pa_log_debug("Sent initial timing packet to UDP port %d", tport);
+
+                    if ((c->udp_sfd = connect_udp_socket(c, -1, sport)) <= 0)
+                        goto setup_error;
+                    if ((c->udp_cfd = connect_udp_socket(c, c->udp_cfd, cport)) <= 0)
+                        goto setup_error;
+                    if ((c->udp_tfd = connect_udp_socket(c, c->udp_tfd, tport)) <= 0)
+                        goto setup_error;
+
+                    pa_log_debug("Connection established (UDP;control_port=%d;timing_port=%d)", cport, tport);
+
+                }
+
+                pa_rtsp_record(c->rtsp, &c->seq, &c->rtptime);
+
+                pa_xfree(ajs);
+                break;
+
+
+            setup_error_parse:
+                pa_log("Failed parsing server port components");
+                pa_xfree(token);
+                pa_xfree(trs);
+                /* fall-thru */
+            setup_error:
+                if (c->tcp_sfd >= 0)
+                    pa_close(c->tcp_sfd);
+                c->tcp_sfd = -1;
+
+                if (c->udp_sfd >= 0)
+                    pa_close(c->udp_sfd);
+                c->udp_sfd = -1;
+
+                c->udp_cfd = c->udp_tfd = -1;
+
+                pa_rtsp_client_free(c->rtsp);
+
+                pa_log_error("aborting RTSP setup, failed creating required sockets");
 
                 if (c->state_callback)
-                    c->state_callback(PA_RAOP_CONNECTED, c->state_userdata);
+                    c->state_callback(PA_RAOP_DISCONNECTED, c->state_userdata);
+
+                c->rtsp = NULL;
+                break;
             }
-
-            pa_rtsp_record(c->rtsp, &c->seq, &c->rtptime);
-
-            pa_xfree(ajs);
-            break;
-
-        setup_error_parse:
-            pa_log("Failed parsing server port components");
-            pa_xfree(token);
-            pa_xfree(trs);
-            /* fall-thru */
-        setup_error:
-            if (c->tcp_sfd >= 0)
-                pa_close(c->tcp_sfd);
-            c->tcp_sfd = -1;
-
-            if (c->udp_sfd >= 0)
-                pa_close(c->udp_sfd);
-            c->udp_sfd = -1;
-
-            c->udp_cfd = c->udp_tfd = -1;
-
-            pa_rtsp_client_free(c->rtsp);
-
-            pa_log_error("aborting RTSP setup, failed creating required sockets");
-
-            if (c->state_callback)
-                c->state_callback(PA_RAOP_DISCONNECTED, c->state_userdata);
-
-            c->rtsp = NULL;
             break;
         }
 
@@ -1167,6 +1202,13 @@ connect_finish:
         case STATE_SET_PARAMETER: {
             pa_log_debug("RAOP: SET_PARAMETER");
 
+            if (c->initial_volume != 0){
+                c->initial_volume = 0;
+                // We just have set initial volume, so raise PA_RAOP_VOLUME_INIT to chain
+                if (c->state_callback)
+                    c->state_callback((int) PA_RAOP_VOLUME_INIT, c->state_userdata);
+            }
+
             break;
         }
 
@@ -1188,7 +1230,7 @@ connect_finish:
             c->udp_sfd = -1;
 
             /* Polling sockets will be closed by sink */
-            c->udp_cfd = c->udp_tfd = -1;
+            c->udp_cfd = c->udp_tfd = c->udp_tport = -1;
             c->tcp_sfd = -1;
 
             pa_rtsp_client_free(c->rtsp);
@@ -1216,8 +1258,9 @@ connect_finish:
             c->udp_sfd = -1;
 
             /* Polling sockets will be closed by sink */
-            c->udp_cfd = c->udp_tfd = -1;
+            c->udp_cfd = c->udp_tfd = c->udp_tport = -1;
             c->tcp_sfd = -1;
+            c->initial_volume = 0;
 
             pa_log_error("RTSP control channel closed (disconnected)");
 
@@ -1474,6 +1517,8 @@ pa_raop_client* pa_raop_client_new(pa_core *core, const char *host, pa_raop_prot
     c->udp_sfd = -1;
     c->udp_cfd = -1;
     c->udp_tfd = -1;
+    c->udp_tport = -1;
+    c->initial_volume = 0;
 
     c->secret = NULL;
     if (c->encryption != PA_RAOP_ENCRYPTION_NONE)
@@ -1655,6 +1700,10 @@ int pa_raop_client_stream(pa_raop_client *c) {
     }
 
     return rv;
+}
+
+void pa_raop_client_set_initial_volume(pa_raop_client *c, pa_volume_t initial_volume) {
+    c->initial_volume = initial_volume;
 }
 
 int pa_raop_client_set_volume(pa_raop_client *c, pa_volume_t volume) {
@@ -1855,4 +1904,29 @@ void pa_raop_client_set_state_callback(pa_raop_client *c, pa_raop_client_state_c
 
     c->state_callback = callback;
     c->state_userdata = userdata;
+}
+
+void pa_raop_client_set_tport(pa_raop_client *c, int udp_tport) {
+    pa_assert(c);
+
+    if (c->udp_tport < 0) {
+        c->udp_tport = udp_tport;
+        if ((c->udp_tfd = connect_udp_socket(c, c->udp_tfd, udp_tport)) <= 0) {
+            pa_log_error("RAOP: Error while connecting the UDP timing port");
+        }
+    }
+}
+
+void pa_raop_client_send_progress (pa_raop_client *c){
+    char *param;
+
+    pa_assert(c);
+
+    param = pa_sprintf_malloc("progress: %s/%s/%s\r\n", "0","0","0");
+    /* We just hit and hope, cannot wait for the callback. */
+    if (c->rtsp != NULL && pa_rtsp_exec_ready(c->rtsp))
+        pa_rtsp_setparameter(c->rtsp, param);
+
+    pa_xfree(param);
+
 }

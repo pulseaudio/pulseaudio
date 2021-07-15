@@ -113,6 +113,8 @@ static void userdata_free(struct userdata *u);
 
 static void sink_set_volume_cb(pa_sink *s);
 
+static pa_volume_t pa_raop_sink_get_hw_volume(pa_sink *s);
+
 static void raop_state_cb(pa_raop_state_t state, void *userdata) {
     struct userdata *u = userdata;
 
@@ -194,14 +196,18 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 }
 
                 case PA_RAOP_CONNECTED: {
+                    pa_volume_t initial_volume;
+
                     pa_assert(!u->rtpoll_item);
 
                     u->oob = pa_raop_client_register_pollfd(u->raop, u->rtpoll, &u->rtpoll_item);
+                    initial_volume = pa_raop_sink_get_hw_volume(u->sink);
+                    pa_raop_client_set_initial_volume(u->raop, initial_volume);
 
                     return 0;
                 }
 
-                case PA_RAOP_RECORDING: {
+                case PA_RAOP_VOLUME_INIT: {
                     pa_usec_t now;
 
                     now = pa_rtclock_now();
@@ -215,10 +221,15 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                         pa_rtpoll_set_timer_disabled(u->rtpoll);
                         pa_raop_client_flush(u->raop);
                     } else {
-                        /* Set the initial volume */
-                        sink_set_volume_cb(u->sink);
-                        pa_sink_process_msg(o, PA_SINK_MESSAGE_SET_VOLUME, data, offset, chunk);
+                        pa_raop_client_send_progress(u->raop);
                     }
+
+                    return 0;
+                }
+                case PA_RAOP_RECORDING: {
+                    /* Set the initial volume */
+                    sink_set_volume_cb(u->sink);
+                    pa_sink_process_msg(o, PA_SINK_MESSAGE_SET_VOLUME, data, offset, chunk);
 
                     return 0;
                 }
@@ -346,6 +357,25 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
     return 0;
 }
 
+static pa_volume_t pa_raop_sink_get_hw_volume(pa_sink *s){
+    struct userdata *u = s->userdata;
+    pa_volume_t v, v_orig;
+
+    pa_assert(u);
+
+    /* Calculate the max volume of all channels.
+     * We'll use this as our (single) volume on the APEX device and emulate
+     * any variation in channel volumes in software. */
+    v = pa_cvolume_max(&s->real_volume);
+
+    v_orig = v;
+    v = pa_raop_client_adjust_volume(u->raop, v_orig);
+
+    pa_log_debug("Volume adjusted: orig=%u adjusted=%u", v_orig, v);
+
+    return v;
+}
+
 static void sink_set_volume_cb(pa_sink *s) {
     struct userdata *u = s->userdata;
     pa_cvolume hw;
@@ -371,8 +401,12 @@ static void sink_set_volume_cb(pa_sink *s) {
     /* Create a pa_cvolume version of our single value. */
     pa_cvolume_set(&hw, s->sample_spec.channels, v);
 
-    /* Perform any software manipulation of the volume needed. */
-    pa_sw_cvolume_divide(&s->soft_volume, &s->real_volume, &hw);
+    /* Perform any software manipulation of the volume needed.
+     * Given our hw volume as a reference, soft volume is applied only if channel volumes are different each other
+     * so that we keep volume control without latency in the most common cases
+     * Scaling real volume keep relative volume between channels */
+    s->soft_volume = s->real_volume;
+    pa_cvolume_scale(&s->soft_volume, PA_VOLUME_NORM);
 
     pa_log_debug("Requested volume: %s", pa_cvolume_snprint_verbose(t, sizeof(t), &s->real_volume, &s->channel_map, false));
     pa_log_debug("Got hardware volume: %s", pa_cvolume_snprint_verbose(t, sizeof(t), &hw, &s->channel_map, false));
@@ -464,8 +498,20 @@ static void thread_func(void *userdata) {
                         goto fail;
                     }
                     if (pollfd->revents & pollfd->events) {
+                        struct sockaddr_in srcaddr;
+                        socklen_t addrlen;
+
                         pollfd->revents = 0;
-                        read = pa_read(pollfd->fd, packet, sizeof(packet), NULL);
+                        // read = pa_read(pollfd->fd, packet, sizeof(packet), NULL);
+                        // Newest Airplay devices does not provide response to SETUP request if we do not respond
+                        // to timing request packets immediatly after the setup request
+                        // To do this we use the source port of incoming packets
+                        // TBD: Code rework (move this in raop client?) + Ipv6 Support
+                        addrlen = sizeof(struct sockaddr_in);
+                        read = recvfrom(pollfd->fd, packet, sizeof(packet), 0, (struct sockaddr *)&srcaddr, &addrlen);
+
+                        pa_raop_client_set_tport(u->raop, htons(srcaddr.sin_port));
+                        pa_log_debug("Source: %d", htons(srcaddr.sin_port));
                         pa_raop_client_handle_oob_packet(u->raop, pollfd->fd, packet, read);
                         if (pa_raop_client_is_timing_fd(u->raop, pollfd->fd)) {
                             last_timing = pa_rtclock_now();
