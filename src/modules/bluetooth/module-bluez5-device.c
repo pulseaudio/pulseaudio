@@ -2220,9 +2220,9 @@ static void handle_transport_state_change(struct userdata *u, struct pa_bluetoot
 
     /* Update port availability */
     pa_assert_se(port = pa_hashmap_get(u->card->ports, u->output_port_name));
-    pa_device_port_set_available(port, get_port_availability(u, PA_DIRECTION_OUTPUT));
+    pa_device_port_set_available(port, get_port_availability(u, PA_DIRECTION_OUTPUT), false);
     pa_assert_se(port = pa_hashmap_get(u->card->ports, u->input_port_name));
-    pa_device_port_set_available(port, get_port_availability(u, PA_DIRECTION_INPUT));
+    pa_device_port_set_available(port, get_port_availability(u, PA_DIRECTION_INPUT), false);
 
     /* Acquire or release transport as needed */
     acquire = (t->state == PA_BLUETOOTH_TRANSPORT_STATE_PLAYING && u->profile == t->profile);

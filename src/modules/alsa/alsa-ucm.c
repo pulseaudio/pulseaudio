@@ -2350,7 +2350,7 @@ static void ucm_port_update_available(pa_alsa_ucm_port_data *port) {
         }
     }
 
-    pa_device_port_set_available(port->core_port, available);
+    pa_device_port_set_available(port->core_port, available, false);
 }
 
 #else /* HAVE_ALSA_UCM */

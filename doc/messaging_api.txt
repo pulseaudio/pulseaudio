@@ -47,3 +47,28 @@ Object path: /card/<card_name>
 Message: get-profile-sticky
 Parameters: None
 Return value: JSON "true" or "false"
+
+Object path: /cards/<card_name>
+Message: set-jack-detection
+Parameters: {"port_name|all":true|false}
+Return value: None
+
+Object path: /cards/<card_name>
+Message: get-jack-detection
+Parameters: "port_name|all"
+Return value: {"port_name":true|false}
+If "all" is specified, the returned object looks different:
+{"Card name":"card_name", "Detection states":{"port_name":true|false, ...}}
+
+Object path: /cards/<card_name>
+Message: set-port-state
+Parameters: {"port_name|all":0|1|2}
+Return value: None
+0=unknown, 1=no, 2=yes
+
+Object path: /cards/<card_name>
+Message: get-port-state
+Parameters: "port_name|all"
+Return value: {"port_name":0|1|2}
+If "all" is specified, the returned object looks different:
+{"Card name":"card_name", "Port states":{"port_name":0|1|2, ...}}

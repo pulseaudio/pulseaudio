@@ -434,10 +434,10 @@ static int report_jack_state(snd_mixer_elem_t *melem, unsigned int mask) {
 
     for (tp = tports; tp->port; tp++)
         if (tp->avail != PA_AVAILABLE_NO)
-           pa_device_port_set_available(tp->port, tp->avail);
+           pa_device_port_set_available(tp->port, tp->avail, false);
     for (tp = tports; tp->port; tp++)
         if (tp->avail == PA_AVAILABLE_NO)
-           pa_device_port_set_available(tp->port, tp->avail);
+           pa_device_port_set_available(tp->port, tp->avail, false);
 
     for (tp = tports; tp->port; tp++) {
         pa_alsa_port_data *data;
