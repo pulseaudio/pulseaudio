@@ -37,9 +37,11 @@ typedef struct pa_sdp_info {
 
     pa_sample_spec sample_spec;
     uint8_t payload;
+
+    bool enable_opus;
 } pa_sdp_info;
 
-char *pa_sdp_build(int af, const void *src, const void *dst, const char *name, uint16_t port, uint8_t payload, const pa_sample_spec *ss);
+char *pa_sdp_build(int af, const void *src, const void *dst, const char *name, uint16_t port, uint8_t payload, const pa_sample_spec *ss, bool enable_opus);
 
 pa_sdp_info *pa_sdp_parse(const char *t, pa_sdp_info *info, int is_goodbye);
 
