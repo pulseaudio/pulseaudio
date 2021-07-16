@@ -66,6 +66,9 @@ void* pa_idxset_get_by_index(pa_idxset*s, uint32_t idx);
 /* Get the entry by its data. The index is returned in *idx */
 void* pa_idxset_get_by_data(pa_idxset*s, const void *p, uint32_t *idx);
 
+/* Return true if item is in idxset */
+bool pa_idxset_contains(pa_idxset *s, const void *p);
+
 /* Similar to pa_idxset_get_by_index(), but removes the entry from the idxset. */
 void* pa_idxset_remove_by_index(pa_idxset*s, uint32_t idx);
 
@@ -85,24 +88,43 @@ void* pa_idxset_rrobin(pa_idxset *s, uint32_t *idx);
 
 /* Iterate through the idxset. At first iteration state should be NULL */
 void *pa_idxset_iterate(pa_idxset *s, void **state, uint32_t *idx);
+void *pa_idxset_reverse_iterate(pa_idxset *s, void **state, uint32_t *idx);
 
-/* Return the oldest entry in the idxset and remove it. If idx is not NULL fill in its index in *idx */
+/* Return the oldest or newest entry in the idxset and remove it.
+ * If idx is not NULL fill in its index in *idx */
 void* pa_idxset_steal_first(pa_idxset *s, uint32_t *idx);
+void* pa_idxset_steal_last(pa_idxset *s, uint32_t *idx);
 
-/* Return the oldest entry in the idxset. Fill in its index in *idx. */
+/* Return the oldest or newest entry in the idxset.
+ * Fill in its index in *idx. */
 void* pa_idxset_first(pa_idxset *s, uint32_t *idx);
+void* pa_idxset_last(pa_idxset *s, uint32_t *idx);
 
-/* Return the entry following the entry indexed by *idx.  After the
- * call *index contains the index of the returned
- * object. pa_idxset_first() and pa_idxset_next() may be used to
- * iterate through the set.*/
+/* Return the entry following or preceding the entry indexed by *idx.
+ * After the call *index contains the index of the returned object.
+ * pa_idxset_first() and pa_idxset_next() may be used to iterate through
+ * the set. pa_idxset_last() and pa_idxset_previous() may be used to
+ * iterate through the set in reverse. */
 void *pa_idxset_next(pa_idxset *s, uint32_t *idx);
+void *pa_idxset_previous(pa_idxset *s, uint32_t *idx);
 
 /* Return the current number of entries in the idxset */
 unsigned pa_idxset_size(pa_idxset*s);
 
 /* Return true of the idxset is empty */
 bool pa_idxset_isempty(pa_idxset *s);
+
+/* Return true if s and t have no entries in common */
+bool pa_idxset_isdisjoint(pa_idxset *s, pa_idxset *t);
+
+/* Return true if all entries in s are also in t */
+bool pa_idxset_issubset(pa_idxset *s, pa_idxset *t);
+
+/* Return true if all entries in t are also in s */
+bool pa_idxset_issuperset(pa_idxset *s, pa_idxset *t);
+
+/* Return true if s and t have all entries in common */
+bool pa_idxset_equals(pa_idxset *s, pa_idxset *t);
 
 /* Duplicate the idxset. This will not copy the actual indexes. If copy_func is
  * set, each entry is copied using the provided function, otherwise a shallow

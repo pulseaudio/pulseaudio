@@ -187,17 +187,6 @@ static char *ucm_verb_value(
     return (char *)value;
 }
 
-static int ucm_device_exists(pa_idxset *idxset, pa_alsa_ucm_device *dev) {
-    pa_alsa_ucm_device *d;
-    uint32_t idx;
-
-    PA_IDXSET_FOREACH(d, idxset, idx)
-        if (d == dev)
-            return 1;
-
-    return 0;
-}
-
 static void ucm_add_devices_to_idxset(
         pa_idxset *idxset,
         pa_alsa_ucm_device *me,
@@ -523,10 +512,10 @@ static int ucm_get_device_property(
     n_confdev = snd_use_case_get_list(uc_mgr, id, &devices);
     pa_xfree(id);
 
+    device->conflicting_devices = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
     if (n_confdev <= 0)
         pa_log_debug("No %s for device %s", "_conflictingdevs", device_name);
     else {
-        device->conflicting_devices = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
         ucm_add_devices_to_idxset(device->conflicting_devices, device, verb->devices, devices, n_confdev);
         snd_use_case_free_list(devices, n_confdev);
     }
@@ -535,10 +524,10 @@ static int ucm_get_device_property(
     n_suppdev = snd_use_case_get_list(uc_mgr, id, &devices);
     pa_xfree(id);
 
+    device->supported_devices = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
     if (n_suppdev <= 0)
         pa_log_debug("No %s for device %s", "_supporteddevs", device_name);
     else {
-        device->supported_devices = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
         ucm_add_devices_to_idxset(device->supported_devices, device, verb->devices, devices, n_suppdev);
         snd_use_case_free_list(devices, n_suppdev);
     }
@@ -547,10 +536,16 @@ static int ucm_get_device_property(
 };
 
 /* Create a property list for this ucm modifier */
-static int ucm_get_modifier_property(pa_alsa_ucm_modifier *modifier, snd_use_case_mgr_t *uc_mgr, const char *modifier_name) {
+static int ucm_get_modifier_property(
+        pa_alsa_ucm_modifier *modifier,
+        snd_use_case_mgr_t *uc_mgr,
+        pa_alsa_ucm_verb *verb,
+        const char *modifier_name) {
     const char *value;
     char *id;
     int i;
+    const char **devices;
+    int n_confdev, n_suppdev;
 
     for (i = 0; item[i].id; i++) {
         int err;
@@ -567,16 +562,28 @@ static int ucm_get_modifier_property(pa_alsa_ucm_modifier *modifier, snd_use_cas
     }
 
     id = pa_sprintf_malloc("%s/%s", "_conflictingdevs", modifier_name);
-    modifier->n_confdev = snd_use_case_get_list(uc_mgr, id, &modifier->conflicting_devices);
+    n_confdev = snd_use_case_get_list(uc_mgr, id, &devices);
     pa_xfree(id);
-    if (modifier->n_confdev < 0)
+
+    modifier->conflicting_devices = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+    if (n_confdev <= 0)
         pa_log_debug("No %s for modifier %s", "_conflictingdevs", modifier_name);
+    else {
+        ucm_add_devices_to_idxset(modifier->conflicting_devices, NULL, verb->devices, devices, n_confdev);
+        snd_use_case_free_list(devices, n_confdev);
+    }
 
     id = pa_sprintf_malloc("%s/%s", "_supporteddevs", modifier_name);
-    modifier->n_suppdev = snd_use_case_get_list(uc_mgr, id, &modifier->supported_devices);
+    n_suppdev = snd_use_case_get_list(uc_mgr, id, &devices);
     pa_xfree(id);
-    if (modifier->n_suppdev < 0)
+
+    modifier->supported_devices = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+    if (n_suppdev <= 0)
         pa_log_debug("No %s for modifier %s", "_supporteddevs", modifier_name);
+    else {
+        ucm_add_devices_to_idxset(modifier->supported_devices, NULL, verb->devices, devices, n_suppdev);
+        snd_use_case_free_list(devices, n_suppdev);
+    }
 
     return 0;
 };
@@ -612,6 +619,59 @@ static int ucm_get_devices(pa_alsa_ucm_verb *verb, snd_use_case_mgr_t *uc_mgr) {
 
     return 0;
 };
+
+static long ucm_device_status(pa_alsa_ucm_config *ucm, pa_alsa_ucm_device *dev) {
+    const char *dev_name = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME);
+    char *devstatus;
+    long status = 0;
+
+    devstatus = pa_sprintf_malloc("_devstatus/%s", dev_name);
+    if (snd_use_case_geti(ucm->ucm_mgr, devstatus, &status) < 0) {
+        pa_log_debug("Failed to get status for UCM device %s", dev_name);
+        status = -1;
+    }
+    pa_xfree(devstatus);
+
+    return status;
+}
+
+static int ucm_device_disable(pa_alsa_ucm_config *ucm, pa_alsa_ucm_device *dev) {
+    const char *dev_name = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME);
+
+    /* If any of dev's conflicting devices is enabled, trying to disable
+     * dev gives an error despite the fact that it's already disabled.
+     * Check that dev is enabled to avoid this error. */
+    if (ucm_device_status(ucm, dev) == 0) {
+        pa_log_debug("UCM device %s is already disabled", dev_name);
+        return 0;
+    }
+
+    pa_log_debug("Disabling UCM device %s", dev_name);
+    if (snd_use_case_set(ucm->ucm_mgr, "_disdev", dev_name) < 0) {
+        pa_log("Failed to disable UCM device %s", dev_name);
+        return -1;
+    }
+
+    return 0;
+}
+
+static int ucm_device_enable(pa_alsa_ucm_config *ucm, pa_alsa_ucm_device *dev) {
+    const char *dev_name = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME);
+
+    /* We don't need to enable devices that are already enabled */
+    if (ucm_device_status(ucm, dev) > 0) {
+        pa_log_debug("UCM device %s is already enabled", dev_name);
+        return 0;
+    }
+
+    pa_log_debug("Enabling UCM device %s", dev_name);
+    if (snd_use_case_set(ucm->ucm_mgr, "_enadev", dev_name) < 0) {
+        pa_log("Failed to enable UCM device %s", dev_name);
+        return -1;
+    }
+
+    return 0;
+}
 
 static int ucm_get_modifiers(pa_alsa_ucm_verb *verb, snd_use_case_mgr_t *uc_mgr) {
     const char **mod_list;
@@ -659,23 +719,15 @@ static void add_role_to_device(pa_alsa_ucm_device *dev, const char *dev_name, co
                 role_name));
 }
 
-static void add_media_role(const char *name, pa_alsa_ucm_device *list, const char *role_name, const char *role, bool is_sink) {
-    pa_alsa_ucm_device *d;
+static void add_media_role(pa_alsa_ucm_device *dev, const char *role_name, const char *role, bool is_sink) {
+    const char *dev_name = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME);
+    const char *sink = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_SINK);
+    const char *source = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_SOURCE);
 
-    PA_LLIST_FOREACH(d, list) {
-        const char *dev_name = pa_proplist_gets(d->proplist, PA_ALSA_PROP_UCM_NAME);
-
-        if (pa_streq(dev_name, name)) {
-            const char *sink = pa_proplist_gets(d->proplist, PA_ALSA_PROP_UCM_SINK);
-            const char *source = pa_proplist_gets(d->proplist, PA_ALSA_PROP_UCM_SOURCE);
-
-            if (is_sink && sink)
-                add_role_to_device(d, dev_name, role_name, role);
-            else if (!is_sink && source)
-                add_role_to_device(d, dev_name, role_name, role);
-            break;
-        }
-    }
+    if (is_sink && sink)
+        add_role_to_device(dev, dev_name, role_name, role);
+    else if (!is_sink && source)
+        add_role_to_device(dev, dev_name, role_name, role);
 }
 
 static char *modifier_name_to_role(const char *mod_name, bool *is_sink) {
@@ -704,11 +756,12 @@ static char *modifier_name_to_role(const char *mod_name, bool *is_sink) {
     return sub;
 }
 
-static void ucm_set_media_roles(pa_alsa_ucm_modifier *modifier, pa_alsa_ucm_device *list, const char *mod_name) {
-    int i;
+static void ucm_set_media_roles(pa_alsa_ucm_modifier *modifier, const char *mod_name) {
+    pa_alsa_ucm_device *dev;
     bool is_sink = false;
     char *sub = NULL;
     const char *role_name;
+    uint32_t idx;
 
     sub = modifier_name_to_role(mod_name, &is_sink);
     if (!sub)
@@ -718,11 +771,11 @@ static void ucm_set_media_roles(pa_alsa_ucm_modifier *modifier, pa_alsa_ucm_devi
     modifier->media_role = sub;
 
     role_name = is_sink ? PA_ALSA_PROP_UCM_PLAYBACK_ROLES : PA_ALSA_PROP_UCM_CAPTURE_ROLES;
-    for (i = 0; i < modifier->n_suppdev; i++) {
+    PA_IDXSET_FOREACH(dev, modifier->supported_devices, idx) {
         /* if modifier has no specific pcm, we add role intent to its supported devices */
         if (!pa_proplist_gets(modifier->proplist, PA_ALSA_PROP_UCM_SINK) &&
                 !pa_proplist_gets(modifier->proplist, PA_ALSA_PROP_UCM_SOURCE))
-            add_media_role(modifier->supported_devices[i], list, role_name, sub, is_sink);
+            add_media_role(dev, role_name, sub, is_sink);
     }
 }
 
@@ -730,29 +783,17 @@ static void append_lost_relationship(pa_alsa_ucm_device *dev) {
     uint32_t idx;
     pa_alsa_ucm_device *d;
 
-    if (dev->conflicting_devices) {
-        PA_IDXSET_FOREACH(d, dev->conflicting_devices, idx) {
-            if (!d->conflicting_devices)
-                d->conflicting_devices = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+    PA_IDXSET_FOREACH(d, dev->conflicting_devices, idx)
+        if (pa_idxset_put(d->conflicting_devices, dev, NULL) == 0)
+            pa_log_warn("Add lost conflicting device %s to %s",
+                    pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME),
+                    pa_proplist_gets(d->proplist, PA_ALSA_PROP_UCM_NAME));
 
-            if (pa_idxset_put(d->conflicting_devices, dev, NULL) == 0)
-                pa_log_warn("Add lost conflicting device %s to %s",
-                        pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME),
-                        pa_proplist_gets(d->proplist, PA_ALSA_PROP_UCM_NAME));
-        }
-    }
-
-    if (dev->supported_devices) {
-        PA_IDXSET_FOREACH(d, dev->supported_devices, idx) {
-            if (!d->supported_devices)
-                d->supported_devices = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
-
-            if (pa_idxset_put(d->supported_devices, dev, NULL) == 0)
-                pa_log_warn("Add lost supported device %s to %s",
-                        pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME),
-                        pa_proplist_gets(d->proplist, PA_ALSA_PROP_UCM_NAME));
-        }
-    }
+    PA_IDXSET_FOREACH(d, dev->supported_devices, idx)
+        if (pa_idxset_put(d->supported_devices, dev, NULL) == 0)
+            pa_log_warn("Add lost supported device %s to %s",
+                    pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME),
+                    pa_proplist_gets(d->proplist, PA_ALSA_PROP_UCM_NAME));
 }
 
 int pa_alsa_ucm_query_profiles(pa_alsa_ucm_config *ucm, int card_index) {
@@ -883,11 +924,11 @@ int pa_alsa_ucm_get_verb(snd_use_case_mgr_t *uc_mgr, const char *verb_name, cons
         const char *mod_name = pa_proplist_gets(mod->proplist, PA_ALSA_PROP_UCM_NAME);
 
         /* Modifier properties */
-        ucm_get_modifier_property(mod, uc_mgr, mod_name);
+        ucm_get_modifier_property(mod, uc_mgr, verb, mod_name);
 
         /* Set PA_PROP_DEVICE_INTENDED_ROLES property to devices */
         pa_log_debug("Set media roles for verb %s, modifier %s", verb_name, mod_name);
-        ucm_set_media_roles(mod, verb->devices, mod_name);
+        ucm_set_media_roles(mod, mod_name);
     }
 
     *p_verb = verb;
@@ -982,22 +1023,124 @@ fail:
     }
 }
 
+static char *devset_name(pa_idxset *devices, const char *sep) {
+    int i = 0;
+    int num = pa_idxset_size(devices);
+    pa_alsa_ucm_device *sorted[num], *dev;
+    char *dev_names = NULL;
+    char *tmp = NULL;
+    uint32_t idx;
+
+    PA_IDXSET_FOREACH(dev, devices, idx) {
+        sorted[i] = dev;
+        i++;
+    }
+
+    /* Sort by alphabetical order so as to have a deterministic naming scheme */
+    qsort(&sorted[0], num, sizeof(pa_alsa_ucm_device *), pa_alsa_ucm_device_cmp);
+
+    for (i = 0; i < num; i++) {
+        dev = sorted[i];
+        const char *dev_name = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME);
+
+        if (!dev_names) {
+            dev_names = pa_xstrdup(dev_name);
+        } else {
+            tmp = pa_sprintf_malloc("%s%s%s", dev_names, sep, dev_name);
+            pa_xfree(dev_names);
+            dev_names = tmp;
+        }
+    }
+
+    return dev_names;
+}
+
+static char *devset_description(pa_idxset *devices, const char *sep) {
+    int i = 0;
+    int num = pa_idxset_size(devices);
+    pa_alsa_ucm_device *sorted[num], *dev;
+    char *dev_descs = NULL;
+    char *tmp = NULL;
+    uint32_t idx;
+
+    PA_IDXSET_FOREACH(dev, devices, idx) {
+        sorted[i] = dev;
+        i++;
+    }
+
+    /* Sort by alphabetical order to match devset_name() */
+    qsort(&sorted[0], num, sizeof(pa_alsa_ucm_device *), pa_alsa_ucm_device_cmp);
+
+    for (i = 0; i < num; i++) {
+        dev = sorted[i];
+        const char *dev_desc = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_DESCRIPTION);
+
+        if (!dev_descs) {
+            dev_descs = pa_xstrdup(dev_desc);
+        } else {
+            tmp = pa_sprintf_malloc("%s%s%s", dev_descs, sep, dev_desc);
+            pa_xfree(dev_descs);
+            dev_descs = tmp;
+        }
+    }
+
+    return dev_descs;
+}
+
+/* If invert is true, uses the formula 1/p = 1/p1 + 1/p2 + ... 1/pn.
+ * This way, the result will always be less than the individual components,
+ * yet higher components will lead to higher result. */
+static unsigned devset_playback_priority(pa_idxset *devices, bool invert) {
+    pa_alsa_ucm_device *dev;
+    uint32_t idx;
+    double priority = 0;
+
+    PA_IDXSET_FOREACH(dev, devices, idx) {
+        if (dev->playback_priority > 0 && invert)
+            priority += 1.0 / dev->playback_priority;
+        else
+            priority += dev->playback_priority;
+    }
+
+    if (priority > 0 && invert)
+        return 1.0 / priority;
+
+    return (unsigned) priority;
+}
+
+static unsigned devset_capture_priority(pa_idxset *devices, bool invert) {
+    pa_alsa_ucm_device *dev;
+    uint32_t idx;
+    double priority = 0;
+
+    PA_IDXSET_FOREACH(dev, devices, idx) {
+        if (dev->capture_priority > 0 && invert)
+            priority += 1.0 / dev->capture_priority;
+        else
+            priority += dev->capture_priority;
+    }
+
+    if (priority > 0 && invert)
+        return 1.0 / priority;
+
+    return (unsigned) priority;
+}
+
 static void ucm_add_port_combination(
         pa_hashmap *hash,
         pa_alsa_ucm_mapping_context *context,
         bool is_sink,
-        pa_alsa_ucm_device **pdevices,
-        int num,
+        pa_idxset *devices,
         pa_hashmap *ports,
         pa_card_profile *cp,
         pa_core *core) {
 
     pa_device_port *port;
     int i;
+    int num = pa_idxset_size(devices);
+    uint32_t idx;
     unsigned priority;
-    double prio2;
-    char *name, *desc;
-    const char *dev_name;
+    char *name, *desc, *tmp;
     const char *direction;
     const char *profile;
     pa_alsa_ucm_device *sorted[num], *dev;
@@ -1007,43 +1150,36 @@ static void ucm_add_port_combination(
     pa_device_port_type_t type, type2;
     void *state;
 
-    for (i = 0; i < num; i++)
-        sorted[i] = pdevices[i];
+    i = 0;
+    PA_IDXSET_FOREACH(dev, devices, idx) {
+        sorted[i] = dev;
+        i++;
+    }
 
     /* Sort by alphabetical order so as to have a deterministic naming scheme
      * for combination ports */
     qsort(&sorted[0], num, sizeof(pa_alsa_ucm_device *), pa_alsa_ucm_device_cmp);
 
+    name = devset_name(devices, "+");
+    tmp = pa_sprintf_malloc("%s%s", is_sink ? PA_UCM_PRE_TAG_OUTPUT : PA_UCM_PRE_TAG_INPUT, name);
+    pa_xfree(name);
+    name = tmp;
+
+    desc = devset_description(devices, ", ");
+    if (pa_idxset_size(devices) > 1) {
+        tmp = pa_sprintf_malloc("Combination port for %s", desc);
+        pa_xfree(desc);
+        desc = tmp;
+    }
+
+    /* Make combination ports always have lower priority */
+    priority = is_sink ? devset_playback_priority(devices, true) : devset_capture_priority(devices, true);
+
     dev = sorted[0];
-    dev_name = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME);
-
-    name = pa_sprintf_malloc("%s%s", is_sink ? PA_UCM_PRE_TAG_OUTPUT : PA_UCM_PRE_TAG_INPUT, dev_name);
-    desc = num == 1 ? pa_xstrdup(pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_DESCRIPTION))
-            : pa_sprintf_malloc("Combination port for %s", dev_name);
-
-    priority = is_sink ? dev->playback_priority : dev->capture_priority;
-    prio2 = (priority == 0 ? 0 : 1.0/priority);
     jack = ucm_get_jack(context->ucm, dev);
     type = dev->type;
 
     for (i = 1; i < num; i++) {
-        char *tmp;
-
-        dev = sorted[i];
-        dev_name = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME);
-
-        tmp = pa_sprintf_malloc("%s+%s", name, dev_name);
-        pa_xfree(name);
-        name = tmp;
-
-        tmp = pa_sprintf_malloc("%s,%s", desc, dev_name);
-        pa_xfree(desc);
-        desc = tmp;
-
-        priority = is_sink ? dev->playback_priority : dev->capture_priority;
-        if (priority != 0 && prio2 > 0)
-            prio2 += 1.0/priority;
-
         jack2 = ucm_get_jack(context->ucm, dev);
         if (jack2) {
             if (jack && jack != jack2)
@@ -1058,14 +1194,6 @@ static void ucm_add_port_combination(
             type = type2;
         }
     }
-
-    /* Make combination ports always have lower priority, and use the formula
-       1/p = 1/p1 + 1/p2 + ... 1/pn.
-       This way, the result will always be less than the individual components,
-       yet higher components will lead to higher result. */
-
-    if (num > 1)
-        priority = prio2 > 0 ? 1.0/prio2 : 0;
 
     port = pa_hashmap_get(ports, name);
     if (!port) {
@@ -1083,7 +1211,7 @@ static void ucm_add_port_combination(
         pa_device_port_new_data_done(&port_data);
 
         data = PA_DEVICE_PORT_DATA(port);
-        ucm_port_data_init(data, context->ucm, port, pdevices, num);
+        ucm_port_data_init(data, context->ucm, port, sorted, num);
         port->impl_free = ucm_port_data_free;
 
         pa_hashmap_put(ports, port->name, port);
@@ -1160,90 +1288,151 @@ static int ucm_port_contains(const char *port_name, const char *dev_name, bool i
     return ret;
 }
 
-static int ucm_check_conformance(
-        pa_alsa_ucm_mapping_context *context,
-        pa_alsa_ucm_device **pdevices,
-        int dev_num,
-        pa_alsa_ucm_device *dev) {
-
-    uint32_t idx;
+static bool devset_supports_device(pa_idxset *devices, pa_alsa_ucm_device *dev) {
     pa_alsa_ucm_device *d;
-    int i;
+    uint32_t idx;
 
+    pa_assert(devices);
     pa_assert(dev);
 
-    pa_log_debug("Check device %s conformance with %d other devices",
-            pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME), dev_num);
-    if (dev_num == 0) {
-        pa_log_debug("First device in combination, number 1");
-        return 1;
-    }
+    /* Can add anything to empty group */
+    if (pa_idxset_isempty(devices))
+        return true;
 
-    if (dev->conflicting_devices) { /* the device defines conflicting devices */
-        PA_IDXSET_FOREACH(d, dev->conflicting_devices, idx) {
-            for (i = 0; i < dev_num; i++) {
-                if (pdevices[i] == d) {
-                    pa_log_debug("Conflicting device found");
-                    return 0;
-                }
-            }
-        }
-    } else if (dev->supported_devices) { /* the device defines supported devices */
-        for (i = 0; i < dev_num; i++) {
-            if (!ucm_device_exists(dev->supported_devices, pdevices[i])) {
-                pa_log_debug("Supported device not found");
-                return 0;
-            }
-        }
-    } else { /* not support any other devices */
-        pa_log_debug("Not support any other devices");
-        return 0;
-    }
+    /* Device already selected */
+    if (pa_idxset_contains(devices, dev))
+        return true;
 
-    pa_log_debug("Device added to combination, number %d", dev_num + 1);
-    return 1;
+    /* No conflicting device must already be selected */
+    if (!pa_idxset_isdisjoint(devices, dev->conflicting_devices))
+        return false;
+
+    /* No already selected device must be unsupported */
+    if (!pa_idxset_isempty(dev->supported_devices))
+        if (!pa_idxset_issubset(devices, dev->supported_devices))
+           return false;
+
+    /* Must not be unsupported by any selected device */
+    PA_IDXSET_FOREACH(d, devices, idx)
+        if (!pa_idxset_isempty(d->supported_devices))
+            if (!pa_idxset_contains(d->supported_devices, dev))
+                return false;
+
+    return true;
 }
 
-static inline pa_alsa_ucm_device *get_next_device(pa_idxset *idxset, uint32_t *idx) {
-    pa_alsa_ucm_device *dev;
+/* This is an extension of devset_supports_device() that considers devices which have the
+ * same mapping as equivalent to each other, and so allows the device if it's mappings match
+ * those of already selected devices. Even if devices sharing a mapping are marked as
+ * conflicting devices, we can safely include the device as the port mechanism makes sure
+ * only one of them is active at a time. */
+static bool devset_supports_device_mappings(pa_idxset *devices, pa_alsa_ucm_device *dev) {
+    uint32_t idx;
+    pa_alsa_ucm_device *d;
+    bool playback_in_devices = false;
+    bool capture_in_devices = false;
 
-    if (*idx == PA_IDXSET_INVALID)
-        dev = pa_idxset_first(idxset, idx);
-    else
-        dev = pa_idxset_next(idxset, idx);
-
-    return dev;
-}
-
-static void ucm_add_ports_combination(
-        pa_hashmap *hash,
-        pa_alsa_ucm_mapping_context *context,
-        bool is_sink,
-        pa_alsa_ucm_device **pdevices,
-        int dev_num,
-        uint32_t map_index,
-        pa_hashmap *ports,
-        pa_card_profile *cp,
-        pa_core *core) {
-
-    pa_alsa_ucm_device *dev;
-    uint32_t idx = map_index;
-
-    if ((dev = get_next_device(context->ucm_devices, &idx)) == NULL)
-        return;
-
-    /* check if device at map_index can combine with existing devices combination */
-    if (ucm_check_conformance(context, pdevices, dev_num, dev)) {
-        /* add device at map_index to devices combination */
-        pdevices[dev_num] = dev;
-        /* add current devices combination as a new port */
-        ucm_add_port_combination(hash, context, is_sink, pdevices, dev_num + 1, ports, cp, core);
-        /* try more elements combination */
-        ucm_add_ports_combination(hash, context, is_sink, pdevices, dev_num + 1, idx, ports, cp, core);
+    /* Accept device if we already include the mappings for it */
+    PA_IDXSET_FOREACH(d, devices, idx) {
+        if (!dev->playback_mapping || dev->playback_mapping == d->playback_mapping)
+            playback_in_devices = true;
+        if (!dev->capture_mapping || dev->capture_mapping == d->capture_mapping)
+            capture_in_devices = true;
     }
 
-    /* try other device with current elements number */
-    ucm_add_ports_combination(hash, context, is_sink, pdevices, dev_num, idx, ports, cp, core);
+    if (playback_in_devices && capture_in_devices)
+        return true;
+
+    return devset_supports_device(devices, dev);
+}
+
+/* Iterates nonempty subsets of UCM devices that can be simultaneously used, including
+ * subsets of previously returned subsets. At start, *state should be NULL. It's not safe
+ * to modify the devices argument until iteration ends. The returned idxsets must be freed
+ * by the caller. */
+static pa_idxset *iterate_device_subsets(pa_idxset *devices, void **state) {
+    uint32_t idx;
+    pa_alsa_ucm_device *dev;
+
+    pa_assert(devices);
+    pa_assert(state);
+
+    if (*state == NULL) {
+        /* First iteration, start adding from first device */
+        *state = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+        dev = pa_idxset_first(devices, &idx);
+
+    } else {
+        /* Backtrack the most recent device we added and skip it */
+        dev = pa_idxset_steal_last(*state, NULL);
+        pa_idxset_get_by_data(devices, dev, &idx);
+        if (dev)
+            dev = pa_idxset_next(devices, &idx);
+    }
+
+    /* Try adding devices we haven't decided on yet */
+    for (; dev; dev = pa_idxset_next(devices, &idx)) {
+        if (devset_supports_device(*state, dev))
+            pa_idxset_put(*state, dev, NULL);
+    }
+
+    if (pa_idxset_isempty(*state)) {
+        /* No more choices to backtrack on, therefore no more subsets to return after this.
+         * Don't return the empty set, instead clean up and end iteration. */
+        pa_idxset_free(*state, NULL);
+        *state = NULL;
+        return NULL;
+    }
+
+    return pa_idxset_copy(*state, NULL);
+}
+
+/* This is like iterate_device_subsets(), but only returns the biggest possible groups
+ * and not any of their subsets. It also considers devices with the same mapping compatible
+ * like devset_supports_device_mappings() does. */
+static pa_idxset *iterate_maximal_device_subsets(pa_idxset *devices, void **state) {
+    uint32_t idx;
+    pa_alsa_ucm_device *dev;
+
+    pa_assert(devices);
+    pa_assert(state);
+
+    if (*state == NULL) {
+        /* First iteration, start adding from first device */
+        *state = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+        dev = pa_idxset_first(devices, &idx);
+
+    } else {
+        /* Backtrack the most recent device we added and skip it */
+        dev = pa_idxset_steal_last(*state, NULL);
+        pa_idxset_get_by_data(devices, dev, &idx);
+        if (dev)
+            dev = pa_idxset_next(devices, &idx);
+    }
+
+    /* Try adding devices we haven't decided on yet */
+    for (; dev; dev = pa_idxset_next(devices, &idx)) {
+        if (devset_supports_device_mappings(*state, dev))
+            pa_idxset_put(*state, dev, NULL);
+    }
+
+    if (pa_idxset_isempty(*state)) {
+        /* No more choices to backtrack on, therefore no more subsets to return after this.
+         * Don't return the empty set, instead clean up and end iteration. */
+        pa_idxset_free(*state, NULL);
+        *state = NULL;
+        return NULL;
+    }
+
+    /* Skip this group if it's incomplete, by checking if we can add any previous device.
+     * If we can, this iteration is a subset of another group that we already returned or
+     * eventually return. */
+    PA_IDXSET_FOREACH(dev, devices, idx) {
+        if (!pa_idxset_contains(*state, dev) && devset_supports_device_mappings(*state, dev))
+            return iterate_maximal_device_subsets(devices, state);
+    }
+
+    return pa_idxset_copy(*state, NULL);
 }
 
 static char* merge_roles(const char *cur, const char *add) {
@@ -1283,14 +1472,14 @@ void pa_alsa_ucm_add_ports_combination(
         pa_card_profile *cp,
         pa_core *core) {
 
-    pa_alsa_ucm_device **pdevices;
+    pa_idxset *devices;
+    void *state = NULL;
 
     pa_assert(context->ucm_devices);
 
-    if (pa_idxset_size(context->ucm_devices) > 0) {
-        pdevices = pa_xnew(pa_alsa_ucm_device *, pa_idxset_size(context->ucm_devices));
-        ucm_add_ports_combination(p, context, is_sink, pdevices, 0, PA_IDXSET_INVALID, ports, cp, core);
-        pa_xfree(pdevices);
+    while ((devices = iterate_device_subsets(context->ucm_devices, &state))) {
+        ucm_add_port_combination(p, context, is_sink, devices, ports, cp, core);
+        pa_idxset_free(devices, NULL);
     }
 
     /* ELD devices */
@@ -1346,45 +1535,59 @@ void pa_alsa_ucm_add_ports(
 }
 
 /* Change UCM verb and device to match selected card profile */
-int pa_alsa_ucm_set_profile(pa_alsa_ucm_config *ucm, pa_card *card, const char *new_profile, const char *old_profile) {
+int pa_alsa_ucm_set_profile(pa_alsa_ucm_config *ucm, pa_card *card, pa_alsa_profile *new_profile, pa_alsa_profile *old_profile) {
     int ret = 0;
-    const char *profile;
+    const char *verb_name, *profile_name;
     pa_alsa_ucm_verb *verb;
+    pa_alsa_mapping *map;
+    pa_alsa_ucm_device *dev;
     pa_device_port *port;
     pa_alsa_ucm_port_data *data;
+    uint32_t idx, idx2;
     void *state;
 
     if (new_profile == old_profile)
-        return ret;
-    else if (new_profile == NULL || old_profile == NULL)
-        profile = new_profile ? new_profile : SND_USE_CASE_VERB_INACTIVE;
-    else if (!pa_streq(new_profile, old_profile))
-        profile = new_profile;
-    else
-        return ret;
+        return 0;
 
-    /* change verb */
-    pa_log_info("Set UCM verb to %s", profile);
-    if ((snd_use_case_set(ucm->ucm_mgr, "_verb", profile)) < 0) {
-        pa_log("Failed to set verb %s", profile);
-        ret = -1;
-    }
-
-    /* find active verb */
-    ucm->active_verb = NULL;
-    PA_LLIST_FOREACH(verb, ucm->verbs) {
-        const char *verb_name;
+    if (new_profile == NULL) {
+        verb = NULL;
+        profile_name = SND_USE_CASE_VERB_INACTIVE;
+        verb_name = SND_USE_CASE_VERB_INACTIVE;
+    } else {
+        verb = new_profile->ucm_context.verb;
+        profile_name = new_profile->name;
         verb_name = pa_proplist_gets(verb->proplist, PA_ALSA_PROP_UCM_NAME);
-        if (pa_streq(verb_name, profile)) {
-            ucm->active_verb = verb;
-            break;
-        }
     }
+
+    pa_log_info("Set profile to %s", profile_name);
+    if (ucm->active_verb != verb) {
+        /* change verb */
+        pa_log_info("Set UCM verb to %s", verb_name);
+        if ((snd_use_case_set(ucm->ucm_mgr, "_verb", verb_name)) < 0) {
+            pa_log("Failed to set verb %s", verb_name);
+            ret = -1;
+        }
+
+    } else if (ucm->active_verb) {
+        /* Disable devices not in new profile */
+        PA_IDXSET_FOREACH(map, old_profile->input_mappings, idx)
+            if (new_profile && !pa_idxset_contains(new_profile->input_mappings, map))
+                PA_IDXSET_FOREACH(dev, map->ucm_context.ucm_devices, idx2)
+                    if (ucm_device_disable(ucm, dev) < 0)
+                        ret = -1;
+
+        PA_IDXSET_FOREACH(map, old_profile->output_mappings, idx)
+            if (new_profile && !pa_idxset_contains(new_profile->output_mappings, map))
+                PA_IDXSET_FOREACH(dev, map->ucm_context.ucm_devices, idx2)
+                    if (ucm_device_disable(ucm, dev) < 0)
+                        ret = -1;
+    }
+    ucm->active_verb = verb;
 
     /* select volume controls on ports */
     PA_HASHMAP_FOREACH(port, card->ports, state) {
         data = PA_DEVICE_PORT_DATA(port);
-        data->path = pa_hashmap_get(data->paths, profile);
+        data->path = pa_hashmap_get(data->paths, profile_name);
     }
 
     return ret;
@@ -1394,7 +1597,7 @@ int pa_alsa_ucm_set_port(pa_alsa_ucm_mapping_context *context, pa_device_port *p
     int i;
     int ret = 0;
     pa_alsa_ucm_config *ucm;
-    const char **enable_devs;
+    pa_alsa_ucm_device **enable_devs;
     int enable_num = 0;
     uint32_t idx;
     pa_alsa_ucm_device *dev;
@@ -1404,31 +1607,23 @@ int pa_alsa_ucm_set_port(pa_alsa_ucm_mapping_context *context, pa_device_port *p
     ucm = context->ucm;
     pa_assert(ucm->ucm_mgr);
 
-    enable_devs = pa_xnew(const char *, pa_idxset_size(context->ucm_devices));
+    enable_devs = pa_xnew(pa_alsa_ucm_device *, pa_idxset_size(context->ucm_devices));
 
     /* first disable then enable */
     PA_IDXSET_FOREACH(dev, context->ucm_devices, idx) {
         const char *dev_name = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME);
 
         if (ucm_port_contains(port->name, dev_name, is_sink))
-            enable_devs[enable_num++] = dev_name;
-        else {
-            pa_log_debug("Disable ucm device %s", dev_name);
-            if (snd_use_case_set(ucm->ucm_mgr, "_disdev", dev_name) > 0) {
-                pa_log("Failed to disable ucm device %s", dev_name);
-                ret = -1;
-                break;
-            }
-        }
+            enable_devs[enable_num++] = dev;
+        else
+            ret = ucm_device_disable(ucm, dev);
+
+        if (ret < 0)
+            break;
     }
 
-    for (i = 0; i < enable_num; i++) {
-        pa_log_debug("Enable ucm device %s", enable_devs[i]);
-        if (snd_use_case_set(ucm->ucm_mgr, "_enadev", enable_devs[i]) < 0) {
-            pa_log("Failed to enable ucm device %s", enable_devs[i]);
-            ret = -1;
-            break;
-        }
+    for (i = 0; i < enable_num && ret == 0; i++) {
+        ret = ucm_device_enable(ucm, enable_devs[i]);
     }
 
     pa_xfree(enable_devs);
@@ -1567,7 +1762,6 @@ static pa_alsa_mapping* ucm_alsa_mapping_get(pa_alsa_ucm_config *ucm, pa_alsa_pr
 static int ucm_create_mapping_direction(
         pa_alsa_ucm_config *ucm,
         pa_alsa_profile_set *ps,
-        pa_alsa_profile *p,
         pa_alsa_ucm_device *device,
         const char *verb_name,
         const char *device_name,
@@ -1597,7 +1791,6 @@ static int ucm_create_mapping_direction(
         m->device_strings[0] = pa_xstrdup(device_str);
         m->direction = is_sink ? PA_ALSA_DIRECTION_OUTPUT : PA_ALSA_DIRECTION_INPUT;
 
-        ucm_add_mapping(p, m);
         if (rate)
             m->sample_spec.rate = rate;
         pa_channel_map_init_extend(&m->channel_map, channels, PA_CHANNEL_MAP_ALSA);
@@ -1619,7 +1812,6 @@ static int ucm_create_mapping_direction(
 static int ucm_create_mapping_for_modifier(
         pa_alsa_ucm_config *ucm,
         pa_alsa_profile_set *ps,
-        pa_alsa_profile *p,
         pa_alsa_ucm_modifier *modifier,
         const char *verb_name,
         const char *mod_name,
@@ -1646,8 +1838,6 @@ static int ucm_create_mapping_for_modifier(
         m->direction = is_sink ? PA_ALSA_DIRECTION_OUTPUT : PA_ALSA_DIRECTION_INPUT;
         /* Modifier sinks should not be routed to by default */
         m->priority = 0;
-
-        ucm_add_mapping(p, m);
     } else if (!m->ucm_context.ucm_modifiers) /* share pcm with device */
         m->ucm_context.ucm_modifiers = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
 
@@ -1659,7 +1849,6 @@ static int ucm_create_mapping_for_modifier(
 static int ucm_create_mapping(
         pa_alsa_ucm_config *ucm,
         pa_alsa_profile_set *ps,
-        pa_alsa_profile *p,
         pa_alsa_ucm_device *device,
         const char *verb_name,
         const char *device_name,
@@ -1674,9 +1863,9 @@ static int ucm_create_mapping(
     }
 
     if (sink)
-        ret = ucm_create_mapping_direction(ucm, ps, p, device, verb_name, device_name, sink, true);
+        ret = ucm_create_mapping_direction(ucm, ps, device, verb_name, device_name, sink, true);
     if (ret == 0 && source)
-        ret = ucm_create_mapping_direction(ucm, ps, p, device, verb_name, device_name, source, false);
+        ret = ucm_create_mapping_direction(ucm, ps, device, verb_name, device_name, source, false);
 
     return ret;
 }
@@ -1748,27 +1937,29 @@ static int ucm_create_profile(
         pa_alsa_ucm_config *ucm,
         pa_alsa_profile_set *ps,
         pa_alsa_ucm_verb *verb,
-        const char *verb_name,
-        const char *verb_desc) {
+        pa_idxset *mappings,
+        const char *profile_name,
+        const char *profile_desc,
+        unsigned int profile_priority) {
 
     pa_alsa_profile *p;
-    pa_alsa_ucm_device *dev;
-    pa_alsa_ucm_modifier *mod;
-    int i = 0;
-    const char *name, *sink, *source;
-    unsigned int priority;
+    pa_alsa_mapping *map;
+    uint32_t idx;
 
     pa_assert(ps);
 
-    if (pa_hashmap_get(ps->profiles, verb_name)) {
-        pa_log("Verb %s already exists", verb_name);
+    if (pa_hashmap_get(ps->profiles, profile_name)) {
+        pa_log("Profile %s already exists", profile_name);
         return -1;
     }
 
     p = pa_xnew0(pa_alsa_profile, 1);
     p->profile_set = ps;
-    p->name = pa_xstrdup(verb_name);
-    p->description = pa_xstrdup(verb_desc);
+    p->name = pa_xstrdup(profile_name);
+    p->description = pa_xstrdup(profile_desc);
+    p->priority = profile_priority;
+    p->ucm_context.ucm = ucm;
+    p->ucm_context.verb = verb;
 
     p->output_mappings = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
     p->input_mappings = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
@@ -1776,10 +1967,36 @@ static int ucm_create_profile(
     p->supported = true;
     pa_hashmap_put(ps->profiles, p->name, p);
 
-    /* TODO: get profile priority from policy management */
-    priority = verb->priority;
+    PA_IDXSET_FOREACH(map, mappings, idx)
+        ucm_add_mapping(p, map);
 
-    if (priority == 0) {
+    pa_alsa_profile_dump(p);
+
+    return 0;
+}
+
+static int ucm_create_verb_profiles(
+        pa_alsa_ucm_config *ucm,
+        pa_alsa_profile_set *ps,
+        pa_alsa_ucm_verb *verb,
+        const char *verb_name,
+        const char *verb_desc) {
+
+    pa_idxset *verb_devices, *p_devices, *p_mappings;
+    pa_alsa_ucm_device *dev;
+    pa_alsa_ucm_modifier *mod;
+    int i = 0;
+    int n_profiles = 0;
+    const char *name, *sink, *source;
+    char *p_name, *p_desc, *tmp;
+    unsigned int verb_priority, p_priority;
+    uint32_t idx;
+    void *state = NULL;
+
+    /* TODO: get profile priority from policy management */
+    verb_priority = verb->priority;
+
+    if (verb_priority == 0) {
         char *verb_cmp, *c;
         c = verb_cmp = pa_xstrdup(verb_name);
         while (*c) {
@@ -1788,14 +2005,12 @@ static int ucm_create_profile(
         }
         for (i = 0; verb_info[i].id; i++) {
             if (strcasecmp(verb_info[i].id, verb_cmp) == 0) {
-                priority = verb_info[i].priority;
+                verb_priority = verb_info[i].priority;
                 break;
             }
         }
         pa_xfree(verb_cmp);
     }
-
-    p->priority = priority;
 
     PA_LLIST_FOREACH(dev, verb->devices) {
         pa_alsa_jack *jack;
@@ -1806,7 +2021,7 @@ static int ucm_create_profile(
         sink = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_SINK);
         source = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_SOURCE);
 
-        ucm_create_mapping(ucm, ps, p, dev, verb_name, name, sink, source);
+        ucm_create_mapping(ucm, ps, dev, verb_name, name, sink, source);
 
         jack = ucm_get_jack(ucm, dev);
         if (jack)
@@ -1857,12 +2072,71 @@ static int ucm_create_profile(
         source = pa_proplist_gets(mod->proplist, PA_ALSA_PROP_UCM_SOURCE);
 
         if (sink)
-            ucm_create_mapping_for_modifier(ucm, ps, p, mod, verb_name, name, sink, true);
+            ucm_create_mapping_for_modifier(ucm, ps, mod, verb_name, name, sink, true);
         else if (source)
-            ucm_create_mapping_for_modifier(ucm, ps, p, mod, verb_name, name, source, false);
+            ucm_create_mapping_for_modifier(ucm, ps, mod, verb_name, name, source, false);
     }
 
-    pa_alsa_profile_dump(p);
+    verb_devices = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+    PA_LLIST_FOREACH(dev, verb->devices)
+        pa_idxset_put(verb_devices, dev, NULL);
+
+    while ((p_devices = iterate_maximal_device_subsets(verb_devices, &state))) {
+        p_mappings = pa_idxset_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
+
+        /* Add the mappings that include our selected devices */
+        PA_IDXSET_FOREACH(dev, p_devices, idx) {
+            if (dev->playback_mapping)
+                pa_idxset_put(p_mappings, dev->playback_mapping, NULL);
+            if (dev->capture_mapping)
+                pa_idxset_put(p_mappings, dev->capture_mapping, NULL);
+        }
+
+        /* Add mappings only for the modifiers that can work with our device selection */
+        PA_LLIST_FOREACH(mod, verb->modifiers)
+            if (pa_idxset_isempty(mod->supported_devices) || pa_idxset_issubset(mod->supported_devices, p_devices))
+                if (pa_idxset_isdisjoint(mod->conflicting_devices, p_devices)) {
+                    if (mod->playback_mapping)
+                        pa_idxset_put(p_mappings, mod->playback_mapping, NULL);
+                    if (mod->capture_mapping)
+                        pa_idxset_put(p_mappings, mod->capture_mapping, NULL);
+                }
+
+        /* If we'll have multiple profiles for this verb, their names must be unique. Use a
+         * list of chosen devices to disambiguate them. If the profile contains all devices
+         * of a verb, we'll generate only onle profile whose name should be the verb name.
+         * GUIs usually show the profile description instead of the name, add the device
+         * names to those as well. */
+        tmp = devset_name(p_devices, ", ");
+        if (pa_idxset_equals(p_devices, verb_devices)) {
+            p_name = pa_xstrdup(verb_name);
+            p_desc = pa_xstrdup(verb_desc);
+        } else {
+            p_name = pa_sprintf_malloc("%s (%s)", verb_name, tmp);
+            p_desc = pa_sprintf_malloc("%s (%s)", verb_desc, tmp);
+        }
+
+        /* Make sure profiles with higher-priority devices are prioritized. */
+        p_priority = verb_priority + devset_playback_priority(p_devices, false) + devset_capture_priority(p_devices, false);
+
+        if (ucm_create_profile(ucm, ps, verb, p_mappings, p_name, p_desc, p_priority) == 0) {
+            pa_log_debug("Created profile %s for UCM verb %s", p_name, verb_name);
+            n_profiles++;
+        }
+
+        pa_xfree(tmp);
+        pa_xfree(p_name);
+        pa_xfree(p_desc);
+        pa_idxset_free(p_mappings, NULL);
+        pa_idxset_free(p_devices, NULL);
+    }
+
+    pa_idxset_free(verb_devices, NULL);
+
+    if (n_profiles == 0) {
+        pa_log("UCM verb %s created no profiles", verb_name);
+        return -1;
+    }
 
     return 0;
 }
@@ -1979,14 +2253,18 @@ static void ucm_probe_profile_set(pa_alsa_ucm_config *ucm, pa_alsa_profile_set *
     void *state;
     pa_alsa_profile *p;
     pa_alsa_mapping *m;
+    const char *verb_name;
     uint32_t idx;
 
     PA_HASHMAP_FOREACH(p, ps->profiles, state) {
-        /* change verb */
-        pa_log_info("Set ucm verb to %s", p->name);
+        pa_log_info("Probing profile %s", p->name);
 
-        if ((snd_use_case_set(ucm->ucm_mgr, "_verb", p->name)) < 0) {
-            pa_log("Failed to set verb %s", p->name);
+        /* change verb */
+        verb_name = pa_proplist_gets(p->ucm_context.verb->proplist, PA_ALSA_PROP_UCM_NAME);
+        pa_log_info("Set ucm verb to %s", verb_name);
+
+        if ((snd_use_case_set(ucm->ucm_mgr, "_verb", verb_name)) < 0) {
+            pa_log("Failed to set verb %s", verb_name);
             p->supported = false;
             continue;
         }
@@ -2066,7 +2344,7 @@ pa_alsa_profile_set* pa_alsa_ucm_add_profile_set(pa_alsa_ucm_config *ucm, pa_cha
             continue;
         }
 
-        ucm_create_profile(ucm, ps, verb, verb_name, verb_desc);
+        ucm_create_verb_profiles(ucm, ps, verb, verb_name, verb_desc);
     }
 
     ucm_probe_profile_set(ucm, ps);
@@ -2095,10 +2373,8 @@ static void free_verb(pa_alsa_ucm_verb *verb) {
 
         pa_proplist_free(di->proplist);
 
-        if (di->conflicting_devices)
-            pa_idxset_free(di->conflicting_devices, NULL);
-        if (di->supported_devices)
-            pa_idxset_free(di->supported_devices, NULL);
+        pa_idxset_free(di->conflicting_devices, NULL);
+        pa_idxset_free(di->supported_devices, NULL);
 
         pa_xfree(di->eld_mixer_device_name);
 
@@ -2108,10 +2384,8 @@ static void free_verb(pa_alsa_ucm_verb *verb) {
     PA_LLIST_FOREACH_SAFE(mi, mn, verb->modifiers) {
         PA_LLIST_REMOVE(pa_alsa_ucm_modifier, verb->modifiers, mi);
         pa_proplist_free(mi->proplist);
-        if (mi->n_suppdev > 0)
-            snd_use_case_free_list(mi->supported_devices, mi->n_suppdev);
-        if (mi->n_confdev > 0)
-            snd_use_case_free_list(mi->conflicting_devices, mi->n_confdev);
+        pa_idxset_free(mi->conflicting_devices, NULL);
+        pa_idxset_free(mi->supported_devices, NULL);
         pa_xfree(mi->media_role);
         pa_xfree(mi);
     }
@@ -2366,7 +2640,7 @@ pa_alsa_profile_set* pa_alsa_ucm_add_profile_set(pa_alsa_ucm_config *ucm, pa_cha
     return NULL;
 }
 
-int pa_alsa_ucm_set_profile(pa_alsa_ucm_config *ucm, pa_card *card, const char *new_profile, const char *old_profile) {
+int pa_alsa_ucm_set_profile(pa_alsa_ucm_config *ucm, pa_card *card, pa_alsa_profile *new_profile, pa_alsa_profile *old_profile) {
     return -1;
 }
 
