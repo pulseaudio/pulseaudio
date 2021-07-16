@@ -613,6 +613,59 @@ static int ucm_get_devices(pa_alsa_ucm_verb *verb, snd_use_case_mgr_t *uc_mgr) {
     return 0;
 };
 
+static long ucm_device_status(pa_alsa_ucm_config *ucm, pa_alsa_ucm_device *dev) {
+    const char *dev_name = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME);
+    char *devstatus;
+    long status = 0;
+
+    devstatus = pa_sprintf_malloc("_devstatus/%s", dev_name);
+    if (snd_use_case_geti(ucm->ucm_mgr, devstatus, &status) < 0) {
+        pa_log_debug("Failed to get status for UCM device %s", dev_name);
+        status = -1;
+    }
+    pa_xfree(devstatus);
+
+    return status;
+}
+
+static int ucm_device_disable(pa_alsa_ucm_config *ucm, pa_alsa_ucm_device *dev) {
+    const char *dev_name = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME);
+
+    /* If any of dev's conflicting devices is enabled, trying to disable
+     * dev gives an error despite the fact that it's already disabled.
+     * Check that dev is enabled to avoid this error. */
+    if (ucm_device_status(ucm, dev) == 0) {
+        pa_log_debug("UCM device %s is already disabled", dev_name);
+        return 0;
+    }
+
+    pa_log_debug("Disabling UCM device %s", dev_name);
+    if (snd_use_case_set(ucm->ucm_mgr, "_disdev", dev_name) < 0) {
+        pa_log("Failed to disable UCM device %s", dev_name);
+        return -1;
+    }
+
+    return 0;
+}
+
+static int ucm_device_enable(pa_alsa_ucm_config *ucm, pa_alsa_ucm_device *dev) {
+    const char *dev_name = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME);
+
+    /* We don't need to enable devices that are already enabled */
+    if (ucm_device_status(ucm, dev) > 0) {
+        pa_log_debug("UCM device %s is already enabled", dev_name);
+        return 0;
+    }
+
+    pa_log_debug("Enabling UCM device %s", dev_name);
+    if (snd_use_case_set(ucm->ucm_mgr, "_enadev", dev_name) < 0) {
+        pa_log("Failed to enable UCM device %s", dev_name);
+        return -1;
+    }
+
+    return 0;
+}
+
 static int ucm_get_modifiers(pa_alsa_ucm_verb *verb, snd_use_case_mgr_t *uc_mgr) {
     const char **mod_list;
     int num_mod, i;
@@ -642,6 +695,57 @@ static int ucm_get_modifiers(pa_alsa_ucm_verb *verb, snd_use_case_mgr_t *uc_mgr)
 
     return 0;
 };
+
+static long ucm_modifier_status(pa_alsa_ucm_config *ucm, pa_alsa_ucm_modifier *mod) {
+    const char *mod_name = pa_proplist_gets(mod->proplist, PA_ALSA_PROP_UCM_NAME);
+    char *modstatus;
+    long status = 0;
+
+    modstatus = pa_sprintf_malloc("_modstatus/%s", mod_name);
+    if (snd_use_case_geti(ucm->ucm_mgr, modstatus, &status) < 0) {
+        pa_log_debug("Failed to get status for UCM modifier %s", mod_name);
+        status = -1;
+    }
+    pa_xfree(modstatus);
+
+    return status;
+}
+
+static int ucm_modifier_disable(pa_alsa_ucm_config *ucm, pa_alsa_ucm_modifier *mod) {
+    const char *mod_name = pa_proplist_gets(mod->proplist, PA_ALSA_PROP_UCM_NAME);
+
+    /* We don't need to disable modifiers that are already disabled */
+    if (ucm_modifier_status(ucm, mod) == 0) {
+        pa_log_debug("UCM modifier %s is already disabled", mod_name);
+        return 0;
+    }
+
+    pa_log_debug("Disabling UCM modifier %s", mod_name);
+    if (snd_use_case_set(ucm->ucm_mgr, "_dismod", mod_name) < 0) {
+        pa_log("Failed to disable UCM modifier %s", mod_name);
+        return -1;
+    }
+
+    return 0;
+}
+
+static int ucm_modifier_enable(pa_alsa_ucm_config *ucm, pa_alsa_ucm_modifier *mod) {
+    const char *mod_name = pa_proplist_gets(mod->proplist, PA_ALSA_PROP_UCM_NAME);
+
+    /* We don't need to enable modifiers that are already enabled */
+    if (ucm_modifier_status(ucm, mod) > 0) {
+        pa_log_debug("UCM modifier %s is already enabled", mod_name);
+        return 0;
+    }
+
+    pa_log_debug("Enabling UCM modifier %s", mod_name);
+    if (snd_use_case_set(ucm->ucm_mgr, "_enamod", mod_name) < 0) {
+        pa_log("Failed to enable UCM modifier %s", mod_name);
+        return -1;
+    }
+
+    return 0;
+}
 
 static void add_role_to_device(pa_alsa_ucm_device *dev, const char *dev_name, const char *role_name, const char *role) {
     const char *cur = pa_proplist_gets(dev->proplist, role_name);
@@ -1394,7 +1498,7 @@ int pa_alsa_ucm_set_port(pa_alsa_ucm_mapping_context *context, pa_device_port *p
     int i;
     int ret = 0;
     pa_alsa_ucm_config *ucm;
-    const char **enable_devs;
+    pa_alsa_ucm_device **enable_devs;
     int enable_num = 0;
     uint32_t idx;
     pa_alsa_ucm_device *dev;
@@ -1404,31 +1508,23 @@ int pa_alsa_ucm_set_port(pa_alsa_ucm_mapping_context *context, pa_device_port *p
     ucm = context->ucm;
     pa_assert(ucm->ucm_mgr);
 
-    enable_devs = pa_xnew(const char *, pa_idxset_size(context->ucm_devices));
+    enable_devs = pa_xnew(pa_alsa_ucm_device *, pa_idxset_size(context->ucm_devices));
 
     /* first disable then enable */
     PA_IDXSET_FOREACH(dev, context->ucm_devices, idx) {
         const char *dev_name = pa_proplist_gets(dev->proplist, PA_ALSA_PROP_UCM_NAME);
 
         if (ucm_port_contains(port->name, dev_name, is_sink))
-            enable_devs[enable_num++] = dev_name;
-        else {
-            pa_log_debug("Disable ucm device %s", dev_name);
-            if (snd_use_case_set(ucm->ucm_mgr, "_disdev", dev_name) > 0) {
-                pa_log("Failed to disable ucm device %s", dev_name);
-                ret = -1;
-                break;
-            }
-        }
+            enable_devs[enable_num++] = dev;
+        else
+            ret = ucm_device_disable(ucm, dev);
+
+        if (ret < 0)
+            break;
     }
 
-    for (i = 0; i < enable_num; i++) {
-        pa_log_debug("Enable ucm device %s", enable_devs[i]);
-        if (snd_use_case_set(ucm->ucm_mgr, "_enadev", enable_devs[i]) < 0) {
-            pa_log("Failed to enable ucm device %s", enable_devs[i]);
-            ret = -1;
-            break;
-        }
+    for (i = 0; i < enable_num && ret == 0; i++) {
+        ret = ucm_device_enable(ucm, enable_devs[i]);
     }
 
     pa_xfree(enable_devs);
@@ -2193,12 +2289,7 @@ void pa_alsa_ucm_roled_stream_begin(pa_alsa_ucm_config *ucm, const char *role, p
     PA_LLIST_FOREACH(mod, ucm->active_verb->modifiers) {
         if ((mod->action_direction == dir) && (pa_streq(mod->media_role, role))) {
             if (mod->enabled_counter == 0) {
-                const char *mod_name = pa_proplist_gets(mod->proplist, PA_ALSA_PROP_UCM_NAME);
-
-                pa_log_info("Enable ucm modifier %s", mod_name);
-                if (snd_use_case_set(ucm->ucm_mgr, "_enamod", mod_name) < 0) {
-                    pa_log("Failed to enable ucm modifier %s", mod_name);
-                }
+                ucm_modifier_enable(ucm, mod);
             }
 
             mod->enabled_counter++;
@@ -2218,14 +2309,8 @@ void pa_alsa_ucm_roled_stream_end(pa_alsa_ucm_config *ucm, const char *role, pa_
         if ((mod->action_direction == dir) && (pa_streq(mod->media_role, role))) {
 
             mod->enabled_counter--;
-            if (mod->enabled_counter == 0) {
-                const char *mod_name = pa_proplist_gets(mod->proplist, PA_ALSA_PROP_UCM_NAME);
-
-                pa_log_info("Disable ucm modifier %s", mod_name);
-                if (snd_use_case_set(ucm->ucm_mgr, "_dismod", mod_name) < 0) {
-                    pa_log("Failed to disable ucm modifier %s", mod_name);
-                }
-            }
+            if (mod->enabled_counter == 0)
+                ucm_modifier_disable(ucm, mod);
 
             break;
         }
