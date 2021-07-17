@@ -36,7 +36,7 @@
 #include <pulse/rtclock.h>
 #include <pulse/timeval.h>
 
-PA_MODULE_AUTHOR("Pierre-Louis Bossart");
+PA_MODULE_AUTHOR("Pierre-Louis Bossart, Georg Chini");
 PA_MODULE_DESCRIPTION("Loopback from source to sink");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(false);
@@ -44,9 +44,14 @@ PA_MODULE_USAGE(
         "source=<source to connect to> "
         "sink=<sink to connect to> "
         "adjust_time=<how often to readjust rates in s> "
+        "adjust_time_msec=<how often to readjust rates in ms> "
         "latency_msec=<latency in ms> "
         "max_latency_msec=<maximum latency in ms> "
+        "low_device_latency=<boolean, use half of the normal device latency> "
+        "log_interval=<how often to log in s> "
+        "log_interval_msec=<how often to log in ms> "
         "fast_adjust_threshold_msec=<threshold for fast adjust in ms> "
+        "adjust_threshold_usec=<threshold for latency adjustment in usec> "
         "format=<sample format> "
         "rate=<sample rate> "
         "channels=<number of channels> "
@@ -59,11 +64,15 @@ PA_MODULE_USAGE(
 
 #define DEFAULT_LATENCY_MSEC 200
 
+#define FILTER_PARAMETER 0.125
+
+#define DEFAULT_ADJUST_THRESHOLD_USEC 250
+
 #define MEMBLOCKQ_MAXLENGTH (1024*1024*32)
 
 #define MIN_DEVICE_LATENCY (2.5*PA_USEC_PER_MSEC)
 
-#define DEFAULT_ADJUST_TIME_USEC (10*PA_USEC_PER_SEC)
+#define DEFAULT_ADJUST_TIME_USEC (1*PA_USEC_PER_SEC)
 
 typedef struct loopback_msg loopback_msg;
 
@@ -94,6 +103,9 @@ struct userdata {
     pa_usec_t max_latency;
     pa_usec_t adjust_time;
     pa_usec_t fast_adjust_threshold;
+    uint32_t adjust_threshold;
+    bool low_device_latency;
+    uint32_t log_interval;
 
     /* Latency boundaries and current values */
     pa_usec_t min_source_latency;
@@ -106,6 +118,22 @@ struct userdata {
     int64_t sink_latency_offset;
     pa_usec_t minimum_latency;
 
+    /* State variable of the latency controller */
+    int32_t last_latency_difference;
+    int64_t last_source_latency_offset;
+    int64_t last_sink_latency_offset;
+    int64_t next_latency_with_drift;
+    int64_t next_latency_at_optimum_rate_with_drift;
+
+    /* Filter varables used for 2nd order filter */
+    double drift_filter;
+    double drift_compensation_rate;
+
+    /* Variables for Kalman filter and error tracking*/
+    double latency_variance;
+    double kalman_variance;
+    double latency_error;
+
     /* lower latency limit found by underruns */
     pa_usec_t underrun_latency_limit;
 
@@ -113,9 +141,16 @@ struct userdata {
     uint32_t iteration_counter;
     uint32_t underrun_counter;
     uint32_t adjust_counter;
+    uint32_t target_latency_cross_counter;
+    uint32_t log_counter;
 
+    /* Various booleans */
     bool fixed_alsa_source;
     bool source_sink_changed;
+    bool underrun_occured;
+    bool source_latency_offset_changed;
+    bool sink_latency_offset_changed;
+    bool initial_adjust_pending;
 
     /* Used for sink input and source output snapshots */
     struct {
@@ -162,9 +197,14 @@ static const char* const valid_modargs[] = {
     "source",
     "sink",
     "adjust_time",
+    "adjust_time_msec",
     "latency_msec",
     "max_latency_msec",
+    "low_device_latency",
+    "log_interval",
+    "log_interval_msec",
     "fast_adjust_threshold_msec",
+    "adjust_threshold_usec",
     "format",
     "rate",
     "channels",
@@ -195,6 +235,7 @@ enum {
     LOOPBACK_MESSAGE_SOURCE_LATENCY_RANGE_CHANGED,
     LOOPBACK_MESSAGE_SINK_LATENCY_RANGE_CHANGED,
     LOOPBACK_MESSAGE_UNDERRUN,
+    LOOPBACK_MESSAGE_ADJUST_DONE,
 };
 
 static void enable_adjust_timer(struct userdata *u, bool enable);
@@ -239,24 +280,84 @@ static void teardown(struct userdata *u) {
 }
 
 /* rate controller, called from main context
- * - maximum deviation from base rate is less than 1%
- * - can create audible artifacts by changing the rate too quickly
- * - exhibits hunting with USB or Bluetooth sources
- */
+ * - maximum deviation from optimum rate for P-controller is less than 1%
+ * - P-controller step size is limited to 2.01‰
+ * - will calculate an optimum rate
+*/
 static uint32_t rate_controller(
-                uint32_t base_rate,
-                pa_usec_t adjust_time,
-                int32_t latency_difference_usec) {
+                struct userdata *u,
+                uint32_t base_rate, uint32_t old_rate,
+                int32_t latency_difference_at_optimum_rate,
+                int32_t latency_difference_at_base_rate) {
 
-    uint32_t new_rate;
-    double min_cycles;
+    double new_rate, new_rate_1, new_rate_2;
+    double min_cycles_1, min_cycles_2, drift_rate, latency_drift, controller_weight, min_weight;
+    uint32_t base_rate_with_drift;
+
+    base_rate_with_drift = (int)(base_rate + u->drift_compensation_rate);
+
+    /* If we are less than 2‰ away from the optimum rate, lower weight of the
+     * P-controller. The weight is determined by the fact that a correction
+     * of 0.5 Hz needs to be applied by the controller when the latency
+     * difference gets larger than the threshold. The weight follows
+     * from the definition of the controller. The minimum will only
+     * be reached when one adjust threshold away from the target. Start
+     * using the weight after the target latency has been reached for the
+     * second time to accelerate initial convergence. The second time has
+     * been chosen because it takes a while before the smoother returns
+     * reliable latencies. */
+    controller_weight = 1;
+    min_weight = PA_CLAMP(0.5 / (double)base_rate * (100.0 + (double)u->real_adjust_time / u->adjust_threshold), 0, 1.0);
+    if ((double)abs((int)(old_rate - base_rate_with_drift)) / base_rate_with_drift < 0.002 && u->target_latency_cross_counter >= 2)
+        controller_weight = PA_CLAMP((double)abs(latency_difference_at_optimum_rate) / u->adjust_threshold * min_weight, min_weight, 1.0);
+
+    /* Calculate next rate that is not more than 2‰ away from the last rate */
+    min_cycles_1 = (double)abs(latency_difference_at_optimum_rate) / u->real_adjust_time / 0.002 + 1;
+    new_rate_1 = old_rate + base_rate * (double)latency_difference_at_optimum_rate / min_cycles_1 / u->real_adjust_time;
 
     /* Calculate best rate to correct the current latency offset, limit at
-     * slightly below 1% difference from base_rate */
-    min_cycles = (double)abs(latency_difference_usec) / adjust_time / 0.01 + 1;
-    new_rate = base_rate * (1.0 + (double)latency_difference_usec / min_cycles / adjust_time);
+     * 1% difference from base_rate */
+    min_cycles_2 = (double)abs(latency_difference_at_optimum_rate) / u->real_adjust_time / 0.01 + 1;
+    new_rate_2 = (double)base_rate * (1.0 + controller_weight * latency_difference_at_optimum_rate / min_cycles_2 / u->real_adjust_time);
 
-    return new_rate;
+    /* Choose the rate that is nearer to base_rate unless we are already near
+     * to the desired latency and rate */
+    if (abs(new_rate_1 - base_rate) < abs(new_rate_2 - base_rate) && controller_weight > 0.99)
+        new_rate = new_rate_1;
+    else
+        new_rate = new_rate_2;
+
+    /* Calculate rate difference between source and sink. Skip calculation
+     * after a source/sink change, an underrun or latency offset change */
+
+    if (!u->underrun_occured && !u->source_sink_changed && !u->source_latency_offset_changed && !u->sink_latency_offset_changed) {
+        /* Latency difference between last iterations */
+        latency_drift = latency_difference_at_base_rate - u->last_latency_difference;
+
+        /* Calculate frequency difference between source and sink */
+        drift_rate = latency_drift * old_rate / u->real_adjust_time + old_rate - base_rate;
+
+        /* The maximum accepted sample rate difference between source and
+         * sink is 1% of the base rate. If the result is larger, something
+         * went wrong, so do not use it. Pass in 0 instead to allow the
+         * filter to decay. */
+        if (abs(drift_rate) > base_rate / 100)
+            drift_rate = 0;
+
+        /* 2nd order lowpass filter */
+        u->drift_filter = (1 - FILTER_PARAMETER) * u->drift_filter + FILTER_PARAMETER * drift_rate;
+        u->drift_compensation_rate =  (1 - FILTER_PARAMETER) * u->drift_compensation_rate + FILTER_PARAMETER * u->drift_filter;
+    }
+
+    /* Use drift compensation. Though not likely, the rate might exceed the maximum allowed rate now. */
+    new_rate = new_rate + u->drift_compensation_rate + 0.5;
+
+    if (new_rate > base_rate * 101 / 100)
+        return base_rate * 101 / 100;
+    else if (new_rate < base_rate * 99 / 100)
+        return base_rate * 99 / 100;
+    else
+        return (int)new_rate;
 }
 
 /* Called from main thread.
@@ -325,6 +426,7 @@ static void adjust_rates(struct userdata *u) {
     pa_usec_t current_buffer_latency, snapshot_delay;
     int64_t current_source_sink_latency, current_latency, latency_at_optimum_rate;
     pa_usec_t final_latency, now, time_passed;
+    double filtered_latency, current_latency_error, latency_correction, base_rate_with_drift;
 
     pa_assert(u);
     pa_assert_ctl_context();
@@ -362,13 +464,20 @@ static void adjust_rates(struct userdata *u) {
     /* Calculate real adjust time if source or sink did not change and if the system has
      * not been suspended. If the time between two calls is more than 5% longer than the
      * configured adjust time, we assume that the system has been sleeping and skip the
-     * calculation for this iteration. */
+     * calculation for this iteration. When source or sink changed or the system has been
+     * sleeping, we need to reset the parameters for drift compensation. */
     now = pa_rtclock_now();
     time_passed = now - u->adjust_time_stamp;
     if (!u->source_sink_changed && time_passed < u->adjust_time * 1.05) {
         u->adjust_counter++;
         u->real_adjust_time_sum += time_passed;
         u->real_adjust_time = u->real_adjust_time_sum / u->adjust_counter;
+    } else {
+        u->drift_compensation_rate = 0;
+        u->drift_filter = 0;
+        /* Ensure that source_sink_changed is set, so that the Kalman filter parameters
+         * will also be reset. */
+        u->source_sink_changed = true;
     }
     u->adjust_time_stamp = now;
 
@@ -389,19 +498,35 @@ static void adjust_rates(struct userdata *u) {
     /* Current latency */
     current_latency = current_source_sink_latency + current_buffer_latency;
 
-    /* Latency at base rate */
-    latency_at_optimum_rate = current_source_sink_latency + current_buffer_latency * old_rate / base_rate;
+    /* Latency at optimum rate and latency difference */
+    latency_at_optimum_rate = current_source_sink_latency + current_buffer_latency * old_rate / (u->drift_compensation_rate + base_rate);
 
     final_latency = PA_MAX(u->latency, u->minimum_latency);
-    latency_difference = (int32_t)(latency_at_optimum_rate - final_latency);
+    latency_difference = (int32_t)(current_latency - final_latency);
 
-    pa_log_debug("Loopback overall latency is %0.2f ms + %0.2f ms + %0.2f ms = %0.2f ms",
-                (double) u->latency_snapshot.sink_latency / PA_USEC_PER_MSEC,
-                (double) current_buffer_latency / PA_USEC_PER_MSEC,
-                (double) u->latency_snapshot.source_latency / PA_USEC_PER_MSEC,
-                (double) current_latency / PA_USEC_PER_MSEC);
+    /* Do not filter or calculate error if source or sink changed or if there was an underrun */
+    if (u->source_sink_changed || u->underrun_occured) {
+        /* Initial conditions are very unsure, so use a high variance */
+        u->kalman_variance = 10000000;
+        filtered_latency = latency_at_optimum_rate;
+        u->next_latency_at_optimum_rate_with_drift = latency_at_optimum_rate;
+        u->next_latency_with_drift = current_latency;
 
-    pa_log_debug("Loopback latency at base rate is %0.2f ms", (double)latency_at_optimum_rate / PA_USEC_PER_MSEC);
+    } else {
+        /* Correct predictions if one of the latency offsets changed between iterations */
+        u->next_latency_at_optimum_rate_with_drift += u->source_latency_offset - u->last_source_latency_offset;
+        u->next_latency_at_optimum_rate_with_drift += u->sink_latency_offset - u->last_sink_latency_offset;
+        u->next_latency_with_drift += u->source_latency_offset - u->last_source_latency_offset;
+        u->next_latency_with_drift += u->sink_latency_offset - u->last_sink_latency_offset;
+        /* Low pass filtered latency error. This value reflects how well the measured values match the prediction. */
+        u->latency_error = (1 - FILTER_PARAMETER) * u->latency_error + FILTER_PARAMETER * (double)abs((int32_t)(current_latency - u->next_latency_with_drift));
+        /* Low pass filtered latency variance */
+        current_latency_error = (double)abs((int32_t)(latency_at_optimum_rate - u->next_latency_at_optimum_rate_with_drift));
+        u->latency_variance = (1.0 - FILTER_PARAMETER) * u->latency_variance + FILTER_PARAMETER * current_latency_error * current_latency_error;
+        /* Kalman filter */
+        filtered_latency = (latency_at_optimum_rate * u->kalman_variance + u->next_latency_at_optimum_rate_with_drift * u->latency_variance) / (u->kalman_variance + u->latency_variance);
+        u->kalman_variance = u->kalman_variance * u->latency_variance / (u->kalman_variance + u->latency_variance) + u->latency_variance / 4 + 200;
+    }
 
     /* Drop or insert samples if fast_adjust_threshold_msec was specified and the latency difference is too large. */
     if (u->fast_adjust_threshold > 0 && abs(latency_difference) > u->fast_adjust_threshold) {
@@ -409,19 +534,78 @@ static void adjust_rates(struct userdata *u) {
 
         pa_asyncmsgq_send(u->sink_input->sink->asyncmsgq, PA_MSGOBJECT(u->sink_input), SINK_INPUT_MESSAGE_FAST_ADJUST, NULL, current_source_sink_latency, NULL);
 
-        /* Skip real adjust time calculation on next iteration. */
+        /* Skip real adjust time calculation and reset drift compensation parameters on next iteration. */
         u->source_sink_changed = true;
+
+        /* We probably need to adjust again, reset cross_counter. */
+        u->target_latency_cross_counter = 0;
         return;
     }
 
     /* Calculate new rate */
-    new_rate = rate_controller(base_rate, u->real_adjust_time, latency_difference);
+    new_rate = rate_controller(u, base_rate, old_rate, (int32_t)(filtered_latency - final_latency), latency_difference);
 
+    /* Log every log_interval iterations if the log_interval parameter is set */
+    if (u->log_interval != 0) {
+        u->log_counter--;
+        if (u->log_counter == 0) {
+            pa_log_debug("Loopback status %s to %s:\n    Source latency: %0.2f ms\n    Buffer: %0.2f ms\n    Sink latency: %0.2f ms\n    End-to-end latency: %0.2f ms\n"
+                         "    Deviation from target latency at optimum rate: %0.2f usec\n    Average prediction error: ± %0.2f usec\n    Optimum rate: %0.2f Hz\n    Deviation from base rate: %i Hz",
+                        u->source_output->source->name,
+                        u->sink_input->sink->name,
+                        (double) u->latency_snapshot.source_latency / PA_USEC_PER_MSEC,
+                        (double) current_buffer_latency / PA_USEC_PER_MSEC,
+                        (double) u->latency_snapshot.sink_latency / PA_USEC_PER_MSEC,
+                        (double) current_latency / PA_USEC_PER_MSEC,
+                        (double) latency_at_optimum_rate - final_latency,
+                        (double) u->latency_error,
+                        u->drift_compensation_rate + base_rate,
+                        (int32_t)(new_rate - base_rate));
+            u->log_counter = u->log_interval;
+        }
+    }
+
+    /* If the latency difference changed sign, we have crossed the target latency. */
+    if ((int64_t)latency_difference * u->last_latency_difference < 0)
+        u->target_latency_cross_counter++;
+
+    /* Save current latency difference at new rate for next cycle and reset flags */
+    u->last_latency_difference = current_source_sink_latency + current_buffer_latency * old_rate / new_rate - final_latency;
+
+    /* Set variables that may change between calls of adjust_rate() */
     u->source_sink_changed = false;
+    u->underrun_occured = false;
+    u->last_source_latency_offset = u->source_latency_offset;
+    u->last_sink_latency_offset = u->sink_latency_offset;
+    u->source_latency_offset_changed = false;
+    u->sink_latency_offset_changed = false;
+
+    /* Predicton of next latency */
+
+    /* Evaluate optimum rate */
+    base_rate_with_drift = u->drift_compensation_rate + base_rate;
+
+    /* Latency correction on next iteration */
+    latency_correction = (base_rate_with_drift - new_rate) * (int64_t)u->real_adjust_time / new_rate;
+
+    if ((int)new_rate != (int)base_rate_with_drift || new_rate != old_rate) {
+        /* While we are correcting, the next latency is determined by the current value and the difference
+         * between the new sampling rate and the base rate*/
+        u->next_latency_with_drift = current_latency + latency_correction + ((double)old_rate / new_rate - 1) * current_buffer_latency;
+        u->next_latency_at_optimum_rate_with_drift = filtered_latency + latency_correction * new_rate / base_rate_with_drift;
+
+    } else {
+        /* We are in steady state, now only the fractional drift should matter.
+         * To make sure that we do not drift away due to errors in the fractional
+         * drift, use a running average of the measured and predicted values */
+        u->next_latency_with_drift = (filtered_latency + u->next_latency_with_drift) / 2.0 + (1.0 - (double)(int)base_rate_with_drift / base_rate_with_drift) * (int64_t)u->real_adjust_time;
+
+        /* We are at the optimum rate, so nothing to correct */
+        u->next_latency_at_optimum_rate_with_drift = u->next_latency_with_drift;
+    }
 
     /* Set rate */
     pa_sink_input_set_rate(u->sink_input, new_rate);
-    pa_log_debug("[%s] Updated sampling rate to %lu Hz.", u->sink_input->sink->name, (unsigned long) new_rate);
 }
 
 /* Called from main context */
@@ -434,6 +618,12 @@ static void time_callback(pa_mainloop_api *a, pa_time_event *e, const struct tim
 
     /* Restart timer right away */
     pa_core_rttime_restart(u->core, u->time_event, pa_rtclock_now() + u->adjust_time);
+
+    /* If the initial latency adjustment has not been done yet, we have to skip
+     * adjust_rates(). The estimation of the optimum rate cannot be done in that
+     * situation */
+    if (u->initial_adjust_pending)
+        return;
 
     /* Get sink and source latency snapshot */
     pa_asyncmsgq_send(u->sink_input->sink->asyncmsgq, PA_MSGOBJECT(u->sink_input), SINK_INPUT_MESSAGE_LATENCY_SNAPSHOT, NULL, 0, NULL);
@@ -634,11 +824,14 @@ static void update_effective_source_latency(struct userdata *u, pa_source *sourc
  * Set source output latency to one third of the overall latency if possible.
  * The choice of one third is rather arbitrary somewhere between the minimum
  * possible latency which would cause a lot of CPU load and half the configured
- * latency which would quickly lead to underruns */
+ * latency which would quickly lead to underruns. In low device latency mode set
+ * source to one sixth of the overall latency. */
 static void set_source_output_latency(struct userdata *u, pa_source *source) {
     pa_usec_t latency, requested_latency;
 
     requested_latency = u->latency / 3;
+    if (u->low_device_latency)
+        requested_latency = u->latency / 6;
 
     /* Normally we try to configure sink and source latency equally. If the
      * sink latency cannot match the requested source latency try to set the
@@ -731,6 +924,8 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
 
     /* Set latency and calculate latency limits */
     u->underrun_latency_limit = 0;
+    u->last_source_latency_offset = dest->port_latency_offset;
+    u->initial_adjust_pending = true;
     update_latency_boundaries(u, dest, u->sink_input->sink);
     set_source_output_latency(u, dest);
     update_effective_source_latency(u, dest, u->sink_input->sink);
@@ -748,7 +943,13 @@ static void source_output_moving_cb(pa_source_output *o, pa_source *dest) {
     u->iteration_counter = 0;
     u->underrun_counter = 0;
 
+    /* Reset booleans, latency error and counters */
     u->source_sink_changed = true;
+    u->underrun_occured = false;
+    u->source_latency_offset_changed = false;
+    u->target_latency_cross_counter = 0;
+    u->log_counter = u->log_interval;
+    u->latency_error = 0;
 
     /* Send a mesage to the output thread that the source has changed.
      * If the sink is invalid here during a profile switching situation
@@ -923,6 +1124,10 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
                  * might lead to a gap in the stream */
                 memblockq_adjust(u, time_delta, true);
 
+                /* Notify main thread when the initial adjustment is done. */
+                if (u->output_thread_info.pop_called)
+                    pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(u->msg), LOOPBACK_MESSAGE_ADJUST_DONE, NULL, 0, NULL, NULL);
+
                 u->output_thread_info.pop_adjust = false;
                 u->output_thread_info.push_called = true;
             }
@@ -936,7 +1141,8 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
              * right-away */
             if (u->sink_input->sink->thread_info.state != PA_SINK_SUSPENDED &&
                 u->sink_input->thread_info.underrun_for > 0 &&
-                pa_memblockq_is_readable(u->memblockq)) {
+                pa_memblockq_is_readable(u->memblockq) &&
+                u->output_thread_info.pop_called) {
 
                 pa_asyncmsgq_post(pa_thread_mq_get()->outq, PA_MSGOBJECT(u->msg), LOOPBACK_MESSAGE_UNDERRUN, NULL, 0, NULL, NULL);
                 /* If called from within the pop callback skip the rewind */
@@ -1008,11 +1214,14 @@ static int sink_input_process_msg_cb(pa_msgobject *obj, int code, void *data, in
  * Set sink input latency to one third of the overall latency if possible.
  * The choice of one third is rather arbitrary somewhere between the minimum
  * possible latency which would cause a lot of CPU load and half the configured
- * latency which would quickly lead to underruns. */
+ * latency which would quickly lead to underruns. In low device latency mode
+ * set sink to one sixth of the overall latency. */
 static void set_sink_input_latency(struct userdata *u, pa_sink *sink) {
      pa_usec_t latency, requested_latency;
 
     requested_latency = u->latency / 3;
+    if (u->low_device_latency)
+        requested_latency = u->latency / 6;
 
     /* Normally we try to configure sink and source latency equally. If the
      * source latency cannot match the requested sink latency try to set the
@@ -1136,6 +1345,8 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
 
     /* Set latency and calculate latency limits */
     u->underrun_latency_limit = 0;
+    u->last_sink_latency_offset = dest->port_latency_offset;
+    u->initial_adjust_pending = true;
     update_latency_boundaries(u, NULL, dest);
     set_sink_input_latency(u, dest);
     update_effective_source_latency(u, u->source_output->source, dest);
@@ -1153,7 +1364,13 @@ static void sink_input_moving_cb(pa_sink_input *i, pa_sink *dest) {
     u->iteration_counter = 0;
     u->underrun_counter = 0;
 
+    /* Reset booleans, latency error and counters */
     u->source_sink_changed = true;
+    u->underrun_occured = false;
+    u->sink_latency_offset_changed = false;
+    u->target_latency_cross_counter = 0;
+    u->log_counter = u->log_interval;
+    u->latency_error = 0;
 
     u->output_thread_info.pop_called = false;
     u->output_thread_info.first_pop_done = false;
@@ -1281,7 +1498,15 @@ static int loopback_process_msg_cb(pa_msgobject *o, int code, void *userdata, in
         case LOOPBACK_MESSAGE_UNDERRUN:
 
             u->underrun_counter++;
+            u->underrun_occured = true;
+            u->target_latency_cross_counter = 0;
             pa_log_debug("Underrun detected, counter incremented to %u", u->underrun_counter);
+
+            return 0;
+
+        case LOOPBACK_MESSAGE_ADJUST_DONE:
+
+            u->initial_adjust_pending = false;
 
             return 0;
 
@@ -1290,24 +1515,38 @@ static int loopback_process_msg_cb(pa_msgobject *o, int code, void *userdata, in
     return 0;
 }
 
+/* Called from main thread */
 static pa_hook_result_t sink_port_latency_offset_changed_cb(pa_core *core, pa_sink *sink, struct userdata *u) {
 
     if (sink != u->sink_input->sink)
         return PA_HOOK_OK;
 
+    if (!u->sink_latency_offset_changed)
+        u->last_sink_latency_offset = u->sink_latency_offset;
+    u->sink_latency_offset_changed = true;
     u->sink_latency_offset = sink->port_latency_offset;
     update_minimum_latency(u, sink, true);
+
+    /* We might need to adjust again, reset counter */
+    u->target_latency_cross_counter = 0;
 
     return PA_HOOK_OK;
 }
 
+/* Called from main thread */
 static pa_hook_result_t source_port_latency_offset_changed_cb(pa_core *core, pa_source *source, struct userdata *u) {
 
     if (source != u->source_output->source)
         return PA_HOOK_OK;
 
+    if (!u->source_latency_offset_changed)
+        u->last_source_latency_offset = u->source_latency_offset;
+    u->source_latency_offset_changed = true;
     u->source_latency_offset = source->port_latency_offset;
     update_minimum_latency(u, u->sink_input->sink, true);
+
+    /* We might need to adjust again, reset counter */
+    u->target_latency_cross_counter = 0;
 
     return PA_HOOK_OK;
 }
@@ -1324,15 +1563,18 @@ int pa__init(pa_module *m) {
     uint32_t latency_msec;
     uint32_t max_latency_msec;
     uint32_t fast_adjust_threshold;
+    uint32_t adjust_threshold;
     pa_sample_spec ss;
     pa_channel_map map;
     bool format_set = false;
     bool rate_set = false;
     bool channels_set = false;
     pa_memchunk silence;
-    uint32_t adjust_time_sec;
+    uint32_t adjust_time_sec, adjust_time_msec;
+    uint32_t log_interval_sec, log_interval_msec;
     const char *n;
     bool remix = true;
+    bool low_device_latency = false;
 
     pa_assert(m);
 
@@ -1402,6 +1644,12 @@ int pa__init(pa_module *m) {
     if (pa_modargs_get_value(ma, "channels", NULL) || pa_modargs_get_value(ma, "channel_map", NULL))
         channels_set = true;
 
+    adjust_threshold = DEFAULT_ADJUST_THRESHOLD_USEC;
+    if (pa_modargs_get_value_u32(ma, "adjust_threshold_usec", &adjust_threshold) < 0 || adjust_threshold < 1 || adjust_threshold > 10000) {
+        pa_log_info("Invalid adjust threshold specification");
+        goto fail;
+    }
+
     latency_msec = DEFAULT_LATENCY_MSEC;
     if (pa_modargs_get_value_u32(ma, "latency_msec", &latency_msec) < 0 || latency_msec < 1 || latency_msec > 30000) {
         pa_log("Invalid latency specification");
@@ -1425,6 +1673,11 @@ int pa__init(pa_module *m) {
         max_latency_msec = latency_msec;
     }
 
+    if (pa_modargs_get_value_boolean(ma, "low_device_latency", &low_device_latency) < 0) {
+        pa_log("Invalid boolean device latency parameter");
+        goto fail;
+    }
+
     m->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
@@ -1440,6 +1693,14 @@ int pa__init(pa_module *m) {
     u->real_adjust_time_sum = 0;
     u->adjust_counter = 0;
     u->fast_adjust_threshold = fast_adjust_threshold * PA_USEC_PER_MSEC;
+    u->underrun_occured = false;
+    u->source_latency_offset_changed = false;
+    u->sink_latency_offset_changed = false;
+    u->latency_error = 0;
+    u->adjust_threshold = adjust_threshold;
+    u->target_latency_cross_counter = 0;
+    u->low_device_latency = low_device_latency;
+    u->initial_adjust_pending = true;
 
     adjust_time_sec = DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_SEC;
     if (pa_modargs_get_value_u32(ma, "adjust_time", &adjust_time_sec) < 0) {
@@ -1447,10 +1708,18 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
-    if (adjust_time_sec != DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_SEC)
+    adjust_time_msec = DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_MSEC;
+    if (pa_modargs_get_value_u32(ma, "adjust_time_msec", &adjust_time_msec) < 0 || (adjust_time_msec != 0 && adjust_time_msec < 100)) {
+        pa_log("Failed to parse adjust_time_msec value");
+        goto fail;
+    }
+
+    /* If adjust_time and adjust_time_msec are both specified, use adjust_time_msec */
+    u->adjust_time = DEFAULT_ADJUST_TIME_USEC;
+    if (adjust_time_msec != DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_MSEC)
+        u->adjust_time = adjust_time_msec * PA_USEC_PER_MSEC;
+    else if (adjust_time_sec != DEFAULT_ADJUST_TIME_USEC / PA_USEC_PER_SEC)
         u->adjust_time = adjust_time_sec * PA_USEC_PER_SEC;
-    else
-        u->adjust_time = DEFAULT_ADJUST_TIME_USEC;
 
     u->real_adjust_time = u->adjust_time;
 
@@ -1518,6 +1787,34 @@ int pa__init(pa_module *m) {
     ss = u->source_output->sample_spec;
     map = u->source_output->channel_map;
 
+    /* Get log interval, default is 0, which means no logging */
+    log_interval_sec = 0;
+    if (pa_modargs_get_value_u32(ma, "log_interval", &log_interval_sec) < 0) {
+        pa_log_info("Invalid log interval specification");
+        goto fail;
+    }
+
+    log_interval_msec = 0;
+    if (pa_modargs_get_value_u32(ma, "log_interval_msec", &log_interval_msec) < 0 || (log_interval_msec !=0 && log_interval_msec < 100)) {
+        pa_log_info("Invalid log interval specification");
+        goto fail;
+    }
+
+    /* Estimate number of iterations for logging, if both parameters are specified,
+     * log_interval_msec is used */
+    u->log_interval = 0;
+    if (u->adjust_time != 0 && (log_interval_msec != 0 || log_interval_sec != 0)) {
+        if (log_interval_msec != 0)
+            u->log_interval = (int)((double)log_interval_msec * PA_USEC_PER_MSEC / u->adjust_time + 0.5);
+        else if (log_interval_sec != 0)
+            u->log_interval = (int)((double)log_interval_sec * PA_USEC_PER_SEC / u->adjust_time + 0.5);
+        /* Logging was specified, but log interval parameter was too small,
+         * therefore log on every iteration */
+        if (u->log_interval == 0)
+            u->log_interval = 1;
+    }
+    u->log_counter = u->log_interval;
+
     pa_sink_input_new_data_init(&sink_input_data);
     sink_input_data.driver = __FILE__;
     sink_input_data.module = m;
@@ -1572,6 +1869,8 @@ int pa__init(pa_module *m) {
     u->sink_input->update_sink_fixed_latency = update_sink_latency_range_cb;
     u->sink_input->userdata = u;
 
+    u->last_source_latency_offset = u->source_output->source->port_latency_offset;
+    u->last_sink_latency_offset = u->sink_input->sink->port_latency_offset;
     update_latency_boundaries(u, u->source_output->source, u->sink_input->sink);
     set_sink_input_latency(u, u->sink_input->sink);
     set_source_output_latency(u, u->source_output->source);
