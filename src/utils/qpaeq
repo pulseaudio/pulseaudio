@@ -30,6 +30,7 @@ except ImportError as e:
 
 from functools import partial
 
+import time
 import signal
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 SYNC_TIMEOUT = 4*1000
@@ -295,6 +296,10 @@ class QPaeq(QtWidgets.QWidget):
 
 
 class SliderArray(QtWidgets.QWidget):
+
+    # Pointless to use more than 100 frequencies:
+    MAX_FREQS_NUM = 100
+
     def __init__(self,filter_state,parent=None):
         super(SliderArray,self).__init__(parent)
         #self.setStyleSheet('padding: 0px; border-width: 0px; margin: 0px;')
@@ -303,7 +308,10 @@ class SliderArray(QtWidgets.QWidget):
         self.setLayout(QtWidgets.QHBoxLayout())
         self.sub_array=None
         self.set_sub_array(SliderArraySub(self.filter_state))
-        self.inhibit_resize=0
+        self.width_per_freq=None
+        self.resizer_timer=None
+        self.last_resize_planned=None
+
     def set_sub_array(self,widget):
         if self.sub_array is not None:
             self.layout().removeWidget(self.sub_array)
@@ -313,23 +321,41 @@ class SliderArray(QtWidgets.QWidget):
         self.layout().addWidget(self.sub_array)
         self.sub_array.connect_signals()
         self.filter_state.readback()
+
     def resizeEvent(self,event):
         super(SliderArray,self).resizeEvent(event)
-        if self.inhibit_resize==0:
-            self.inhibit_resize+=1
-            #self.add_sliders_to_fit()
-            t=QtCore.QTimer(self)
-            t.setSingleShot(True)
-            t.setInterval(0)
-            t.timeout.connect(partial(self.add_sliders_to_fit,event))
-            t.start()
-    def add_sliders_to_fit(self,event):
-        if event.oldSize().width()>0 and event.size().width()>0:
-            i=len(self.filter_state.frequencies)*int(round(float(event.size().width())/event.oldSize().width()))
-        else:
-            i=len(self.filter_state.frequencies)
 
+        if self.width_per_freq is None:
+            # This was a resize after initial draw -> no need to recalculate anything.
+            # But will precalculate average width per slider:
+            self.width_per_freq=self.size().width()/len(self.filter_state.frequencies)
+            # Why this is needed:
+            # event.oldSize().width() and event.size().width() may give strange irrelevant values on
+            # HiDPI screens (with QT_AUTO_SCREEN_SCALE_FACTOR=1), e.g. resize by 40 pixels can give
+            # (32540, 1071644672) as old and new widths, so it's a bad source for info.
+            # Instead we can remember average width per freq and use it later.
+            return
+        else:
+            #self.add_sliders_to_fit()
+            if self.resizer_timer is None:
+                self.resizer_timer=QtCore.QTimer(self)
+                self.resizer_timer.setSingleShot(True)
+                self.resizer_timer.setInterval(50)
+                self.resizer_timer.timeout.connect(partial(self.add_sliders_to_fit,event))
+                self.last_resize_planned = time.time()
+                self.resizer_timer.start()
+            elif (time.time() - self.last_resize_planned) < 0.2:
+                # Restart timer if it is still running and less than 0.2 seconds have passed.
+                # Final behaviour:
+                # * if user keeps resizing window then sliders will be redrawn each 250ms
+                # * if user finishes resizing, sliders will be redrawn 50ms later
+                self.resizer_timer.start()
+
+    def add_sliders_to_fit(self,event):
         t_w=self.size().width()
+        # new number of frequencies:
+        i=min(self.MAX_FREQS_NUM,int(t_w/self.width_per_freq))
+
         def evaluate(filter_state, target, variable):
             base_freqs=self.filter_state.freq_proper(self.filter_state.DEFAULT_FREQUENCIES)
             filter_state._set_frequency_values(subdivide(base_freqs,variable))
@@ -354,9 +380,11 @@ class SliderArray(QtWidgets.QWidget):
                     return k, evaluator(k)
                 i-=direction
                 old_direction=direction
-        searcher(i,partial(evaluate,self.filter_state,t_w))
-        self.set_sub_array(SliderArraySub(self.filter_state))
-        self.inhibit_resize-=1
+
+        if i!=len(self.filter_state.frequencies):
+            searcher(i,partial(evaluate,self.filter_state,t_w))
+            self.set_sub_array(SliderArraySub(self.filter_state))
+        self.resizer_timer=None
 
 class SliderArraySub(QtWidgets.QWidget):
     def __init__(self,filter_state,parent=None):
