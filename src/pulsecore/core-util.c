@@ -698,12 +698,25 @@ char *pa_strlcpy(char *b, const char *s, size_t l) {
 
 #ifdef HAVE_SYS_RESOURCE_H
 static int set_nice(int nice_level) {
+#ifdef __linux__
+    FILE* f;
+#endif
+
 #ifdef HAVE_DBUS
     DBusError error;
     DBusConnection *bus;
     int r;
 
     dbus_error_init(&error);
+#endif
+
+#ifdef __linux__
+    if (!(f = pa_fopen_cloexec("/proc/self/autogroup", "w"))) {
+        pa_log_info("Failed to open autogroup");
+    } else {
+        fprintf(f, "%d", nice_level);
+        fclose(f);
+    }
 #endif
 
 #ifdef HAVE_SYS_RESOURCE_H
