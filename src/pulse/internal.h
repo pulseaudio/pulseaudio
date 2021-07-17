@@ -93,6 +93,8 @@ struct pa_context {
     void *subscribe_userdata;
     pa_context_event_cb_t event_callback;
     void *event_userdata;
+    pa_context_signal_cb_t signal_callback;
+    void *signal_userdata;
 
     pa_mempool *mempool;
 

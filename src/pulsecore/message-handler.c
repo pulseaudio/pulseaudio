@@ -28,6 +28,7 @@
 #include <pulsecore/core-util.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
+#include <pulsecore/json.h>
 
 #include "message-handler.h"
 
@@ -69,6 +70,7 @@ static bool object_path_is_valid(const char *test_string) {
 /* Register message handler for the specified object. object_path must be a unique name starting with "/". */
 void pa_message_handler_register(pa_core *c, const char *object_path, const char *description, pa_message_handler_cb_t cb, void *userdata) {
     struct pa_message_handler *handler;
+    char *sig_param;
 
     pa_assert(c);
     pa_assert(object_path);
@@ -85,11 +87,17 @@ void pa_message_handler_register(pa_core *c, const char *object_path, const char
     handler->description = pa_xstrdup(description);
 
     pa_assert_se(pa_hashmap_put(c->message_handlers, handler->object_path, handler) == 0);
+
+    /* Notify clients that a handler was added. */
+    sig_param = pa_sprintf_malloc("\"%s\"", object_path);
+    pa_signal_post(c, "/core", 1, "handler-added", sig_param);
+    pa_xfree(sig_param);
 }
 
 /* Unregister a message handler */
 void pa_message_handler_unregister(pa_core *c, const char *object_path) {
     struct pa_message_handler *handler;
+    char *sig_param;
 
     pa_assert(c);
     pa_assert(object_path);
@@ -99,6 +107,11 @@ void pa_message_handler_unregister(pa_core *c, const char *object_path) {
     pa_xfree(handler->object_path);
     pa_xfree(handler->description);
     pa_xfree(handler);
+
+    /* Notify clients that a handler was removed. */
+    sig_param = pa_sprintf_malloc("\"%s\"", object_path);
+    pa_signal_post(c, "/core", 1, "handler-removed", sig_param);
+    pa_xfree(sig_param);
 }
 
 /* Send a message to an object identified by object_path */
@@ -147,6 +160,8 @@ int pa_message_handler_send_message(pa_core *c, const char *object_path, const c
 /* Set handler description */
 int pa_message_handler_set_description(pa_core *c, const char *object_path, const char *description) {
     struct pa_message_handler *handler;
+    char *sig_param;
+    pa_json_encoder *encoder;
 
     pa_assert(c);
     pa_assert(object_path);
@@ -154,8 +169,36 @@ int pa_message_handler_set_description(pa_core *c, const char *object_path, cons
     if (!(handler = pa_hashmap_get(c->message_handlers, object_path)))
         return -PA_ERR_NOENTITY;
 
+    encoder = pa_json_encoder_new();
+    pa_json_encoder_begin_element_object(encoder);
+    pa_json_encoder_add_member_string(encoder, "Handler name", object_path);
+    pa_json_encoder_add_member_string(encoder, "Old description", handler->description);
+    pa_json_encoder_add_member_string(encoder, "New description", description);
+    pa_json_encoder_end_object(encoder);
+    sig_param = pa_json_encoder_to_string_free(encoder);
+
     pa_xfree(handler->description);
     handler->description = pa_xstrdup(description);
 
+    /* Notify clients that a handler description changed. */
+    pa_signal_post(c, "/core", 1, "handler-changed", sig_param);
+    pa_xfree(sig_param);
+
     return PA_OK;
+}
+
+/* Send a signal */
+void pa_signal_post(pa_core *c, const char *object_path, uint64_t facility, const char *signal, const char *signal_parameters) {
+    struct pa_signal_descriptor sd;
+
+    pa_assert(object_path);
+    pa_assert(facility);
+    pa_assert(signal);
+
+    sd.object_path = object_path;
+    sd.facility = facility;
+    sd.signal = signal;
+    sd.parameters = signal_parameters;
+
+    pa_hook_fire(&c->hooks[PA_CORE_HOOK_SEND_SIGNAL], &sd);
 }

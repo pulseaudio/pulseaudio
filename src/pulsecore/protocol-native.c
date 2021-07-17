@@ -187,6 +187,7 @@ struct pa_native_connection {
     pa_idxset *record_streams, *output_streams;
     uint32_t rrobin_index;
     pa_subscription *subscription;
+    uint64_t signal_mask;
     pa_time_event *auth_timeout_event;
     pa_srbchannel *srbpending;
 };
@@ -204,6 +205,8 @@ struct pa_native_protocol {
     pa_hook hooks[PA_NATIVE_HOOK_MAX];
 
     pa_hashmap *extensions;
+
+    pa_hook_slot *signal_hook_slot;
 };
 
 enum {
@@ -3758,6 +3761,26 @@ static void command_subscribe(pa_pdispatch *pd, uint32_t command, uint32_t tag, 
     pa_pstream_send_simple_ack(c->pstream, tag);
 }
 
+static void command_signal_subscribe(pa_pdispatch *pd, uint32_t command, uint32_t tag, pa_tagstruct *t, void *userdata) {
+    pa_native_connection *c = PA_NATIVE_CONNECTION(userdata);
+    uint64_t m;
+
+    pa_native_connection_assert_ref(c);
+    pa_assert(t);
+
+    if (pa_tagstruct_getu64(t, &m) < 0 ||
+        !pa_tagstruct_eof(t)) {
+        protocol_error(c);
+        return;
+    }
+
+    CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
+
+    c->signal_mask = m;
+
+    pa_pstream_send_simple_ack(c->pstream, tag);
+}
+
 static void command_set_volume(
         pa_pdispatch *pd,
         uint32_t command,
@@ -4957,6 +4980,7 @@ static const pa_pdispatch_cb_t command_table[PA_COMMAND_MAX] = {
     [PA_COMMAND_GET_SAMPLE_INFO_LIST] = command_get_info_list,
     [PA_COMMAND_GET_SERVER_INFO] = command_get_server_info,
     [PA_COMMAND_SUBSCRIBE] = command_subscribe,
+    [PA_COMMAND_SUBSCRIBE_SIGNALS] = command_signal_subscribe,
 
     [PA_COMMAND_SET_SINK_VOLUME] = command_set_volume,
     [PA_COMMAND_SET_SINK_INPUT_VOLUME] = command_set_volume,
@@ -5305,6 +5329,33 @@ void pa_native_protocol_disconnect(pa_native_protocol *p, pa_module *m) {
             native_connection_unlink(c);
 }
 
+static pa_hook_result_t native_protocol_signal_hook(pa_core *core, struct pa_signal_descriptor *sd, pa_native_protocol *p) {
+    pa_native_connection *c;
+    uint32_t idx;
+
+    pa_assert(p);
+    pa_assert(sd);
+
+    PA_IDXSET_FOREACH(c, p->connections, idx) {
+        if (sd->facility & c->signal_mask) {
+            pa_tagstruct *t;
+
+            pa_native_connection_assert_ref(c);
+
+            t = pa_tagstruct_new();
+            pa_tagstruct_putu32(t, PA_COMMAND_SUBSCRIBE_EVENT);
+            pa_tagstruct_putu32(t, (uint32_t) -1);
+            pa_tagstruct_putu32(t, PA_SUBSCRIPTION_EVENT_SIGNAL);
+            pa_tagstruct_puts(t, sd->object_path);
+            pa_tagstruct_puts(t, sd->signal);
+            pa_tagstruct_puts(t, sd->parameters);
+            pa_pstream_send_tagstruct(c->pstream, t);
+        }
+    }
+
+    return PA_HOOK_OK;
+}
+
 static pa_native_protocol* native_protocol_new(pa_core *c) {
     pa_native_protocol *p;
     pa_native_hook_t h;
@@ -5322,6 +5373,8 @@ static pa_native_protocol* native_protocol_new(pa_core *c) {
 
     for (h = 0; h < PA_NATIVE_HOOK_MAX; h++)
         pa_hook_init(&p->hooks[h], p);
+
+    p->signal_hook_slot = pa_hook_connect(&c->hooks[PA_CORE_HOOK_SEND_SIGNAL], PA_HOOK_NORMAL, (pa_hook_cb_t) native_protocol_signal_hook, p);
 
     pa_assert_se(pa_shared_set(c, "native-protocol", p) >= 0);
 
@@ -5362,6 +5415,9 @@ void pa_native_protocol_unref(pa_native_protocol *p) {
     pa_idxset_free(p->connections, NULL);
 
     pa_strlist_free(p->servers);
+
+    if (p->signal_hook_slot)
+        pa_hook_slot_free(p->signal_hook_slot);
 
     for (h = 0; h < PA_NATIVE_HOOK_MAX; h++)
         pa_hook_done(&p->hooks[h]);
