@@ -102,11 +102,7 @@
     "</node>"
 
 static pa_volume_t a2dp_gain_to_volume(uint16_t gain) {
-    pa_volume_t volume = (pa_volume_t) ((
-        gain * PA_VOLUME_NORM
-        /* Round to closest by adding half the denominator */
-        + A2DP_MAX_GAIN / 2
-    ) / A2DP_MAX_GAIN);
+    pa_volume_t volume = A2DP_GAIN_TO_VOLUME(gain);
 
     if (volume > PA_VOLUME_NORM)
         volume = PA_VOLUME_NORM;
@@ -115,11 +111,7 @@ static pa_volume_t a2dp_gain_to_volume(uint16_t gain) {
 }
 
 static uint16_t volume_to_a2dp_gain(pa_volume_t volume) {
-    uint16_t gain = (uint16_t) ((
-        volume * A2DP_MAX_GAIN
-        /* Round to closest by adding half the denominator */
-        + PA_VOLUME_NORM / 2
-    ) / PA_VOLUME_NORM);
+    uint16_t gain = VOLUME_TO_A2DP_GAIN(volume);
 
     if (gain > A2DP_MAX_GAIN)
         gain = A2DP_MAX_GAIN;
