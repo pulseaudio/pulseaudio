@@ -60,7 +60,12 @@
 #include <pulsecore/thread-mq.h>
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/thread.h>
+
+#ifdef USE_SMOOTHER_2
+#include <pulsecore/time-smoother_2.h>
+#else
 #include <pulsecore/time-smoother.h>
+#endif
 
 PA_MODULE_AUTHOR("Pierre Ossman");
 PA_MODULE_DESCRIPTION("Solaris Sink/Source");
@@ -110,7 +115,11 @@ struct userdata {
 
     int32_t minimum_request;
 
+#ifdef USE_SMOOTHER_2
+    pa_smoother_2 *smoother;
+#else
     pa_smoother *smoother;
+#endif
 };
 
 static const char* const valid_modargs[] = {
@@ -164,7 +173,11 @@ static uint64_t get_playback_buffered_bytes(struct userdata *u) {
     u->prev_playback_samples = info.play.samples;
     played_bytes = (((uint64_t)u->play_samples_msw << 32) + info.play.samples) * u->frame_size;
 
+#ifdef USE_SMOOTHER_2
+    pa_smoother_2_put(u->smoother, pa_rtclock_now(), played_bytes);
+#else
     pa_smoother_put(u->smoother, pa_rtclock_now(), pa_bytes_to_usec(played_bytes, &u->sink->sample_spec));
+#endif
 
     if (u->written_bytes > played_bytes)
         return u->written_bytes - played_bytes;
@@ -413,7 +426,11 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
 
             pa_assert(PA_SINK_IS_OPENED(s->thread_info.state));
 
+#ifdef USE_SMOOTHER_2
+            pa_smoother_2_pause(u->smoother, pa_rtclock_now());
+#else
             pa_smoother_pause(u->smoother, pa_rtclock_now());
+#endif
 
             if (!u->source || u->source_suspended)
                 suspend(u);
@@ -425,7 +442,11 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
         case PA_SINK_RUNNING:
 
             if (s->thread_info.state == PA_SINK_SUSPENDED) {
+#ifdef USE_SMOOTHER_2
+                pa_smoother_2_resume(u->smoother, pa_rtclock_now());
+#else
                 pa_smoother_resume(u->smoother, pa_rtclock_now(), true);
+#endif
 
                 if (!u->source || u->source_suspended) {
                     bool mute;
@@ -654,7 +675,11 @@ static void thread_func(void *userdata) {
 
     pa_thread_mq_install(&u->thread_mq);
 
+#ifdef USE_SMOOTHER_2
+    pa_smoother_2_reset(u->smoother, pa_rtclock_now());
+#else
     pa_smoother_set_time_offset(u->smoother, pa_rtclock_now());
+#endif
 
     for (;;) {
         /* Render some data and write it to the dsp */
@@ -680,7 +705,11 @@ static void thread_func(void *userdata) {
                 if (ioctl(u->fd, AUDIO_SETINFO, &info) < 0)
                     pa_log("AUDIO_SETINFO: %s", pa_cstrerror(errno));
 
+#ifdef USE_SMOOTHER_2
+                pa_smoother_2_reset(u->smoother, pa_rtclock_now());
+#else
                 pa_smoother_reset(u->smoother, pa_rtclock_now(), true);
+#endif
             }
 
             for (;;) {
@@ -736,7 +765,11 @@ static void thread_func(void *userdata) {
             }
 
             ysleep_interval = pa_bytes_to_usec(buffered_bytes / 2, &u->sink->sample_spec);
+#ifdef USE_SMOOTHER_2
+            xsleep_interval = pa_smoother_2_translate(u->smoother, ysleep_interval);
+#else
             xsleep_interval = pa_smoother_translate(u->smoother, xtime0, ysleep_interval);
+#endif
             pa_rtpoll_set_timer_absolute(u->rtpoll, xtime0 + PA_MIN(xsleep_interval, ysleep_interval));
         } else
             pa_rtpoll_set_timer_disabled(u->rtpoll);
@@ -884,8 +917,10 @@ int pa__init(pa_module *m) {
 
     u = pa_xnew0(struct userdata, 1);
 
+#ifndef USE_SMOOTHER_2
     if (!(u->smoother = pa_smoother_new(PA_USEC_PER_SEC, PA_USEC_PER_SEC * 2, true, true, 10, pa_rtclock_now(), true)))
         goto fail;
+#endif
 
     /*
      * For a process (or several processes) to use the same audio device for both
@@ -900,6 +935,10 @@ int pa__init(pa_module *m) {
         goto fail;
     }
     u->frame_size = pa_frame_size(&ss);
+
+#ifdef USE_SMOOTHER_2
+    u->smoother = pa_smoother_2_new(5*PA_USEC_PER_SEC, pa_rtclock_now(), u->frame_size, ss.rate);
+#endif
 
     u->minimum_request = pa_usec_to_bytes(PA_USEC_PER_SEC / MAX_RENDER_HZ, &ss);
 
@@ -1142,7 +1181,11 @@ void pa__done(pa_module *m) {
         close(u->fd);
 
     if (u->smoother)
+#ifdef USE_SMOOTHER_2
+        pa_smoother_2_free(u->smoother);
+#else
         pa_smoother_free(u->smoother);
+#endif
 
     pa_xfree(u->device_name);
 

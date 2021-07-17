@@ -60,7 +60,12 @@
 #include <pulsecore/poll.h>
 #include <pulsecore/rtpoll.h>
 #include <pulsecore/core-rtclock.h>
+
+#ifdef USE_SMOOTHER_2
+#include <pulsecore/time-smoother_2.h>
+#else
 #include <pulsecore/time-smoother.h>
+#endif
 
 #include "raop-sink.h"
 #include "raop-client.h"
@@ -96,7 +101,11 @@ struct userdata {
 
     pa_usec_t delay;
     pa_usec_t start;
+#ifdef USE_SMOOTHER_2
+    pa_smoother_2 *smoother;
+#else
     pa_smoother *smoother;
+#endif
     uint64_t write_count;
 
     uint32_t latency;
@@ -124,16 +133,22 @@ static void raop_state_cb(pa_raop_state_t state, void *userdata) {
 }
 
 static int64_t sink_get_latency(const struct userdata *u) {
+#ifndef USE_SMOOTHER_2
     pa_usec_t now;
+#endif
     int64_t latency;
 
     pa_assert(u);
     pa_assert(u->smoother);
 
+#ifdef USE_SMOOTHER_2
+    latency = pa_smoother_2_get_delay(u->smoother, pa_rtclock_now(), u->write_count);
+#else
     now = pa_rtclock_now();
     now = pa_smoother_get(u->smoother, now);
 
     latency = pa_bytes_to_usec(u->write_count, &u->sink->sample_spec) - (int64_t) now;
+#endif
 
     /* RAOP default latency */
     latency += u->latency * PA_USEC_PER_MSEC;
@@ -182,7 +197,11 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                     if (u->autoreconnect && u->sink->state == PA_SINK_RUNNING) {
                         pa_usec_t now;
                         now = pa_rtclock_now();
+#ifdef USE_SMOOTHER_2
+                        pa_smoother_2_reset(u->smoother, now);
+#else
                         pa_smoother_reset(u->smoother, now, false);
+#endif
 
                         if (!pa_raop_client_is_alive(u->raop)) {
                             /* Connecting will trigger a RECORD and start steaming */
@@ -312,7 +331,11 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
             pa_log_debug("RAOP: RUNNING");
 
             now = pa_rtclock_now();
+#ifdef USE_SMOOTHER_2
+            pa_smoother_2_reset(u->smoother, now);
+#else
             pa_smoother_reset(u->smoother, now, false);
+#endif
 
             /* If autonull is enabled, I/O thread is always eating chunks since
              * it is emulating a null sink */
@@ -409,16 +432,23 @@ static void thread_func(void *userdata) {
     pa_log_debug("Thread starting up");
 
     pa_thread_mq_install(&u->thread_mq);
+#ifdef USE_SMOOTHER_2
+    pa_smoother_2_reset(u->smoother, pa_rtclock_now());
+#else
     pa_smoother_set_time_offset(u->smoother, pa_rtclock_now());
+#endif
 
     for (;;) {
         struct pollfd *pollfd = NULL;
         unsigned int i, nbfds = 0;
-        pa_usec_t now, estimated;
+        pa_usec_t now;
         uint64_t position;
         size_t index;
         int ret;
         bool canstream, sendstream, on_timeout;
+#ifndef USE_SMOOTHER_2
+        pa_usec_t estimated;
+#endif
 
         /* Polling (audio data + control socket + timing socket). */
         if ((ret = pa_rtpoll_run(u->rtpoll)) < 0)
@@ -590,8 +620,12 @@ static void thread_func(void *userdata) {
                 position = u->write_count - pa_usec_to_bytes(u->delay, &u->sink->sample_spec);
 
                 now = pa_rtclock_now();
+#ifdef USE_SMOOTHER_2
+                pa_smoother_2_put(u->smoother, now, position);
+#else
                 estimated = pa_bytes_to_usec(position, &u->sink->sample_spec);
                 pa_smoother_put(u->smoother, now, estimated);
+#endif
 
                 if ((u->autonull && !canstream) || (u->oob && canstream && on_timeout)) {
                     /* Sleep until next packet transmission */
@@ -761,6 +795,9 @@ pa_sink* pa_raop_sink_new(pa_module *m, pa_modargs *ma, const char *driver) {
     pa_memchunk_reset(&u->memchunk);
 
     u->delay = 0;
+#ifdef USE_SMOOTHER_2
+    u->smoother = pa_smoother_2_new(5*PA_USEC_PER_SEC, pa_rtclock_now(), pa_frame_size(&ss), ss.rate);
+#else
     u->smoother = pa_smoother_new(
             PA_USEC_PER_SEC,
             PA_USEC_PER_SEC*2,
@@ -769,6 +806,7 @@ pa_sink* pa_raop_sink_new(pa_module *m, pa_modargs *ma, const char *driver) {
             10,
             0,
             false);
+#endif
     u->write_count = 0;
 
     if (pa_streq(protocol, "TCP")) {
@@ -946,7 +984,11 @@ static void userdata_free(struct userdata *u) {
     u->raop = NULL;
 
     if (u->smoother)
+#ifdef USE_SMOOTHER_2
+        pa_smoother_2_free(u->smoother);
+#else
         pa_smoother_free(u->smoother);
+#endif
     u->smoother = NULL;
 
     if (u->card)

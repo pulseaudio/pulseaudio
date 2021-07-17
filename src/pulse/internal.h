@@ -40,7 +40,13 @@
 #include <pulsecore/memblockq.h>
 #include <pulsecore/hashmap.h>
 #include <pulsecore/refcnt.h>
+
+#ifdef USE_SMOOTHER_2
+#include <pulsecore/time-smoother_2.h>
+#else
 #include <pulsecore/time-smoother.h>
+#endif
+
 #ifdef HAVE_DBUS
 #include <pulsecore/dbus-util.h>
 #endif
@@ -208,7 +214,11 @@ struct pa_stream {
     pa_time_event *auto_timing_update_event;
     pa_usec_t auto_timing_interval_usec;
 
+#ifdef USE_SMOOTHER_2
+    pa_smoother_2 *smoother;
+#else
     pa_smoother *smoother;
+#endif
 
     /* Callbacks */
     pa_stream_notify_cb_t state_callback;
