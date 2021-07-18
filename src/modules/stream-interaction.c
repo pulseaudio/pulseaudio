@@ -39,6 +39,7 @@ struct group {
     pa_idxset *trigger_roles;
     pa_idxset *interaction_roles;
     pa_hashmap *interaction_state;
+    pa_hashmap *corked_by;
     pa_volume_t volume;
 };
 
@@ -65,6 +66,23 @@ struct userdata {
         *source_output_mute_changed_slot,
         *source_output_proplist_changed_slot;
 };
+
+static bool is_corked_by_other(struct userdata *u, pa_sink_input *i, struct group *g) {
+
+    bool corked_by_other = false;
+    uint32_t k;
+    for (k = 0; k < u->n_groups; k++) {
+        if (u->groups[k] == g)
+            continue;
+
+        if (!!pa_hashmap_get(u->groups[k]->corked_by, i)) {
+            corked_by_other = true;
+            break;
+        }
+    }
+
+    return corked_by_other;
+}
 
 static inline pa_object* GET_DEVICE_FROM_STREAM(pa_object *stream) {
     return pa_sink_input_isinstance(stream) ? PA_OBJECT(PA_SINK_INPUT(stream)->sink) : PA_OBJECT(PA_SOURCE_OUTPUT(stream)->source);
@@ -221,6 +239,15 @@ static inline void apply_interaction_to_sink(struct userdata *u, pa_sink *s, con
             corked = false;
         interaction_applied = !!pa_hashmap_get(g->interaction_state, j);
 
+        /* Save the intent to cork here. This allows overlapping corking groups */
+        /* and avoids uncorking streams that are corked by multiple groups */
+        if (!u->duck && u->n_groups > 1) {
+            if (new_trigger)
+                pa_hashmap_put(g->corked_by, j, PA_INT_TO_PTR(1));
+            else
+                pa_hashmap_remove(g->corked_by, j);
+        }
+
         if (new_trigger && ((!corked && !j->muted) || u->duck)) {
             if (!interaction_applied)
                 pa_hashmap_put(g->interaction_state, j, PA_INT_TO_PTR(1));
@@ -228,9 +255,14 @@ static inline void apply_interaction_to_sink(struct userdata *u, pa_sink *s, con
             cork_or_duck(u, j, role, new_trigger, interaction_applied, g);
 
         } else if (!new_trigger && interaction_applied) {
-            pa_hashmap_remove(g->interaction_state, j);
+            if (u->duck) {
+                pa_hashmap_remove(g->interaction_state, j);
+                uncork_or_unduck(u, j, role, corked, g);
 
-            uncork_or_unduck(u, j, role, corked, g);
+            } else if (u->n_groups == 1 || !is_corked_by_other(u, j, g)) {
+                pa_hashmap_remove(g->interaction_state, j);
+                uncork_or_unduck(u, j, role, corked, g);
+            }
         }
     }
 }
@@ -272,8 +304,12 @@ static pa_hook_result_t process(struct userdata *u, pa_object *stream, bool crea
     pa_object_assert_ref(stream);
 
     if (!create)
-        for (j = 0; j < u->n_groups; j++)
+        for (j = 0; j < u->n_groups; j++) {
             pa_hashmap_remove(u->groups[j]->interaction_state, stream);
+
+            if(!u->duck)
+                pa_hashmap_remove(u->groups[j]->corked_by, stream);
+        }
 
     if ((pa_sink_input_isinstance(stream) && !PA_SINK_INPUT(stream)->sink) ||
         (pa_source_output_isinstance(stream) && !PA_SOURCE_OUTPUT(stream)->source))
@@ -419,10 +455,14 @@ int pa_stream_interaction_init(pa_module *m, const char* const v_modargs[]) {
     pa_modargs *ma = NULL;
     struct userdata *u;
     const char *roles;
+    const char *volumes;
     char *roles_in_group = NULL;
     bool global = false;
     bool source_trigger = false;
     uint32_t i = 0;
+    uint32_t group_count_tr = 0;
+    uint32_t group_count_in = 0;
+    uint32_t group_count_vol = 0;
 
     pa_assert(m);
 
@@ -441,30 +481,26 @@ int pa_stream_interaction_init(pa_module *m, const char* const v_modargs[]) {
 
     u->n_groups = 1;
 
-    if (u->duck) {
-        const char *volumes;
-        uint32_t group_count_tr = 0;
-        uint32_t group_count_du = 0;
-        uint32_t group_count_vol = 0;
+    roles = pa_modargs_get_value(ma, "trigger_roles", NULL);
+    if (roles) {
+        const char *split_state = NULL;
+        char *n = NULL;
+        while ((n = pa_split(roles, "/", &split_state))) {
+            group_count_tr++;
+            pa_xfree(n);
+        }
+    }
+    roles = pa_modargs_get_value(ma, u->duck ? "ducking_roles" : "cork_roles", NULL);
+    if (roles) {
+        const char *split_state = NULL;
+        char *n = NULL;
+        while ((n = pa_split(roles, "/", &split_state))) {
+            group_count_in++;
+            pa_xfree(n);
+        }
+    }
 
-        roles = pa_modargs_get_value(ma, "trigger_roles", NULL);
-        if (roles) {
-            const char *split_state = NULL;
-            char *n = NULL;
-            while ((n = pa_split(roles, "/", &split_state))) {
-                group_count_tr++;
-                pa_xfree(n);
-            }
-        }
-        roles = pa_modargs_get_value(ma, "ducking_roles", NULL);
-        if (roles) {
-            const char *split_state = NULL;
-            char *n = NULL;
-            while ((n = pa_split(roles, "/", &split_state))) {
-                group_count_du++;
-                pa_xfree(n);
-            }
-        }
+    if (u->duck) {
         volumes = pa_modargs_get_value(ma, "volume", NULL);
         if (volumes) {
             const char *split_state = NULL;
@@ -474,16 +510,16 @@ int pa_stream_interaction_init(pa_module *m, const char* const v_modargs[]) {
                 pa_xfree(n);
             }
         }
-
-        if ((group_count_tr > 1 || group_count_du > 1 || group_count_vol > 1) &&
-            ((group_count_tr != group_count_du) || (group_count_tr != group_count_vol))) {
-            pa_log("Invalid number of groups");
-            goto fail;
-        }
-
-        if (group_count_tr > 0)
-            u->n_groups = group_count_tr;
     }
+
+    if ((group_count_tr > 1 || group_count_in > 1 || group_count_vol > 1) &&
+        ((group_count_tr != group_count_in) || ( u->duck && (group_count_tr != group_count_vol)))) {
+        pa_log("Invalid number of groups");
+        goto fail;
+    }
+
+    if (group_count_tr > 0)
+        u->n_groups = group_count_tr;
 
     u->groups = pa_xnew0(struct group*, u->n_groups);
     for (i = 0; i < u->n_groups; i++) {
@@ -491,8 +527,9 @@ int pa_stream_interaction_init(pa_module *m, const char* const v_modargs[]) {
         u->groups[i]->trigger_roles = pa_idxset_new(NULL, NULL);
         u->groups[i]->interaction_roles = pa_idxset_new(NULL, NULL);
         u->groups[i]->interaction_state = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
-        if (u->duck)
-            u->groups[i]->name = pa_sprintf_malloc("ducking_group_%u", i);
+        u->groups[i]->name = pa_sprintf_malloc("interaction_group_%u", i);
+        if(!u->duck)
+            u->groups[i]->corked_by = pa_hashmap_new(pa_idxset_trivial_hash_func, pa_idxset_trivial_compare_func);
     }
 
     roles = pa_modargs_get_value(ma, "trigger_roles", NULL);
@@ -540,14 +577,14 @@ int pa_stream_interaction_init(pa_module *m, const char* const v_modargs[]) {
                     if (n[0] != '\0')
                         pa_idxset_put(u->groups[i]->interaction_roles, n, NULL);
                     else {
-                        pa_log("empty ducking role");
+                        pa_log("empty interaction role");
                         pa_xfree(n);
                         goto fail;
                      }
                 }
                 i++;
             } else {
-                pa_log("empty ducking roles");
+                pa_log("empty interaction roles");
                 goto fail;
             }
 
@@ -561,7 +598,6 @@ int pa_stream_interaction_init(pa_module *m, const char* const v_modargs[]) {
     }
 
     if (u->duck) {
-        const char *volumes;
         u->groups[0]->volume = pa_sw_volume_from_dB(-20);
         if ((volumes = pa_modargs_get_value(ma, "volume", NULL))) {
             const char *group_split_state = NULL;
@@ -642,8 +678,9 @@ void pa_stream_interaction_done(pa_module *m) {
             pa_idxset_free(u->groups[j]->trigger_roles, pa_xfree);
             pa_idxset_free(u->groups[j]->interaction_roles, pa_xfree);
             pa_hashmap_free(u->groups[j]->interaction_state);
-            if (u->duck)
-                pa_xfree(u->groups[j]->name);
+            if (!u->duck)
+                pa_hashmap_free(u->groups[j]->corked_by);
+            pa_xfree(u->groups[j]->name);
             pa_xfree(u->groups[j]);
         }
         pa_xfree(u->groups);

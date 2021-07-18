@@ -30,8 +30,8 @@ PA_MODULE_DESCRIPTION("Mute & cork streams with certain roles while others exist
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE(
-        "trigger_roles=<Comma separated list of roles which will trigger a cork> "
-        "cork_roles=<Comma separated list of roles which will be corked> "
+        "trigger_roles=<Comma(and slash) separated list of roles which will trigger a cork. Slash can divide the roles into groups>"
+        "cork_roles=<Comma(and slash) separated list of roles which will be corked. Slash can divide the roles into groups>"
         "global=<Should we operate globally or only inside the same device?>"
         "use_source_trigger=<Do we trigger a cork by a role of source-output as well as sink-input's? Default: false>"
         );
