@@ -23,7 +23,7 @@
 
 #include <pulsecore/core.h>
 #include <pulsecore/core-util.h>
-#if defined(HAVE_GSTAPTX) || defined(HAVE_GSTLDAC)
+#if defined(HAVE_GSTAPTX) || defined(HAVE_GSTLDAC) || defined(HAVE_GSTAAC)
 #include <gst/gst.h>
 #endif
 
@@ -47,6 +47,9 @@ extern const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_sbc_xq_552;
 extern const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_aptx;
 extern const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_aptx_hd;
 #endif
+#ifdef HAVE_GSTAAC
+extern const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_aac;
+#endif
 #ifdef HAVE_GSTLDAC
 extern const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_ldac_eqmid_hq;
 extern const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_ldac_eqmid_sq;
@@ -64,6 +67,9 @@ static const pa_a2dp_endpoint_conf *pa_a2dp_endpoint_configurations[] = {
 #ifdef HAVE_GSTAPTX
     &pa_a2dp_endpoint_conf_aptx_hd,
     &pa_a2dp_endpoint_conf_aptx,
+#endif
+#ifdef HAVE_GSTAAC
+    &pa_a2dp_endpoint_conf_aac,
 #endif
     &pa_a2dp_endpoint_conf_sbc,
     &pa_a2dp_endpoint_conf_sbc_xq_453,
@@ -113,7 +119,7 @@ const pa_a2dp_endpoint_conf *pa_bluetooth_get_a2dp_endpoint_conf(const char *nam
 }
 
 void pa_bluetooth_a2dp_codec_gst_init(void) {
-#if defined(HAVE_GSTAPTX) || defined(HAVE_GSTLDAC)
+#if defined(HAVE_GSTAPTX) || defined(HAVE_GSTLDAC) || defined(HAVE_GSTAAC)
     GError *error = NULL;
 
     if (!gst_init_check(NULL, NULL, &error)) {

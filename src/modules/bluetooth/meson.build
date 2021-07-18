@@ -27,6 +27,7 @@ if have_bluez5_gstreamer
   libbluez5_util_sources += [ 'a2dp-codec-gst.c' ]
   libbluez5_util_sources += [ 'a2dp-codec-ldac-gst.c' ]
   libbluez5_util_sources += [ 'a2dp-codec-aptx-gst.c' ]
+  libbluez5_util_sources += [ 'a2dp-codec-aac-gst.c' ]
 endif
 
 libbluez5_util = shared_library('bluez5-util',
