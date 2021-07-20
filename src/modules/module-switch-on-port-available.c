@@ -197,6 +197,7 @@ struct port_pointers {
     bool is_possible_profile_active;
     bool is_preferred_profile_active;
     bool is_port_active;
+    bool is_default;	/* is the sink/source default one */
 };
 
 static const char* profile_name_for_dir(pa_card_profile *cp, pa_direction_t dir) {
@@ -234,6 +235,7 @@ static struct port_pointers find_port_pointers(pa_device_port *port) {
     pp.is_preferred_profile_active = pp.is_possible_profile_active && (!port->preferred_profile ||
         pa_safe_streq(port->preferred_profile, profile_name_for_dir(card->active_profile, port->direction)));
     pp.is_port_active = (pp.sink && pp.sink->active_port == port) || (pp.source && pp.source->active_port == port);
+    pp.is_default = (pp.sink && pp.sink == pp.sink->core->default_sink) || (pp.source && pp.source == pp.source->core->default_source);
 
     return pp;
 }
@@ -265,7 +267,7 @@ static void switch_from_port(pa_device_port *port, struct port_pointers pp) {
     pa_device_port *p, *best_port = NULL;
     void *state;
 
-    if (!pp.is_port_active)
+    if (!pp.is_port_active || !pp.is_default)
         return; /* Already deselected */
 
     /* Try to find a good enough port to switch to */
