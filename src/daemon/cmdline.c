@@ -53,6 +53,7 @@ enum {
     ARG_LOG_TARGET,
     ARG_LOG_META,
     ARG_LOG_TIME,
+    ARG_LOG_ASYNC,
     ARG_LOG_BACKTRACE,
     ARG_LOAD,
     ARG_FILE,
@@ -89,6 +90,7 @@ static const struct option long_options[] = {
     {"log-target",                  1, 0, ARG_LOG_TARGET},
     {"log-meta",                    2, 0, ARG_LOG_META},
     {"log-time",                    2, 0, ARG_LOG_TIME},
+    {"log-async",                   2, 0, ARG_LOG_ASYNC},
     {"log-backtrace",               1, 0, ARG_LOG_BACKTRACE},
     {"load",                        1, 0, ARG_LOAD},
     {"file",                        1, 0, ARG_FILE},
@@ -143,6 +145,7 @@ void pa_cmdline_help(const char *argv0) {
            "  -v  --verbose                         Increase the verbosity level\n"
            "      --log-target={auto,syslog,stderr,file:PATH,newfile:PATH}\n"
            "                                        Specify the log target\n"
+           "      --log-async[=BOOL]                Asynchronously write to log file\n"
            "      --log-meta[=BOOL]                 Include code location in log messages\n"
            "      --log-time[=BOOL]                 Include timestamps in log messages\n"
            "      --log-backtrace=FRAMES            Include a backtrace in log messages\n"
@@ -339,6 +342,14 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
                     goto fail;
                 }
                 conf->log_time = !!b;
+                break;
+
+            case ARG_LOG_ASYNC:
+                if ((b = optarg ? pa_parse_boolean(optarg) : 1) < 0) {
+                    pa_log(_("--log-async expects boolean argument"));
+                    goto fail;
+                }
+                conf->log_async = !!b;
                 break;
 
             case ARG_LOG_META:

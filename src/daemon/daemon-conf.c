@@ -81,6 +81,7 @@ static const pa_daemon_conf default_conf = {
     .log_backtrace = 0,
     .log_meta = false,
     .log_time = false,
+    .log_async = false,
     .resample_method = PA_RESAMPLER_AUTO,
     .avoid_resampling = false,
     .disable_remixing = false,
@@ -619,6 +620,7 @@ int pa_daemon_conf_load(pa_daemon_conf *c, const char *filename) {
         { "shm-size-bytes",             pa_config_parse_size,     &c->shm_size, NULL },
         { "log-meta",                   pa_config_parse_bool,     &c->log_meta, NULL },
         { "log-time",                   pa_config_parse_bool,     &c->log_time, NULL },
+        { "log-async",                  pa_config_parse_bool,     &c->log_async, NULL },
         { "log-backtrace",              pa_config_parse_unsigned, &c->log_backtrace, NULL },
 #ifdef HAVE_SYS_RESOURCE_H
         { "rlimit-fsize",               parse_rlimit,             &c->rlimit_fsize, NULL },
@@ -837,6 +839,7 @@ char *pa_daemon_conf_dump(pa_daemon_conf *c) {
     pa_strbuf_printf(s, "shm-size-bytes = %lu\n", (unsigned long) c->shm_size);
     pa_strbuf_printf(s, "log-meta = %s\n", pa_yes_no(c->log_meta));
     pa_strbuf_printf(s, "log-time = %s\n", pa_yes_no(c->log_time));
+    pa_strbuf_printf(s, "log-async = %s\n", pa_yes_no(c->log_async));
     pa_strbuf_printf(s, "log-backtrace = %u\n", c->log_backtrace);
 #ifdef HAVE_SYS_RESOURCE_H
     pa_strbuf_printf(s, "rlimit-fsize = %li\n", c->rlimit_fsize.is_set ? (long int) c->rlimit_fsize.value : -1);

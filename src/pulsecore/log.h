@@ -152,4 +152,7 @@ LOG_FUNC(error, PA_LOG_ERROR)
 
 bool pa_log_ratelimit(pa_log_level_t level);
 
+void pa_log_start_async();
+void pa_log_stop_async();
+
 #endif

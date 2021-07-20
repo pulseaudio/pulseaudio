@@ -76,6 +76,7 @@ typedef struct pa_daemon_conf {
         disallow_exit,
         log_meta,
         log_time,
+        log_async,
         flat_volumes,
         rescue_streams,
         lock_memory,

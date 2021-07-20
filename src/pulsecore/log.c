@@ -38,6 +38,9 @@
 #include <syslog.h>
 #endif
 
+#include "flist.h"
+#include "asyncq.h"
+
 #ifdef HAVE_SYSTEMD_JOURNAL
 
 /* sd_journal_send() implicitly add fields for the source file,
@@ -94,6 +97,21 @@ static bool no_rate_limit = false;
 static int log_fd = -1;
 static int write_type = 0;
 
+#define ASYNC_LOG_BUFFER_SIZE 1024
+#define ASYNC_LOG_QUEUE_SIZE 1024
+
+struct log_item {
+    char buffer[ASYNC_LOG_BUFFER_SIZE];
+};
+static bool log_thread_do_exit = false;
+static pa_mutex *log_mutex = NULL; /* protects async_queue writer side and helps with log_cond */
+static pa_cond *log_cond = NULL;
+
+pa_thread *logger_thread = NULL;
+
+PA_STATIC_FLIST_DECLARE(log_items, ASYNC_LOG_QUEUE_SIZE, pa_xfree);
+pa_asyncq *async_queue = NULL;
+
 #ifdef HAVE_SYSLOG_H
 static const int level_to_syslog[] = {
     [PA_LOG_ERROR] = LOG_ERR,
@@ -144,6 +162,120 @@ void pa_log_set_level(pa_log_level_t l) {
     pa_assert(l < PA_LOG_LEVEL_MAX);
 
     maximum_level = l;
+}
+
+static void log_file_write(const char *buf) {
+    int saved_errno = errno;
+    if (pa_write(log_fd, buf, strlen(buf), &write_type) < 0) {
+        pa_log_target new_target = { .type = PA_LOG_STDERR, .file = NULL };
+        saved_errno = errno;
+        fprintf(stderr, "%s\n", "Error writing logs to a file descriptor. Redirect log messages to console.");
+        fprintf(stderr, "%s", buf);
+        pa_log_set_target(&new_target);
+    }
+    errno = saved_errno;
+}
+
+static void log_thread_func(void *userdata) {
+    //struct userdata *u = userdata;
+
+    //pa_assert(u);
+
+    pa_log_debug("Thread starting up");
+
+    for (;;) {
+
+        struct log_item *l;
+
+        if ((l = pa_asyncq_pop(async_queue, false))) {
+            log_file_write(l->buffer);
+            if (pa_flist_push(PA_STATIC_FLIST_GET(log_items), l) < 0) {
+                pa_xfree(l);
+            }
+            if (!log_thread_do_exit)
+                continue;
+        }
+
+        /* if thread exit is not requested, wait for more items */
+
+        pa_mutex_lock(log_mutex);
+        if (!log_thread_do_exit)
+            pa_cond_wait(log_cond, log_mutex);
+        pa_mutex_unlock(log_mutex);
+
+        if (log_thread_do_exit)
+            break;
+    }
+
+finish:
+    pa_log_debug("Thread shutting down");
+}
+
+void pa_log_start_async(void) {
+    if (logger_thread)
+        return;
+
+    async_queue = pa_asyncq_new(ASYNC_LOG_QUEUE_SIZE);
+
+    log_mutex = pa_mutex_new(false, false);
+    log_cond = pa_cond_new();
+
+    if (!(logger_thread = pa_thread_new("async-log-writer", log_thread_func, NULL))) {
+        pa_log(_("Failed to start async logger thread."));
+
+        pa_cond_free(log_cond);
+        log_cond = NULL;
+
+        pa_mutex_free(log_mutex);
+        log_mutex = NULL;
+
+        return;
+    }
+
+    for (int i = 0; i < ASYNC_LOG_QUEUE_SIZE; ++i) {
+        struct log_item *l = pa_xnew(struct log_item, 1);
+        if (pa_flist_push(PA_STATIC_FLIST_GET(log_items), l) < 0) {
+            pa_xfree(l);
+            break;
+        }
+    }
+}
+
+static void log_thread_wakeup_unlocked(void) {
+    pa_cond_signal(log_cond, 0);
+}
+
+static void log_thread_wakeup(void) {
+    pa_mutex_lock(log_mutex);
+    log_thread_wakeup_unlocked();
+    pa_mutex_unlock(log_mutex);
+}
+
+void pa_log_stop_async(void) {
+    struct log_item *l;
+
+    if (!logger_thread)
+        return;
+
+    /* set exit flag and signal the condition to unblock thread */
+    log_thread_do_exit = true;
+    log_thread_wakeup();
+
+    pa_thread_free(logger_thread);
+    logger_thread = NULL;
+
+    pa_cond_free(log_cond);
+    log_cond = NULL;
+
+    pa_mutex_free(log_mutex);
+    log_mutex = NULL;
+
+    while((l = pa_asyncq_pop(async_queue, false))) {
+        log_file_write(l->buffer);
+    }
+
+    pa_asyncq_free(async_queue, NULL);
+    async_queue = NULL;
 }
 
 int pa_log_set_target(pa_log_target *t) {
@@ -547,7 +679,36 @@ void pa_log_levelv_meta(
                     else
                         pa_snprintf(metadata, sizeof(metadata), "%s%s", timestamp, location);
 
-                    if ((pa_write(log_fd, metadata, strlen(metadata), &write_type) < 0)
+                    if (logger_thread) {
+                        struct log_item *l;
+                        bool allocated_new = false;
+
+                        if (!(l = pa_flist_pop(PA_STATIC_FLIST_GET(log_items)))) {
+                            allocated_new = true;
+                            l = pa_xnew(struct log_item, 1);
+                        }
+
+                        snprintf(l->buffer, sizeof(l->buffer), "[A]%s%s%s\n", metadata, t, pa_strempty(bt));
+
+                        if (allocated_new)
+                            l->buffer[1] = 'N';
+
+                        pa_mutex_lock(log_mutex);
+                        if (pa_asyncq_push(async_queue, l, false) == 0) {
+                            log_thread_wakeup_unlocked();
+                        } else {
+                            if (allocated_new)
+                                l->buffer[1] = 'S';
+                            else
+                                l->buffer[1] = 's';
+                            log_file_write(l->buffer);
+                            if (pa_flist_push(PA_STATIC_FLIST_GET(log_items), l) < 0) {
+                                pa_xfree(l);
+                            }
+                        }
+                        pa_mutex_unlock(log_mutex);
+
+                    } else if ((pa_write(log_fd, metadata, strlen(metadata), &write_type) < 0)
                             || (pa_write(log_fd, t, strlen(t), &write_type) < 0)
                             || (bt && pa_write(log_fd, bt, strlen(bt), &write_type) < 0)
                             || (pa_write(log_fd, "\n", 1, &write_type) < 0)) {
