@@ -329,8 +329,18 @@ static int sco_acquire_cb(pa_bluetooth_transport *t, bool optional, size_t *imtu
     if (sock < 0)
         goto fail;
 
-    if (imtu) *imtu = 60;
-    if (omtu) *omtu = 60;
+    /* The correct block size should take into account the SCO MTU from
+     * the Bluetooth adapter and (for adapters in the USB bus) the MxPS
+     * value from the Isoc USB endpoint in use by btusb and should be
+     * made available to userspace by the Bluetooth kernel subsystem.
+     *
+     * Set initial MTU to max known payload length of HCI packet
+     * in USB Alternate Setting 5 (144 bytes)
+     * See also pa_bluetooth_transport::last_read_size handling
+     * and comment about MTU size in bt_prepare_encoder_buffer()
+     */
+    if (imtu) *imtu = 144;
+    if (omtu) *omtu = 144;
 
     if (t->device->autodetect_mtu) {
         struct sco_options sco_opt;
@@ -346,11 +356,6 @@ static int sco_acquire_cb(pa_bluetooth_transport *t, bool optional, size_t *imtu
             if (omtu) *omtu = sco_opt.mtu;
         }
     }
-
-    /* read/decode machinery only works if we get at most one MSBC encoded packet at a time
-     * when it is fixed to process stream of packets, lift this assertion */
-    pa_assert(*imtu <= MSBC_PACKET_SIZE);
-    pa_assert(*omtu <= MSBC_PACKET_SIZE);
 
     return sock;
 

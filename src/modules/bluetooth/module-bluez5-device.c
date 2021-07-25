@@ -260,25 +260,48 @@ static void connect_ports(struct userdata *u, void *new_data, pa_direction_t dir
 
 static bool bt_prepare_encoder_buffer(struct userdata *u)
 {
-    size_t encoded_size, reserved_size;
+    size_t encoded_size, reserved_size, encoded_frames;
     pa_assert(u);
     pa_assert(u->bt_codec);
 
     /* If socket write MTU is less than encoded frame size, there could be
      * up to one write MTU of data left in encoder buffer from previous round.
      *
-     * Reserve space for 2 encoded frames to cover that.
+     * Reserve space for at least 2 encoded frames to cover that.
      *
      * Note for A2DP codecs it is expected that size of encoded frame is less
      * than write link MTU. Therefore each encoded frame is sent out completely
      * and there is no used space in encoder buffer before next encoder call.
+     *
+     * For SCO socket all writes will be of MTU size to match payload length
+     * of HCI packet. Depending on selected USB Alternate Setting the payload
+     * length of HCI packet may exceed encoded frame size. For mSBC frame size
+     * is 60 bytes, payload length of HCI packet in USB Alts 3 is 72 byte,
+     * in USB Alts 5 it is 144 bytes.
+     *
+     * Reserve space for up to 1 + MTU / (encoded frame size) encoded frames
+     * to cover that.
+     *
+     * Note for current linux kernel (up to 5.13.x at least) there is no way to
+     * reliably detect socket MTU size. For now we just set SCO socket MTU to be
+     * large enough to cover all known sizes (largest is USB ALts 5 with 144 bytes)
+     * and adjust SCO write size to be equal to last SCO read size. This makes
+     * write size less or equal to MTU size. Reserving the same number of encoded
+     * frames to cover full MTU is still enough.
+     * See also https://gitlab.freedesktop.org/pulseaudio/pulseaudio/-/merge_requests/254#note_779802
      */
+
     if (u->bt_codec->get_encoded_block_size)
         encoded_size = u->bt_codec->get_encoded_block_size(u->encoder_info, u->write_block_size);
     else
         encoded_size = u->write_block_size;
 
-    reserved_size = 2 * encoded_size;
+    encoded_frames = u->write_link_mtu / u->write_block_size + 1;
+
+    if (encoded_frames < 2)
+        encoded_frames = 2;
+
+    reserved_size = encoded_frames * encoded_size;
 
     if (u->encoder_buffer_size < reserved_size) {
         u->encoder_buffer = pa_xrealloc(u->encoder_buffer, reserved_size);
