@@ -704,6 +704,8 @@ endif
 avahi_dep = dependency('avahi-client', version : '>= 0.6.0', required : get_option('avahi'), disabler : true)
 if avahi_dep.found()
   cdata.set('HAVE_AVAHI', 1)
+else
+  cdata.set('HAVE_AVAHI', 0)
 endif
 
 sbc_dep = dependency('sbc', version : '>= 1.0', required : false)
