@@ -1,3 +1,117 @@
+PulseAudio 15.0
+
+Changes at a glance:
+
+ * Notes for end users
+   * Support for LDAC and AptX bluetooth codecs, plus "SBC XQ" (SBC with higher-quality parameters)
+   * Support for HFP bluetooth profiles
+   * Support for Bluetooth A2DP AVRCP Absolute Volume
+   * ALSA path configuration files can now be placed in user home directory
+   * module-virtual-surround-sink rewritten
+   * More options for module-jackdbus-detect
+   * Improved hardware support
+     * SteelSeries Arctis 9
+     * HP Thunderbolt Dock 120W G2
+     * Behringer U-Phoria UMC22
+     * OnePlus Type-C Bullets
+     * Sennheiser GSX 1000/1200 PRO
+   * New udev variable: PULSE_MODARGS
+   * max_latency_msec argument added to module-null-source
+   * module-filter-apply can take filter parameters from device properties
+   * module-match can now be loaded multiple times
+   * Improvements to FreeBSD support
+   * Windows support added to Meson
+   * Additional commands for pactl
+   * Card profiles can be set to sticky
+ * Notes for application developers
+   * New API for sending messages from clients to PulseAudio objects
+   * New mechanism for applications to disable shared memory on their connection to PulseAudio
+ * Notes for packagers
+   * Autotools build system have been dropped
+   * The startup script can now read additional configuration from the /etc/pulse/default.pa.d/ directory
+   * Option to build client library and utilities only
+   * Avoid loading X11 modules on Wayland (GNOME-only for now)
+   * OSS support is now configurable in Meson
+   * Valgrind support is now configurable in Meson
+
+Detailed change log:
+
+  https://www.freedesktop.org/wiki/Software/PulseAudio/Notes/15.0/
+
+Contributors
+
+Alexey Rubtsov
+Alper Nebi Yasak
+Anders Jonsson
+Arun Raghavan
+Ben Buchwald
+Benjamin Valentin
+Carlos Garnacho
+Carmen Bianca Bakker
+Christopher Arndt
+Christopher Snowhill
+David
+Dusan Kazik
+Edward Lee
+Emilio Herrera
+Evan Miller
+Fabian Affolter
+Faidon Liambotis
+Felipe Sateler
+Frédéric Danis
+Georg Chini
+Greg V
+Göran Uddeborg
+Hela Basa
+Henri Chain
+Hui Wang
+Igor V. Kovalenko
+Ilja van Sprundel
+Jaechul Lee
+James Bottomley
+Jan Alexander Steffens (heftig)
+Jan Kuparinen
+Jaroslav Kysela
+Jason Nader
+Johannes Wolf
+Julien Humbert
+Kai-Heng Feng
+Karl Ove Hufthammer
+Klaas van Schelven
+Laurent Bigonville
+Laurențiu Nicola
+Lyndon Brown
+Marijn Suijten
+Martin Wilck
+Mattias Jernberg
+Milo Casagrande
+Nazar Mokrynskyi
+Oğuz Ersen
+Patrick Gaskin
+Patrick McLean
+Paul Seyfert
+Pierre Ossman
+Piotr Drąg
+Pjotr Vertaalt
+Ricky Tigg
+Robin Lahtinen
+Samuel Thibault
+Sanchayan Maity
+Scott Worley
+Sebastian Krzyszkowiak
+SimonP
+Takashi Sakamoto
+Tanu Kaskinen
+Tobias Weise
+Toni Estevez
+Yaron Shahrabani
+Yuri Chornoivan
+morrishoresh
+pseyfert
+scootergrisen
+simmon
+
+
 PulseAudio 14.2
 
 A bug fix release.
