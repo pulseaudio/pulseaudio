@@ -618,6 +618,8 @@ gio_dep = dependency('gio-2.0', version : '>= 2.26.0')
 if get_option('gsettings').enabled()
   assert(gio_dep.found(), 'GSettings support needs glib I/O library (GIO)')
   cdata.set('HAVE_GSETTINGS', 1)
+else
+  cdata.set('HAVE_GSETTINGS', 0)
 endif
 
 glib_dep = dependency('glib-2.0', version : '>= 2.28.0', required: get_option('glib'))
