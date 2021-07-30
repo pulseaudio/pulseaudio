@@ -31,7 +31,7 @@ on our wiki.
 ## Commit messages
 
 We follow the standard git commit message format of a summary on the first line
-(<=50 characterss for preference, <=72 characters otherwise), followed by a new
+(<=50 characters for preference, <=72 characters otherwise), followed by a new
 line, followed by a detailed commit message. An additional line at the end may
 link to an issue being fixed by this MR.
 
