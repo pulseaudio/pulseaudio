@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-07-05 14:01+0300\n"
-"PO-Revision-Date: 2021-03-09 15:55+0000\n"
+"PO-Revision-Date: 2021-07-31 18:58+0000\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/pl/>\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 4.5.1\n"
+"X-Generator: Weblate 4.7.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -2393,7 +2393,7 @@ msgstr "Uzyskanie informacji o serwerze się nie powiodło: %s"
 #: src/utils/pactl.c:205 src/utils/pactl.c:217
 #, c-format
 msgid "%s\n"
-msgstr ""
+msgstr "%s\n"
 
 #: src/utils/pactl.c:231
 #, c-format
@@ -2864,14 +2864,15 @@ msgid "list-handlers message response could not be parsed correctly"
 msgstr "Nie można poprawnie przetworzyć odpowiedzi komunikatu „list-handlers”"
 
 #: src/utils/pactl.c:951
-#, fuzzy
 msgid "list-handlers message response is not a JSON array"
-msgstr "Nie można poprawnie przetworzyć odpowiedzi komunikatu „list-handlers”"
+msgstr "Odpowiedź komunikatu „list-handlers” nie jest macierzą JSON"
 
 #: src/utils/pactl.c:962
-#, fuzzy, c-format
+#, c-format
 msgid "list-handlers message response array element %d is not a JSON object"
-msgstr "Nie można poprawnie przetworzyć odpowiedzi komunikatu „list-handlers”"
+msgstr ""
+"Element %d macierzy odpowiedzi komunikatu „list-handlers” nie jest obiektem "
+"JSON"
 
 #: src/utils/pactl.c:1033
 #, c-format
@@ -3147,18 +3148,16 @@ msgid "You have to specify a source name"
 msgstr "Należy podać nazwę źródła"
 
 #: src/utils/pactl.c:2186 src/utils/pactl.c:2264
-#, fuzzy
 msgid "You have to specify a sink name/index"
-msgstr "Należy podać nazwę odpływu"
+msgstr "Należy podać nazwę/indeks odpływu"
 
 #: src/utils/pactl.c:2196
 msgid "You have to specify a sink name/index and a volume"
 msgstr "Należy podać nazwę odpływu/indeks i głośność"
 
 #: src/utils/pactl.c:2209 src/utils/pactl.c:2289
-#, fuzzy
 msgid "You have to specify a source name/index"
-msgstr "Należy podać nazwę źródła"
+msgstr "Należy podać nazwę/indeks źródła"
 
 #: src/utils/pactl.c:2219
 msgid "You have to specify a source name/index and a volume"
