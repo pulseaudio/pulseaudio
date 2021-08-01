@@ -7,7 +7,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-07-05 14:01+0300\n"
-"PO-Revision-Date: 2021-06-22 10:04+0000\n"
+"PO-Revision-Date: 2021-08-04 08:04+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ko/>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.7\n"
+"X-Generator: Weblate 4.7.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -2293,9 +2293,9 @@ msgid "Failed to get server information: %s"
 msgstr "서버 정보 획득 실패: %s"
 
 #: src/utils/pactl.c:205 src/utils/pactl.c:217
-#, fuzzy, c-format
+#, c-format
 msgid "%s\n"
-msgstr "%s %s\n"
+msgstr "%s\n"
 
 #: src/utils/pactl.c:231
 #, c-format
@@ -2767,14 +2767,13 @@ msgid "list-handlers message response could not be parsed correctly"
 msgstr "목록-처리자 메시지 응답은 정확하게 구문 분석 할 수 없습니다"
 
 #: src/utils/pactl.c:951
-#, fuzzy
 msgid "list-handlers message response is not a JSON array"
-msgstr "목록-처리자 메시지 응답은 정확하게 구문 분석 할 수 없습니다"
+msgstr "항목-처리자 메시지 응답은 JSON 배열이 아닙니다"
 
 #: src/utils/pactl.c:962
-#, fuzzy, c-format
+#, c-format
 msgid "list-handlers message response array element %d is not a JSON object"
-msgstr "목록-처리자 메시지 응답은 정확하게 구문 분석 할 수 없습니다"
+msgstr "항목-처리자 메시지 응답 배열 요소 %d는 JSON 객체가 아닙니다"
 
 #: src/utils/pactl.c:1033
 #, c-format
@@ -3041,18 +3040,16 @@ msgid "You have to specify a source name"
 msgstr "모듈 인덱스 또는 이름을 지정해야 합니다"
 
 #: src/utils/pactl.c:2186 src/utils/pactl.c:2264
-#, fuzzy
 msgid "You have to specify a sink name/index"
-msgstr "모듈 인덱스 또는 이름을 지정해야 합니다"
+msgstr "싱크 이름/색인을 지정해야 합니다"
 
 #: src/utils/pactl.c:2196
 msgid "You have to specify a sink name/index and a volume"
 msgstr "싱크 이름/인덱스와 볼륨을 지정해야 합니다"
 
 #: src/utils/pactl.c:2209 src/utils/pactl.c:2289
-#, fuzzy
 msgid "You have to specify a source name/index"
-msgstr "모듈 인덱스 또는 이름을 지정해야 합니다"
+msgstr "원천 이름/색인을 지정해야 합니다"
 
 #: src/utils/pactl.c:2219
 msgid "You have to specify a source name/index and a volume"
