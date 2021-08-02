@@ -10,8 +10,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-07-05 14:01+0300\n"
-"PO-Revision-Date: 2021-06-29 20:27+0000\n"
-"Last-Translator: Robin Lahtinen <robin.lahtinen@gmail.com>\n"
+"PO-Revision-Date: 2021-08-04 08:04+0000\n"
+"Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/fi/>\n"
 "Language: fi\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.7\n"
+"X-Generator: Weblate 4.7.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -2343,9 +2343,9 @@ msgid "Failed to get server information: %s"
 msgstr "Palvelintietojen selvittäminen epäonnistui: %s"
 
 #: src/utils/pactl.c:205 src/utils/pactl.c:217
-#, fuzzy, c-format
+#, c-format
 msgid "%s\n"
-msgstr "%s %s\n"
+msgstr "%s\n"
 
 #: src/utils/pactl.c:231
 #, c-format
@@ -3076,18 +3076,16 @@ msgid "You have to specify a source name"
 msgstr "Lähteen nimi on annettava"
 
 #: src/utils/pactl.c:2186 src/utils/pactl.c:2264
-#, fuzzy
 msgid "You have to specify a sink name/index"
-msgstr "Nielun nimi on annettava"
+msgstr "Nielun nimi tai indeksi on annettava"
 
 #: src/utils/pactl.c:2196
 msgid "You have to specify a sink name/index and a volume"
 msgstr "Nielun nimi/indeksi ja portin nimi on annettava"
 
 #: src/utils/pactl.c:2209 src/utils/pactl.c:2289
-#, fuzzy
 msgid "You have to specify a source name/index"
-msgstr "Lähteen nimi on annettava"
+msgstr "Lähteen nimi tai indeksi on annettava"
 
 #: src/utils/pactl.c:2219
 msgid "You have to specify a source name/index and a volume"
