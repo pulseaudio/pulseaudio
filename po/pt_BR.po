@@ -11,15 +11,16 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-07-05 14:01+0300\n"
-"PO-Revision-Date: 2020-09-12 12:12-0300\n"
+"PO-Revision-Date: 2021-08-04 08:04+0000\n"
 "Last-Translator: Rafael Fontenelle <rafaelff@gnome.org>\n"
-"Language-Team: Brazilian Portuguese <gnome-pt_br-list@gnome.org>\n"
+"Language-Team: Portuguese (Brazil) <https://translate.fedoraproject.org/"
+"projects/pulseaudio/pulseaudio/pt_BR/>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1)\n"
-"X-Generator: Gtranslator 3.38.0\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 4.7.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -709,9 +710,8 @@ msgid "Analog Output"
 msgstr "Saída analógica"
 
 #: src/modules/alsa/alsa-mixer.c:2808
-#, fuzzy
 msgid "Headphones 2"
-msgstr "Fones de ouvido"
+msgstr "Fones de ouvido 2"
 
 #: src/modules/alsa/alsa-mixer.c:2809
 msgid "Headphones Mono Output"
@@ -758,28 +758,24 @@ msgid "Chat Output"
 msgstr "Saída de bate-papo"
 
 #: src/modules/alsa/alsa-mixer.c:2821
-#, fuzzy
 msgid "Chat Input"
-msgstr "Saída de bate-papo"
+msgstr "Entrada de bate-papo"
 
 #: src/modules/alsa/alsa-mixer.c:2822
-#, fuzzy
 msgid "Virtual Surround 7.1"
-msgstr "Destino surround virtual"
+msgstr "Surround virtual 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4563
 msgid "Analog Mono"
 msgstr "Monofônico analógico"
 
 #: src/modules/alsa/alsa-mixer.c:4564
-#, fuzzy
 msgid "Analog Mono (Left)"
-msgstr "Monofônico analógico"
+msgstr "Monofônico analógico (Esquerda)"
 
 #: src/modules/alsa/alsa-mixer.c:4565
-#, fuzzy
 msgid "Analog Mono (Right)"
-msgstr "Monofônico analógico"
+msgstr "Monofônico analógico (Direita)"
 
 #. Note: Not translated to "Analog Stereo Input", because the source
 #. * name gets "Input" appended to it automatically, so adding "Input"
@@ -807,9 +803,8 @@ msgid "Headset"
 msgstr "Headset"
 
 #: src/modules/alsa/alsa-mixer.c:4577 src/modules/alsa/alsa-mixer.c:4735
-#, fuzzy
 msgid "Speakerphone"
-msgstr "Auto-falante"
+msgstr "Viva voz"
 
 #: src/modules/alsa/alsa-mixer.c:4578 src/modules/alsa/alsa-mixer.c:4579
 msgid "Multichannel"
@@ -913,7 +908,7 @@ msgstr "Duplex estéreo"
 
 #: src/modules/alsa/alsa-mixer.c:4739
 msgid "Mono Chat + 7.1 Surround"
-msgstr ""
+msgstr "Bate-papo monofônico + surround 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4740 src/modules/alsa/module-alsa-card.c:197
 #: src/modules/bluetooth/module-bluez5-device.c:2177
@@ -1091,24 +1086,20 @@ msgid "High Fidelity Capture (A2DP Source)"
 msgstr "Captura de alta fidelidade (Fonte A2DP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1996
-#, fuzzy
 msgid "Headset Head Unit (HSP)"
-msgstr "Unidade de headset (HSP/HFP)"
+msgstr "Unidade de headset (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2009
-#, fuzzy
 msgid "Headset Audio Gateway (HSP)"
-msgstr "Gateway de Áudio do Headset (HSP/HFP)"
+msgstr "Gateway de áudio de headset (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2022
-#, fuzzy
 msgid "Handsfree Head Unit (HFP)"
-msgstr "Unidade de headset (HSP/HFP)"
+msgstr "Unidade de handsfree (HFP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2035
-#, fuzzy
 msgid "Handsfree Audio Gateway (HFP)"
-msgstr "Gateway de Áudio do Headset (HSP/HFP)"
+msgstr "Gateway de áudio do handsfree (HFP)"
 
 #: src/modules/echo-cancel/module-echo-cancel.c:59
 msgid ""
@@ -1255,7 +1246,6 @@ msgid "Virtual surround sink"
 msgstr "Destino surround virtual"
 
 #: src/modules/module-virtual-surround-sink.c:54
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "master=<name of sink to filter> sink_master=<name of sink to filter> "
@@ -1270,8 +1260,9 @@ msgstr ""
 "filtrar> format=<formato de amostragem> rate=<taxa da amostragem> "
 "channels=<número de canais> channel_map=<mapa dos canais> "
 "use_volume_sharing=<yes ou no> force_flat_volume=<yes ou no> hrir=/caminho/"
-"para/hrir_esquerdo.wav autoloaded=<define se esse módulo está sendo "
-"carregado automaticamente> "
+"para/hrir_esquerdo.wav hrir_left=/caminho/para/hrir_esquerdo.wav hrir_right=/"
+"caminho/para/opcional/hrir_direito.wav autoloaded=<define se esse módulo "
+"está sendo carregado automaticamente> "
 
 #: src/modules/raop/module-raop-discover.c:295
 msgid "Unknown device model"
@@ -2192,7 +2183,7 @@ msgstr "gravando"
 
 #: src/utils/pacat.c:1138
 msgid "playback"
-msgstr "playback"
+msgstr "reprodução"
 
 #: src/utils/pacat.c:1162
 msgid "Failed to set media name."
@@ -2315,7 +2306,7 @@ msgstr "QUADROS"
 
 #: src/utils/pacmd.c:80 src/utils/pactl.c:1863
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
-msgstr ""
+msgstr "DESTINATÁRIO MENSAGEM [PARÂMETROS_DA_MENSAGEM]"
 
 #: src/utils/pacmd.c:82
 #, c-format
@@ -2411,9 +2402,9 @@ msgid "Failed to get server information: %s"
 msgstr "Falha ao obter informações do servidor: %s"
 
 #: src/utils/pactl.c:205 src/utils/pactl.c:217
-#, fuzzy, c-format
+#, c-format
 msgid "%s\n"
-msgstr "%s %s\n"
+msgstr "%s\n"
 
 #: src/utils/pactl.c:231
 #, c-format
@@ -2456,19 +2447,16 @@ msgstr ""
 "Cookie: %04x:%04x\n"
 
 #: src/utils/pactl.c:272
-#, fuzzy
 msgid "availability unknown"
-msgstr ", grupo de disponibilidade: "
+msgstr "disponibilidade desconhecida"
 
 #: src/utils/pactl.c:273
-#, fuzzy
 msgid "available"
-msgstr ", disponível"
+msgstr "disponível"
 
 #: src/utils/pactl.c:274
-#, fuzzy
 msgid "not available"
-msgstr ", não disponível"
+msgstr "não disponível"
 
 #: src/utils/pactl.c:283 src/utils/pactl.c:307
 msgid "Unknown"
@@ -2573,9 +2561,9 @@ msgid "\tPorts:\n"
 msgstr "\tPortas:\n"
 
 #: src/utils/pactl.c:401 src/utils/pactl.c:509
-#, fuzzy, c-format
+#, c-format
 msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
-msgstr "\t\t%s: %s (tipo: %s, prioridade: %u%s%s%s)\n"
+msgstr "\t\t%s: %s (tipo: %s, prioridade: %u%s%s, %s)\n"
 
 #: src/utils/pactl.c:403 src/utils/pactl.c:511 src/utils/pactl.c:675
 msgid ", availability group: "
@@ -2724,12 +2712,12 @@ msgid "\tActive Profile: %s\n"
 msgstr "\tPerfil ativo: %s\n"
 
 #: src/utils/pactl.c:673
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s, %s)\n"
 msgstr ""
-"\t\t%s: %s (tipo: %s, prioridade: %u, mudança da latência: %<PRId64> usec%s%s"
-"%s)\n"
+"\t\t%s: %s (tipo: %s, prioridade: %u, mudança da latência: %<PRId64> "
+"usec%s%s, %s)\n"
 
 #: src/utils/pactl.c:679
 #, c-format
@@ -2873,27 +2861,29 @@ msgid "Failure: %s"
 msgstr "Falha: %s"
 
 #: src/utils/pactl.c:919
-#, fuzzy, c-format
+#, c-format
 msgid "Send message failed: %s"
-msgstr "read() falhou: %s"
+msgstr "Envio de mensagem falhou: %s"
 
 #: src/utils/pactl.c:936
 #, c-format
 msgid "list-handlers message failed: %s"
-msgstr ""
+msgstr "mensagem list-handlers falhou: %s"
 
 #: src/utils/pactl.c:944 src/utils/pactl.c:993
 msgid "list-handlers message response could not be parsed correctly"
-msgstr ""
+msgstr "a resposta da mensagem list-handlers não pôde ser tratada corretamente"
 
 #: src/utils/pactl.c:951
 msgid "list-handlers message response is not a JSON array"
-msgstr ""
+msgstr "a resposta da mensagem list-handlers não é um array JSON"
 
 #: src/utils/pactl.c:962
 #, c-format
 msgid "list-handlers message response array element %d is not a JSON object"
 msgstr ""
+"a resposta da mensagem list-handlers contém elemento de array %d que não é "
+"um objeto JSON"
 
 #: src/utils/pactl.c:1033
 #, c-format
@@ -3170,18 +3160,16 @@ msgid "You have to specify a source name"
 msgstr "Você deve especificar um nome de fonte"
 
 #: src/utils/pactl.c:2186 src/utils/pactl.c:2264
-#, fuzzy
 msgid "You have to specify a sink name/index"
-msgstr "Você deve especificar um nome de destino"
+msgstr "Você deve especificar um nome/índice de destino"
 
 #: src/utils/pactl.c:2196
 msgid "You have to specify a sink name/index and a volume"
 msgstr "Você deve especificar um nome/índice do destino e um volume"
 
 #: src/utils/pactl.c:2209 src/utils/pactl.c:2289
-#, fuzzy
 msgid "You have to specify a source name/index"
-msgstr "Você deve especificar um nome de fonte"
+msgstr "Você deve especificar um nome/índice de fonte"
 
 #: src/utils/pactl.c:2219
 msgid "You have to specify a source name/index and a volume"
@@ -3246,15 +3234,17 @@ msgid "Invalid source output index specification"
 msgstr "Especificação do índice de saída de fonte inválida"
 
 #: src/utils/pactl.c:2350
-#, fuzzy
 msgid "You have to specify at least an object path and a message name"
-msgstr "Você deve especificar um nome/índice do destino e o nome da porta"
+msgstr ""
+"Você deve especificar pelo menos um caminho de objeto e um nome de mensagem"
 
 #: src/utils/pactl.c:2360
 msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
 msgstr ""
+"Excesso de argumentos fornecidos, eles serão ignorados. Observe que todos os "
+"parâmetros da mensagem devem ser fornecidos como uma única string."
 
 #: src/utils/pactl.c:2370
 msgid ""
