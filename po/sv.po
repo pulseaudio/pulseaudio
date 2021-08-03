@@ -20,8 +20,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-07-05 14:01+0300\n"
-"PO-Revision-Date: 2021-05-04 16:02+0000\n"
-"Last-Translator: Anders Jonsson <anders.jonsson@norsjovallen.se>\n"
+"PO-Revision-Date: 2021-08-04 08:04+0000\n"
+"Last-Translator: Luna Jernberg <bittin@reimu.nl>\n"
 "Language-Team: Swedish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/sv/>\n"
 "Language: sv\n"
@@ -29,7 +29,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.6.1\n"
+"X-Generator: Weblate 4.7.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -2362,9 +2362,9 @@ msgid "Failed to get server information: %s"
 msgstr "Misslyckades med att hämta serverinformation: %s"
 
 #: src/utils/pactl.c:205 src/utils/pactl.c:217
-#, fuzzy, c-format
+#, c-format
 msgid "%s\n"
-msgstr "%s %s\n"
+msgstr "%s\n"
 
 #: src/utils/pactl.c:231
 #, c-format
