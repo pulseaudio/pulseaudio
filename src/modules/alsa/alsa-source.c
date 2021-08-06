@@ -1821,8 +1821,7 @@ static void find_mixer(struct userdata *u, pa_alsa_mapping *mapping, const char 
     u->mixers = pa_hashmap_new_full(pa_idxset_string_hash_func, pa_idxset_string_compare_func,
                                     NULL, (pa_free_cb_t) pa_alsa_mixer_free);
 
-    if (mapping)
-        mdev = pa_proplist_gets(mapping->proplist, "alsa.mixer_device");
+    mdev = mapping ? pa_proplist_gets(mapping->proplist, "alsa.mixer_device") : NULL;
     if (mdev) {
         u->mixer_handle = pa_alsa_open_mixer_by_name(u->mixers, mdev, false);
     } else {
