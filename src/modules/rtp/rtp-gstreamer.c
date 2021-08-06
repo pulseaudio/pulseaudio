@@ -595,7 +595,7 @@ fail:
 int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool, uint32_t *rtp_tstamp, struct timeval *tstamp) {
     GstSample *sample = NULL;
     GstBufferList *buf_list;
-    GstAdapter *adapter;
+    GstAdapter *adapter = NULL;
     GstBuffer *buf;
     GstMapInfo info;
     GstClockTime timestamp = GST_CLOCK_TIME_NONE;
