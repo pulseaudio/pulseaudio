@@ -216,7 +216,6 @@ endif
 check_headers = [
   'arpa/inet.h',
   'byteswap.h',
-  'cpuid.h',
   'dlfcn.h',
   'execinfo.h',
   'grp.h',
@@ -275,6 +274,19 @@ endif
 if cc.has_header_symbol('pthread.h', 'PTHREAD_PRIO_INHERIT')
   cdata.set('HAVE_PTHREAD_PRIO_INHERIT', 1)
 endif
+
+# Headers which are usable
+
+check_usable_headers = [
+  'cpuid.h',
+]
+
+foreach h : check_usable_headers
+  if cc.check_header(h)
+    define = 'HAVE_' + h.underscorify().to_upper()
+    cdata.set(define, 1)
+  endif
+endforeach
 
 # Functions
 
