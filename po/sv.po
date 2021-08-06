@@ -20,8 +20,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-07-05 14:01+0300\n"
-"PO-Revision-Date: 2021-08-04 08:04+0000\n"
-"Last-Translator: Luna Jernberg <bittin@reimu.nl>\n"
+"PO-Revision-Date: 2021-08-07 20:04+0000\n"
+"Last-Translator: Göran Uddeborg <goeran@uddeborg.se>\n"
 "Language-Team: Swedish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/sv/>\n"
 "Language: sv\n"
@@ -2835,14 +2835,13 @@ msgid "list-handlers message response could not be parsed correctly"
 msgstr "listhanterares meddelandesvar kunde inte tolkas korrekt"
 
 #: src/utils/pactl.c:951
-#, fuzzy
 msgid "list-handlers message response is not a JSON array"
-msgstr "listhanterares meddelandesvar kunde inte tolkas korrekt"
+msgstr "listhanterares meddelandesvar är inte en JSON-vektor"
 
 #: src/utils/pactl.c:962
-#, fuzzy, c-format
+#, c-format
 msgid "list-handlers message response array element %d is not a JSON object"
-msgstr "listhanterares meddelandesvar kunde inte tolkas korrekt"
+msgstr "listhanterares meddelandesvars vektorelement %d är inte ett JSON-objekt"
 
 #: src/utils/pactl.c:1033
 #, c-format
@@ -3114,18 +3113,16 @@ msgid "You have to specify a source name"
 msgstr "Du måste ange namn på en källa"
 
 #: src/utils/pactl.c:2186 src/utils/pactl.c:2264
-#, fuzzy
 msgid "You have to specify a sink name/index"
-msgstr "Du måste ange namn på en mottagare"
+msgstr "Du måste ange ett namn/index på en sänka"
 
 #: src/utils/pactl.c:2196
 msgid "You have to specify a sink name/index and a volume"
 msgstr "Du måste ange ett mottagarnamn/-index och en volym"
 
 #: src/utils/pactl.c:2209 src/utils/pactl.c:2289
-#, fuzzy
 msgid "You have to specify a source name/index"
-msgstr "Du måste ange namn på en källa"
+msgstr "Du måste ange ett namn/index på en källa"
 
 #: src/utils/pactl.c:2219
 msgid "You have to specify a source name/index and a volume"
