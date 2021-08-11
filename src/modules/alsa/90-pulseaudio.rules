@@ -164,6 +164,13 @@ ATTRS{idVendor}=="1395", ATTRS{idProduct}=="00a0", ENV{PULSE_PROFILE_SET}="sennh
 ATTRS{idVendor}=="1395", ATTRS{idProduct}=="005f", ENV{PULSE_PROFILE_SET}="sennheiser-gsx.conf"
 ATTRS{idVendor}=="1395", ATTRS{idProduct}=="00a1", ENV{PULSE_PROFILE_SET}="sennheiser-gsx.conf"
 
+# Sennheiser GSA 70 wireless USB dongle for GSP 670
+ATTRS{idVendor}=="1395", ATTRS{idProduct}=="0089", ENV{PULSE_PROFILE_SET}="usb-gaming-headset.conf"
+# EPOS GSA 70 wireless USB dongle for GSP 670 (Sennheiser GSA 70 with updated firmware)
+ATTRS{idVendor}=="1395", ATTRS{idProduct}=="0300", ENV{PULSE_PROFILE_SET}="usb-gaming-headset.conf"
+# Sennheiser GSP 670 USB headset
+ATTRS{idVendor}=="1395", ATTRS{idProduct}=="008a", ENV{PULSE_PROFILE_SET}="usb-gaming-headset.conf"
+
 GOTO="pulseaudio_end"
 
 LABEL="pulseaudio_check_pci"
