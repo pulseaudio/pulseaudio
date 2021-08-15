@@ -11,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-07-05 14:01+0300\n"
-"PO-Revision-Date: 2021-08-04 08:04+0000\n"
+"PO-Revision-Date: 2021-08-15 19:52+0000\n"
 "Last-Translator: Oğuz Ersen <oguzersen@protonmail.com>\n"
 "Language-Team: Turkish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/tr/>\n"
@@ -639,15 +639,15 @@ msgstr "Radyo"
 #: src/modules/alsa/alsa-mixer.c:2719 src/modules/alsa/alsa-mixer.c:2805
 #: src/utils/pactl.c:296
 msgid "Video"
-msgstr "Görüntü"
+msgstr "Video"
 
 #: src/modules/alsa/alsa-mixer.c:2720
 msgid "Automatic Gain Control"
-msgstr "Otomatik Kazanç Kontrolü"
+msgstr "Otomatik Kazanç Denetimi"
 
 #: src/modules/alsa/alsa-mixer.c:2721
 msgid "No Automatic Gain Control"
-msgstr "Otomatik Kazanç Kontrolü Yok"
+msgstr "Otomatik Kazanç Denetimi Yok"
 
 #: src/modules/alsa/alsa-mixer.c:2722
 msgid "Boost"
@@ -663,7 +663,7 @@ msgstr "Yükseltici"
 
 #: src/modules/alsa/alsa-mixer.c:2725
 msgid "No Amplifier"
-msgstr "Anfi Yok"
+msgstr "Yükseltici Yok"
 
 #: src/modules/alsa/alsa-mixer.c:2726
 msgid "Bass Boost"
@@ -671,7 +671,7 @@ msgstr "Bas Artır"
 
 #: src/modules/alsa/alsa-mixer.c:2727
 msgid "No Bass Boost"
-msgstr "Bas Artırma"
+msgstr "Bas Artırma Yok"
 
 #: src/modules/alsa/alsa-mixer.c:2728
 #: src/modules/bluetooth/module-bluez5-device.c:1894 src/utils/pactl.c:285
@@ -721,23 +721,23 @@ msgstr "Hoparlörler"
 
 #: src/modules/alsa/alsa-mixer.c:2813
 msgid "HDMI / DisplayPort"
-msgstr "HDMI / ÇıkışıNoktası"
+msgstr "HDMI / DisplayPort"
 
 #: src/modules/alsa/alsa-mixer.c:2814
 msgid "Digital Output (S/PDIF)"
-msgstr "Dijital Çıkış (S/PDIF)"
+msgstr "Sayısal Çıkış (S/PDIF)"
 
 #: src/modules/alsa/alsa-mixer.c:2815
 msgid "Digital Input (S/PDIF)"
-msgstr "Dijital Giriş (S/PDIF)"
+msgstr "Sayısal Giriş (S/PDIF)"
 
 #: src/modules/alsa/alsa-mixer.c:2816
 msgid "Multichannel Input"
-msgstr "Çok Kanallı Girdi"
+msgstr "Çok Kanallı Giriş"
 
 #: src/modules/alsa/alsa-mixer.c:2817
 msgid "Multichannel Output"
-msgstr "Çok Kanallı Çıktı"
+msgstr "Çok Kanallı Çıkış"
 
 #: src/modules/alsa/alsa-mixer.c:2818
 msgid "Game Output"
@@ -845,27 +845,27 @@ msgstr "Analog Çevresel Ses 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4591
 msgid "Digital Stereo (IEC958)"
-msgstr "Dijital İki Kanallı (IEC958)"
+msgstr "Sayısal Stereo (IEC958)"
 
 #: src/modules/alsa/alsa-mixer.c:4592
 msgid "Digital Surround 4.0 (IEC958/AC3)"
-msgstr "Dijital Çevresel Ses 4.0 (IEC958/AC3)"
+msgstr "Sayısal Çevresel Ses 4.0 (IEC958/AC3)"
 
 #: src/modules/alsa/alsa-mixer.c:4593
 msgid "Digital Surround 5.1 (IEC958/AC3)"
-msgstr "Dijital Çevresel Ses 5.1 (IEC958/AC3)"
+msgstr "Sayısal Çevresel Ses 5.1 (IEC958/AC3)"
 
 #: src/modules/alsa/alsa-mixer.c:4594
 msgid "Digital Surround 5.1 (IEC958/DTS)"
-msgstr "Dijital Çevresel Ses 5.1 (IEC958/DTS)"
+msgstr "Sayısal Çevresel Ses 5.1 (IEC958/DTS)"
 
 #: src/modules/alsa/alsa-mixer.c:4595
 msgid "Digital Stereo (HDMI)"
-msgstr "Dijital İki Kanallı (HDMI)"
+msgstr "Sayısal Stereo (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4596
 msgid "Digital Surround 5.1 (HDMI)"
-msgstr "Dijital Çevresel Ses 5.1 (HDMI)"
+msgstr "Sayısal Çevresel Ses 5.1 (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4597
 msgid "Chat"
@@ -1042,7 +1042,7 @@ msgstr "Araba"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1919 src/utils/pactl.c:302
 msgid "HiFi"
-msgstr "Yüksek duyarlılık"
+msgstr "Yüksek Kalite"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1925 src/utils/pactl.c:303
 msgid "Phone"
@@ -1191,7 +1191,7 @@ msgstr "Çıkış Aygıtları"
 #: src/modules/module-rygel-media-server.c:545
 #: src/modules/module-rygel-media-server.c:904
 msgid "Input Devices"
-msgstr "Girdi Aygıtları"
+msgstr "Giriş Aygıtları"
 
 #: src/modules/module-rygel-media-server.c:1061
 msgid "Audio on @HOSTNAME@"
@@ -1500,11 +1500,11 @@ msgstr "Bilinmeyen eklenti '%s' için ileti alındı"
 
 #: src/pulse/direction.c:37
 msgid "input"
-msgstr "girdi"
+msgstr "giriş"
 
 #: src/pulse/direction.c:39
 msgid "output"
-msgstr "çıktı"
+msgstr "çıkış"
 
 #: src/pulse/direction.c:41
 msgid "bidirectional"
@@ -1962,8 +1962,8 @@ msgstr ""
 "      --format=ÖRNEKLEMEBİÇİMİ        Örnekleme biçimi, olası değerler için\n"
 "                                      https://www.freedesktop.org/wiki/"
 "Software/PulseAudio/Documentation/User/SupportedAudioFormats/\n"
-"                                      adresine bakın (öntanımlı değer: "
-"s16ne)\n"
+"                                      adresine bakın (öntanımlı değer: s16ne)"
+"\n"
 "      --channels=KANALLAR             Kanal sayısı, mono için 1, stereo için "
 "2\n"
 "                                      (öntanımlı değer: 2)\n"
@@ -1976,8 +1976,8 @@ msgstr ""
 "      --fix-channels                  Kanal eşlemesini ve kanal sayısını "
 "akışın bağlı olduğu\n"
 "                                      alıcı/kaynaktan alır.\n"
-"      --no-remix                      Kanalları indirgemez ya da "
-"çoğaltamaz.\n"
+"      --no-remix                      Kanalları indirgemez ya da çoğaltamaz."
+"\n"
 "      --no-remap                      Ad yerine dizin ile kanalları eşler.\n"
 "      --latency=BAYT                  Bayt cinsinden belirtilen gecikmeyi "
 "ister.\n"
@@ -1997,7 +1997,7 @@ msgstr ""
 "kaydeder/çalar.\n"
 "      --list-file-formats             Kullanılabilir dosya biçimlerini "
 "listeler.\n"
-"      --monitor-stream=INDEKS         INDEKS indeksine sahip alıcı "
+"      --monitor-stream=DİZİN            DİZİN dizinine sahip alıcı "
 "girişinden kayıt yapar.\n"
 
 #: src/utils/pacat.c:793
@@ -2393,13 +2393,13 @@ msgid ""
 "Cookie: %04x:%04x\n"
 msgstr ""
 "Kullanıcı Adı: %s\n"
-"Makine Adı: %s\n"
+"Ana Makine Adı: %s\n"
 "Sunucu Adı: %s\n"
 "Sunucu Sürümü: %s\n"
-"Varsayılan Örnekleme Tanımı: %s\n"
-"Varsayılan Kanal Adresleme: %s\n"
-"Varsayılan Alıcı: %s\n"
-"Varsayılan Kaynak: %s\n"
+"Öntanımlı Örnekleme Tanımı: %s\n"
+"Öntanımlı Kanal Adresleme: %s\n"
+"Öntanımlı Alıcı: %s\n"
+"Öntanımlı Kaynak: %s\n"
 "Çerez: %04x:%04x\n"
 
 #: src/utils/pactl.c:272
@@ -2736,7 +2736,7 @@ msgstr ""
 #: src/utils/pactl.c:771 src/utils/pactl.c:1207 src/utils/pactl.c:1270
 #, c-format
 msgid "Failed to get source output information: %s"
-msgstr "Kaynak çıktı bilgileri alınamadı: %s"
+msgstr "Kaynak çıkış bilgileri alınamadı: %s"
 
 #: src/utils/pactl.c:800
 #, c-format
@@ -2759,7 +2759,7 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Kaynak Çıktısı #%u\n"
+"Kaynak Çıkışı #%u\n"
 "\tSürücü: %s\n"
 "\tModül Sahibi: %s\n"
 "\tİstemci: %s\n"
@@ -2976,7 +2976,7 @@ msgstr "#A SES [SES ...]"
 
 #: src/utils/pactl.c:1859
 msgid "NAME|#N 1|0|toggle"
-msgstr "İSİM|#N 1|0|geçiş"
+msgstr "AD|#N 1|0|geçiş"
 
 #: src/utils/pactl.c:1860
 msgid "#N 1|0|toggle"
@@ -2994,8 +2994,8 @@ msgid ""
 "can be used to specify the default sink, source and monitor.\n"
 msgstr ""
 "\n"
-"Özel isimler @DEFAULT_SINK@, @DEFAULT_SOURCE@ ve @DEFAULT_MONITOR@\n"
-"varsayılan alıcıyı, kaynağı ve ekranı belirtmek için kullanılabilir.\n"
+"@DEFAULT_SINK@, @DEFAULT_SOURCE@ ve @DEFAULT_MONITOR@ özel adları\n"
+"öntanımlı alıcıyı, kaynağı ve ekranı belirtmek için kullanılabilir.\n"
 
 #: src/utils/pactl.c:1868
 #, c-format
@@ -3059,7 +3059,7 @@ msgstr "Bir alıcı giriş göstergesi ve alıcı belirtmelisiniz"
 
 #: src/utils/pactl.c:2042
 msgid "You have to specify a source output index and a source"
-msgstr "Bir kaynak çıkış indeksi ve kaynak belirtmelisiniz"
+msgstr "Bir kaynak çıkışı dizini ve bir kaynak belirtmelisiniz"
 
 #: src/utils/pactl.c:2057
 msgid "You have to specify a module name and arguments."
@@ -3093,7 +3093,7 @@ msgstr "Bir kart adı/dizin ve bir profil adı belirtmelisiniz"
 
 #: src/utils/pactl.c:2138
 msgid "You have to specify a sink name/index and a port name"
-msgstr "Bir alıcı adı/indeksi ve bağlantı noktası adı belirtmelisiniz"
+msgstr "Bir alıcı adı/dizini ve bir bağlantı noktası adı belirtmelisiniz"
 
 #: src/utils/pactl.c:2149
 msgid "You have to specify a sink name"
@@ -3109,15 +3109,15 @@ msgstr "Bir kaynak adı belirtmelisiniz"
 
 #: src/utils/pactl.c:2186 src/utils/pactl.c:2264
 msgid "You have to specify a sink name/index"
-msgstr "Bir alıcı adı/indeksi belirtmelisiniz"
+msgstr "Bir alıcı adı/dizini belirtmelisiniz"
 
 #: src/utils/pactl.c:2196
 msgid "You have to specify a sink name/index and a volume"
-msgstr "Bir alıcı adı/indeksi ve ses belirtmelisiniz"
+msgstr "Bir alıcı adı/dizini ve bir ses seviyesi belirtmelisiniz"
 
 #: src/utils/pactl.c:2209 src/utils/pactl.c:2289
 msgid "You have to specify a source name/index"
-msgstr "Bir kaynak adı/indeksi belirtmelisiniz"
+msgstr "Bir kaynak adı/dizini belirtmelisiniz"
 
 #: src/utils/pactl.c:2219
 msgid "You have to specify a source name/index and a volume"
@@ -3125,26 +3125,26 @@ msgstr "Bir kaynak adı/dizini ve bir ses belirtmelisiniz"
 
 #: src/utils/pactl.c:2232
 msgid "You have to specify a sink input index and a volume"
-msgstr "Bir alıcı girdisi indeksi ve bir ses belirtmek zorundasınız"
+msgstr "Bir alıcı girişi dizini ve bir ses seviyesi belirtmelisiniz"
 
 #: src/utils/pactl.c:2237
 msgid "Invalid sink input index"
-msgstr "Geçersiz alıcı giriş indeksi"
+msgstr "Geçersiz alıcı girişi dizini"
 
 #: src/utils/pactl.c:2248
 msgid "You have to specify a source output index and a volume"
-msgstr "Bir kaynak çıktı dizini ve bir ses belirtmelisiniz"
+msgstr "Bir kaynak çıkışı dizini ve bir ses seviyesi belirtmelisiniz"
 
 #: src/utils/pactl.c:2253
 msgid "Invalid source output index"
-msgstr "Geçersiz kaynak çıktı dizini"
+msgstr "Geçersiz kaynak çıkış dizini"
 
 #: src/utils/pactl.c:2274
 msgid ""
 "You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"
 msgstr ""
-"Bir alıcı adı/indeksi ve bir sessizlik eylemi (0, 1 ya da 'toggle') "
-"belirtmek zorundasınız"
+"Bir alıcı adı/dizini ve bir sessizlik eylemi (0, 1 veya 'toggle') "
+"belirtmelisiniz"
 
 #: src/utils/pactl.c:2279 src/utils/pactl.c:2304 src/utils/pactl.c:2324
 #: src/utils/pactl.c:2342
@@ -3155,31 +3155,31 @@ msgstr "Geçersiz sessiz tanımı"
 msgid ""
 "You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
 msgstr ""
-"Bir kaynak adı/dizini ve bir sessizlik eylemi (0, 1 yada 'toggle') "
+"Bir kaynak adı/dizini ve bir sessizlik eylemi (0, 1 veya 'toggle') "
 "belirtmelisiniz"
 
 #: src/utils/pactl.c:2314
 msgid ""
 "You have to specify a sink input index and a mute action (0, 1, or 'toggle')"
 msgstr ""
-"Bir alıcı girdi dizini ve bir sessizlik eylemi (0, 1 ya da 'toggle') "
-"belirtmek zorundasınız"
+"Bir alıcı girişi dizini ve bir sessizlik eylemi (0, 1 veya 'toggle') "
+"belirtmelisiniz"
 
 #: src/utils/pactl.c:2319
 msgid "Invalid sink input index specification"
-msgstr "Geçersiz alıcı girişi indeks tanımı"
+msgstr "Geçersiz alıcı girişi dizini tanımı"
 
 #: src/utils/pactl.c:2332
 msgid ""
 "You have to specify a source output index and a mute action (0, 1, or "
 "'toggle')"
 msgstr ""
-"Bir kaynak çıktı dizini ve bir sessizlik eylemi (0, 1 ya da 'toggle') "
-"belirtmek zorundasınız"
+"Bir kaynak çıkış dizini ve bir sessizlik eylemi (0, 1 veya 'toggle') "
+"belirtmelisiniz"
 
 #: src/utils/pactl.c:2337
 msgid "Invalid source output index specification"
-msgstr "Geçersiz kaynak çıktısı indeksi tanımlaması"
+msgstr "Geçersiz kaynak çıkış dizini tanımlaması"
 
 #: src/utils/pactl.c:2350
 msgid "You have to specify at least an object path and a message name"
@@ -3198,14 +3198,14 @@ msgid ""
 "You have to specify a sink index and a semicolon-separated list of supported "
 "formats"
 msgstr ""
-"Bir alıcı indeksi ve desteklenen biçimlerin, noktalı virgülle ayrılmış "
-"listesini belirtmek zorundasınız"
+"Bir alıcı dizini ve desteklenen biçimlerin noktalı virgülle ayrılmış bir "
+"listesini belirtmelisiniz"
 
 #: src/utils/pactl.c:2382
 msgid "You have to specify a card name/index, a port name and a latency offset"
 msgstr ""
-"Bir kart adı/indeksi, bir bağlantı noktası adı ve bir gecikme uzaklığı "
-"belirtmek zorundasınız"
+"Bir kart adı/dizini, bir bağlantı noktası adı ve bir gecikme uzaklığı "
+"belirtmelisiniz"
 
 #: src/utils/pactl.c:2389
 msgid "Could not parse latency offset"
@@ -3316,8 +3316,8 @@ msgid ""
 msgstr ""
 "%s [-D ekran] [-S sunucu] [-O alıcı] [-I kaynak] [-c dosya]  [-d|-e|-i|-r]\n"
 "\n"
-" -d    X11 ekranına bağlı mevcut PulseAudio verilerini gösterir "
-"(varsayılan)\n"
+" -d    X11 ekranına bağlı geçerli PulseAudio verilerini gösterir (öntanımlı)"
+"\n"
 " -e    X11 ekranına bağlı yerel PulseAudio verilerini dışa aktarır\n"
 " -i    X11 ekranından PulseAudio verilerini yerel çevresel değişkenlere ve "
 "çerez dosyalarına aktarır.\n"
