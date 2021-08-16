@@ -8,7 +8,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-07-05 14:01+0300\n"
-"PO-Revision-Date: 2021-08-04 08:04+0000\n"
+"PO-Revision-Date: 2021-08-17 15:04+0000\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/uk/>\n"
@@ -2884,12 +2884,11 @@ msgstr "помилка обробки повідомлення list-handlers: %s
 
 #: src/utils/pactl.c:944 src/utils/pactl.c:993
 msgid "list-handlers message response could not be parsed correctly"
-msgstr ""
-"не вдалося обробити належним чином повідомлення-відповідь list-handlers"
+msgstr "не вдалося належним чином обробити відповідь list-handlers"
 
 #: src/utils/pactl.c:951
 msgid "list-handlers message response is not a JSON array"
-msgstr "відповідь повідомлення list-handlers не є масивом JSON"
+msgstr "відповідь list-handlers не є масивом JSON"
 
 #: src/utils/pactl.c:962
 #, c-format
