@@ -14,8 +14,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-07-05 14:01+0300\n"
-"PO-Revision-Date: 2021-06-28 15:04+0000\n"
-"Last-Translator: Toni Estevez <toni.estevez@gmail.com>\n"
+"PO-Revision-Date: 2021-08-19 21:04+0000\n"
+"Last-Translator: Emilio Herrera <ehespinosa57@gmail.com>\n"
 "Language-Team: Spanish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/es/>\n"
 "Language: es\n"
@@ -23,7 +23,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.7\n"
+"X-Generator: Weblate 4.7.2\n"
 "X-Poedit-Language: Spanish\n"
 
 #: src/daemon/cmdline.c:113
@@ -2374,9 +2374,9 @@ msgid "Failed to get server information: %s"
 msgstr "Error al intentar obtener información del servidor: %s"
 
 #: src/utils/pactl.c:205 src/utils/pactl.c:217
-#, fuzzy, c-format
+#, c-format
 msgid "%s\n"
-msgstr "%s %s\n"
+msgstr "%s\n"
 
 #: src/utils/pactl.c:231
 #, c-format
@@ -2428,34 +2428,31 @@ msgstr "disponible"
 
 #: src/utils/pactl.c:274
 msgid "not available"
-msgstr ""
+msgstr "No disponible"
 
 #: src/utils/pactl.c:283 src/utils/pactl.c:307
-#, fuzzy
 msgid "Unknown"
-msgstr "desconocido"
+msgstr "Desconocido"
 
 #: src/utils/pactl.c:284
 msgid "Aux"
-msgstr ""
+msgstr "Auxiliar"
 
 #: src/utils/pactl.c:287
-#, fuzzy
 msgid "Line"
-msgstr "Línea de entrada"
+msgstr "Línea"
 
 #: src/utils/pactl.c:288
 msgid "Mic"
-msgstr ""
+msgstr "Micrófono"
 
 #: src/utils/pactl.c:290
-#, fuzzy
 msgid "Handset"
-msgstr "Auriculares"
+msgstr "Auricular"
 
 #: src/utils/pactl.c:291
 msgid "Earpiece"
-msgstr ""
+msgstr "Auricular"
 
 #: src/utils/pactl.c:292
 msgid "SPDIF"
