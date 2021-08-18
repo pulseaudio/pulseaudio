@@ -20,8 +20,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-07-05 14:01+0300\n"
-"PO-Revision-Date: 2021-08-07 20:04+0000\n"
-"Last-Translator: Göran Uddeborg <goeran@uddeborg.se>\n"
+"PO-Revision-Date: 2021-08-18 20:08+0000\n"
+"Last-Translator: Luna Jernberg <bittin@reimu.nl>\n"
 "Language-Team: Swedish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/sv/>\n"
 "Language: sv\n"
@@ -2832,11 +2832,11 @@ msgstr "listhanterares meddelande misslyckades: %s"
 
 #: src/utils/pactl.c:944 src/utils/pactl.c:993
 msgid "list-handlers message response could not be parsed correctly"
-msgstr "listhanterares meddelandesvar kunde inte tolkas korrekt"
+msgstr "list-handlers meddelandesvar kunde inte tolkas korrek"
 
 #: src/utils/pactl.c:951
 msgid "list-handlers message response is not a JSON array"
-msgstr "listhanterares meddelandesvar är inte en JSON-vektor"
+msgstr "list-handlers meddelandesvar är inte en JSON-array"
 
 #: src/utils/pactl.c:962
 #, c-format
