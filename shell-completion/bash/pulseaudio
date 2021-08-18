@@ -109,7 +109,7 @@ in_array() {
 }
 
 _pactl() {
-    local cur prev words cword preprev command
+    local cur prev words cword preprev word command
     local comps
     local flags='-h --help --version -s --server= --client-name='
     local list_types='short sinks sources sink-inputs source-outputs cards
@@ -255,7 +255,7 @@ _pactl() {
 complete -F _pactl pactl
 
 _pacmd() {
-    local cur prev words cword preprev command
+    local cur prev words cword preprev word command
     local comps
     local flags='-h --help --version'
     local commands=(exit help list-modules list-cards list-sinks list-sources list-clients
