@@ -108,6 +108,9 @@ static uint32_t hfp_features =
  * The choice seems to be a bit arbitrary -- it looks like at least channels 2, 4 and 5 also work*/
 #define HSP_HS_DEFAULT_CHANNEL  3
 
+/* Total number of trying to reconnect */
+#define SCO_RECONNECTION_COUNT 3
+
 #define PROFILE_INTROSPECT_XML                                          \
     DBUS_INTROSPECT_1_0_XML_DOCTYPE_DECL_NODE                           \
     "<node>"                                                            \
@@ -320,11 +323,22 @@ fail:
 static int sco_acquire_cb(pa_bluetooth_transport *t, bool optional, size_t *imtu, size_t *omtu) {
     int sock;
     socklen_t len;
+    int i;
 
     if (optional)
         sock = sco_do_accept(t);
-    else
-        sock = sco_do_connect(t);
+    else {
+        for (i = 0; i < SCO_RECONNECTION_COUNT; i++) {
+            sock = sco_do_connect(t);
+
+            if (sock < 0) {
+                pa_log_debug("err is %s and reconnection count is %d", pa_cstrerror(errno), i);
+                pa_msleep(300);
+                continue;
+	    } else
+		break;
+        }
+    }
 
     if (sock < 0)
         goto fail;
