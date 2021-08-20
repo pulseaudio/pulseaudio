@@ -250,6 +250,9 @@ static pa_hook_result_t device_unlink_cb(pa_bluetooth_discovery *y, const pa_blu
     pa_assert(d);
     pa_assert(card);
 
+    if (d != card->transport->device)
+        return PA_HOOK_OK;
+
     hf_audio_agent_card_removed(card->backend, card->path);
 
     return PA_HOOK_OK;
