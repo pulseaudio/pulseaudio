@@ -11,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-07-05 14:01+0300\n"
-"PO-Revision-Date: 2021-08-15 19:52+0000\n"
+"PO-Revision-Date: 2021-08-26 16:04+0000\n"
 "Last-Translator: Oğuz Ersen <oguzersen@protonmail.com>\n"
 "Language-Team: Turkish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/tr/>\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.7.2\n"
+"X-Generator: Weblate 4.8\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -2832,12 +2832,12 @@ msgstr "list-handlers mesajı yanıtı doğru şekilde ayrıştırılamadı"
 
 #: src/utils/pactl.c:951
 msgid "list-handlers message response is not a JSON array"
-msgstr "list-handlers mesaj yanıtı bir JSON dizisi değil"
+msgstr "list-handlers mesajı yanıtı bir JSON dizisi değil"
 
 #: src/utils/pactl.c:962
 #, c-format
 msgid "list-handlers message response array element %d is not a JSON object"
-msgstr "list-handlers mesaj yanıtı dizisi ögesi %d bir JSON nesnesi değil"
+msgstr "list-handlers mesajı yanıtı dizisi ögesi %d bir JSON nesnesi değil"
 
 #: src/utils/pactl.c:1033
 #, c-format
