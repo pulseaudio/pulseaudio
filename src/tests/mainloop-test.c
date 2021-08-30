@@ -42,13 +42,31 @@ static GMainLoop* glib_main_loop = NULL;
 #include <pulse/mainloop.h>
 #endif /* GLIB_MAIN_LOOP */
 
-static pa_defer_event *de;
+typedef struct mainloop_events {
+    pa_defer_event *de;
+    pa_io_event *ioe;
+    pa_time_event *te;
+} mainloop_events;
 
 static void iocb(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags_t f, void *userdata) {
+    mainloop_events *me = userdata;
     unsigned char c;
-    pa_assert_se(read(fd, &c, sizeof(c)) >= 0);
+    int r;
+
+    pa_assert_se(e == me->ioe);
+
+    r = read(fd, &c, sizeof(c));
+    pa_assert_se(r >= 0);
+
+    if (!r) {
+        fprintf(stderr, "IO EVENT: EOF\n");
+        a->io_free(me->ioe);
+        me->ioe = NULL;
+        return;
+    }
+
     fprintf(stderr, "IO EVENT: %c\n", c < 32 ? '.' : c);
-    a->defer_enable(de, 1);
+    a->defer_enable(me->de, 1);
 }
 
 static void dcb(pa_mainloop_api*a, pa_defer_event *e, void *userdata) {
@@ -68,8 +86,7 @@ static void tcb(pa_mainloop_api*a, pa_time_event *e, const struct timeval *tv, v
 
 START_TEST (mainloop_test) {
     pa_mainloop_api *a;
-    pa_io_event *ioe;
-    pa_time_event *te;
+    mainloop_events me;
     struct timeval tv;
 
 #ifdef GLIB_MAIN_LOOP
@@ -93,13 +110,13 @@ START_TEST (mainloop_test) {
     fail_if(!a);
 #endif /* GLIB_MAIN_LOOP */
 
-    ioe = a->io_new(a, 0, PA_IO_EVENT_INPUT, iocb, NULL);
-    fail_if(!ioe);
+    me.ioe = a->io_new(a, 0, PA_IO_EVENT_INPUT, iocb, &me);
+    fail_if(!me.ioe);
 
-    de = a->defer_new(a, dcb, NULL);
-    fail_if(!de);
+    me.de = a->defer_new(a, dcb, &me);
+    fail_if(!me.de);
 
-    te = a->time_new(a, pa_timeval_rtstore(&tv, pa_rtclock_now() + 2 * PA_USEC_PER_SEC, true), tcb, NULL);
+    me.te = a->time_new(a, pa_timeval_rtstore(&tv, pa_rtclock_now() + 2 * PA_USEC_PER_SEC, true), tcb, &me);
 
 #if defined(GLIB_MAIN_LOOP)
     g_main_loop_run(glib_main_loop);
@@ -107,9 +124,12 @@ START_TEST (mainloop_test) {
     pa_mainloop_run(m, NULL);
 #endif
 
-    a->time_free(te);
-    a->defer_free(de);
-    a->io_free(ioe);
+    if (me.te)
+        a->time_free(me.te);
+    if (me.de)
+        a->defer_free(me.de);
+    if (me.ioe)
+        a->io_free(me.ioe);
 
 #ifdef GLIB_MAIN_LOOP
     pa_glib_mainloop_free(g);
