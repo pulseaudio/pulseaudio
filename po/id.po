@@ -10,15 +10,16 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-07-05 14:01+0300\n"
-"PO-Revision-Date: 2018-03-04 15:20+0700\n"
-"Last-Translator: Andika Triwidada <atriwidada@gnome.org>\n"
-"Language-Team: Indonesia <id@li.org>\n"
+"PO-Revision-Date: 2021-09-01 12:04+0000\n"
+"Last-Translator: Andika Triwidada <andika@gmail.com>\n"
+"Language-Team: Indonesian <https://translate.fedoraproject.org/projects/"
+"pulseaudio/pulseaudio/id/>\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 1.8.11\n"
+"X-Generator: Weblate 4.8\n"
 
 #: src/daemon/cmdline.c:113
 #, fuzzy, c-format
@@ -175,7 +176,7 @@ msgstr "--daemonize mengharapkan argumen bool"
 
 #: src/daemon/cmdline.c:254
 msgid "--fail expects boolean argument"
-msgstr "--fail  mengharapkan argumen bool"
+msgstr "--fail mengharapkan argumen bool"
 
 #: src/daemon/cmdline.c:265
 msgid ""
@@ -206,7 +207,6 @@ msgid "--use-pid-file expects boolean argument"
 msgstr "--use-pid-file mengharapkan argumen bool"
 
 #: src/daemon/cmdline.c:328
-#, fuzzy
 msgid ""
 "Invalid log target: use either 'syslog', 'journal', 'stderr' or 'auto' or a "
 "valid file name 'file:<path>', 'newfile:<path>'."
@@ -220,7 +220,7 @@ msgid ""
 "name 'file:<path>', 'newfile:<path>'."
 msgstr ""
 "Target log tak valid: gunakan 'syslog', 'stderr', atau 'auto', atau suatu "
-"nama berkas yang valid  'file:<path>', 'newfile:<path>'."
+"nama berkas yang valid 'file:<path>', 'newfile:<path>'."
 
 #: src/daemon/cmdline.c:338
 msgid "--log-time expects boolean argument"
@@ -553,9 +553,8 @@ msgid "pa_core_new() failed."
 msgstr "pa_core_new() gagal."
 
 #: src/daemon/main.c:1268
-#, fuzzy
 msgid "command line arguments"
-msgstr "Terlalu banyak argumen."
+msgstr "argumen baris perintah"
 
 #: src/daemon/main.c:1275
 #, c-format
@@ -563,6 +562,8 @@ msgid ""
 "Failed to initialize daemon due to errors while executing startup commands. "
 "Source of commands: %s"
 msgstr ""
+"Gagal menginisialisasi daemon karena kesalahan saat mengeksekusi perintah "
+"awal mula. Sumber perintah: %s"
 
 #: src/daemon/main.c:1280
 msgid "Daemon startup without any loaded modules, refusing to work."
@@ -676,7 +677,6 @@ msgid "Analog Input"
 msgstr "Masukan Analog"
 
 #: src/modules/alsa/alsa-mixer.c:2800
-#, fuzzy
 msgid "Dock Microphone"
 msgstr "Mikrofon Dok"
 
@@ -689,9 +689,8 @@ msgid "Analog Output"
 msgstr "Keluaran Analog"
 
 #: src/modules/alsa/alsa-mixer.c:2808
-#, fuzzy
 msgid "Headphones 2"
-msgstr "Headphone"
+msgstr "Headphone 2"
 
 #: src/modules/alsa/alsa-mixer.c:2809
 msgid "Headphones Mono Output"
@@ -736,33 +735,28 @@ msgid "Game Output"
 msgstr "Keluaran %s"
 
 #: src/modules/alsa/alsa-mixer.c:2819 src/modules/alsa/alsa-mixer.c:2820
-#, fuzzy
 msgid "Chat Output"
-msgstr "Keluaran %s"
+msgstr "Keluaran Obrolan"
 
 #: src/modules/alsa/alsa-mixer.c:2821
-#, fuzzy
 msgid "Chat Input"
-msgstr "Masukan %s"
+msgstr "Masukan Obrolan"
 
 #: src/modules/alsa/alsa-mixer.c:2822
-#, fuzzy
 msgid "Virtual Surround 7.1"
-msgstr "Muara virtual surround"
+msgstr "Virtual Surround 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4563
 msgid "Analog Mono"
 msgstr "Analog Mono"
 
 #: src/modules/alsa/alsa-mixer.c:4564
-#, fuzzy
 msgid "Analog Mono (Left)"
-msgstr "Analog Mono"
+msgstr "Analog Mono (Kiri)"
 
 #: src/modules/alsa/alsa-mixer.c:4565
-#, fuzzy
 msgid "Analog Mono (Right)"
-msgstr "Analog Mono"
+msgstr "Analog Mono (Kanan)"
 
 #. Note: Not translated to "Analog Stereo Input", because the source
 #. * name gets "Input" appended to it automatically, so adding "Input"
@@ -789,9 +783,8 @@ msgid "Headset"
 msgstr "Headset"
 
 #: src/modules/alsa/alsa-mixer.c:4577 src/modules/alsa/alsa-mixer.c:4735
-#, fuzzy
 msgid "Speakerphone"
-msgstr "Speaker"
+msgstr "Speakerphone"
 
 #: src/modules/alsa/alsa-mixer.c:4578 src/modules/alsa/alsa-mixer.c:4579
 msgid "Multichannel"
@@ -2536,9 +2529,9 @@ msgid "\tPorts:\n"
 msgstr "»Port:\n"
 
 #: src/utils/pactl.c:401 src/utils/pactl.c:509
-#, fuzzy, c-format
+#, c-format
 msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
-msgstr "\t\t%s: %s (muara: %u, sumber: %u, prioritas: %u, tersedia: %s)\n"
+msgstr "\t\t%s: %s (tipe: %s, prioritas: %u%s%s, %s)\n"
 
 #: src/utils/pactl.c:403 src/utils/pactl.c:511 src/utils/pactl.c:675
 msgid ", availability group: "
