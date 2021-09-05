@@ -964,6 +964,12 @@ static void source_setup_volume_callback(pa_source *s) {
     if (pa_bluetooth_profile_is_a2dp(u->profile) && !u->transport->device->avrcp_absolute_volume)
         return;
 
+    /* Do not use hardware volume controls for backchannel of A2DP sink */
+    if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SINK) {
+        pa_assert_fp(u->transport->bt_codec && u->transport->bt_codec->support_backchannel);
+        return;
+    }
+
     /* Remote volume control has to be supported for the callback to make sense,
      * otherwise this source should continue performing attenuation in software
      * without HW_VOLUME_CTL.
@@ -1032,6 +1038,12 @@ static int add_source(struct userdata *u) {
 
     if (!u->transport_acquired)
         switch (u->profile) {
+            case PA_BLUETOOTH_PROFILE_A2DP_SINK:
+                if (u->bt_codec && u->bt_codec->support_backchannel)
+                    data.suspend_cause = PA_SUSPEND_USER;
+                else
+                    pa_assert_not_reached();
+                break;
             case PA_BLUETOOTH_PROFILE_A2DP_SOURCE:
             case PA_BLUETOOTH_PROFILE_HFP_AG:
             case PA_BLUETOOTH_PROFILE_HSP_AG:
@@ -1046,7 +1058,6 @@ static int add_source(struct userdata *u) {
                 else
                     pa_assert_not_reached();
                 break;
-            case PA_BLUETOOTH_PROFILE_A2DP_SINK:
             case PA_BLUETOOTH_PROFILE_OFF:
                 pa_assert_not_reached();
                 break;
@@ -1200,6 +1211,12 @@ static void sink_setup_volume_callback(pa_sink *s) {
 
     if (pa_bluetooth_profile_is_a2dp(u->profile) && !u->transport->device->avrcp_absolute_volume)
         return;
+
+    /* Do not use hardware volume controls for backchannel of A2DP source */
+    if (u->profile == PA_BLUETOOTH_PROFILE_A2DP_SOURCE) {
+        pa_assert_fp(u->transport->bt_codec && u->transport->bt_codec->support_backchannel);
+        return;
+    }
 
     /* Remote volume control has to be supported for the callback to make sense,
      * otherwise this sink should continue performing attenuation in software
