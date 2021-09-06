@@ -884,7 +884,7 @@ static void *init_faststream(bool for_encoding, bool for_backchannel, const uint
                 pa_assert_not_reached();
         }
 
-        sample_spec->channels = 1;
+        sample_spec->channels = 2;
 
         sbc_info->mode = SBC_MODE_MONO;
         sbc_info->initial_bitpool = sbc_info->min_bitpool = sbc_info->max_bitpool = 32;
@@ -1275,9 +1275,10 @@ static size_t decode_buffer_faststream(void *codec_info, const uint8_t *input_bu
     size_t to_write, to_decode;
     pa_sample_spec decoded_sample_spec = {
             .format = PA_SAMPLE_S16LE,
-            .channels = 1,
+            .channels = 2,
             .rate = 16000U
     };
+    uint8_t decode_buffer[4096];
 
     p = input_buffer;
     to_decode = input_size;
@@ -1291,18 +1292,21 @@ static size_t decode_buffer_faststream(void *codec_info, const uint8_t *input_bu
 
         decoded = sbc_decode(&sbc_info->sbc,
                              p, to_decode,
-                             d, to_write,
+                             decode_buffer, sizeof(decode_buffer),
                              &written);
 
         if (PA_UNLIKELY(decoded <= 0)) {
             pa_log_error("FastStream SBC decoding error (%li)", (long) decoded);
             decoded = PA_MIN(sbc_info->frame_length, to_decode);
             written = PA_MIN(sbc_info->codesize, to_write);
-            pa_silence_memory(d, written, &decoded_sample_spec);
+            pa_silence_memory(decode_buffer, written, &decoded_sample_spec);
         } else {
             /* Reset codesize and frame_length to values found by decoder */
             sbc_info->codesize = sbc_get_codesize(&sbc_info->sbc);
             sbc_info->frame_length = sbc_get_frame_length(&sbc_info->sbc);
+
+            if (sbc_info->mode != sbc_info->sbc.mode)
+                sbc_info->mode = sbc_info->sbc.mode;
 
             if (sbc_info->frequency != sbc_info->sbc.frequency) {
                 /* some devices unexpectedly return SBC frequency different from 16000
@@ -1310,6 +1314,15 @@ static size_t decode_buffer_faststream(void *codec_info, const uint8_t *input_bu
                 pa_log_debug("FastStream decoder detected SBC frequency %u, expected %u", sbc_info->sbc.frequency, sbc_info->frequency);
                 sbc_info->frequency = sbc_info->sbc.frequency;
             }
+
+            if (sbc_info->sbc.mode == SBC_MODE_MONO) {
+                const void *interleave_buf[2] = {decode_buffer, decode_buffer};
+                /* mono->stereo conversion needs to fit into remaining output space */
+                written = PA_MIN(to_write / 2, written);
+                pa_interleave(interleave_buf, 2, d, pa_sample_size(&decoded_sample_spec), written / pa_sample_size(&decoded_sample_spec));
+                written *= 2;
+            } else
+                memcpy(d, decode_buffer, written);
         }
 
         if ((sbc_info->frame_length & 1) && decoded < to_decode) {
