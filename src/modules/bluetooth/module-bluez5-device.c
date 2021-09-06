@@ -392,6 +392,8 @@ static int bt_process_render(struct userdata *u) {
 
     if (processed != u->write_memchunk.length) {
         pa_log_error("Encoding error");
+        pa_memblock_unref(u->write_memchunk.memblock);
+        pa_memchunk_reset(&u->write_memchunk);
         return -1;
     }
 
@@ -535,6 +537,7 @@ static int bt_process_push(struct userdata *u) {
 
     if (processed != (size_t) received) {
         pa_log_error("Decoding error");
+        pa_memblock_unref(memchunk.memblock);
         return -1;
     }
 
