@@ -59,7 +59,8 @@ PA_MODULE_USAGE(
         "format=<sample format> "
         "rate=<sample rate> "
         "channels=<number of channels> "
-        "channel_map=<channel map>");
+        "channel_map=<channel map>"
+        "remix=<boolean>");
 
 #define DEFAULT_SINK_NAME "combined"
 
@@ -79,6 +80,7 @@ static const char* const valid_modargs[] = {
     "rate",
     "channels",
     "channel_map",
+    "remix",
     NULL
 };
 
@@ -159,6 +161,8 @@ struct userdata {
     pa_usec_t default_max_latency;
 
     pa_idxset* outputs; /* managed in main context */
+
+    bool remix;
 
     struct {
         PA_LLIST_HEAD(struct output, active_outputs); /* managed in IO thread context */
@@ -1135,6 +1139,9 @@ static int output_create_sink_input(struct output *o) {
     data.flags = PA_SINK_INPUT_VARIABLE_RATE|PA_SINK_INPUT_DONT_MOVE|PA_SINK_INPUT_NO_CREATE_ON_SUSPEND;
     data.origin_sink = u->sink;
 
+    if (!u->remix)
+        data.flags |= PA_SINK_INPUT_NO_REMIX;
+
     pa_sink_input_new(&o->sink_input, u->core, &data);
 
     pa_sink_input_new_data_done(&data);
@@ -1454,6 +1461,12 @@ int pa__init(pa_module*m) {
 
     if (pa_thread_mq_init(&u->thread_mq, m->core->mainloop, u->rtpoll) < 0) {
         pa_log("pa_thread_mq_init() failed.");
+        goto fail;
+    }
+
+    u->remix = !m->core->disable_remixing;
+    if (pa_modargs_get_value_boolean(ma, "remix", &u->remix) < 0) {
+        pa_log("Invalid boolean remix parameter");
         goto fail;
     }
 
