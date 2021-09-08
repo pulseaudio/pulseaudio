@@ -8,7 +8,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-07-05 14:01+0300\n"
-"PO-Revision-Date: 2021-03-11 20:01+0000\n"
+"PO-Revision-Date: 2021-09-09 20:04+0000\n"
 "Last-Translator: Karl Ove Hufthammer <karl@huftis.org>\n"
 "Language-Team: Norwegian Nynorsk <https://translate.fedoraproject.org/"
 "projects/pulseaudio/pulseaudio/nn/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.5.1\n"
+"X-Generator: Weblate 4.8\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -2361,7 +2361,7 @@ msgstr "Klarte ikkje henta tenarinformasjon: %s"
 #: src/utils/pactl.c:205 src/utils/pactl.c:217
 #, c-format
 msgid "%s\n"
-msgstr ""
+msgstr "%s\n"
 
 #: src/utils/pactl.c:231
 #, c-format
@@ -2829,17 +2829,17 @@ msgstr "Feil ved «list-handlers»-melding: %s"
 
 #: src/utils/pactl.c:944 src/utils/pactl.c:993
 msgid "list-handlers message response could not be parsed correctly"
-msgstr "Klarte ikkje tolka «list-handlers»-meldinga"
+msgstr "Klarte ikkje tolka svarmeldinga for «list-handlers»"
 
 #: src/utils/pactl.c:951
-#, fuzzy
 msgid "list-handlers message response is not a JSON array"
-msgstr "Klarte ikkje tolka «list-handlers»-meldinga"
+msgstr "Svarmeldinga for «list-handlers» er ikkje eit JSON-array"
 
 #: src/utils/pactl.c:962
-#, fuzzy, c-format
+#, c-format
 msgid "list-handlers message response array element %d is not a JSON object"
-msgstr "Klarte ikkje tolka «list-handlers»-meldinga"
+msgstr ""
+"array-element %d i svarmeldinga for «list-handlers» er ikkje eit JSON-objekt"
 
 #: src/utils/pactl.c:1033
 #, c-format
@@ -3113,18 +3113,16 @@ msgid "You have to specify a source name"
 msgstr "Du må velja eit kjeldenamn"
 
 #: src/utils/pactl.c:2186 src/utils/pactl.c:2264
-#, fuzzy
 msgid "You have to specify a sink name/index"
-msgstr "Du må velja eit sluknamn"
+msgstr "Du må velja eit sluknamn / ein slukindeks"
 
 #: src/utils/pactl.c:2196
 msgid "You have to specify a sink name/index and a volume"
 msgstr "Du må velja eit sluknamn / ein slukindeks og ein lydstyrke"
 
 #: src/utils/pactl.c:2209 src/utils/pactl.c:2289
-#, fuzzy
 msgid "You have to specify a source name/index"
-msgstr "Du må velja eit kjeldenamn"
+msgstr "Du må velja eit kjeldenamn / ein kjeldeindeks"
 
 #: src/utils/pactl.c:2219
 msgid "You have to specify a source name/index and a volume"
