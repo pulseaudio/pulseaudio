@@ -39,6 +39,8 @@
 #define SBC_BITPOOL_DEC_STEP 5
 #define SBC_BITPOOL_INC_STEP 1
 
+#define SBC_SYNCWORD    0x9C
+
 struct sbc_info {
     sbc_t sbc;                           /* Codec data */
     size_t codesize, frame_length;       /* SBC Codesize, frame_length. We simply cache those values here */
@@ -54,6 +56,11 @@ struct sbc_info {
 
     uint8_t nr_blocks;
     uint8_t nr_subbands;
+
+    /* Size of SBC frame fragment left over from previous decoding iteration */
+    size_t frame_fragment_size;
+    /* Maximum SBC frame size is 512 bytes when SBC compression ratio > 1 */
+    uint8_t frame_fragment[512];
 };
 
 static bool can_be_supported(bool for_encoding) {
@@ -936,6 +943,9 @@ static int reset(void *codec_info) {
     struct sbc_info *sbc_info = (struct sbc_info *) codec_info;
     int ret;
 
+    /* forget last saved frame fragment */
+    sbc_info->frame_fragment_size = 0;
+
     ret = sbc_reinit(&sbc_info->sbc, 0);
     if (ret != 0) {
         pa_log_error("SBC reinitialization failed: %d", ret);
@@ -1279,16 +1289,43 @@ static size_t decode_buffer_faststream(void *codec_info, const uint8_t *input_bu
             .rate = 16000U
     };
     uint8_t decode_buffer[4096];
+    uint8_t frame_buffer[4096];
 
-    p = input_buffer;
     to_decode = input_size;
+
+    /* append input buffer to fragment left from previous decode call */
+    if (sbc_info->frame_fragment_size) {
+
+        if (sbc_info->frame_fragment_size + to_decode > sizeof(frame_buffer)) {
+            pa_log_debug("FastStream SBC input (saved + incoming) size %lu larger than buffer size %lu, input truncated to fit",
+                    sbc_info->frame_fragment_size + to_decode, sizeof(frame_buffer));
+            to_decode = sizeof(frame_buffer) - sbc_info->frame_fragment_size;
+        }
+
+        memcpy(frame_buffer, sbc_info->frame_fragment, sbc_info->frame_fragment_size);
+        memcpy(frame_buffer + sbc_info->frame_fragment_size, input_buffer, to_decode);
+
+        to_decode += sbc_info->frame_fragment_size;
+        p = frame_buffer;
+
+        /* clear saved fragment */
+        sbc_info->frame_fragment_size = 0;
+    } else
+        p = input_buffer;
 
     d = output_buffer;
     to_write = output_size;
 
     while (PA_LIKELY(to_decode > 0 && to_write > 0)) {
-        size_t written;
+        size_t written = 0;
         ssize_t decoded;
+
+        /* skip to SBC sync word before attempting decode */
+        if (*p != SBC_SYNCWORD) {
+            ++p;
+            --to_decode;
+            continue;
+        }
 
         decoded = sbc_decode(&sbc_info->sbc,
                              p, to_decode,
@@ -1296,10 +1333,16 @@ static size_t decode_buffer_faststream(void *codec_info, const uint8_t *input_bu
                              &written);
 
         if (PA_UNLIKELY(decoded <= 0)) {
+            /* sbc_decode returns -1 if input too short,
+             * break from loop to save this frame fragment for next decode iteration */
+            if (decoded == -1) {
+                pa_log_debug("FastStream SBC decoding error (%li) input %lu is too short", (long) decoded, to_decode);
+                break;
+            }
+
+            /* otherwise failed to decode frame, skip to next SBC sync word */
             pa_log_error("FastStream SBC decoding error (%li)", (long) decoded);
-            decoded = PA_MIN(sbc_info->frame_length, to_decode);
-            written = PA_MIN(sbc_info->codesize, to_write);
-            pa_silence_memory(decode_buffer, written, &decoded_sample_spec);
+            decoded = 1;
         } else {
             /* Reset codesize and frame_length to values found by decoder */
             sbc_info->codesize = sbc_get_codesize(&sbc_info->sbc);
@@ -1325,14 +1368,7 @@ static size_t decode_buffer_faststream(void *codec_info, const uint8_t *input_bu
                 memcpy(d, decode_buffer, written);
         }
 
-        if ((sbc_info->frame_length & 1) && decoded < to_decode) {
-            ++decoded;
-            ++sbc_info->frame_length;
-        }
-
         pa_assert_fp((size_t) decoded <= to_decode);
-        pa_assert_fp((size_t) decoded == PA_MIN(sbc_info->frame_length, to_decode));
-
         pa_assert_fp((size_t) written <= to_write);
 
         p += decoded;
@@ -1342,7 +1378,19 @@ static size_t decode_buffer_faststream(void *codec_info, const uint8_t *input_bu
         to_write -= written;
     }
 
-    /* XXX eat remainder, may need to fix this if input frames are split across packets */
+    if (to_decode) {
+        if (to_decode > sizeof(sbc_info->frame_fragment)) {
+            pa_log_debug("FastStream remaining SBC fragment size %lu larger than buffer size %lu, remainder truncated to fit",
+                    to_decode, sizeof(sbc_info->frame_fragment));
+            p += to_decode - sizeof(sbc_info->frame_fragment);
+            to_decode = sizeof(sbc_info->frame_fragment);
+        }
+
+        pa_log_debug("FastStream saving SBC fragment size %lu for next decoding iteration", to_decode);
+        memcpy(sbc_info->frame_fragment, p, to_decode);
+        sbc_info->frame_fragment_size = to_decode;
+    }
+
     *processed = input_size;
 
     return d - output_buffer;
