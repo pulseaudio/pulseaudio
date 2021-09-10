@@ -116,6 +116,8 @@ struct userdata {
     pa_hook_slot *sink_volume_changed_slot;
     pa_hook_slot *source_volume_changed_slot;
 
+    pa_hook_slot *source_output_new_hook_slot;
+
     pa_bluetooth_discovery *discovery;
     pa_bluetooth_device *device;
     pa_bluetooth_transport *transport;
@@ -2755,6 +2757,30 @@ static int device_process_msg(pa_msgobject *obj, int code, void *data, int64_t o
     return 0;
 }
 
+/* Run from main thread */
+static pa_hook_result_t a2dp_source_output_fixate_hook_callback(pa_core *c, pa_source_output_new_data *new_data, struct userdata *u) {
+    double volume_factor_dB;
+    pa_cvolume cv;
+
+    pa_assert(c);
+    pa_assert(new_data);
+    pa_assert(u);
+
+    /* When transport is released, there is no decoder and no codec */
+    if (!u->bt_codec || !u->decoder_info)
+        return PA_HOOK_OK;
+
+    if (!u->bt_codec->get_source_output_volume_factor_dB)
+        return PA_HOOK_OK;
+
+    volume_factor_dB = u->bt_codec->get_source_output_volume_factor_dB(u->decoder_info);
+
+    pa_cvolume_set(&cv, u->decoder_sample_spec.channels, pa_sw_volume_from_dB(volume_factor_dB));
+    pa_source_output_new_data_apply_volume_factor_source(new_data, &cv);
+
+    return PA_HOOK_OK;
+}
+
 int pa__init(pa_module* m) {
     struct userdata *u;
     const char *path;
@@ -2836,6 +2862,8 @@ int pa__init(pa_module* m) {
     u->transport_source_volume_changed_slot =
         pa_hook_connect(pa_bluetooth_discovery_hook(u->discovery, PA_BLUETOOTH_HOOK_TRANSPORT_SOURCE_VOLUME_CHANGED), PA_HOOK_NORMAL, (pa_hook_cb_t) transport_source_volume_changed_cb, u);
 
+    u->source_output_new_hook_slot = pa_hook_connect(&m->core->hooks[PA_CORE_HOOK_SOURCE_OUTPUT_NEW], PA_HOOK_EARLY, (pa_hook_cb_t) a2dp_source_output_fixate_hook_callback, u);
+
     if (add_card(u) < 0)
         goto fail;
 
@@ -2898,6 +2926,9 @@ void pa__done(pa_module *m) {
     }
 
     stop_thread(u);
+
+    if (u->source_output_new_hook_slot)
+        pa_hook_slot_free(u->source_output_new_hook_slot);
 
     if (u->device_connection_changed_slot)
         pa_hook_slot_free(u->device_connection_changed_slot);

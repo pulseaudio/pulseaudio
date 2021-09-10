@@ -57,6 +57,7 @@ struct sbc_info {
     uint8_t nr_blocks;
     uint8_t nr_subbands;
 
+    bool boost_source_volume;
     /* Size of SBC frame fragment left over from previous decoding iteration */
     size_t frame_fragment_size;
     /* Maximum SBC frame size is 512 bytes when SBC compression ratio > 1 */
@@ -943,6 +944,9 @@ static int reset(void *codec_info) {
     struct sbc_info *sbc_info = (struct sbc_info *) codec_info;
     int ret;
 
+    /* forget about source volume boost */
+    sbc_info->boost_source_volume = false;
+
     /* forget last saved frame fragment */
     sbc_info->frame_fragment_size = 0;
 
@@ -1356,6 +1360,10 @@ static size_t decode_buffer_faststream(void *codec_info, const uint8_t *input_bu
                  * remember this, and keep incoming sample rate at 16000 */
                 pa_log_debug("FastStream decoder detected SBC frequency %u, expected %u", sbc_info->sbc.frequency, sbc_info->frequency);
                 sbc_info->frequency = sbc_info->sbc.frequency;
+
+                /* volume is too low for known devices with unexpected source SBC frequency */
+                pa_log_debug("FastStream decoder requesting 20dB boost for source volume");
+                sbc_info->boost_source_volume = true;
             }
 
             if (sbc_info->sbc.mode == SBC_MODE_MONO) {
@@ -1394,6 +1402,16 @@ static size_t decode_buffer_faststream(void *codec_info, const uint8_t *input_bu
     *processed = input_size;
 
     return d - output_buffer;
+}
+
+/* Boost sink backchannel mic volume by 20dB as it appears too quiet */
+double get_source_output_volume_factor_dB_faststream(void *codec_info) {
+    struct sbc_info *sbc_info = (struct sbc_info *) codec_info;
+
+    if (sbc_info->boost_source_volume)
+        return 20.;
+
+    return 1.0;
 }
 
 const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_sbc = {
@@ -1547,5 +1565,6 @@ const pa_a2dp_endpoint_conf pa_a2dp_endpoint_conf_faststream = {
         .get_encoded_block_size = get_encoded_block_size_faststream,
         .encode_buffer = encode_buffer_faststream,
         .decode_buffer = decode_buffer_faststream,
+        .get_source_output_volume_factor_dB = get_source_output_volume_factor_dB_faststream,
     },
 };

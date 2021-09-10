@@ -67,4 +67,7 @@ typedef struct pa_bt_codec {
      * returns size of filled ouput_buffer and set processed to size of
      * processed input_buffer */
     size_t (*decode_buffer)(void *codec_info, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed);
+
+    /* Get volume factor which needs to be applied to output samples */
+    double (*get_source_output_volume_factor_dB)(void *codec_info);
 } pa_bt_codec;
