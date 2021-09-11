@@ -31,6 +31,7 @@
 
 #include <pulse/pulseaudio.h>
 #include <pulse/mainloop.h>
+#include <pulsecore/macro.h>
 
 #define NSTREAMS 4
 #define SINE_HZ 440
@@ -56,7 +57,7 @@ static const pa_buffer_attr buffer_attr = {
 static void nop_free_cb(void *p) {}
 
 static void underflow_cb(struct pa_stream *s, void *userdata) {
-    int i = (int) (long) userdata;
+    int i = PA_PTR_TO_INT(userdata);
 
     fprintf(stderr, "Stream %i finished\n", i);
 
@@ -78,7 +79,7 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
 
         case PA_STREAM_READY: {
 
-            int r, i = (int) (long) userdata;
+            int r, i = PA_PTR_TO_INT(userdata);
 
             fprintf(stderr, "Writing data to stream %i.\n", i);
 
@@ -135,7 +136,7 @@ static void context_state_callback(pa_context *c, void *userdata) {
 
                 streams[i] = pa_stream_new_extended(c, name, formats, 1, NULL);
                 fail_unless(streams[i] != NULL);
-                pa_stream_set_state_callback(streams[i], stream_state_callback, (void*) (long) i);
+                pa_stream_set_state_callback(streams[i], stream_state_callback, PA_INT_TO_PTR(i));
                 pa_stream_connect_playback(streams[i], NULL, &buffer_attr, PA_STREAM_START_CORKED, NULL, i == 0 ? NULL : streams[0]);
 
                 pa_format_info_free(formats[0]);

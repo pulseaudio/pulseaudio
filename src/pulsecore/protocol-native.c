@@ -4715,7 +4715,7 @@ static void command_extension(pa_pdispatch *pd, uint32_t command, uint32_t tag, 
     CHECK_VALIDITY(c->pstream, m, tag, PA_ERR_NOEXTENSION);
     CHECK_VALIDITY(c->pstream, m->load_once || idx != PA_INVALID_INDEX, tag, PA_ERR_INVALID);
 
-    cb = (pa_native_protocol_ext_cb_t) (unsigned long) pa_hashmap_get(c->protocol->extensions, m);
+    cb = pa_hashmap_get(c->protocol->extensions, m);
     CHECK_VALIDITY(c->pstream, cb, tag, PA_ERR_NOEXTENSION);
 
     if (cb(c->protocol, m, c, tag, t) < 0)
@@ -5414,7 +5414,7 @@ int pa_native_protocol_install_ext(pa_native_protocol *p, pa_module *m, pa_nativ
     pa_assert(cb);
     pa_assert(!pa_hashmap_get(p->extensions, m));
 
-    pa_assert_se(pa_hashmap_put(p->extensions, m, (void*) (unsigned long) cb) == 0);
+    pa_assert_se(pa_hashmap_put(p->extensions, m, cb) == 0);
     return 0;
 }
 

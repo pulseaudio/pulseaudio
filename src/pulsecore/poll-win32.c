@@ -109,8 +109,8 @@ static HANDLE
 HandleFromFd (int fd)
 {
   /* since socket() returns a HANDLE already, try that first */
-  if (IsSocketHandle((HANDLE) fd))
-    return ((HANDLE) fd);
+  if (IsSocketHandle(PA_INT_TO_PTR(fd)))
+    return PA_INT_TO_PTR(fd);
 
   return ((HANDLE) _get_osfhandle(fd));
 }

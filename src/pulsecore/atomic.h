@@ -21,6 +21,7 @@
   License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
 ***/
 
+#include <stdint.h>
 #include <pulsecore/macro.h>
 
 /*
@@ -103,10 +104,10 @@ static inline bool pa_atomic_cmpxchg(pa_atomic_t *a, int old_i, int new_i) {
 }
 
 typedef struct pa_atomic_ptr {
-    volatile unsigned long value;
+    volatile uintptr_t value;
 } pa_atomic_ptr_t;
 
-#define PA_ATOMIC_PTR_INIT(v) { .value = (long) (v) }
+#define PA_ATOMIC_PTR_INIT(v) { .value = (uintptr_t) (v) }
 
 #ifdef HAVE_ATOMIC_BUILTINS_MEMORY_MODEL
 
@@ -117,7 +118,7 @@ static inline void* pa_atomic_ptr_load(const pa_atomic_ptr_t *a) {
 }
 
 static inline void pa_atomic_ptr_store(pa_atomic_ptr_t *a, void* p) {
-    __atomic_store_n(&a->value, (unsigned long) p, __ATOMIC_SEQ_CST);
+    __atomic_store_n(&a->value, (uintptr_t) p, __ATOMIC_SEQ_CST);
 }
 
 #else
@@ -128,14 +129,14 @@ static inline void* pa_atomic_ptr_load(const pa_atomic_ptr_t *a) {
 }
 
 static inline void pa_atomic_ptr_store(pa_atomic_ptr_t *a, void *p) {
-    a->value = (unsigned long) p;
+    a->value = (uintptr_t) p;
     __sync_synchronize();
 }
 
 #endif
 
 static inline bool pa_atomic_ptr_cmpxchg(pa_atomic_ptr_t *a, void *old_p, void* new_p) {
-    return __sync_bool_compare_and_swap(&a->value, (long) old_p, (long) new_p);
+    return __sync_bool_compare_and_swap(&a->value, (uintptr_t) old_p, (uintptr_t) new_p);
 }
 
 #elif defined(__NetBSD__) && defined(HAVE_SYS_ATOMIC_H)
