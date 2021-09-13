@@ -9,8 +9,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-07-05 14:01+0300\n"
-"PO-Revision-Date: 2020-07-15 19:29+0000\n"
-"Last-Translator: Milo Ivir <mail@milotype.de>\n"
+"PO-Revision-Date: 2021-09-14 14:05+0000\n"
+"Last-Translator: Gogo Gogsi <linux.hr@protonmail.com>\n"
 "Language-Team: Croatian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/hr/>\n"
 "Language: hr\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 4.1.1\n"
+"X-Generator: Weblate 4.8\n"
 "X-Launchpad-Export-Date: 2017-04-20 21:04+0000\n"
 
 #: src/daemon/cmdline.c:113
@@ -697,9 +697,8 @@ msgid "Analog Output"
 msgstr "Analogni izlaz"
 
 #: src/modules/alsa/alsa-mixer.c:2808
-#, fuzzy
 msgid "Headphones 2"
-msgstr "Slušalice"
+msgstr "Slušalice 2"
 
 #: src/modules/alsa/alsa-mixer.c:2809
 msgid "Headphones Mono Output"
@@ -719,7 +718,7 @@ msgstr "Zvučnici"
 
 #: src/modules/alsa/alsa-mixer.c:2813
 msgid "HDMI / DisplayPort"
-msgstr "HDMI / Ekranski priključak"
+msgstr "HDMI / DisplayPort"
 
 #: src/modules/alsa/alsa-mixer.c:2814
 msgid "Digital Output (S/PDIF)"
@@ -746,28 +745,24 @@ msgid "Chat Output"
 msgstr "Izlaz razgovora"
 
 #: src/modules/alsa/alsa-mixer.c:2821
-#, fuzzy
 msgid "Chat Input"
-msgstr "Izlaz razgovora"
+msgstr "Ulaz razgovora"
 
 #: src/modules/alsa/alsa-mixer.c:2822
-#, fuzzy
 msgid "Virtual Surround 7.1"
-msgstr "Virtalni surround slivnik"
+msgstr "Virtalni surround 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4563
 msgid "Analog Mono"
 msgstr "Analogni mono"
 
 #: src/modules/alsa/alsa-mixer.c:4564
-#, fuzzy
 msgid "Analog Mono (Left)"
-msgstr "Analogni mono"
+msgstr "Analogni mono (lijevi)"
 
 #: src/modules/alsa/alsa-mixer.c:4565
-#, fuzzy
 msgid "Analog Mono (Right)"
-msgstr "Analogni mono"
+msgstr "Analogni mono (desni)"
 
 #. Note: Not translated to "Analog Stereo Input", because the source
 #. * name gets "Input" appended to it automatically, so adding "Input"
@@ -794,7 +789,6 @@ msgid "Headset"
 msgstr "Slušalice s mikrofonom"
 
 #: src/modules/alsa/alsa-mixer.c:4577 src/modules/alsa/alsa-mixer.c:4735
-#, fuzzy
 msgid "Speakerphone"
 msgstr "Zvučnik"
 
@@ -872,11 +866,11 @@ msgstr "Digitalni surround 5.1 (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4597
 msgid "Chat"
-msgstr ""
+msgstr "Razgovor"
 
 #: src/modules/alsa/alsa-mixer.c:4598
 msgid "Game"
-msgstr ""
+msgstr "Igra"
 
 #: src/modules/alsa/alsa-mixer.c:4732
 msgid "Analog Mono Duplex"
@@ -900,7 +894,7 @@ msgstr "Stereo obostrani"
 
 #: src/modules/alsa/alsa-mixer.c:4739
 msgid "Mono Chat + 7.1 Surround"
-msgstr ""
+msgstr "Mono razgovor + 7.1 Surround"
 
 #: src/modules/alsa/alsa-mixer.c:4740 src/modules/alsa/module-alsa-card.c:197
 #: src/modules/bluetooth/module-bluez5-device.c:2177
@@ -1092,24 +1086,20 @@ msgid "High Fidelity Capture (A2DP Source)"
 msgstr "Snimanje visoke autentičnosti (A2DP izvor)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1996
-#, fuzzy
 msgid "Headset Head Unit (HSP)"
-msgstr "Jedinica slušalice s mikrofonom (HSP/HFP)"
+msgstr "Jedinica slušalice s mikrofonom (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2009
-#, fuzzy
 msgid "Headset Audio Gateway (HSP)"
-msgstr "Zvučni pristupnik slušalice s mikrofonom (HSP/HFP)"
+msgstr "Zvučni pristupnik slušalice s mikrofonom (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2022
-#, fuzzy
 msgid "Handsfree Head Unit (HFP)"
-msgstr "Jedinica slušalice s mikrofonom (HSP/HFP)"
+msgstr "Jedinica bez-ruku, slušalice s mikrofonom (HFP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2035
-#, fuzzy
 msgid "Handsfree Audio Gateway (HFP)"
-msgstr "Zvučni pristupnik slušalice s mikrofonom (HSP/HFP)"
+msgstr "Zvučni pristupnik, bez-ruku (HFP)"
 
 #: src/modules/echo-cancel/module-echo-cancel.c:59
 msgid ""
@@ -1254,7 +1244,6 @@ msgid "Virtual surround sink"
 msgstr "Virtalni surround slivnik"
 
 #: src/modules/module-virtual-surround-sink.c:54
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "master=<name of sink to filter> sink_master=<name of sink to filter> "
@@ -1268,8 +1257,9 @@ msgstr ""
 "filtera slivnika> sink_master=<naziv slivnika za filtriranje> format=<format "
 "uzorka> rate=<frekvencija> channels=<broj kanala> channel_map=<ulazno "
 "mapiranje kanala> use_volume_sharing=<da ili ne> force_flat_volume=<da ili "
-"ne> hrir=/putanja/do/left_hrir.wav autoloaded=<postavi ako se ovaj modul "
-"učitava automatski> "
+"ne> hrir=/putanja/do/left_hrir.wav autoloaded hrir_right=/putanja/do/"
+"neobavezno/right_hrir.wav autoloaded=<postavi ako se ovaj modul učitava "
+"automatski> "
 
 #: src/modules/raop/module-raop-discover.c:295
 msgid "Unknown device model"
@@ -1913,7 +1903,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() neuspjelo: %s"
 
 #: src/utils/pacat.c:676
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "%s\n"
@@ -1998,11 +1988,11 @@ msgstr ""
 "      --volume=GLASNOĆA ZVUKA                   Određuje početnu (linearnu) "
 "glasnoću zvuka u rasponu 0...65536\n"
 "      --rate=FREKVENCIJA                 Frekvencija u Hz (zadano 44100)\n"
-"      --format=FORMAT UZORKA             Vrsta uzorka, jedna od s16le, "
-"s16be, u8, float32le,\n"
-"                                        float32be, ulaw, alaw, s32le, s32be, "
-"s24le, s24be,\n"
-"                                        s24-32le, s24-32be (zadano s16ne)\n"
+"      --format=FORMAT UZORKA             Vrsta uzorka, pogledajte\n"
+"                                        https://www.freedesktop.org/wiki/"
+"Software/PulseAudio/Documentation/User/SupportedAudioFormats/\n"
+"                                        za moguće vrijenosti (zadano je "
+"s16ne)\n"
 "      --channels=KANALI               Broj kanala, 1 za mono, 2 za stereo\n"
 "                                        (zadano 2)\n"
 "      --channel-map=MAPIRANJE KANALA          Korištenje mapiranja kanala "
@@ -2024,8 +2014,8 @@ msgstr ""
 "bajtima.\n"
 "      --process-time=BAJTOVI              Zahtijevaj određeno vrijeme "
 "procesa po zahtjevu u bajtima.\n"
-"      --latency-msec=MSEK               Zahtijevaj određenu latenciju u "
-"msek.\n"
+"      --latency-msec=MSEK               Zahtijevaj određenu latenciju u msek."
+"\n"
 "      --process-time-msec=MSEK          Zahtijevaj određeno vrijeme procesa "
 "po zahtjevu u msek.\n"
 "      --property=VLASNIŠTVO=VRIJEDNOST         Postavi određeno vlasništvo "
@@ -2301,7 +2291,7 @@ msgstr "OKVIRI"
 
 #: src/utils/pacmd.c:80 src/utils/pactl.c:1863
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
-msgstr ""
+msgstr "PORUKA PRIMATELJA [PARAMETRI_PORUKE]"
 
 #: src/utils/pacmd.c:82
 #, c-format
@@ -2407,7 +2397,7 @@ msgstr "Neuspjelo dobivanje informacija poslužitelja: %s"
 #: src/utils/pactl.c:205 src/utils/pactl.c:217
 #, c-format
 msgid "%s\n"
-msgstr ""
+msgstr "%s\n"
 
 #: src/utils/pactl.c:231
 #, c-format
@@ -2451,72 +2441,67 @@ msgstr ""
 
 #: src/utils/pactl.c:272
 msgid "availability unknown"
-msgstr ""
+msgstr "dostupnost nepoznata"
 
 #: src/utils/pactl.c:273
 msgid "available"
-msgstr ""
+msgstr "dostupno"
 
 #: src/utils/pactl.c:274
 msgid "not available"
-msgstr ""
+msgstr "nedostupno"
 
 #: src/utils/pactl.c:283 src/utils/pactl.c:307
-#, fuzzy
 msgid "Unknown"
-msgstr "nepoznat"
+msgstr "Nepoznato"
 
 #: src/utils/pactl.c:284
 msgid "Aux"
-msgstr ""
+msgstr "Aux"
 
 #: src/utils/pactl.c:287
-#, fuzzy
 msgid "Line"
 msgstr "Ulaz"
 
 #: src/utils/pactl.c:288
 msgid "Mic"
-msgstr ""
+msgstr "Mikrofon"
 
 #: src/utils/pactl.c:290
-#, fuzzy
 msgid "Handset"
 msgstr "Slušalice s mikrofonom"
 
 #: src/utils/pactl.c:291
 msgid "Earpiece"
-msgstr ""
+msgstr "Slušalica"
 
 #: src/utils/pactl.c:292
 msgid "SPDIF"
-msgstr ""
+msgstr "SPDIF"
 
 #: src/utils/pactl.c:293
 msgid "HDMI"
-msgstr ""
+msgstr "HDMI"
 
 #: src/utils/pactl.c:294
 msgid "TV"
-msgstr ""
+msgstr "TV"
 
 #: src/utils/pactl.c:297
 msgid "USB"
-msgstr ""
+msgstr "USB"
 
 #: src/utils/pactl.c:298
-#, fuzzy
 msgid "Bluetooth"
-msgstr "Bluetooth ulaz"
+msgstr "Bluetooth"
 
 #: src/utils/pactl.c:304
 msgid "Network"
-msgstr ""
+msgstr "Mreža"
 
 #: src/utils/pactl.c:305
-#, fuzzy
 msgid "Analog"
-msgstr "Analogni mono"
+msgstr "Analogno"
 
 #: src/utils/pactl.c:329 src/utils/pactl.c:1067 src/utils/pactl.c:1085
 #: src/utils/pactl.c:1108 src/utils/pactl.c:1225
@@ -2569,13 +2554,13 @@ msgid "\tPorts:\n"
 msgstr "\tUlazi:\n"
 
 #: src/utils/pactl.c:401 src/utils/pactl.c:509
-#, fuzzy, c-format
+#, c-format
 msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
-msgstr "\t\t%s: %s (slivnici: %u, izvori: %u, prioritet: %u, dostupno: %s)\n"
+msgstr "\t\t%s: %s (vrsta: %s, prioritet: %u%s%s, %s)\n"
 
 #: src/utils/pactl.c:403 src/utils/pactl.c:511 src/utils/pactl.c:675
 msgid ", availability group: "
-msgstr ""
+msgstr ", dostupnost grupe: "
 
 #: src/utils/pactl.c:408 src/utils/pactl.c:516
 #, c-format
@@ -2638,7 +2623,7 @@ msgstr ""
 #: src/utils/pactl.c:830 src/utils/pactl.c:881 src/utils/pactl.c:882
 #: src/utils/pactl.c:888
 msgid "n/a"
-msgstr "nedostupno"
+msgstr "n/d"
 
 #: src/utils/pactl.c:533 src/utils/pactl.c:1026
 #, c-format
@@ -2724,6 +2709,8 @@ msgstr "\tAktivni profil: %s\n"
 msgid ""
 "\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s, %s)\n"
 msgstr ""
+"\t\t%s: %s (vrsta: %s, prioritet: %u, pomak latencije: %<PRId64> usek%s%s, "
+"%s)\n"
 
 #: src/utils/pactl.c:679
 #, c-format
@@ -2867,27 +2854,27 @@ msgid "Failure: %s"
 msgstr "Neuspjeh: %s"
 
 #: src/utils/pactl.c:919
-#, fuzzy, c-format
+#, c-format
 msgid "Send message failed: %s"
-msgstr "read() neuspjelo: %s"
+msgstr "Slanje poruke neuspjelo: %s"
 
 #: src/utils/pactl.c:936
 #, c-format
 msgid "list-handlers message failed: %s"
-msgstr ""
+msgstr "list-handlers neuspjela poruka: %s"
 
 #: src/utils/pactl.c:944 src/utils/pactl.c:993
 msgid "list-handlers message response could not be parsed correctly"
-msgstr ""
+msgstr "list-handlers poruka odgovora ne može se obraditi ispravno"
 
 #: src/utils/pactl.c:951
 msgid "list-handlers message response is not a JSON array"
-msgstr ""
+msgstr "list-handlers poruka odgovora nije JSON polje"
 
 #: src/utils/pactl.c:962
 #, c-format
 msgid "list-handlers message response array element %d is not a JSON object"
-msgstr ""
+msgstr "list-handlers poruka odgovora polja elementa %d nije JSON objekt"
 
 #: src/utils/pactl.c:1033
 #, c-format
@@ -3165,18 +3152,16 @@ msgid "You have to specify a source name"
 msgstr "Morate odrediti naziv izvora"
 
 #: src/utils/pactl.c:2186 src/utils/pactl.c:2264
-#, fuzzy
 msgid "You have to specify a sink name/index"
-msgstr "Morate odrediti naziv slivnika"
+msgstr "Morate odrediti naziv/sadržaj slivnika"
 
 #: src/utils/pactl.c:2196
 msgid "You have to specify a sink name/index and a volume"
 msgstr "Morate odrediti naziv slivnika/sadržaj i glasnoću zvuka"
 
 #: src/utils/pactl.c:2209 src/utils/pactl.c:2289
-#, fuzzy
 msgid "You have to specify a source name/index"
-msgstr "Morate odrediti naziv izvora"
+msgstr "Morate odrediti naziv/sadržaj izvora"
 
 #: src/utils/pactl.c:2219
 msgid "You have to specify a source name/index and a volume"
@@ -3241,15 +3226,16 @@ msgid "Invalid source output index specification"
 msgstr "Neispravna specifikacija sadržaja izlaza izvora"
 
 #: src/utils/pactl.c:2350
-#, fuzzy
 msgid "You have to specify at least an object path and a message name"
-msgstr "Morate odrediti naziv slivnika/sadržaj i naziv ulaza"
+msgstr "Morate odrediti bar putanju objekta i naziv poruke"
 
 #: src/utils/pactl.c:2360
 msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
 msgstr ""
+"Višak argumenata je naveden, biti će zanemareni. Zapamtite da svi parametri "
+"poruke moraju biti navedeni kao jedan niz."
 
 #: src/utils/pactl.c:2370
 msgid ""
