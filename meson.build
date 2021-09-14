@@ -88,6 +88,11 @@ if modlibexecdir == ''
   modlibexecdir = join_paths(libdir, 'pulseaudio', 'modules')
 endif
 
+if host_machine.system() == 'windows'
+  # Windows only supports loading libraries from the same dir as the executable
+  modlibexecdir = bindir
+endif
+
 padsplibdir = get_option('padsplibdir')
 if padsplibdir == ''
   padsplibdir = privlibdir
