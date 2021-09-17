@@ -10,7 +10,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-07-05 14:01+0300\n"
-"PO-Revision-Date: 2021-08-25 12:04+0000\n"
+"PO-Revision-Date: 2021-09-18 17:05+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/fi/>\n"
@@ -474,12 +474,16 @@ msgstr "--start-valitsinta ei tueta järjestelmätilassa."
 #, c-format
 msgid "User-configured server at %s, refusing to start/autospawn."
 msgstr ""
+"Käyttäjän määrittämä palvelin osoitteessa %s, kieltäytyy käynnistymästä/"
+"automaattisesta luomisesta."
 
 #: src/daemon/main.c:873
 #, c-format
 msgid ""
 "User-configured server at %s, which appears to be local. Probing deeper."
 msgstr ""
+"Käyttäjän määrittämä palvelin osoitteessa %s, joka näyttää olevan "
+"paikallinen. Tutkitaan syvemmälle."
 
 #: src/daemon/main.c:878
 msgid "Running in system mode, but --disallow-exit not set."
@@ -1145,7 +1149,7 @@ msgstr "FFT-pohjainen taajuuskorjain %s:lla"
 
 #: src/modules/module-filter-apply.c:47
 msgid "autoclean=<automatically unload unused filters?>"
-msgstr ""
+msgstr "autoclean = <poista automaattisesti käyttämättömät suodattimet?>"
 
 #: src/modules/module-ladspa-sink.c:50
 msgid "Virtual LADSPA sink"
@@ -1245,7 +1249,7 @@ msgstr "Tuntematon laitemalli"
 
 #: src/modules/raop/raop-sink.c:655
 msgid "RAOP standard profile"
-msgstr ""
+msgstr "RAOP -vakioprofiili"
 
 #: src/modules/reserve-wrap.c:149
 msgid "PulseAudio Sound Server"
@@ -1514,7 +1518,7 @@ msgstr "ulostulo"
 
 #: src/pulse/direction.c:41
 msgid "bidirectional"
-msgstr ""
+msgstr "kaksisuuntainen"
 
 #: src/pulse/direction.c:43
 msgid "invalid"
@@ -1527,6 +1531,10 @@ msgid ""
 "e.g. happen if you try to connect to a non-root PulseAudio as a root user, "
 "over the native protocol. Don't do that.)"
 msgstr ""
+"XDG_RUNTIME_DIR (%s) ei ole meidän omistama (uid %d), vaan uid:n %d! (Tämä "
+"voi tapahtua esimerkiksi, jos yrität muodostaa yhteyden ei-pääkäyttäjän "
+"PulseAudio-sovellukseen pääkäyttäjänä natiiviprotokollan kautta. Älä tee "
+"sitä.)"
 
 #: src/pulsecore/core-util.h:97
 msgid "yes"
@@ -1550,6 +1558,8 @@ msgstr "Kohdetiedoston ”%s” avaaminen epäonnistui."
 msgid ""
 "Tried to open target file '%s', '%s.1', '%s.2' ... '%s.%d', but all failed."
 msgstr ""
+"Yritetty avata kohdetiedostoa '%s', '%s.1', '%s.2' ... '%s.%d', mutta "
+"epäonnistuttu."
 
 #: src/pulsecore/log.c:651
 msgid "Invalid log target."
@@ -1799,11 +1809,11 @@ msgstr "Virran puskuriattribuutteja muutettu.%s"
 
 #: src/utils/pacat.c:415
 msgid "Cork request stack is empty: corking stream"
-msgstr ""
+msgstr "Korkkipyyntöpino on tyhjä: korkkivirta"
 
 #: src/utils/pacat.c:421
 msgid "Cork request stack is empty: uncorking stream"
-msgstr ""
+msgstr "Korkkipyyntöpino on tyhjä: poistetaan korkkivirta"
 
 #: src/utils/pacat.c:425
 msgid "Warning: Received more uncork requests than cork requests."
