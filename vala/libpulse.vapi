@@ -241,8 +241,7 @@ namespace PulseAudio {
         [CCode (cname="pa_cvolume", has_type_id=false)]
         public struct CVolume {
                 public uint8 channels;
-                // TODO: Replace array length with CHANNELS_MAX once vala's bug #647788 is fixed
-                public Volume values[32];
+                public Volume values[CHANNELS_MAX];
 
                 [CCode (cname="PA_SW_CVOLUME_SNPRINT_DB_MAX")]
                 public const size_t SW_SNPRINT_DB_MAX;
@@ -667,8 +666,7 @@ namespace PulseAudio {
 
                 public void unset(string key);
 
-                [CCode (array_length = false)]
-                public void unset_many(string[] key);
+                public void unset_many([CCode (array_length = false)] string[] key);
 
                 public unowned string? iterate(ref void* state);
 
@@ -686,6 +684,7 @@ namespace PulseAudio {
 
                 public uint size();
 
+                [CCode (cname="pa_proplist_isempty")]
                 public bool is_empty();
         }
 
@@ -732,6 +731,7 @@ namespace PulseAudio {
         [CCode (cname="pa_strerror")]
         public unowned string? strerror(Error e);
 
+        [CCode (has_target = false, has_typedef = false)]
         public delegate void VoidFunc();
 
         [CCode (cname="pa_spawn_api", has_type_id=false)]
@@ -752,27 +752,27 @@ namespace PulseAudio {
 
         [Compact]
         [CCode (cname="pa_io_event", unref_function="", ref_function="", has_type_id=false)]
-        public struct IoEvent {
+        public class IoEvent {
         }
 
         [Compact]
         [CCode (cname="pa_time_event", unref_function="", ref_function="", has_type_id=false)]
-        public struct TimeEvent {
+        public class TimeEvent {
         }
 
         [Compact]
         [CCode (cname="pa_defer_event", unref_function="", ref_function="", has_type_id=false)]
-        public struct DeferEvent {
+        public class DeferEvent {
         }
 
         [Compact]
         [CCode (cname="pa_signal_event", cprefix="pa_signal_", free_function="pa_signal_free", has_type_id=false)]
-        public struct SignalEvent {
+        public class SignalEvent {
 
                 [CCode (cname="pa_signal_new")]
                 public SignalEvent(int sig, MainLoopApi.SignalEventCb cb);
 
-                public void set_destroy(MainLoopApi.SignalEventDestroyCb cb);
+                public void set_destroy([CCode (delegate_target = false)] MainLoopApi.SignalEventDestroyCb cb);
         }
 
         [Compact]
@@ -781,36 +781,58 @@ namespace PulseAudio {
                 public void* userdata;
 
                 /* Callbacks for the consumer to implement*/
+                [CCode (cname = "pa_io_event_cb_t")]
                 public delegate void IoEventCb(MainLoopApi a, IoEvent e, int fd, IoEventFlags flags);
+                [CCode (cname = "pa_io_event_destroy_cb_t")]
                 public delegate void IoEventDestroyCb(MainLoopApi a, IoEvent e);
 
+                [CCode (cname = "pa_time_event_cb_t")]
                 public delegate void TimeEventCb(MainLoopApi a, TimeEvent e, ref timeval t);
+                [CCode (cname = "pa_time_event_destroy_cb_t")]
                 public delegate void TimeEventDestroyCb(MainLoopApi a, TimeEvent e);
 
+                [CCode (cname = "pa_defer_event_cb_t")]
                 public delegate void DeferEventCb(MainLoopApi a, DeferEvent e);
+                [CCode (cname = "pa_defer_event_destroy_cb_t")]
                 public delegate void DeferEventDestroyCb(MainLoopApi a, DeferEvent e);
 
-                public delegate void SignalEventCb(MainLoopApi a, SignalEvent e);
+                [CCode (cname = "pa_signal_cb_t")]
+                public delegate void SignalEventCb(MainLoopApi a, SignalEvent e, int sig);
+                [CCode (cname = "pa_signal_destroy_cb_t")]
                 public delegate void SignalEventDestroyCb(MainLoopApi a, SignalEvent e);
 
                 /* Callbacks for the provider to implement */
+                [CCode (has_target = false, has_typedef = false)]
                 public delegate IoEvent IoNewCb(MainLoopApi a, int fd, IoEventFlags flags, IoEventCb cb);
-                public delegate void IoEnableCb(MainLoopApi a, IoEvent e, IoEventFlags flags);
-                public delegate void IoFreeCb(MainLoopApi a, IoEvent e);
-                public delegate void IoSetDestroyCb(MainLoopApi a, IoEvent e, IoEventDestroyCb? cb);
+                [CCode (has_target = false, has_typedef = false)]
+                public delegate void IoEnableCb(IoEvent e, IoEventFlags flags);
+                [CCode (has_target = false, has_typedef = false)]
+                public delegate void IoFreeCb(IoEvent e);
+                [CCode (has_target = false, has_typedef = false)]
+                public delegate void IoSetDestroyCb(IoEvent e, [CCode (delegate_target = false)] IoEventDestroyCb? cb);
 
+                [CCode (has_target = false, has_typedef = false)]
                 public delegate TimeEvent TimeNewCb(MainLoopApi a, timeval? t, TimeEventCb cb);
-                public delegate void TimeRestartCb(MainLoopApi a, TimeEvent e, timeval? t);
-                public delegate void TimeFreeCb(MainLoopApi a, TimeEvent e);
-                public delegate void TimeSetDestroyCb(MainLoopApi a, TimeEvent e, TimeEventDestroyCb? cb);
+                [CCode (has_target = false, has_typedef = false)]
+                public delegate void TimeRestartCb(TimeEvent e, timeval? t);
+                [CCode (has_target = false, has_typedef = false)]
+                public delegate void TimeFreeCb(TimeEvent e);
+                [CCode (has_target = false, has_typedef = false)]
+                public delegate void TimeSetDestroyCb(TimeEvent e, [CCode (delegate_target = false)] TimeEventDestroyCb? cb);
 
+                [CCode (has_target = false, has_typedef = false)]
                 public delegate DeferEvent DeferNewCb(MainLoopApi a, DeferEventCb cb);
-                public delegate void DeferEnableCb(MainLoopApi a, DeferEvent e, bool b);
-                public delegate void DeferFreeCb(MainLoopApi a, DeferEvent e);
-                public delegate void DeferSetDestroyCb(MainLoopApi a, DeferEvent e, DeferEventDestroyCb? cb);
+                [CCode (has_target = false, has_typedef = false)]
+                public delegate void DeferEnableCb(DeferEvent e, bool b);
+                [CCode (has_target = false, has_typedef = false)]
+                public delegate void DeferFreeCb(DeferEvent e);
+                [CCode (has_target = false, has_typedef = false)]
+                public delegate void DeferSetDestroyCb(DeferEvent e, [CCode (delegate_target = false)] DeferEventDestroyCb? cb);
 
+                [CCode (has_target = false, has_typedef = false)]
                 public delegate void QuitCb(MainLoopApi a, int retval);
 
+                [CCode (has_typedef = false)]
                 public delegate void OnceCb(MainLoopApi a);
 
                 public IoNewCb io_new;
@@ -1013,8 +1035,7 @@ namespace PulseAudio {
                 public Operation? set_default_source(string name, SuccessCb? cb = null);
                 public Operation? set_name(string name, SuccessCb? cb = null);
 
-                [CCode (array_length = false)]
-                public Operation? proplist_remove(string[] keys, SuccessCb? cb = null);
+                public Operation? proplist_remove([CCode (array_length = false)] string[] keys, SuccessCb? cb = null);
                 public Operation? proplist_update(UpdateMode mode, Proplist pl, SuccessCb? cb = null);
 
                 public Operation? subscribe(SubscriptionMask mask, SuccessCb? cb = null);
@@ -1189,9 +1210,13 @@ namespace PulseAudio {
                 [CCode (cname="PA_STREAM_EVENT_REQUEST_UNCORK")]
                 public const string EVENT_REQUEST_UNCORK;
 
+                [CCode (cname = "pa_stream_success_cb_t")]
                 public delegate void SuccessCb(Stream s, int success);
+                [CCode (cname = "pa_stream_request_cb_t")]
                 public delegate void RequestCb(Stream s, size_t nbytes);
+                [CCode (cname = "pa_stream_notify_cb_t")]
                 public delegate void NotifyCb(Stream s);
+                [CCode (cname = "pa_stream_event_cb_t")]
                 public delegate void EventCb(Stream s, string name, Proplist proplist);
 
                 [CCode (cname="pa_stream_new_with_proplist")]
@@ -1243,8 +1268,7 @@ namespace PulseAudio {
                 public Operation? set_buffer_attr(BufferAttr attr, SuccessCb? cb = null);
                 public Operation? update_sample_rate(uint32 rate, SuccessCb? cb = null);
 
-                [CCode (array_length = false)]
-                public Operation? proplist_remove(string[] keys, SuccessCb? cb = null);
+                public Operation? proplist_remove([CCode (array_length = false)] string[] keys, SuccessCb? cb = null);
                 public Operation? proplist_update(UpdateMode mode, Proplist pl, SuccessCb? cb = null);
 
                 public unowned TimingInfo? get_timing_info();
@@ -1282,18 +1306,18 @@ namespace PulseAudio {
 
         [CCode (cname="pa_sink_info", has_type_id=false)]
         public struct SinkInfo {
-                public string name;
+                public unowned string name;
                 public uint32 index;
-                public string description;
+                public unowned string description;
                 public SampleSpec sample_spec;
                 public ChannelMap channel_map;
                 public uint32 owner_module;
                 public CVolume volume;
                 public int mute;
                 public uint32 monitor_source;
-                public string monitor_source_name;
+                public unowned string monitor_source_name;
                 public usec latency;
-                public string driver;
+                public unowned string driver;
                 public SinkFlags flags;
                 public Proplist proplist;
                 public usec configured_latency;
@@ -1309,25 +1333,25 @@ namespace PulseAudio {
 
         [CCode (cname="pa_source_port_info", has_type_id=false)]
         public struct SourcePortInfo {
-                public string name;
-                public string description;
+                public unowned string name;
+                public unowned string description;
                 public uint32 priority;
         }
 
         [CCode (cname="pa_source_info", has_type_id=false)]
         public struct SourceInfo {
-                public string name;
+                public unowned string name;
                 public uint32 index;
-                public string description;
+                public unowned string description;
                 public SampleSpec sample_spec;
                 public ChannelMap channel_map;
                 public uint32 owner_module;
                 public CVolume volume;
                 public int mute;
                 public uint32 monitor_of_sink;
-                public string monitor_of_sink_name;
+                public unowned string monitor_of_sink_name;
                 public usec latency;
-                public string driver;
+                public unowned string driver;
                 public SourceFlags flags;
                 public Proplist proplist;
                 public usec configured_latency;
@@ -1343,21 +1367,22 @@ namespace PulseAudio {
 
         [CCode (cname="pa_server_info", has_type_id=false)]
         public struct ServerInfo {
-                public string user_name;
-                public string host_name;
-                public string server_version;
-                public string server_name;
+                public unowned string user_name;
+                public unowned string host_name;
+                public unowned string server_version;
+                public unowned string server_name;
                 public SampleSpec sample_spec;
-                public string default_sink_name;
-                public string default_source_name;
+                public unowned string default_sink_name;
+                public unowned string default_source_name;
+                public uint32 cookie;
                 public ChannelMap channel_map;
         }
 
         [CCode (cname="pa_module_info", has_type_id=false)]
         public struct ModuleInfo {
                 public uint32 index;
-                public string name;
-                public string argument;
+                public unowned string name;
+                public unowned string argument;
                 public uint32 n_used;
                 public Proplist proplist;
         }
@@ -1365,16 +1390,16 @@ namespace PulseAudio {
         [CCode (cname="pa_client_info", has_type_id=false)]
         public struct ClientInfo {
                 public uint32 index;
-                public string name;
+                public unowned string name;
                 public uint32 owner_module;
-                public string driver;
+                public unowned string driver;
                 public Proplist proplist;
         }
 
         [CCode (cname="pa_card_profile_info", has_type_id=false)]
         public struct CardProfileInfo {
-                public string name;
-                public string description;
+                public unowned string name;
+                public unowned string description;
                 public uint32 n_sinks;
                 public uint32 n_sources;
                 public uint32 priority;
@@ -1382,8 +1407,8 @@ namespace PulseAudio {
         
         [CCode (cname="pa_card_profile_info2", has_type_id=false)]
         public struct CardProfileInfo2 {
-                public string name;
-                public string description;
+                public unowned string name;
+                public unowned string description;
                 public uint32 n_sinks;
                 public uint32 n_sources;
                 public uint32 priority;
@@ -1392,8 +1417,8 @@ namespace PulseAudio {
         
         [CCode (cname="pa_card_port_info", has_type_id=false)]
         public struct CardPortInfo {
-                public string name;
-                public string description;
+                public unowned string name;
+                public unowned string description;
                 public uint32 priority;
                 PortAvailable available;
                 Direction direction;
@@ -1409,9 +1434,9 @@ namespace PulseAudio {
         [CCode (cname="pa_card_info", has_type_id=false)]
         public struct CardInfo {
                 public uint32 index;
-                public string name;
+                public unowned string name;
                 public uint32 owner_module;
-                public string driver;
+                public unowned string driver;
                 public uint32 n_profiles;
                 [CCode (array_length_cname="n_profiles")]
                 public CardProfileInfo[] profiles;
@@ -1428,7 +1453,7 @@ namespace PulseAudio {
         [CCode (cname="pa_sink_input_info", has_type_id=false)]
         public struct SinkInputInfo {
                 public uint32 index;
-                public string name;
+                public unowned string name;
                 public uint32 owner_module;
                 public uint32 client;
                 public uint32 sink;
@@ -1437,8 +1462,8 @@ namespace PulseAudio {
                 public CVolume volume;
                 public uint32 buffer_usec;
                 public uint32 sink_usec;
-                public string resample_method;
-                public string driver;
+                public unowned string resample_method;
+                public unowned string driver;
                 public int mute;
                 public Proplist proplist;
                 public int corked;
@@ -1449,7 +1474,7 @@ namespace PulseAudio {
         [CCode (cname="pa_source_output_info", has_type_id=false)]
         public struct SourceOutputInfo {
                 public uint32 index;
-                public string name;
+                public unowned string name;
                 public uint32 owner_module;
                 public uint32 client;
                 public uint32 source;
@@ -1457,8 +1482,8 @@ namespace PulseAudio {
                 public ChannelMap channel_map;
                 public uint32 buffer_usec;
                 public uint32 source_usec;
-                public string resample_method;
-                public string driver;
+                public unowned string resample_method;
+                public unowned string driver;
                 public Proplist proplist;
                 public int corked;
                 public CVolume volume;
@@ -1479,14 +1504,14 @@ namespace PulseAudio {
         [CCode (cname="pa_sample_info", has_type_id=false)]
         public struct SampleInfo {
                 public uint32 index;
-                public string name;
+                public unowned string name;
                 public CVolume volume;
                 public SampleSpec sample_spec;
                 public ChannelMap channel_map;
                 public usec duration;
                 public uint32 bytes;
                 public bool lazy;
-                public string filename;
+                public unowned string filename;
                 public Proplist proplist;
         }
 
@@ -1536,7 +1561,7 @@ namespace PulseAudio {
         }
 
         [CCode (cname="pa_gettimeofday")]
-        public unowned timeval gettimeofday(out timeval tv);
+        public unowned timeval? gettimeofday(out timeval tv);
 
         [CCode (cname="pa_timeval_diff")]
         public usec timeval_diff(ref timeval a, ref timeval b);
@@ -1548,13 +1573,13 @@ namespace PulseAudio {
         public usec timeval_age(ref timeval a);
 
         [CCode (cname="pa_timeval_add")]
-        public unowned timeval timeval_add(ref timeval tv, usec x);
+        public unowned timeval? timeval_add(ref timeval tv, usec x);
 
         [CCode (cname="pa_timeval_sub")]
-        public unowned timeval timeval_sub(ref timeval tv, usec x);
+        public unowned timeval? timeval_sub(ref timeval tv, usec x);
 
         [CCode (cname="pa_timeval_store")]
-        public unowned timeval timeval_store(out timeval tv, usec c);
+        public unowned timeval? timeval_store(out timeval tv, usec c);
 
         [CCode (cname="pa_timeval_load")]
         public usec timeval_load(timeval tv);
