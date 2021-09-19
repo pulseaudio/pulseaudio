@@ -14,8 +14,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-07-05 14:01+0300\n"
-"PO-Revision-Date: 2021-08-19 21:04+0000\n"
-"Last-Translator: Emilio Herrera <ehespinosa57@gmail.com>\n"
+"PO-Revision-Date: 2021-09-20 01:05+0000\n"
+"Last-Translator: Daniel Dantur <danidantur@gmail.com>\n"
 "Language-Team: Spanish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/es/>\n"
 "Language: es\n"
@@ -23,7 +23,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.7.2\n"
+"X-Generator: Weblate 4.8\n"
 "X-Poedit-Language: Spanish\n"
 
 #: src/daemon/cmdline.c:113
@@ -113,8 +113,9 @@ msgstr ""
 "  -k  --kill                            Mata un demonio en ejecución\n"
 "      --check                           Comprueba si hay un demonio en "
 "marcha\n"
-"                                        (sólo devuelve el código de "
-"retorno)\n"
+"                                        (sólo devuelve el código de retorno)"
+"\n"
+"\n"
 "\n"
 "OPCIONES:\n"
 "      --system[=BOOL]                   Se ejecuta como instancia de "
@@ -218,8 +219,8 @@ msgid ""
 "Invalid log target: use either 'syslog', 'journal', 'stderr' or 'auto' or a "
 "valid file name 'file:<path>', 'newfile:<path>'."
 msgstr ""
-"El objetivo del registro no es válido; use «syslog», «journal», «stderr», "
-"«auto» o un nombre de archivo válido con «file:<ruta>» o «newfile:<ruta>»."
+"El destino del registro no es válido; use 'syslog', 'journal', 'stderr', "
+"'auto' o un nombre de fichero válido con 'file:<ruta>' o 'newfile:<ruta>'."
 
 #: src/daemon/cmdline.c:330
 msgid ""
@@ -490,13 +491,14 @@ msgstr ""
 
 #: src/daemon/main.c:878
 msgid "Running in system mode, but --disallow-exit not set."
-msgstr "Se ejecuta en modo sistema, pero no se ha especificado--disallow-exit."
+msgstr ""
+"Ejecutándose en modo de sistema, pero no se ha especificado --disallow-exit."
 
 #: src/daemon/main.c:881
 msgid "Running in system mode, but --disallow-module-loading not set."
 msgstr ""
-"Se ejecuta en modo sistema, pero no se ha especificado --disallow-module-"
-"loading."
+"Ejecutándose en modo de sistema, pero no se ha especificado --disallow-"
+"module-loading."
 
 #: src/daemon/main.c:884
 msgid "Running in system mode, forcibly disabling SHM mode."
@@ -505,8 +507,8 @@ msgstr "Se ejecuta en modo sistema, se desactiva forzosamente el modo SHM."
 #: src/daemon/main.c:889
 msgid "Running in system mode, forcibly disabling exit idle time."
 msgstr ""
-"Se ejecuta en modo sistema, se desactiva forzosamente la salida por tiempo "
-"de inactividad."
+"Ejecutándose en modo de sistema, desactivando forzadamente el tiempo de "
+"inactividad de salida."
 
 #: src/daemon/main.c:922
 msgid "Failed to acquire stdio."
@@ -923,12 +925,12 @@ msgid ""
 "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
 msgstr ""
-"ALSA ha enviado un aviso para escribir datos nuevos en el dispositivo, pero "
-"en realidad no había nada que escribir.\n"
-"Seguramente se trata de un error en el controlador ALSA «%s». Informe del "
-"problema a los desarrolladores de ALSA.\n"
-"Se ha definido el evento POLLOUT, sin embargo un snd_pcm_avail() posterior "
-"ha devuelto 0 u otro valor < min_avail."
+"ALSA nos despertó para escribir nuevos datos al dispositivo, pero en "
+"realidad no había nada para escribir.\n"
+"Probablemente sea un error en el controlador ALSA '%s'. Por favor, reporte "
+"este problema a los desarrolladores de ALSA.\n"
+"Nos despertaron con POLLOUT activado, sin embargo, la llamada a "
+"snd_pcm_avail() devolvió 0 u otro valor < min_avail."
 
 #: src/modules/alsa/alsa-source.c:611 src/modules/alsa/alsa-source.c:777
 #, c-format
@@ -940,12 +942,12 @@ msgid ""
 "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() "
 "returned 0 or another value < min_avail."
 msgstr ""
-"ALSA ha enviado un aviso para leer datos nuevos en el dispositivo, pero en "
-"realidad no había nada que leer.\n"
-"Seguramente se trata de un error en el controlador ALSA «%s». Informe del "
-"problema a los desarrolladores de ALSA.\n"
-"Se ha definido el evento POLLIN sin embargo un snd_pcm_avail() posterior ha "
-"devuelto 0 u otro valor < min_avail."
+"ALSA nos despertó para leer nuevos datos desde el dispositivo, pero en "
+"realidad no hay nada para leer.\n"
+"Probablemente sea un error del controlador ALSA '%s'. Por favor, reporte "
+"este problema a los desarrolladores de ALSA.\n"
+"Nos despertaron con POLLIN activado, sin embargo, la llamada a "
+"snd_pcm_avail() devolvió 0 u otro valor < min_avail."
 
 #: src/modules/alsa/alsa-util.c:1183 src/modules/alsa/alsa-util.c:1277
 #, c-format
@@ -960,15 +962,15 @@ msgid_plural ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr[0] ""
-"snd_pcm_avail() ha devuelto un valor excepcionalmente grande: %lu byte (%lu "
-"ms).\n"
-"Probablemente se trata de un error en el controlador ALSA «%s». Informe del "
-"problema a los desarrolladores de ALSA."
+"snd_pcm_avail() devolvió un valor excepcionalmente grande: %lu byte (%lu ms)."
+"\n"
+"Probablemente se trata de un error en el controlador ALSA '%s'. Por favor "
+"reporte el problema a los desarrolladores de ALSA."
 msgstr[1] ""
-"snd_pcm_avail() ha devuelto un valor excepcionalmente grande: %lu byte (%lu "
+"snd_pcm_avail() devolvió un valor excepcionalmente grande: %lu bytes (%lu "
 "ms).\n"
-"Probablemente se trata de un error en el controlador ALSA «%s». Informe del "
-"problema a los desarrolladores de ALSA."
+"Probablemente se trata de un error en el controlador ALSA '%s'. Por favor "
+"reporte el problema a los desarrolladores de ALSA."
 
 #: src/modules/alsa/alsa-util.c:1249
 #, c-format
@@ -983,15 +985,15 @@ msgid_plural ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr[0] ""
-"snd_pcm_delay() ha devuelto un valor excepcionalmente grande: %li byte (%s"
-"%lu ms).\n"
-"Probablemente se trata de un error en el controlador ALSA «%s». Informe del "
-"problema a los desarrolladores de ALSA."
+"snd_pcm_delay() devolvió un valor excepcionalmente grande: %li byte (%s%lu "
+"ms).\n"
+"Probablemente sea un error en el controlador ALSA «%s». Por favor, reporte "
+"el problema a los desarrolladores de ALSA."
 msgstr[1] ""
-"snd_pcm_delay() ha devuelto un valor excepcionalmente grande: %li byte (%s"
-"%lu ms).\n"
-"Probablemente se trata de un error en el controlador ALSA «%s». Informe del "
-"problema a los desarrolladores de ALSA."
+"snd_pcm_delay() devolvió un valor excepcionalmente grande: %li bytes (%s%lu "
+"ms).\n"
+"Probablemente sea un error en el controlador ALSA «%s». Por favor, reporte "
+"el problema a los desarrolladores de ALSA."
 
 #: src/modules/alsa/alsa-util.c:1296
 #, c-format
@@ -1019,15 +1021,15 @@ msgid_plural ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr[0] ""
-"snd_pcm_mmap_begin() ha devuelto un valor excepcionalmente grande: %lu byte "
-"(%lu ms).\n"
-"Probablemente se trata de un error en el controlador ALSA «%s». Informe del "
-"problema a los desarrolladores de ALSA."
+"snd_pcm_mmap_begin() devolvió un valor excepcionalmente grande: %lu byte ("
+"%lu ms).\n"
+"Probablemente sea un error en el controlador ALSA «%s». Por favor, reporte "
+"el problema a los desarrolladores de ALSA."
 msgstr[1] ""
-"snd_pcm_mmap_begin() ha devuelto un valor excepcionalmente grande: %lu byte "
-"(%lu ms).\n"
-"Probablemente se trata de un error en el controlador ALSA «%s». Informe del "
-"problema a los desarrolladores de ALSA."
+"snd_pcm_mmap_begin() devolvió un valor excepcionalmente grande: %lu bytes ("
+"%lu ms).\n"
+"Probablemente sea un error en el controlador ALSA «%s». Por favor, reporte "
+"el problema a los desarrolladores de ALSA."
 
 #: src/modules/bluetooth/module-bluez5-device.c:1867
 #: src/modules/bluetooth/module-bluez5-device.c:1893
@@ -1960,10 +1962,10 @@ msgstr ""
 "  -h, --help                         Muestra esta ayuda\n"
 "      --version                      Muestra la versión\n"
 "\n"
-"  -r, --record                       Hace una conexión para grabación\n"
-"  -p, --playback                     Hace una conexión para reproducción\n"
+"  -r, --record                       Crea una conexión para grabación\n"
+"  -p, --playback                     Crea una conexión para reproducción\n"
 "\n"
-"  -v, --verbose                      Operación detallada\n"
+"  -v, --verbose                      Habilita operaciones detalladas\n"
 "\n"
 "  -s, --server=SERVIDOR              Nombre del servidor al que conectar\n"
 "  -d, --device=DISPOSITIVO           Nombre de la fuente/destino al que "
@@ -1975,10 +1977,10 @@ msgstr ""
 "      --volume=VOLUMEN               Volumen inicial (lineal) de 0 a 65536\n"
 "      --rate=TASA                    Tasa de muestreo en Hz (pred. 44100)\n"
 "      --format=FORMATO               Tipo de muestra: s16le, s16be, u8,\n"
-"                                     float32le, float32be, ulaw, alaw, "
-"s32le,\n"
-"                                     s32be, s24le, s24be, s24-32le, "
-"s24-32be\n"
+"                                     float32le, float32be, ulaw, alaw, s32le,"
+"\n"
+"                                     s32be, s24le, s24be, s24-32le, s24-"
+"32be\n"
 "                                     (pred. s16ne)\n"
 "      --channels=CANALES             Número de canales: 1 mono, 2 estéreo\n"
 "                                     (pred. 2)\n"
@@ -2456,19 +2458,19 @@ msgstr "Auricular"
 
 #: src/utils/pactl.c:292
 msgid "SPDIF"
-msgstr ""
+msgstr "SPDIF"
 
 #: src/utils/pactl.c:293
 msgid "HDMI"
-msgstr ""
+msgstr "HDMI"
 
 #: src/utils/pactl.c:294
 msgid "TV"
-msgstr ""
+msgstr "TV"
 
 #: src/utils/pactl.c:297
 msgid "USB"
-msgstr ""
+msgstr "USB"
 
 #: src/utils/pactl.c:298
 #, fuzzy
@@ -2477,7 +2479,7 @@ msgstr "Entrada bluetooth"
 
 #: src/utils/pactl.c:304
 msgid "Network"
-msgstr ""
+msgstr "Red"
 
 #: src/utils/pactl.c:305
 #, fuzzy
@@ -2537,11 +2539,11 @@ msgstr "\tPuertos:\n"
 #: src/utils/pactl.c:401 src/utils/pactl.c:509
 #, c-format
 msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
-msgstr ""
+msgstr "\t\t%s: %s (tipo: %s, prioridad: %u%s%s, %s)\n"
 
 #: src/utils/pactl.c:403 src/utils/pactl.c:511 src/utils/pactl.c:675
 msgid ", availability group: "
-msgstr ""
+msgstr ", grupo de disponibilidad: "
 
 #: src/utils/pactl.c:408 src/utils/pactl.c:516
 #, c-format
@@ -2679,6 +2681,7 @@ msgstr "\tPerfiles:\n"
 #, c-format
 msgid "\t\t%s: %s (sinks: %u, sources: %u, priority: %u, available: %s)\n"
 msgstr ""
+"\t\t%s: %s (sumideros: %u, fuentes: %u, prioridad: %u, disponible: %s)\n"
 
 #: src/utils/pactl.c:664
 #, c-format
@@ -2690,6 +2693,8 @@ msgstr "\tPerfil Activo: %s\n"
 msgid ""
 "\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s, %s)\n"
 msgstr ""
+"\t\t%s: %s (tipo: %s, prioridad: %u, compensación de latencia: %<PRId64> "
+"usec%s%s, %s)\n"
 
 #: src/utils/pactl.c:679
 #, c-format
@@ -2840,20 +2845,23 @@ msgstr "Falló la operación read(): %s"
 #: src/utils/pactl.c:936
 #, c-format
 msgid "list-handlers message failed: %s"
-msgstr ""
+msgstr "falló mensaje de list-handlers: %s"
 
 #: src/utils/pactl.c:944 src/utils/pactl.c:993
 msgid "list-handlers message response could not be parsed correctly"
 msgstr ""
+"el mensaje de respuesta de list-handlers no se pudo parsear correctamente"
 
 #: src/utils/pactl.c:951
 msgid "list-handlers message response is not a JSON array"
-msgstr ""
+msgstr "el mensaje de respuesta de list-handlers no es un array JSON"
 
 #: src/utils/pactl.c:962
 #, c-format
 msgid "list-handlers message response array element %d is not a JSON object"
 msgstr ""
+"el elemento %d del array proveniente del mensaje de respuesta de list-"
+"handlers no es un objeto JSON"
 
 #: src/utils/pactl.c:1033
 #, c-format
@@ -2861,7 +2869,7 @@ msgid "Failed to unload module: Module %s not loaded"
 msgstr "No se pudo descargar módulo: el módulo %s no está cargado"
 
 #: src/utils/pactl.c:1051
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Failed to set volume: You tried to set volumes for %d channel, whereas "
 "channel(s) supported = %d\n"
@@ -2869,11 +2877,11 @@ msgid_plural ""
 "Failed to set volume: You tried to set volumes for %d channels, whereas "
 "channel(s) supported = %d\n"
 msgstr[0] ""
-"No se pudo ajustar el volumen por no corresponder el número de canales: "
-"intentó ajustarlo para %d, pero %d es todo lo que se admite\n"
+"No se pudo ajustar el volumen. Intentó ajustar el volumen de %d canal donde "
+"los canal(es) soportado(s) = %d\n"
 msgstr[1] ""
-"No se pudo ajustar el volumen por no corresponder el número de canales: "
-"intentó ajustarlo para %d, pero %d es todo lo que se admite\n"
+"No se pudo ajustar el volumen. Intentó ajustar el volumen de %d canales "
+"donde los canal(es) soportado(s) = %d\n"
 
 #: src/utils/pactl.c:1340
 #, c-format
@@ -3214,6 +3222,8 @@ msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
 msgstr ""
+"Se ingresaron argumentos de más, serán ignorados. Tenga en cuenta que todos "
+"los parámetros de mensaje deben ingresarse como una sóla cadena."
 
 #: src/utils/pactl.c:2370
 msgid ""
@@ -3278,7 +3288,7 @@ msgid "WARNING: Child process terminated by signal %u\n"
 msgstr "AVISO: El proceso niño terminado por la señal %u\n"
 
 #: src/utils/pasuspender.c:228
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] -- PROGRAM [ARGUMENTS ...]\n"
 "\n"
@@ -3290,7 +3300,9 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
-"%s [opciones] ... \n"
+"%s [opciones] -- PROGRAMA [ARGUMENTOS ...]\n"
+"\n"
+"Suspende temporalmente PulseAudio mientras PROGRAMA se ejecuta.\n"
 "\n"
 "  -h, --help                            Muestra esta ayuda\n"
 "      --version                         Muestra la versión\n"
