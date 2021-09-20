@@ -71,7 +71,7 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     </option>
 
     <option>
-      <p><opt>default-server=</opt> The default sever to connect
+      <p><opt>default-server=</opt> The default server to connect
       to. The environment variable <opt>$PULSE_SERVER</opt> takes
       precedence.</p>
     </option>
