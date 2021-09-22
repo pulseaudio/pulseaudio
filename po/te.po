@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.te\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2021-07-05 14:01+0300\n"
+"POT-Creation-Date: 2021-09-22 19:04+0300\n"
 "PO-Revision-Date: 2012-01-30 09:56+0000\n"
 "Last-Translator: Krishna Babu K <kkrothap@redhat.com>\n"
 "Language-Team: Telugu <en@li.org>\n"
@@ -594,7 +594,7 @@ msgid "Line In"
 msgstr "లైన్-యిన్"
 
 #: src/modules/alsa/alsa-mixer.c:2713 src/modules/alsa/alsa-mixer.c:2797
-#: src/modules/bluetooth/module-bluez5-device.c:1886
+#: src/modules/bluetooth/module-bluez5-device.c:1910
 msgid "Microphone"
 msgstr "మైక్రోఫోన్"
 
@@ -617,12 +617,12 @@ msgid "Internal Microphone"
 msgstr "అంతర్గత మైక్రోఫోన్"
 
 #: src/modules/alsa/alsa-mixer.c:2718 src/modules/alsa/alsa-mixer.c:2804
-#: src/utils/pactl.c:295
+#: src/utils/pactl.c:343
 msgid "Radio"
 msgstr "రేడియో"
 
 #: src/modules/alsa/alsa-mixer.c:2719 src/modules/alsa/alsa-mixer.c:2805
-#: src/utils/pactl.c:296
+#: src/utils/pactl.c:344
 msgid "Video"
 msgstr "వీడియో"
 
@@ -661,12 +661,12 @@ msgid "No Bass Boost"
 msgstr "బూస్ట్ లేదు"
 
 #: src/modules/alsa/alsa-mixer.c:2728
-#: src/modules/bluetooth/module-bluez5-device.c:1894 src/utils/pactl.c:285
+#: src/modules/bluetooth/module-bluez5-device.c:1918 src/utils/pactl.c:333
 msgid "Speaker"
 msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:2729 src/modules/alsa/alsa-mixer.c:2807
-#: src/utils/pactl.c:286
+#: src/utils/pactl.c:334
 msgid "Headphones"
 msgstr "ఎనలాగ్ హెడ్‌ఫోన్స్"
 
@@ -788,7 +788,7 @@ msgid "Stereo"
 msgstr "స్టీరియో"
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
-#: src/modules/bluetooth/module-bluez5-device.c:1874 src/utils/pactl.c:289
+#: src/modules/bluetooth/module-bluez5-device.c:1898 src/utils/pactl.c:337
 msgid "Headset"
 msgstr ""
 
@@ -905,7 +905,7 @@ msgid "Mono Chat + 7.1 Surround"
 msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:4740 src/modules/alsa/module-alsa-card.c:197
-#: src/modules/bluetooth/module-bluez5-device.c:2177
+#: src/modules/bluetooth/module-bluez5-device.c:2207
 msgid "Off"
 msgstr "ఆఫ్"
 
@@ -1024,66 +1024,66 @@ msgstr[1] ""
 "snd_pcm_mmap_begin() అనునది పెద్ద విలువను యిచ్చినది: %lu bytes (%lu ms).\n"
 "సాదారణంగా యిది ALSA డ్రైవర్ '%s'నందలి బగ్ కావచ్చును. దయచేసి దీనిని ALSA అభివృద్దికారులను నివేదించండి."
 
-#: src/modules/bluetooth/module-bluez5-device.c:1867
-#: src/modules/bluetooth/module-bluez5-device.c:1893
-#: src/modules/bluetooth/module-bluez5-device.c:1900
+#: src/modules/bluetooth/module-bluez5-device.c:1891
+#: src/modules/bluetooth/module-bluez5-device.c:1917
+#: src/modules/bluetooth/module-bluez5-device.c:1924
 msgid "Bluetooth Input"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1868
-#: src/modules/bluetooth/module-bluez5-device.c:1887
+#: src/modules/bluetooth/module-bluez5-device.c:1892
+#: src/modules/bluetooth/module-bluez5-device.c:1911
 #, fuzzy
 msgid "Bluetooth Output"
 msgstr "ఎనలాగ్ అవుట్పుట్"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1880 src/utils/pactl.c:300
+#: src/modules/bluetooth/module-bluez5-device.c:1904 src/utils/pactl.c:348
 msgid "Handsfree"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1901
+#: src/modules/bluetooth/module-bluez5-device.c:1925
 #, fuzzy
 msgid "Headphone"
 msgstr "ఎనలాగ్ హెడ్‌ఫోన్స్"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1907 src/utils/pactl.c:299
+#: src/modules/bluetooth/module-bluez5-device.c:1931 src/utils/pactl.c:347
 msgid "Portable"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1913 src/utils/pactl.c:301
+#: src/modules/bluetooth/module-bluez5-device.c:1937 src/utils/pactl.c:349
 msgid "Car"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1919 src/utils/pactl.c:302
+#: src/modules/bluetooth/module-bluez5-device.c:1943 src/utils/pactl.c:350
 msgid "HiFi"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1925 src/utils/pactl.c:303
+#: src/modules/bluetooth/module-bluez5-device.c:1949 src/utils/pactl.c:351
 msgid "Phone"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1972
+#: src/modules/bluetooth/module-bluez5-device.c:1996
 #, fuzzy
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "హై ఫెడిలిటి ప్లేబ్యాక్ (A2DP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1984
+#: src/modules/bluetooth/module-bluez5-device.c:2008
 #, fuzzy
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "హై ఫెడిలిటి కాప్చర్ (A2DP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1996
+#: src/modules/bluetooth/module-bluez5-device.c:2020
 msgid "Headset Head Unit (HSP)"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:2009
+#: src/modules/bluetooth/module-bluez5-device.c:2033
 msgid "Headset Audio Gateway (HSP)"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:2022
+#: src/modules/bluetooth/module-bluez5-device.c:2046
 msgid "Handsfree Head Unit (HFP)"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:2035
+#: src/modules/bluetooth/module-bluez5-device.c:2059
 msgid "Handsfree Audio Gateway (HFP)"
 msgstr ""
 
@@ -1182,7 +1182,7 @@ msgstr "NULL సింక్ క్లాక్‌చేయబడింది"
 msgid "Null Output"
 msgstr "Null అవుట్పుట్"
 
-#: src/modules/module-null-sink.c:350 src/utils/pactl.c:1297
+#: src/modules/module-null-sink.c:350 src/utils/pactl.c:2064
 #, fuzzy, c-format
 msgid "Failed to set format: invalid format string %s"
 msgstr "మూలము సమాచారము పొందుటకు విఫలమైంది: %s"
@@ -1454,6 +1454,7 @@ msgstr "పైన వెనుక కుడివైపున"
 #: src/pulse/channelmap.c:478 src/pulse/format.c:123 src/pulse/sample.c:177
 #: src/pulse/volume.c:306 src/pulse/volume.c:332 src/pulse/volume.c:352
 #: src/pulse/volume.c:384 src/pulse/volume.c:424 src/pulse/volume.c:443
+#: src/utils/pactl.c:483 src/utils/pactl.c:504
 msgid "(invalid)"
 msgstr "(చెల్లని)"
 
@@ -1841,7 +1842,7 @@ msgstr "స్ట్రీమ్‌ను డ్రైయిన్ చేయు�
 msgid "pa_stream_connect_record() failed: %s"
 msgstr "pa_stream_connect_record() విఫలమైంది: %s"
 
-#: src/utils/pacat.c:514 src/utils/pactl.c:1723
+#: src/utils/pacat.c:514 src/utils/pactl.c:2508
 #, c-format
 msgid "Connection failure: %s"
 msgstr "అనుసంధానము వైఫల్యము: %s"
@@ -2033,7 +2034,7 @@ msgstr ""
 "libpulse తో నిర్వర్తించబడింది %s\n"
 "libpulse లింకైనది %s\n"
 
-#: src/utils/pacat.c:852 src/utils/pactl.c:1929
+#: src/utils/pacat.c:852 src/utils/pactl.c:2720
 #, c-format
 msgid "Invalid client name '%s'"
 msgstr "చెల్లని కక్షిదారి నామము '%s'"
@@ -2104,7 +2105,7 @@ msgid ""
 "specification from file."
 msgstr "హెచ్చరిక: తెలుపబడిన మాదిరి విశదీకరణ దస్త్రమునుండి వచ్చు విశదీకరణతో తిరిగివ్రాయబడుతుంది."
 
-#: src/utils/pacat.c:1091 src/utils/pactl.c:1994
+#: src/utils/pacat.c:1091 src/utils/pactl.c:2794
 msgid "Failed to determine sample specification from file."
 msgstr "దస్త్రమునుండి మాదిరి విశదీకరణను నిర్ధారించుటలో విఫలమైంది."
 
@@ -2139,7 +2140,7 @@ msgstr "ప్లేబాక్"
 msgid "Failed to set media name."
 msgstr "ఆదేశ వరుసను పార్శ్ చేయుటకు విఫలమైంది."
 
-#: src/utils/pacat.c:1172 src/utils/pactl.c:2406
+#: src/utils/pacat.c:1172 src/utils/pactl.c:3206
 msgid "pa_mainloop_new() failed."
 msgstr "pa_mainloop_new() విఫలమైంది."
 
@@ -2147,11 +2148,11 @@ msgstr "pa_mainloop_new() విఫలమైంది."
 msgid "io_new() failed."
 msgstr "io_new() విఫలమైంది."
 
-#: src/utils/pacat.c:1202 src/utils/pactl.c:2418
+#: src/utils/pacat.c:1202 src/utils/pactl.c:3218
 msgid "pa_context_new() failed."
 msgstr "pa_context_new() విఫలమైంది."
 
-#: src/utils/pacat.c:1210 src/utils/pactl.c:2424
+#: src/utils/pacat.c:1210 src/utils/pactl.c:3224
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_connect() విఫలమైంది: %s"
@@ -2160,21 +2161,21 @@ msgstr "pa_context_connect() విఫలమైంది: %s"
 msgid "pa_context_rttime_new() failed."
 msgstr "pa_context_rttime_new() విఫలమైంది."
 
-#: src/utils/pacat.c:1223 src/utils/pactl.c:2429
+#: src/utils/pacat.c:1223 src/utils/pactl.c:3229
 msgid "pa_mainloop_run() failed."
 msgstr "pa_mainloop_run() విఫలమైంది."
 
-#: src/utils/pacmd.c:51 src/utils/pactl.c:1847
+#: src/utils/pacmd.c:51 src/utils/pactl.c:2632
 msgid "NAME [ARGS ...]"
 msgstr ""
 
-#: src/utils/pacmd.c:52 src/utils/pacmd.c:60 src/utils/pactl.c:1848
-#: src/utils/pactl.c:1855 src/utils/pactl.c:1856
+#: src/utils/pacmd.c:52 src/utils/pacmd.c:60 src/utils/pactl.c:2633
+#: src/utils/pactl.c:2640 src/utils/pactl.c:2641
 msgid "NAME|#N"
 msgstr ""
 
-#: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:1846
-#: src/utils/pactl.c:1853
+#: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:2631
+#: src/utils/pactl.c:2638
 msgid "NAME"
 msgstr ""
 
@@ -2186,7 +2187,7 @@ msgstr ""
 msgid "#N VOLUME"
 msgstr ""
 
-#: src/utils/pacmd.c:56 src/utils/pacmd.c:70 src/utils/pactl.c:1850
+#: src/utils/pacmd.c:56 src/utils/pacmd.c:70 src/utils/pactl.c:2635
 msgid "NAME|#N 1|0"
 msgstr ""
 
@@ -2222,7 +2223,7 @@ msgstr ""
 msgid "FILENAME SINK|#N"
 msgstr ""
 
-#: src/utils/pacmd.c:69 src/utils/pactl.c:1849
+#: src/utils/pacmd.c:69 src/utils/pactl.c:2634
 msgid "#N SINK|SOURCE"
 msgstr ""
 
@@ -2230,15 +2231,15 @@ msgstr ""
 msgid "1|0"
 msgstr ""
 
-#: src/utils/pacmd.c:72 src/utils/pactl.c:1851
+#: src/utils/pacmd.c:72 src/utils/pactl.c:2636
 msgid "CARD PROFILE"
 msgstr ""
 
-#: src/utils/pacmd.c:73 src/utils/pactl.c:1854
+#: src/utils/pacmd.c:73 src/utils/pactl.c:2639
 msgid "NAME|#N PORT"
 msgstr ""
 
-#: src/utils/pacmd.c:74 src/utils/pactl.c:1862
+#: src/utils/pacmd.c:74 src/utils/pactl.c:2647
 msgid "CARD-NAME|CARD-#N PORT OFFSET"
 msgstr ""
 
@@ -2254,7 +2255,7 @@ msgstr ""
 msgid "FRAMES"
 msgstr ""
 
-#: src/utils/pacmd.c:80 src/utils/pactl.c:1863
+#: src/utils/pacmd.c:80 src/utils/pactl.c:2648
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
 msgstr ""
 
@@ -2322,19 +2323,19 @@ msgstr "poll(): %s"
 msgid "read(): %s"
 msgstr "read(): %s"
 
-#: src/utils/pactl.c:175
+#: src/utils/pactl.c:183
 #, c-format
 msgid "Failed to get statistics: %s"
 msgstr "గణాంకాలను పొందుటకు విఫలమైంది: %s"
 
-#: src/utils/pactl.c:181
+#: src/utils/pactl.c:199
 #, fuzzy, c-format
 msgid "Currently in use: %u block containing %s bytes total.\n"
 msgid_plural "Currently in use: %u blocks containing %s bytes total.\n"
 msgstr[0] "ప్రస్తుతం వుపయోగంలోవుంది: %u బ్లాక్‌లు %s బైట్లను మొత్తంగా కలిగి వున్నాయి.\n"
 msgstr[1] "ప్రస్తుతం వుపయోగంలోవుంది: %u బ్లాక్‌లు %s బైట్లను మొత్తంగా కలిగి వున్నాయి.\n"
 
-#: src/utils/pactl.c:187
+#: src/utils/pactl.c:205
 #, fuzzy, c-format
 msgid "Allocated during whole lifetime: %u block containing %s bytes total.\n"
 msgid_plural ""
@@ -2342,22 +2343,22 @@ msgid_plural ""
 msgstr[0] "మొత్తం లైఫ్‌టైములో కేటాయించబడింది: %u బ్లాకులు %s బైట్లను మొత్తంగా కలిగివున్నాయి.\n"
 msgstr[1] "మొత్తం లైఫ్‌టైములో కేటాయించబడింది: %u బ్లాకులు %s బైట్లను మొత్తంగా కలిగివున్నాయి.\n"
 
-#: src/utils/pactl.c:193
+#: src/utils/pactl.c:211
 #, c-format
 msgid "Sample cache size: %s\n"
 msgstr "మాదిరి క్యాచి పరిమాణము: %s\n"
 
-#: src/utils/pactl.c:200 src/utils/pactl.c:212 src/utils/pactl.c:226
+#: src/utils/pactl.c:219 src/utils/pactl.c:231 src/utils/pactl.c:245
 #, c-format
 msgid "Failed to get server information: %s"
 msgstr "సేవిక సమాచారమును పొందుటకు విఫలమైంది: %s"
 
-#: src/utils/pactl.c:205 src/utils/pactl.c:217
+#: src/utils/pactl.c:224 src/utils/pactl.c:236
 #, fuzzy, c-format
 msgid "%s\n"
 msgstr "%s %s"
 
-#: src/utils/pactl.c:231
+#: src/utils/pactl.c:281
 #, c-format
 msgid ""
 "Server String: %s\n"
@@ -2368,7 +2369,7 @@ msgid ""
 "Tile Size: %zu\n"
 msgstr ""
 
-#: src/utils/pactl.c:247
+#: src/utils/pactl.c:294
 #, fuzzy, c-format
 msgid ""
 "User Name: %s\n"
@@ -2391,80 +2392,80 @@ msgstr ""
 "అప్రమేయ మూలము: %s\n"
 "కుకీ: %08x\n"
 
-#: src/utils/pactl.c:272
+#: src/utils/pactl.c:320
 msgid "availability unknown"
 msgstr ""
 
-#: src/utils/pactl.c:273
+#: src/utils/pactl.c:321
 msgid "available"
 msgstr ""
 
-#: src/utils/pactl.c:274
+#: src/utils/pactl.c:322
 msgid "not available"
 msgstr ""
 
-#: src/utils/pactl.c:283 src/utils/pactl.c:307
+#: src/utils/pactl.c:331 src/utils/pactl.c:355
 #, fuzzy
 msgid "Unknown"
 msgstr "తెలియని ఆదేశము"
 
-#: src/utils/pactl.c:284
+#: src/utils/pactl.c:332
 msgid "Aux"
 msgstr ""
 
-#: src/utils/pactl.c:287
+#: src/utils/pactl.c:335
 #, fuzzy
 msgid "Line"
 msgstr "లైన్-యిన్"
 
-#: src/utils/pactl.c:288
+#: src/utils/pactl.c:336
 msgid "Mic"
 msgstr ""
 
-#: src/utils/pactl.c:290
+#: src/utils/pactl.c:338
 msgid "Handset"
 msgstr ""
 
-#: src/utils/pactl.c:291
+#: src/utils/pactl.c:339
 msgid "Earpiece"
 msgstr ""
 
-#: src/utils/pactl.c:292
+#: src/utils/pactl.c:340
 msgid "SPDIF"
 msgstr ""
 
-#: src/utils/pactl.c:293
+#: src/utils/pactl.c:341
 msgid "HDMI"
 msgstr ""
 
-#: src/utils/pactl.c:294
+#: src/utils/pactl.c:342
 msgid "TV"
 msgstr ""
 
-#: src/utils/pactl.c:297
+#: src/utils/pactl.c:345
 msgid "USB"
 msgstr ""
 
-#: src/utils/pactl.c:298
+#: src/utils/pactl.c:346
 msgid "Bluetooth"
 msgstr ""
 
-#: src/utils/pactl.c:304
+#: src/utils/pactl.c:352
 msgid "Network"
 msgstr ""
 
-#: src/utils/pactl.c:305
+#: src/utils/pactl.c:353
 #, fuzzy
 msgid "Analog"
 msgstr "ఎనలాగ్ మోనో"
 
-#: src/utils/pactl.c:329 src/utils/pactl.c:1067 src/utils/pactl.c:1085
-#: src/utils/pactl.c:1108 src/utils/pactl.c:1225
+#: src/utils/pactl.c:567 src/utils/pactl.c:1834 src/utils/pactl.c:1852
+#: src/utils/pactl.c:1875 src/utils/pactl.c:1992
 #, c-format
 msgid "Failed to get sink information: %s"
 msgstr "సింక్ సమాచారమును పొందుటకు విఫలమైంది: %s"
 
-#: src/utils/pactl.c:355
+#: src/utils/pactl.c:664
 #, fuzzy, c-format
 msgid ""
 "Sink #%u\n"
@@ -2503,37 +2504,37 @@ msgstr ""
 "\tలక్షణాలు:\n"
 "\t\t%s\n"
 
-#: src/utils/pactl.c:399 src/utils/pactl.c:507 src/utils/pactl.c:670
+#: src/utils/pactl.c:706 src/utils/pactl.c:890 src/utils/pactl.c:1251
 #, c-format
 msgid "\tPorts:\n"
 msgstr "\tపోర్టులు:\n"
 
-#: src/utils/pactl.c:401 src/utils/pactl.c:509
+#: src/utils/pactl.c:708 src/utils/pactl.c:892
 #, c-format
 msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
 msgstr ""
 
-#: src/utils/pactl.c:403 src/utils/pactl.c:511 src/utils/pactl.c:675
+#: src/utils/pactl.c:710 src/utils/pactl.c:894 src/utils/pactl.c:1256
 msgid ", availability group: "
 msgstr ""
 
-#: src/utils/pactl.c:408 src/utils/pactl.c:516
+#: src/utils/pactl.c:715 src/utils/pactl.c:899
 #, c-format
 msgid "\tActive Port: %s\n"
 msgstr "\tక్రియాశీల పోర్టు: %s\n"
 
-#: src/utils/pactl.c:414 src/utils/pactl.c:522
+#: src/utils/pactl.c:721 src/utils/pactl.c:905
 #, fuzzy, c-format
 msgid "\tFormats:\n"
 msgstr "\tపోర్టులు:\n"
 
-#: src/utils/pactl.c:438 src/utils/pactl.c:1126 src/utils/pactl.c:1144
-#: src/utils/pactl.c:1167 src/utils/pactl.c:1240
+#: src/utils/pactl.c:753 src/utils/pactl.c:1893 src/utils/pactl.c:1911
+#: src/utils/pactl.c:1934 src/utils/pactl.c:2007
 #, c-format
 msgid "Failed to get source information: %s"
 msgstr "మూలము సమాచారము పొందుటకు విఫలమైంది: %s"
 
-#: src/utils/pactl.c:464
+#: src/utils/pactl.c:849
 #, fuzzy, c-format
 msgid ""
 "Source #%u\n"
@@ -2572,20 +2573,20 @@ msgstr ""
 "\tలక్షణాలు:\n"
 "\t\t%s\n"
 
-#: src/utils/pactl.c:492 src/utils/pactl.c:564 src/utils/pactl.c:607
-#: src/utils/pactl.c:649 src/utils/pactl.c:748 src/utils/pactl.c:749
-#: src/utils/pactl.c:760 src/utils/pactl.c:818 src/utils/pactl.c:819
-#: src/utils/pactl.c:830 src/utils/pactl.c:881 src/utils/pactl.c:882
-#: src/utils/pactl.c:888
+#: src/utils/pactl.c:877 src/utils/pactl.c:962 src/utils/pactl.c:1062
+#: src/utils/pactl.c:1232 src/utils/pactl.c:1384 src/utils/pactl.c:1385
+#: src/utils/pactl.c:1396 src/utils/pactl.c:1507 src/utils/pactl.c:1508
+#: src/utils/pactl.c:1519 src/utils/pactl.c:1557 src/utils/pactl.c:1582
+#: src/utils/pactl.c:1624
 msgid "n/a"
 msgstr "వర్తించదు"
 
-#: src/utils/pactl.c:533 src/utils/pactl.c:1026
+#: src/utils/pactl.c:924 src/utils/pactl.c:1793
 #, c-format
 msgid "Failed to get module information: %s"
 msgstr "మాడ్యూల్ సమాచారము పొందుటకు విఫలమైంది: %s"
 
-#: src/utils/pactl.c:556
+#: src/utils/pactl.c:976
 #, c-format
 msgid ""
 "Module #%u\n"
@@ -2602,12 +2603,12 @@ msgstr ""
 "\tలక్షణాలు:\n"
 "\t\t%s\n"
 
-#: src/utils/pactl.c:575
+#: src/utils/pactl.c:1002
 #, c-format
 msgid "Failed to get client information: %s"
 msgstr "కక్షిదారి సమాచారము పొందుటలో విఫలమైంది: %s"
 
-#: src/utils/pactl.c:601
+#: src/utils/pactl.c:1056
 #, c-format
 msgid ""
 "Client #%u\n"
@@ -2622,12 +2623,12 @@ msgstr ""
 "\tలక్షణాలు:\n"
 "\t\t%s\n"
 
-#: src/utils/pactl.c:618
+#: src/utils/pactl.c:1168
 #, c-format
 msgid "Failed to get card information: %s"
 msgstr "కార్డు సమాచారము పొందుటకు విఫలమైంది: %s"
 
-#: src/utils/pactl.c:641
+#: src/utils/pactl.c:1224
 #, c-format
 msgid ""
 "Card #%u\n"
@@ -2644,45 +2645,45 @@ msgstr ""
 "\tలక్షణాలు:\n"
 "\t\t%s\n"
 
-#: src/utils/pactl.c:657
+#: src/utils/pactl.c:1238
 #, c-format
 msgid "\tProfiles:\n"
 msgstr "\tప్రోఫైల్సు:\n"
 
-#: src/utils/pactl.c:659
+#: src/utils/pactl.c:1240
 #, c-format
 msgid "\t\t%s: %s (sinks: %u, sources: %u, priority: %u, available: %s)\n"
 msgstr ""
 
-#: src/utils/pactl.c:664
+#: src/utils/pactl.c:1245
 #, c-format
 msgid "\tActive Profile: %s\n"
 msgstr "\tక్రియాశీల ప్రొఫైల్: %s\n"
 
-#: src/utils/pactl.c:673
+#: src/utils/pactl.c:1254
 #, c-format
 msgid ""
 "\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s, %s)\n"
 msgstr ""
 
-#: src/utils/pactl.c:679
+#: src/utils/pactl.c:1261
 #, c-format
 msgid ""
 "\t\t\tProperties:\n"
 "\t\t\t\t%s\n"
 msgstr ""
 
-#: src/utils/pactl.c:684
+#: src/utils/pactl.c:1265
 #, c-format
 msgid "\t\t\tPart of profile(s): %s"
 msgstr ""
 
-#: src/utils/pactl.c:701 src/utils/pactl.c:1187 src/utils/pactl.c:1255
+#: src/utils/pactl.c:1290 src/utils/pactl.c:1954 src/utils/pactl.c:2022
 #, c-format
 msgid "Failed to get sink input information: %s"
 msgstr "సింక్ ఇన్పుట్ సమాచారము పొందుటకు విఫలమైంది: %s"
 
-#: src/utils/pactl.c:730
+#: src/utils/pactl.c:1366
 #, fuzzy, c-format
 msgid ""
 "Sink Input #%u\n"
@@ -2720,12 +2721,12 @@ msgstr ""
 "\tలక్షణాలు:\n"
 "\t\t%s\n"
 
-#: src/utils/pactl.c:771 src/utils/pactl.c:1207 src/utils/pactl.c:1270
+#: src/utils/pactl.c:1413 src/utils/pactl.c:1974 src/utils/pactl.c:2037
 #, c-format
 msgid "Failed to get source output information: %s"
 msgstr "మూలపు అవుట్పుట్ సమాచారము పొందుటకు విఫలమైంది: %s"
 
-#: src/utils/pactl.c:800
+#: src/utils/pactl.c:1489
 #, fuzzy, c-format
 msgid ""
 "Source Output #%u\n"
@@ -2763,12 +2764,12 @@ msgstr ""
 "\tలక్షణాలు:\n"
 "\t\t%s\n"
 
-#: src/utils/pactl.c:841
+#: src/utils/pactl.c:1536
 #, c-format
 msgid "Failed to get sample information: %s"
 msgstr "మాదిరి సమాచారము పొందుటకు విఫలమైంది: %s"
 
-#: src/utils/pactl.c:868
+#: src/utils/pactl.c:1604
 #, fuzzy, c-format
 msgid ""
 "Sample #%u\n"
@@ -2798,40 +2799,40 @@ msgstr ""
 "\tలక్షణాలు:\n"
 "\t\t%s\n"
 
-#: src/utils/pactl.c:896 src/utils/pactl.c:906
+#: src/utils/pactl.c:1633 src/utils/pactl.c:1643
 #, c-format
 msgid "Failure: %s"
 msgstr "వైఫైల్యము: %s"
 
-#: src/utils/pactl.c:919
+#: src/utils/pactl.c:1667
 #, fuzzy, c-format
 msgid "Send message failed: %s"
 msgstr "read() విఫలమైంది: %s"
 
-#: src/utils/pactl.c:936
+#: src/utils/pactl.c:1695
 #, c-format
 msgid "list-handlers message failed: %s"
 msgstr ""
 
-#: src/utils/pactl.c:944 src/utils/pactl.c:993
+#: src/utils/pactl.c:1711 src/utils/pactl.c:1760
 msgid "list-handlers message response could not be parsed correctly"
 msgstr ""
 
-#: src/utils/pactl.c:951
+#: src/utils/pactl.c:1718
 msgid "list-handlers message response is not a JSON array"
 msgstr ""
 
-#: src/utils/pactl.c:962
+#: src/utils/pactl.c:1729
 #, c-format
 msgid "list-handlers message response array element %d is not a JSON object"
 msgstr ""
 
-#: src/utils/pactl.c:1033
+#: src/utils/pactl.c:1800
 #, fuzzy, c-format
 msgid "Failed to unload module: Module %s not loaded"
 msgstr "మాదిరి అప్‌లోడు చేయుటకు విఫలమైంది: %s"
 
-#: src/utils/pactl.c:1051
+#: src/utils/pactl.c:1818
 #, c-format
 msgid ""
 "Failed to set volume: You tried to set volumes for %d channel, whereas "
@@ -2842,140 +2843,140 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/utils/pactl.c:1340
+#: src/utils/pactl.c:2107
 #, c-format
 msgid "Failed to upload sample: %s"
 msgstr "మాదిరి అప్‌లోడు చేయుటకు విఫలమైంది: %s"
 
-#: src/utils/pactl.c:1357
+#: src/utils/pactl.c:2124
 msgid "Premature end of file"
 msgstr "దస్త్రము యొక్క అపరిపక్వ ముగింపు"
 
-#: src/utils/pactl.c:1377
+#: src/utils/pactl.c:2144
 msgid "new"
 msgstr ""
 
-#: src/utils/pactl.c:1380
+#: src/utils/pactl.c:2147
 msgid "change"
 msgstr ""
 
-#: src/utils/pactl.c:1383
+#: src/utils/pactl.c:2150
 msgid "remove"
 msgstr ""
 
-#: src/utils/pactl.c:1386 src/utils/pactl.c:1421
+#: src/utils/pactl.c:2153 src/utils/pactl.c:2188
 msgid "unknown"
 msgstr ""
 
-#: src/utils/pactl.c:1394
+#: src/utils/pactl.c:2161
 msgid "sink"
 msgstr ""
 
-#: src/utils/pactl.c:1397
+#: src/utils/pactl.c:2164
 msgid "source"
 msgstr ""
 
-#: src/utils/pactl.c:1400
+#: src/utils/pactl.c:2167
 msgid "sink-input"
 msgstr ""
 
-#: src/utils/pactl.c:1403
+#: src/utils/pactl.c:2170
 msgid "source-output"
 msgstr ""
 
-#: src/utils/pactl.c:1406
+#: src/utils/pactl.c:2173
 msgid "module"
 msgstr ""
 
-#: src/utils/pactl.c:1409
+#: src/utils/pactl.c:2176
 msgid "client"
 msgstr ""
 
-#: src/utils/pactl.c:1412
+#: src/utils/pactl.c:2179
 msgid "sample-cache"
 msgstr ""
 
-#: src/utils/pactl.c:1415
+#: src/utils/pactl.c:2182
 #, fuzzy
 msgid "server"
 msgstr "చెల్లని సేవిక"
 
-#: src/utils/pactl.c:1418
+#: src/utils/pactl.c:2185
 msgid "card"
 msgstr ""
 
-#: src/utils/pactl.c:1427
+#: src/utils/pactl.c:2206
 #, c-format
 msgid "Event '%s' on %s #%u\n"
 msgstr ""
 
-#: src/utils/pactl.c:1729
+#: src/utils/pactl.c:2514
 msgid "Got SIGINT, exiting."
 msgstr "SIGINT పొందింది, నిష్క్రమించుచున్నది."
 
-#: src/utils/pactl.c:1762
+#: src/utils/pactl.c:2547
 msgid "Invalid volume specification"
 msgstr "చెల్లనటువంటి వాల్యూమ్ విశదీకరణ"
 
-#: src/utils/pactl.c:1785
+#: src/utils/pactl.c:2570
 msgid "Volume outside permissible range.\n"
 msgstr ""
 
-#: src/utils/pactl.c:1798
+#: src/utils/pactl.c:2583
 #, fuzzy
 msgid "Invalid number of volume specifications.\n"
 msgstr "చెల్లనటువంటి వాల్యూమ్ విశదీకరణ"
 
-#: src/utils/pactl.c:1810
+#: src/utils/pactl.c:2595
 #, fuzzy
 msgid "Inconsistent volume specification.\n"
 msgstr "చెల్లనటువంటి వాల్యూమ్ విశదీకరణ"
 
-#: src/utils/pactl.c:1840 src/utils/pactl.c:1841 src/utils/pactl.c:1842
-#: src/utils/pactl.c:1843 src/utils/pactl.c:1844 src/utils/pactl.c:1845
-#: src/utils/pactl.c:1846 src/utils/pactl.c:1847 src/utils/pactl.c:1848
-#: src/utils/pactl.c:1849 src/utils/pactl.c:1850 src/utils/pactl.c:1851
-#: src/utils/pactl.c:1852 src/utils/pactl.c:1853 src/utils/pactl.c:1854
-#: src/utils/pactl.c:1855 src/utils/pactl.c:1856 src/utils/pactl.c:1857
-#: src/utils/pactl.c:1858 src/utils/pactl.c:1859 src/utils/pactl.c:1860
-#: src/utils/pactl.c:1861 src/utils/pactl.c:1862 src/utils/pactl.c:1863
-#: src/utils/pactl.c:1864
+#: src/utils/pactl.c:2625 src/utils/pactl.c:2626 src/utils/pactl.c:2627
+#: src/utils/pactl.c:2628 src/utils/pactl.c:2629 src/utils/pactl.c:2630
+#: src/utils/pactl.c:2631 src/utils/pactl.c:2632 src/utils/pactl.c:2633
+#: src/utils/pactl.c:2634 src/utils/pactl.c:2635 src/utils/pactl.c:2636
+#: src/utils/pactl.c:2637 src/utils/pactl.c:2638 src/utils/pactl.c:2639
+#: src/utils/pactl.c:2640 src/utils/pactl.c:2641 src/utils/pactl.c:2642
+#: src/utils/pactl.c:2643 src/utils/pactl.c:2644 src/utils/pactl.c:2645
+#: src/utils/pactl.c:2646 src/utils/pactl.c:2647 src/utils/pactl.c:2648
+#: src/utils/pactl.c:2649
 msgid "[options]"
 msgstr ""
 
-#: src/utils/pactl.c:1842
+#: src/utils/pactl.c:2627
 msgid "[TYPE]"
 msgstr ""
 
-#: src/utils/pactl.c:1844
+#: src/utils/pactl.c:2629
 msgid "FILENAME [NAME]"
 msgstr ""
 
-#: src/utils/pactl.c:1845
+#: src/utils/pactl.c:2630
 msgid "NAME [SINK]"
 msgstr ""
 
-#: src/utils/pactl.c:1857
+#: src/utils/pactl.c:2642
 msgid "NAME|#N VOLUME [VOLUME ...]"
 msgstr ""
 
-#: src/utils/pactl.c:1858
+#: src/utils/pactl.c:2643
 msgid "#N VOLUME [VOLUME ...]"
 msgstr ""
 
-#: src/utils/pactl.c:1859
+#: src/utils/pactl.c:2644
 msgid "NAME|#N 1|0|toggle"
 msgstr ""
 
-#: src/utils/pactl.c:1860
+#: src/utils/pactl.c:2645
 msgid "#N 1|0|toggle"
 msgstr ""
 
-#: src/utils/pactl.c:1861
+#: src/utils/pactl.c:2646
 msgid "#N FORMATS"
 msgstr ""
 
-#: src/utils/pactl.c:1865
+#: src/utils/pactl.c:2650
 #, c-format
 msgid ""
 "\n"
@@ -2983,13 +2984,15 @@ msgid ""
 "can be used to specify the default sink, source and monitor.\n"
 msgstr ""
 
-#: src/utils/pactl.c:1868
+#: src/utils/pactl.c:2653
 #, fuzzy, c-format
 msgid ""
 "\n"
 "  -h, --help                            Show this help\n"
 "      --version                         Show version\n"
 "\n"
+"  -f, --format=FORMAT                   The format of the output. Either "
+"\"normal\" or \"json\"\n"
 "  -s, --server=SERVER                   The name of the server to connect "
 "to\n"
 "  -n, --client-name=NAME                How to call this client on the "
@@ -3003,7 +3006,7 @@ msgstr ""
 "to\n"
 "\n"
 
-#: src/utils/pactl.c:1909
+#: src/utils/pactl.c:2696
 #, c-format
 msgid ""
 "pactl %s\n"
@@ -3014,192 +3017,197 @@ msgstr ""
 "libpulse తో నిర్వర్తించబడింది%s\n"
 "libpulse తో లింకుచేయబడింది %s\n"
 
-#: src/utils/pactl.c:1966
+#: src/utils/pactl.c:2739
+#, fuzzy, c-format
+msgid "Invalid format value '%s'"
+msgstr "చెల్లని స్ట్రీమ్ నామము '%s'"
+
+#: src/utils/pactl.c:2766
 #, c-format
 msgid "Specify nothing, or one of: %s"
 msgstr ""
 
-#: src/utils/pactl.c:1976
+#: src/utils/pactl.c:2776
 msgid "Please specify a sample file to load"
 msgstr "లోడువ్వుటకు దయచేసి మాదిరి దస్త్రమును తెలుపుము"
 
-#: src/utils/pactl.c:1989
+#: src/utils/pactl.c:2789
 msgid "Failed to open sound file."
 msgstr "శబ్దపు దస్త్రమును తెరువుటకు విఫలమైంది."
 
-#: src/utils/pactl.c:2001
+#: src/utils/pactl.c:2801
 msgid "Warning: Failed to determine sample specification from file."
 msgstr "హెచ్చరిక: దస్త్రమునుండి మాదిరి విశదీకరణను నిర్ణయించుటకు విఫలమైంది."
 
-#: src/utils/pactl.c:2011
+#: src/utils/pactl.c:2811
 msgid "You have to specify a sample name to play"
 msgstr "ప్లే చేయుటకు మీరు మాదిరి నామమును తెలుపవలసి వుంది"
 
-#: src/utils/pactl.c:2023
+#: src/utils/pactl.c:2823
 msgid "You have to specify a sample name to remove"
 msgstr "తొలగించుటకు మీరు మాదిరి నామమును తెలుపవలసి వుంది"
 
-#: src/utils/pactl.c:2032
+#: src/utils/pactl.c:2832
 msgid "You have to specify a sink input index and a sink"
 msgstr "మీరు సింక్ ఇన్పుట్ విషయసూచిక మరియు సింక్ తెలుపవలసి వుంది"
 
-#: src/utils/pactl.c:2042
+#: src/utils/pactl.c:2842
 msgid "You have to specify a source output index and a source"
 msgstr "మీరు మూలము అవుట్పుట్ విషయసూచిక మరియు మూలము తెలుపవలసి వుంది"
 
-#: src/utils/pactl.c:2057
+#: src/utils/pactl.c:2857
 msgid "You have to specify a module name and arguments."
 msgstr "మీరు మాడ్యూల్ నామము మరియు ఆర్గుమెంట్లు తెలుపవలసి వుంది."
 
-#: src/utils/pactl.c:2077
+#: src/utils/pactl.c:2877
 #, fuzzy
 msgid "You have to specify a module index or name"
 msgstr "మీరు మాడ్యూల్ విషయసూచిక తెలుపవలసి వుంది"
 
-#: src/utils/pactl.c:2090
+#: src/utils/pactl.c:2890
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean value."
 msgstr ""
 "మీరు వొక సింకు కన్నా యెక్కువ తెలుపవలసి వుండకపోవచ్చు. మీరు బూలియన్ విలువను తెలుపవలసి వుంది."
 
-#: src/utils/pactl.c:2095 src/utils/pactl.c:2115
+#: src/utils/pactl.c:2895 src/utils/pactl.c:2915
 #, fuzzy
 msgid "Invalid suspend specification."
 msgstr "చెల్లనటువంటి మాదిరి విశదీకరణ"
 
-#: src/utils/pactl.c:2110
+#: src/utils/pactl.c:2910
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
 msgstr ""
 "మీరు వొక మూలము కన్నా యెక్కువ తెలుపవలసి వుండకపోవచ్చు. మీరు బూలియన్ విలువను తెలుపవలసి వుంది."
 
-#: src/utils/pactl.c:2127
+#: src/utils/pactl.c:2927
 msgid "You have to specify a card name/index and a profile name"
 msgstr "మీరు కార్డ్ నామము/విషయసూచిక మరియు ప్రొఫైల్ నామము తెలుపవలసి వుంది"
 
-#: src/utils/pactl.c:2138
+#: src/utils/pactl.c:2938
 msgid "You have to specify a sink name/index and a port name"
 msgstr "మీరు సింక్‌ నామము/విషయసూచిక మరియు ప్రొఫైల్ నామము తెలుపవలసి వుంది"
 
-#: src/utils/pactl.c:2149
+#: src/utils/pactl.c:2949
 #, fuzzy
 msgid "You have to specify a sink name"
 msgstr "ప్లే చేయుటకు మీరు మాదిరి నామమును తెలుపవలసి వుంది"
 
-#: src/utils/pactl.c:2162
+#: src/utils/pactl.c:2962
 msgid "You have to specify a source name/index and a port name"
 msgstr "మీరు మూలము నామము/విషయసూచిక మరియు ప్రొఫైల్ నామము తెలుపవలసి వుంది"
 
-#: src/utils/pactl.c:2173
+#: src/utils/pactl.c:2973
 #, fuzzy
 msgid "You have to specify a source name"
 msgstr "మీరు మాడ్యూల్ విషయసూచిక తెలుపవలసి వుంది"
 
-#: src/utils/pactl.c:2186 src/utils/pactl.c:2264
+#: src/utils/pactl.c:2986 src/utils/pactl.c:3064
 #, fuzzy
 msgid "You have to specify a sink name/index"
 msgstr "ప్లే చేయుటకు మీరు మాదిరి నామమును తెలుపవలసి వుంది"
 
-#: src/utils/pactl.c:2196
+#: src/utils/pactl.c:2996
 msgid "You have to specify a sink name/index and a volume"
 msgstr "మీరు సింక్ నామము/విషయసూచిక మరియు ప్రొఫైల్ నామము తెలుపవలసి వుంది"
 
-#: src/utils/pactl.c:2209 src/utils/pactl.c:2289
+#: src/utils/pactl.c:3009 src/utils/pactl.c:3089
 #, fuzzy
 msgid "You have to specify a source name/index"
 msgstr "మీరు మాడ్యూల్ విషయసూచిక తెలుపవలసి వుంది"
 
-#: src/utils/pactl.c:2219
+#: src/utils/pactl.c:3019
 msgid "You have to specify a source name/index and a volume"
 msgstr "మీరు మూలము నామము/విషయసూచిక మరియు ప్రొఫైల్ నామము తెలుపవలసి వుంది"
 
-#: src/utils/pactl.c:2232
+#: src/utils/pactl.c:3032
 msgid "You have to specify a sink input index and a volume"
 msgstr "మీరు సింక్ ఇన్పుట్ విషయసూచిక మరియు వాల్యూమ్ తెలుపవలసి వుంది"
 
-#: src/utils/pactl.c:2237
+#: src/utils/pactl.c:3037
 msgid "Invalid sink input index"
 msgstr "చెల్లని సింకు యిన్పుట్ విషయసూచిక"
 
-#: src/utils/pactl.c:2248
+#: src/utils/pactl.c:3048
 #, fuzzy
 msgid "You have to specify a source output index and a volume"
 msgstr "మీరు మూలము అవుట్పుట్ విషయసూచిక మరియు మూలము తెలుపవలసి వుంది"
 
-#: src/utils/pactl.c:2253
+#: src/utils/pactl.c:3053
 #, fuzzy
 msgid "Invalid source output index"
 msgstr "చెల్లని సింకు యిన్పుట్ విషయసూచిక"
 
-#: src/utils/pactl.c:2274
+#: src/utils/pactl.c:3074
 #, fuzzy
 msgid ""
 "You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"
 msgstr "మీరు సింక్‌ నామము/విషయసూచిక మరియు మ్యూట్ బూలియన్ తెలుపవలసి వుంది"
 
-#: src/utils/pactl.c:2279 src/utils/pactl.c:2304 src/utils/pactl.c:2324
-#: src/utils/pactl.c:2342
+#: src/utils/pactl.c:3079 src/utils/pactl.c:3104 src/utils/pactl.c:3124
+#: src/utils/pactl.c:3142
 #, fuzzy
 msgid "Invalid mute specification"
 msgstr "చెల్లనటువంటి మాదిరి విశదీకరణ"
 
-#: src/utils/pactl.c:2299
+#: src/utils/pactl.c:3099
 #, fuzzy
 msgid ""
 "You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
 msgstr "మీరు మూలపు నామము/విషయసూచిక మరియు మ్యూట్ బూలియన్ తెలుపవలసివుంది"
 
-#: src/utils/pactl.c:2314
+#: src/utils/pactl.c:3114
 #, fuzzy
 msgid ""
 "You have to specify a sink input index and a mute action (0, 1, or 'toggle')"
 msgstr "మీరు సింక్ ఇన్పుట్ విషయసూచిక మరియు మ్యూట్ బూలియన్ తెలుపవలసివుంది"
 
-#: src/utils/pactl.c:2319
+#: src/utils/pactl.c:3119
 msgid "Invalid sink input index specification"
 msgstr "చెల్లనటువంటి సింకు యిన్పుట్ విషయసూచిక విశదీకరణ"
 
-#: src/utils/pactl.c:2332
+#: src/utils/pactl.c:3132
 #, fuzzy
 msgid ""
 "You have to specify a source output index and a mute action (0, 1, or "
 "'toggle')"
 msgstr "మీరు మూలపు నామము/విషయసూచిక మరియు మ్యూట్ బూలియన్ తెలుపవలసివుంది"
 
-#: src/utils/pactl.c:2337
+#: src/utils/pactl.c:3137
 #, fuzzy
 msgid "Invalid source output index specification"
 msgstr "చెల్లనటువంటి సింకు యిన్పుట్ విషయసూచిక విశదీకరణ"
 
-#: src/utils/pactl.c:2350
+#: src/utils/pactl.c:3150
 #, fuzzy
 msgid "You have to specify at least an object path and a message name"
 msgstr "మీరు సింక్‌ నామము/విషయసూచిక మరియు ప్రొఫైల్ నామము తెలుపవలసి వుంది"
 
-#: src/utils/pactl.c:2360
+#: src/utils/pactl.c:3160
 msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
 msgstr ""
 
-#: src/utils/pactl.c:2370
+#: src/utils/pactl.c:3170
 #, fuzzy
 msgid ""
 "You have to specify a sink index and a semicolon-separated list of supported "
 "formats"
 msgstr "మీరు సింక్‌ నామము/విషయసూచిక మరియు మ్యూట్ బూలియన్ తెలుపవలసి వుంది"
 
-#: src/utils/pactl.c:2382
+#: src/utils/pactl.c:3182
 #, fuzzy
 msgid "You have to specify a card name/index, a port name and a latency offset"
 msgstr "మీరు కార్డ్ నామము/విషయసూచిక మరియు ప్రొఫైల్ నామము తెలుపవలసి వుంది"
 
-#: src/utils/pactl.c:2389
+#: src/utils/pactl.c:3189
 msgid "Could not parse latency offset"
 msgstr ""
 
-#: src/utils/pactl.c:2401
+#: src/utils/pactl.c:3201
 msgid "No valid command specified."
 msgstr "ఎటువంటి విలువైన ఆదేశము తెలుపబడలేదు."
 

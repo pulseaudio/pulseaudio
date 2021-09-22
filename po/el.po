@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: el\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2021-07-05 14:01+0300\n"
+"POT-Creation-Date: 2021-09-22 19:04+0300\n"
 "PO-Revision-Date: 2014-05-08 09:53+0300\n"
 "Last-Translator: Dimitris Spingos (Δημήτρης Σπίγγος) <dmtrs32@gmail.com>\n"
 "Language-Team: team@lists.gnome.gr\n"
@@ -620,7 +620,7 @@ msgid "Line In"
 msgstr "Γραμμή εισόδου"
 
 #: src/modules/alsa/alsa-mixer.c:2713 src/modules/alsa/alsa-mixer.c:2797
-#: src/modules/bluetooth/module-bluez5-device.c:1886
+#: src/modules/bluetooth/module-bluez5-device.c:1910
 msgid "Microphone"
 msgstr "Μικρόφωνο"
 
@@ -641,12 +641,12 @@ msgid "Internal Microphone"
 msgstr "Εσωτερικό μικρόφωνο"
 
 #: src/modules/alsa/alsa-mixer.c:2718 src/modules/alsa/alsa-mixer.c:2804
-#: src/utils/pactl.c:295
+#: src/utils/pactl.c:343
 msgid "Radio"
 msgstr "Ραδιόφωνο"
 
 #: src/modules/alsa/alsa-mixer.c:2719 src/modules/alsa/alsa-mixer.c:2805
-#: src/utils/pactl.c:296
+#: src/utils/pactl.c:344
 msgid "Video"
 msgstr "Βίντεο"
 
@@ -683,12 +683,12 @@ msgid "No Bass Boost"
 msgstr "Χωρίς ενίσχυση μπάσων"
 
 #: src/modules/alsa/alsa-mixer.c:2728
-#: src/modules/bluetooth/module-bluez5-device.c:1894 src/utils/pactl.c:285
+#: src/modules/bluetooth/module-bluez5-device.c:1918 src/utils/pactl.c:333
 msgid "Speaker"
 msgstr "Ηχείο"
 
 #: src/modules/alsa/alsa-mixer.c:2729 src/modules/alsa/alsa-mixer.c:2807
-#: src/utils/pactl.c:286
+#: src/utils/pactl.c:334
 msgid "Headphones"
 msgstr "Ακουστικά"
 
@@ -806,7 +806,7 @@ msgid "Stereo"
 msgstr "Στερεοφωνικό"
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
-#: src/modules/bluetooth/module-bluez5-device.c:1874 src/utils/pactl.c:289
+#: src/modules/bluetooth/module-bluez5-device.c:1898 src/utils/pactl.c:337
 msgid "Headset"
 msgstr "Ακουστικά"
 
@@ -921,7 +921,7 @@ msgid "Mono Chat + 7.1 Surround"
 msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:4740 src/modules/alsa/module-alsa-card.c:197
-#: src/modules/bluetooth/module-bluez5-device.c:2177
+#: src/modules/bluetooth/module-bluez5-device.c:2207
 msgid "Off"
 msgstr "Ανενεργό"
 
@@ -1051,62 +1051,62 @@ msgstr[1] ""
 "Το πιθανότερο αυτό είναι ένα σφάλμα στον οδηγό ALSA '%s'. Παρακαλούμε, "
 "αναφέρτε αυτό το θέμα στους προγραμματιστές ALSA."
 
-#: src/modules/bluetooth/module-bluez5-device.c:1867
-#: src/modules/bluetooth/module-bluez5-device.c:1893
-#: src/modules/bluetooth/module-bluez5-device.c:1900
+#: src/modules/bluetooth/module-bluez5-device.c:1891
+#: src/modules/bluetooth/module-bluez5-device.c:1917
+#: src/modules/bluetooth/module-bluez5-device.c:1924
 msgid "Bluetooth Input"
 msgstr "Είσοδος μπλουτούθ"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1868
-#: src/modules/bluetooth/module-bluez5-device.c:1887
+#: src/modules/bluetooth/module-bluez5-device.c:1892
+#: src/modules/bluetooth/module-bluez5-device.c:1911
 msgid "Bluetooth Output"
 msgstr "Έξοδος μπλουτούθ"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1880 src/utils/pactl.c:300
+#: src/modules/bluetooth/module-bluez5-device.c:1904 src/utils/pactl.c:348
 msgid "Handsfree"
 msgstr "Ανοιχτής ακρόασης"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1901
+#: src/modules/bluetooth/module-bluez5-device.c:1925
 msgid "Headphone"
 msgstr "Ακουστικό"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1907 src/utils/pactl.c:299
+#: src/modules/bluetooth/module-bluez5-device.c:1931 src/utils/pactl.c:347
 msgid "Portable"
 msgstr "Φορητό"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1913 src/utils/pactl.c:301
+#: src/modules/bluetooth/module-bluez5-device.c:1937 src/utils/pactl.c:349
 msgid "Car"
 msgstr "Αυτοκίνητο"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1919 src/utils/pactl.c:302
+#: src/modules/bluetooth/module-bluez5-device.c:1943 src/utils/pactl.c:350
 msgid "HiFi"
 msgstr "Υψηλή πιστότητα"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1925 src/utils/pactl.c:303
+#: src/modules/bluetooth/module-bluez5-device.c:1949 src/utils/pactl.c:351
 msgid "Phone"
 msgstr "Τηλέφωνο"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1972
+#: src/modules/bluetooth/module-bluez5-device.c:1996
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "Αναπαραγωγή υψηλής ποιότητας (δέκτης A2DP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1984
+#: src/modules/bluetooth/module-bluez5-device.c:2008
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "Λήψη υψηλής ποιότητας (πηγή A2DP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1996
+#: src/modules/bluetooth/module-bluez5-device.c:2020
 msgid "Headset Head Unit (HSP)"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:2009
+#: src/modules/bluetooth/module-bluez5-device.c:2033
 msgid "Headset Audio Gateway (HSP)"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:2022
+#: src/modules/bluetooth/module-bluez5-device.c:2046
 msgid "Handsfree Head Unit (HFP)"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:2035
+#: src/modules/bluetooth/module-bluez5-device.c:2059
 msgid "Handsfree Audio Gateway (HFP)"
 msgstr ""
 
@@ -1216,7 +1216,7 @@ msgstr "Δέκτης NULL με χρονιστή"
 msgid "Null Output"
 msgstr "Μηδενική έξοδος"
 
-#: src/modules/module-null-sink.c:350 src/utils/pactl.c:1297
+#: src/modules/module-null-sink.c:350 src/utils/pactl.c:2064
 #, c-format
 msgid "Failed to set format: invalid format string %s"
 msgstr "Αποτυχία ορισμού μορφής: άκυρη συμβολοσειρά μορφής %s"
@@ -1488,6 +1488,7 @@ msgstr "Πάνω πίσω δεξιά"
 #: src/pulse/channelmap.c:478 src/pulse/format.c:123 src/pulse/sample.c:177
 #: src/pulse/volume.c:306 src/pulse/volume.c:332 src/pulse/volume.c:352
 #: src/pulse/volume.c:384 src/pulse/volume.c:424 src/pulse/volume.c:443
+#: src/utils/pactl.c:483 src/utils/pactl.c:504
 msgid "(invalid)"
 msgstr "(άκυρο)"
 
@@ -1878,7 +1879,7 @@ msgstr "Αποτυχία ορισμού ροής οθόνης: %s"
 msgid "pa_stream_connect_record() failed: %s"
 msgstr "Αποτυχία pa_stream_connect_record(): %s"
 
-#: src/utils/pacat.c:514 src/utils/pactl.c:1723
+#: src/utils/pacat.c:514 src/utils/pactl.c:2508
 #, c-format
 msgid "Connection failure: %s"
 msgstr "Αποτυχία σύνδεσης: %s"
@@ -2079,7 +2080,7 @@ msgstr ""
 "Μεταγλωττισμένο με libpulse %s\n"
 "Συνδεμένο με libpulse %s\n"
 
-#: src/utils/pacat.c:852 src/utils/pactl.c:1929
+#: src/utils/pacat.c:852 src/utils/pactl.c:2720
 #, c-format
 msgid "Invalid client name '%s'"
 msgstr "Άκυρο όνομα πελάτη '%s'"
@@ -2152,7 +2153,7 @@ msgstr ""
 "Προειδοποίηση: η συγκεκριμένη προδιαγραφή δείγματος θα αντικατασταθεί με την "
 "προδιαγραφή από το αρχείο."
 
-#: src/utils/pacat.c:1091 src/utils/pactl.c:1994
+#: src/utils/pacat.c:1091 src/utils/pactl.c:2794
 msgid "Failed to determine sample specification from file."
 msgstr "Αποτυχία προσδιορισμού προδιαγραφής δείγματος από το αρχείο."
 
@@ -2187,7 +2188,7 @@ msgstr "Αναπαραγωγή"
 msgid "Failed to set media name."
 msgstr "Αποτυχία ορισμού ονόματος μέσων."
 
-#: src/utils/pacat.c:1172 src/utils/pactl.c:2406
+#: src/utils/pacat.c:1172 src/utils/pactl.c:3206
 msgid "pa_mainloop_new() failed."
 msgstr "Αποτυχία pa_mainloop_new()."
 
@@ -2195,11 +2196,11 @@ msgstr "Αποτυχία pa_mainloop_new()."
 msgid "io_new() failed."
 msgstr "Αποτυχία io_new()."
 
-#: src/utils/pacat.c:1202 src/utils/pactl.c:2418
+#: src/utils/pacat.c:1202 src/utils/pactl.c:3218
 msgid "pa_context_new() failed."
 msgstr "Αποτυχία pa_context_new()."
 
-#: src/utils/pacat.c:1210 src/utils/pactl.c:2424
+#: src/utils/pacat.c:1210 src/utils/pactl.c:3224
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "Αποτυχία pa_context_connect(): %s"
@@ -2208,21 +2209,21 @@ msgstr "Αποτυχία pa_context_connect(): %s"
 msgid "pa_context_rttime_new() failed."
 msgstr "Αποτυχία pa_context_rttime_new()."
 
-#: src/utils/pacat.c:1223 src/utils/pactl.c:2429
+#: src/utils/pacat.c:1223 src/utils/pactl.c:3229
 msgid "pa_mainloop_run() failed."
 msgstr "Αποτυχία pa_mainloop_run()."
 
-#: src/utils/pacmd.c:51 src/utils/pactl.c:1847
+#: src/utils/pacmd.c:51 src/utils/pactl.c:2632
 msgid "NAME [ARGS ...]"
 msgstr "ΟΝΟΜΑ [ΟΡΙΣΜΑΤΑ ...]"
 
-#: src/utils/pacmd.c:52 src/utils/pacmd.c:60 src/utils/pactl.c:1848
-#: src/utils/pactl.c:1855 src/utils/pactl.c:1856
+#: src/utils/pacmd.c:52 src/utils/pacmd.c:60 src/utils/pactl.c:2633
+#: src/utils/pactl.c:2640 src/utils/pactl.c:2641
 msgid "NAME|#N"
 msgstr "ΟΝΟΜΑ|#Ν"
 
-#: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:1846
-#: src/utils/pactl.c:1853
+#: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:2631
+#: src/utils/pactl.c:2638
 msgid "NAME"
 msgstr "ΟΝΟΜΑ"
 
@@ -2234,7 +2235,7 @@ msgstr "ΟΝΟΜΑ| ΕΝΤΑΣΗ #Ν"
 msgid "#N VOLUME"
 msgstr "#Ν ΕΝΤΑΣΗ"
 
-#: src/utils/pacmd.c:56 src/utils/pacmd.c:70 src/utils/pactl.c:1850
+#: src/utils/pacmd.c:56 src/utils/pacmd.c:70 src/utils/pactl.c:2635
 msgid "NAME|#N 1|0"
 msgstr "ΟΝΟΜΑ|#Ν 1|0"
 
@@ -2270,7 +2271,7 @@ msgstr "ΟΝΟΜΑ ΔΙΑΔΡΟΜΗΣ"
 msgid "FILENAME SINK|#N"
 msgstr "ΟΝΟΜΑ ΑΡΧΕΙΟΥ ΔΕΚΤΗ|#Ν"
 
-#: src/utils/pacmd.c:69 src/utils/pactl.c:1849
+#: src/utils/pacmd.c:69 src/utils/pactl.c:2634
 msgid "#N SINK|SOURCE"
 msgstr "#Ν ΔΕΚΤΗΣ|ΠΗΓΗ"
 
@@ -2278,15 +2279,15 @@ msgstr "#Ν ΔΕΚΤΗΣ|ΠΗΓΗ"
 msgid "1|0"
 msgstr "1|0"
 
-#: src/utils/pacmd.c:72 src/utils/pactl.c:1851
+#: src/utils/pacmd.c:72 src/utils/pactl.c:2636
 msgid "CARD PROFILE"
 msgstr "ΚΑΤΑΤΟΜΗ ΚΑΡΤΑΣ"
 
-#: src/utils/pacmd.c:73 src/utils/pactl.c:1854
+#: src/utils/pacmd.c:73 src/utils/pactl.c:2639
 msgid "NAME|#N PORT"
 msgstr "ΟΝΟΜΑ|ΘΥΡΑ #Ν"
 
-#: src/utils/pacmd.c:74 src/utils/pactl.c:1862
+#: src/utils/pacmd.c:74 src/utils/pactl.c:2647
 msgid "CARD-NAME|CARD-#N PORT OFFSET"
 msgstr "ΟΝΟΜΑ ΚΑΡΤΑΣ|ΚΑΡΤΑ-#Ν ΑΝΤΙΣΤΑΘΜΙΣΗ ΘΥΡΑΣ"
 
@@ -2303,7 +2304,7 @@ msgstr "ΑΡΙΘΜΗΤΙΚΟ ΕΠΙΠΕΔΟ"
 msgid "FRAMES"
 msgstr "ΠΛΑΙΣΙΑ"
 
-#: src/utils/pacmd.c:80 src/utils/pactl.c:1863
+#: src/utils/pacmd.c:80 src/utils/pactl.c:2648
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
 msgstr ""
 
@@ -2369,12 +2370,12 @@ msgstr "poll(): %s"
 msgid "read(): %s"
 msgstr "read(): %s"
 
-#: src/utils/pactl.c:175
+#: src/utils/pactl.c:183
 #, c-format
 msgid "Failed to get statistics: %s"
 msgstr "Αποτυχία λήψης στατιστικών: %s"
 
-#: src/utils/pactl.c:181
+#: src/utils/pactl.c:199
 #, fuzzy, c-format
 msgid "Currently in use: %u block containing %s bytes total.\n"
 msgid_plural "Currently in use: %u blocks containing %s bytes total.\n"
@@ -2383,7 +2384,7 @@ msgstr[0] ""
 msgstr[1] ""
 "Χρησιμοποιούνται τώρα: %u ομάδες που περιέχουν συνολικά %s ψηφιολέξεις.\n"
 
-#: src/utils/pactl.c:187
+#: src/utils/pactl.c:205
 #, fuzzy, c-format
 msgid "Allocated during whole lifetime: %u block containing %s bytes total.\n"
 msgid_plural ""
@@ -2395,22 +2396,22 @@ msgstr[1] ""
 "Κατανεμημένα κατά τη διάρκεια του συνολικού χρόνου ζωής: %u ομάδες που "
 "περιέχουν συνολικά %s ψηφιολέξεις.\n"
 
-#: src/utils/pactl.c:193
+#: src/utils/pactl.c:211
 #, c-format
 msgid "Sample cache size: %s\n"
 msgstr "μέγεθος κρυφής μνήμης δείγματος: %s\n"
 
-#: src/utils/pactl.c:200 src/utils/pactl.c:212 src/utils/pactl.c:226
+#: src/utils/pactl.c:219 src/utils/pactl.c:231 src/utils/pactl.c:245
 #, c-format
 msgid "Failed to get server information: %s"
 msgstr "Αποτυχία λήψης πληροφοριών διακομιστή: %s"
 
-#: src/utils/pactl.c:205 src/utils/pactl.c:217
+#: src/utils/pactl.c:224 src/utils/pactl.c:236
 #, fuzzy, c-format
 msgid "%s\n"
 msgstr "%s %s\n"
 
-#: src/utils/pactl.c:231
+#: src/utils/pactl.c:281
 #, c-format
 msgid ""
 "Server String: %s\n"
@@ -2427,7 +2428,7 @@ msgstr ""
 "Δείκτης πελάτη: %u\n"
 "Μέγεθος παράθεσης: %zu\n"
 
-#: src/utils/pactl.c:247
+#: src/utils/pactl.c:294
 #, c-format
 msgid ""
 "User Name: %s\n"
@@ -2450,82 +2451,82 @@ msgstr ""
 "Προεπιλεγμένη πηγή: %s\n"
 "Μπισκότο: %04x:%04x\n"
 
-#: src/utils/pactl.c:272
+#: src/utils/pactl.c:320
 msgid "availability unknown"
 msgstr ""
 
-#: src/utils/pactl.c:273
+#: src/utils/pactl.c:321
 msgid "available"
 msgstr ""
 
-#: src/utils/pactl.c:274
+#: src/utils/pactl.c:322
 msgid "not available"
 msgstr ""
 
-#: src/utils/pactl.c:283 src/utils/pactl.c:307
+#: src/utils/pactl.c:331 src/utils/pactl.c:355
 #, fuzzy
 msgid "Unknown"
 msgstr "άγνωστο"
 
-#: src/utils/pactl.c:284
+#: src/utils/pactl.c:332
 msgid "Aux"
 msgstr ""
 
-#: src/utils/pactl.c:287
+#: src/utils/pactl.c:335
 #, fuzzy
 msgid "Line"
 msgstr "Γραμμή εισόδου"
 
-#: src/utils/pactl.c:288
+#: src/utils/pactl.c:336
 msgid "Mic"
 msgstr ""
 
-#: src/utils/pactl.c:290
+#: src/utils/pactl.c:338
 #, fuzzy
 msgid "Handset"
 msgstr "Ακουστικά"
 
-#: src/utils/pactl.c:291
+#: src/utils/pactl.c:339
 msgid "Earpiece"
 msgstr ""
 
-#: src/utils/pactl.c:292
+#: src/utils/pactl.c:340
 msgid "SPDIF"
 msgstr ""
 
-#: src/utils/pactl.c:293
+#: src/utils/pactl.c:341
 msgid "HDMI"
 msgstr ""
 
-#: src/utils/pactl.c:294
+#: src/utils/pactl.c:342
 msgid "TV"
 msgstr ""
 
-#: src/utils/pactl.c:297
+#: src/utils/pactl.c:345
 msgid "USB"
 msgstr ""
 
-#: src/utils/pactl.c:298
+#: src/utils/pactl.c:346
 #, fuzzy
 msgid "Bluetooth"
 msgstr "Είσοδος μπλουτούθ"
 
-#: src/utils/pactl.c:304
+#: src/utils/pactl.c:352
 msgid "Network"
 msgstr ""
 
-#: src/utils/pactl.c:305
+#: src/utils/pactl.c:353
 #, fuzzy
 msgid "Analog"
 msgstr "Αναλογικό μονοφωνικό"
 
-#: src/utils/pactl.c:329 src/utils/pactl.c:1067 src/utils/pactl.c:1085
-#: src/utils/pactl.c:1108 src/utils/pactl.c:1225
+#: src/utils/pactl.c:567 src/utils/pactl.c:1834 src/utils/pactl.c:1852
+#: src/utils/pactl.c:1875 src/utils/pactl.c:1992
 #, c-format
 msgid "Failed to get sink information: %s"
 msgstr "Αποτυχία λήψης πληροφοριών δέκτη: %s"
 
-#: src/utils/pactl.c:355
+#: src/utils/pactl.c:664
 #, c-format
 msgid ""
 "Sink #%u\n"
@@ -2564,37 +2565,37 @@ msgstr ""
 "\tΙδιότητες:\n"
 "\t\t%s\n"
 
-#: src/utils/pactl.c:399 src/utils/pactl.c:507 src/utils/pactl.c:670
+#: src/utils/pactl.c:706 src/utils/pactl.c:890 src/utils/pactl.c:1251
 #, c-format
 msgid "\tPorts:\n"
 msgstr "\tΘύρες:\n"
 
-#: src/utils/pactl.c:401 src/utils/pactl.c:509
+#: src/utils/pactl.c:708 src/utils/pactl.c:892
 #, c-format
 msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
 msgstr ""
 
-#: src/utils/pactl.c:403 src/utils/pactl.c:511 src/utils/pactl.c:675
+#: src/utils/pactl.c:710 src/utils/pactl.c:894 src/utils/pactl.c:1256
 msgid ", availability group: "
 msgstr ""
 
-#: src/utils/pactl.c:408 src/utils/pactl.c:516
+#: src/utils/pactl.c:715 src/utils/pactl.c:899
 #, c-format
 msgid "\tActive Port: %s\n"
 msgstr "\tΕνεργή θύρα: %s\n"
 
-#: src/utils/pactl.c:414 src/utils/pactl.c:522
+#: src/utils/pactl.c:721 src/utils/pactl.c:905
 #, c-format
 msgid "\tFormats:\n"
 msgstr "\tΜορφές:\n"
 
-#: src/utils/pactl.c:438 src/utils/pactl.c:1126 src/utils/pactl.c:1144
-#: src/utils/pactl.c:1167 src/utils/pactl.c:1240
+#: src/utils/pactl.c:753 src/utils/pactl.c:1893 src/utils/pactl.c:1911
+#: src/utils/pactl.c:1934 src/utils/pactl.c:2007
 #, c-format
 msgid "Failed to get source information: %s"
 msgstr "Αποτυχία λήψης πληροφοριών πηγής: %s"
 
-#: src/utils/pactl.c:464
+#: src/utils/pactl.c:849
 #, c-format
 msgid ""
 "Source #%u\n"
@@ -2633,20 +2634,20 @@ msgstr ""
 "\tΙδιότητες:\n"
 "\t\t%s\n"
 
-#: src/utils/pactl.c:492 src/utils/pactl.c:564 src/utils/pactl.c:607
-#: src/utils/pactl.c:649 src/utils/pactl.c:748 src/utils/pactl.c:749
-#: src/utils/pactl.c:760 src/utils/pactl.c:818 src/utils/pactl.c:819
-#: src/utils/pactl.c:830 src/utils/pactl.c:881 src/utils/pactl.c:882
-#: src/utils/pactl.c:888
+#: src/utils/pactl.c:877 src/utils/pactl.c:962 src/utils/pactl.c:1062
+#: src/utils/pactl.c:1232 src/utils/pactl.c:1384 src/utils/pactl.c:1385
+#: src/utils/pactl.c:1396 src/utils/pactl.c:1507 src/utils/pactl.c:1508
+#: src/utils/pactl.c:1519 src/utils/pactl.c:1557 src/utils/pactl.c:1582
+#: src/utils/pactl.c:1624
 msgid "n/a"
 msgstr "μη διαθέσιμο"
 
-#: src/utils/pactl.c:533 src/utils/pactl.c:1026
+#: src/utils/pactl.c:924 src/utils/pactl.c:1793
 #, c-format
 msgid "Failed to get module information: %s"
 msgstr "Αποτυχία λήψης πληροφοριών ενότητας: %s"
 
-#: src/utils/pactl.c:556
+#: src/utils/pactl.c:976
 #, c-format
 msgid ""
 "Module #%u\n"
@@ -2663,12 +2664,12 @@ msgstr ""
 "\tΙδιότητες:\n"
 "\t\t%s\n"
 
-#: src/utils/pactl.c:575
+#: src/utils/pactl.c:1002
 #, c-format
 msgid "Failed to get client information: %s"
 msgstr "Αποτυχία λήψης πληροφοριών πελάτη: %s"
 
-#: src/utils/pactl.c:601
+#: src/utils/pactl.c:1056
 #, c-format
 msgid ""
 "Client #%u\n"
@@ -2683,12 +2684,12 @@ msgstr ""
 "\tΙδιότητες:\n"
 "\t\t%s\n"
 
-#: src/utils/pactl.c:618
+#: src/utils/pactl.c:1168
 #, c-format
 msgid "Failed to get card information: %s"
 msgstr "Αποτυχία λήψης πληροφοριών κάρτας: %s"
 
-#: src/utils/pactl.c:641
+#: src/utils/pactl.c:1224
 #, c-format
 msgid ""
 "Card #%u\n"
@@ -2705,28 +2706,28 @@ msgstr ""
 "\tΙδιότητες:\n"
 "\t\t%s\n"
 
-#: src/utils/pactl.c:657
+#: src/utils/pactl.c:1238
 #, c-format
 msgid "\tProfiles:\n"
 msgstr "\tΚατατομές:\n"
 
-#: src/utils/pactl.c:659
+#: src/utils/pactl.c:1240
 #, c-format
 msgid "\t\t%s: %s (sinks: %u, sources: %u, priority: %u, available: %s)\n"
 msgstr ""
 
-#: src/utils/pactl.c:664
+#: src/utils/pactl.c:1245
 #, c-format
 msgid "\tActive Profile: %s\n"
 msgstr "\tΕνεργή κατατομή: %s\n"
 
-#: src/utils/pactl.c:673
+#: src/utils/pactl.c:1254
 #, c-format
 msgid ""
 "\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s, %s)\n"
 msgstr ""
 
-#: src/utils/pactl.c:679
+#: src/utils/pactl.c:1261
 #, c-format
 msgid ""
 "\t\t\tProperties:\n"
@@ -2735,17 +2736,17 @@ msgstr ""
 "\t\t\tΙδιότητες:\n"
 "\t\t\t\t%s\n"
 
-#: src/utils/pactl.c:684
+#: src/utils/pactl.c:1265
 #, c-format
 msgid "\t\t\tPart of profile(s): %s"
 msgstr "\t\t\tΤμήμα των κατατομών: %s"
 
-#: src/utils/pactl.c:701 src/utils/pactl.c:1187 src/utils/pactl.c:1255
+#: src/utils/pactl.c:1290 src/utils/pactl.c:1954 src/utils/pactl.c:2022
 #, c-format
 msgid "Failed to get sink input information: %s"
 msgstr "Αποτυχία λήψης πληροφοριών εισόδου δέκτη: %s"
 
-#: src/utils/pactl.c:730
+#: src/utils/pactl.c:1366
 #, c-format
 msgid ""
 "Sink Input #%u\n"
@@ -2784,12 +2785,12 @@ msgstr ""
 "\tΙδιότητες:\n"
 "\t\t%s\n"
 
-#: src/utils/pactl.c:771 src/utils/pactl.c:1207 src/utils/pactl.c:1270
+#: src/utils/pactl.c:1413 src/utils/pactl.c:1974 src/utils/pactl.c:2037
 #, c-format
 msgid "Failed to get source output information: %s"
 msgstr "Αποτυχία λήψης πληροφοριών εξόδου πηγής: %s"
 
-#: src/utils/pactl.c:800
+#: src/utils/pactl.c:1489
 #, c-format
 msgid ""
 "Source Output #%u\n"
@@ -2828,12 +2829,12 @@ msgstr ""
 "\tΙδιότητες:\n"
 "\t\t%s\n"
 
-#: src/utils/pactl.c:841
+#: src/utils/pactl.c:1536
 #, c-format
 msgid "Failed to get sample information: %s"
 msgstr "Αποτυχία λήψης πληροφοριών δείγματος: %s"
 
-#: src/utils/pactl.c:868
+#: src/utils/pactl.c:1604
 #, c-format
 msgid ""
 "Sample #%u\n"
@@ -2862,40 +2863,40 @@ msgstr ""
 "\tΙδιότητες:\n"
 "\t\t%s\n"
 
-#: src/utils/pactl.c:896 src/utils/pactl.c:906
+#: src/utils/pactl.c:1633 src/utils/pactl.c:1643
 #, c-format
 msgid "Failure: %s"
 msgstr "Αποτυχία: %s"
 
-#: src/utils/pactl.c:919
+#: src/utils/pactl.c:1667
 #, fuzzy, c-format
 msgid "Send message failed: %s"
 msgstr "Αποτυχία read(): %s"
 
-#: src/utils/pactl.c:936
+#: src/utils/pactl.c:1695
 #, c-format
 msgid "list-handlers message failed: %s"
 msgstr ""
 
-#: src/utils/pactl.c:944 src/utils/pactl.c:993
+#: src/utils/pactl.c:1711 src/utils/pactl.c:1760
 msgid "list-handlers message response could not be parsed correctly"
 msgstr ""
 
-#: src/utils/pactl.c:951
+#: src/utils/pactl.c:1718
 msgid "list-handlers message response is not a JSON array"
 msgstr ""
 
-#: src/utils/pactl.c:962
+#: src/utils/pactl.c:1729
 #, c-format
 msgid "list-handlers message response array element %d is not a JSON object"
 msgstr ""
 
-#: src/utils/pactl.c:1033
+#: src/utils/pactl.c:1800
 #, c-format
 msgid "Failed to unload module: Module %s not loaded"
 msgstr "Αποτυχία εκφόρτωσης ενότητας: η ενότητα %s δεν φορτώθηκε"
 
-#: src/utils/pactl.c:1051
+#: src/utils/pactl.c:1818
 #, fuzzy, c-format
 msgid ""
 "Failed to set volume: You tried to set volumes for %d channel, whereas "
@@ -2910,137 +2911,137 @@ msgstr[1] ""
 "Αποτυχία ορισμού έντασης: Προσπαθήσατε να ορίσετε εντάσεις για %d κανάλια, "
 "ενώ τα υποστηριζόμενα κανάλια είναι %d\n"
 
-#: src/utils/pactl.c:1340
+#: src/utils/pactl.c:2107
 #, c-format
 msgid "Failed to upload sample: %s"
 msgstr "Αποτυχία αποστολής δείγματος: %s"
 
-#: src/utils/pactl.c:1357
+#: src/utils/pactl.c:2124
 msgid "Premature end of file"
 msgstr "Πρόωρο τέλος του αρχείου"
 
-#: src/utils/pactl.c:1377
+#: src/utils/pactl.c:2144
 msgid "new"
 msgstr "νέο"
 
-#: src/utils/pactl.c:1380
+#: src/utils/pactl.c:2147
 msgid "change"
 msgstr "αλλαγή"
 
-#: src/utils/pactl.c:1383
+#: src/utils/pactl.c:2150
 msgid "remove"
 msgstr "αφαίρεση"
 
-#: src/utils/pactl.c:1386 src/utils/pactl.c:1421
+#: src/utils/pactl.c:2153 src/utils/pactl.c:2188
 msgid "unknown"
 msgstr "άγνωστο"
 
-#: src/utils/pactl.c:1394
+#: src/utils/pactl.c:2161
 msgid "sink"
 msgstr "δέκτης"
 
-#: src/utils/pactl.c:1397
+#: src/utils/pactl.c:2164
 msgid "source"
 msgstr "πηγή"
 
-#: src/utils/pactl.c:1400
+#: src/utils/pactl.c:2167
 msgid "sink-input"
 msgstr "είσοδος δέκτη"
 
-#: src/utils/pactl.c:1403
+#: src/utils/pactl.c:2170
 msgid "source-output"
 msgstr "έξοδος πηγής"
 
-#: src/utils/pactl.c:1406
+#: src/utils/pactl.c:2173
 msgid "module"
 msgstr "ενότητα"
 
-#: src/utils/pactl.c:1409
+#: src/utils/pactl.c:2176
 msgid "client"
 msgstr "πελάτης"
 
-#: src/utils/pactl.c:1412
+#: src/utils/pactl.c:2179
 msgid "sample-cache"
 msgstr "κρυφή μνήμη δείγματος"
 
-#: src/utils/pactl.c:1415
+#: src/utils/pactl.c:2182
 msgid "server"
 msgstr "διακομιστής"
 
-#: src/utils/pactl.c:1418
+#: src/utils/pactl.c:2185
 msgid "card"
 msgstr "κάρτα"
 
-#: src/utils/pactl.c:1427
+#: src/utils/pactl.c:2206
 #, c-format
 msgid "Event '%s' on %s #%u\n"
 msgstr "Συμβάν '%s' στο %s #%u\n"
 
-#: src/utils/pactl.c:1729
+#: src/utils/pactl.c:2514
 msgid "Got SIGINT, exiting."
 msgstr "Ελήφθη SIGINT, έξοδος."
 
-#: src/utils/pactl.c:1762
+#: src/utils/pactl.c:2547
 msgid "Invalid volume specification"
 msgstr "Άκυρη προδιαγραφή έντασης"
 
-#: src/utils/pactl.c:1785
+#: src/utils/pactl.c:2570
 msgid "Volume outside permissible range.\n"
 msgstr "Η ένταση εκτός επιτρεπτής περιοχής.\n"
 
-#: src/utils/pactl.c:1798
+#: src/utils/pactl.c:2583
 msgid "Invalid number of volume specifications.\n"
 msgstr "Άκυρος αριθμός προδιαγραφών έντασης.\n"
 
-#: src/utils/pactl.c:1810
+#: src/utils/pactl.c:2595
 msgid "Inconsistent volume specification.\n"
 msgstr "Ασύμβατη προδιαγραφή έντασης.\n"
 
-#: src/utils/pactl.c:1840 src/utils/pactl.c:1841 src/utils/pactl.c:1842
-#: src/utils/pactl.c:1843 src/utils/pactl.c:1844 src/utils/pactl.c:1845
-#: src/utils/pactl.c:1846 src/utils/pactl.c:1847 src/utils/pactl.c:1848
-#: src/utils/pactl.c:1849 src/utils/pactl.c:1850 src/utils/pactl.c:1851
-#: src/utils/pactl.c:1852 src/utils/pactl.c:1853 src/utils/pactl.c:1854
-#: src/utils/pactl.c:1855 src/utils/pactl.c:1856 src/utils/pactl.c:1857
-#: src/utils/pactl.c:1858 src/utils/pactl.c:1859 src/utils/pactl.c:1860
-#: src/utils/pactl.c:1861 src/utils/pactl.c:1862 src/utils/pactl.c:1863
-#: src/utils/pactl.c:1864
+#: src/utils/pactl.c:2625 src/utils/pactl.c:2626 src/utils/pactl.c:2627
+#: src/utils/pactl.c:2628 src/utils/pactl.c:2629 src/utils/pactl.c:2630
+#: src/utils/pactl.c:2631 src/utils/pactl.c:2632 src/utils/pactl.c:2633
+#: src/utils/pactl.c:2634 src/utils/pactl.c:2635 src/utils/pactl.c:2636
+#: src/utils/pactl.c:2637 src/utils/pactl.c:2638 src/utils/pactl.c:2639
+#: src/utils/pactl.c:2640 src/utils/pactl.c:2641 src/utils/pactl.c:2642
+#: src/utils/pactl.c:2643 src/utils/pactl.c:2644 src/utils/pactl.c:2645
+#: src/utils/pactl.c:2646 src/utils/pactl.c:2647 src/utils/pactl.c:2648
+#: src/utils/pactl.c:2649
 msgid "[options]"
 msgstr "[επιλογές]"
 
-#: src/utils/pactl.c:1842
+#: src/utils/pactl.c:2627
 msgid "[TYPE]"
 msgstr "[ΤΥΠΟΣ]"
 
-#: src/utils/pactl.c:1844
+#: src/utils/pactl.c:2629
 msgid "FILENAME [NAME]"
 msgstr "ΟΝΟΜΑΑΡΧΕΙΟΥ [ΟΝΟΜΑ]"
 
-#: src/utils/pactl.c:1845
+#: src/utils/pactl.c:2630
 msgid "NAME [SINK]"
 msgstr "ΟΝΟΜΑ [ΔΕΚΤΗΣ]"
 
-#: src/utils/pactl.c:1857
+#: src/utils/pactl.c:2642
 msgid "NAME|#N VOLUME [VOLUME ...]"
 msgstr "ΟΝΟΜΑ| ΕΝΤΑΣΗ #Ν [ΕΝΤΑΣΗ ...]"
 
-#: src/utils/pactl.c:1858
+#: src/utils/pactl.c:2643
 msgid "#N VOLUME [VOLUME ...]"
 msgstr "#N ΕΝΤΑΣΗ [ΕΝΤΑΣΗ ...]"
 
-#: src/utils/pactl.c:1859
+#: src/utils/pactl.c:2644
 msgid "NAME|#N 1|0|toggle"
 msgstr "ΟΝΟΜΑ|#Ν 1|0|εναλλαγή"
 
-#: src/utils/pactl.c:1860
+#: src/utils/pactl.c:2645
 msgid "#N 1|0|toggle"
 msgstr "#Ν 1|0|εναλλαγή"
 
-#: src/utils/pactl.c:1861
+#: src/utils/pactl.c:2646
 msgid "#N FORMATS"
 msgstr "ΜΟΡΦΕΣ #Ν"
 
-#: src/utils/pactl.c:1865
+#: src/utils/pactl.c:2650
 #, c-format
 msgid ""
 "\n"
@@ -3052,13 +3053,15 @@ msgstr ""
 "μπορούν να χρησιμοποιηθούν ορίζοντας τον προεπιλεγμένο δέκτη, πηγή και "
 "οθόνη.\n"
 
-#: src/utils/pactl.c:1868
-#, c-format
+#: src/utils/pactl.c:2653
+#, fuzzy, c-format
 msgid ""
 "\n"
 "  -h, --help                            Show this help\n"
 "      --version                         Show version\n"
 "\n"
+"  -f, --format=FORMAT                   The format of the output. Either "
+"\"normal\" or \"json\"\n"
 "  -s, --server=SERVER                   The name of the server to connect "
 "to\n"
 "  -n, --client-name=NAME                How to call this client on the "
@@ -3072,7 +3075,7 @@ msgstr ""
 "  -n, --client-name=NAME                Πώς να κληθεί αυτός ο πελάτης στον "
 "διακομιστή\n"
 
-#: src/utils/pactl.c:1909
+#: src/utils/pactl.c:2696
 #, c-format
 msgid ""
 "pactl %s\n"
@@ -3083,60 +3086,65 @@ msgstr ""
 "Μεταγλωττισμένο με libpulse %s\n"
 "Συνδεμένο με libpulse %s\n"
 
-#: src/utils/pactl.c:1966
+#: src/utils/pactl.c:2739
+#, fuzzy, c-format
+msgid "Invalid format value '%s'"
+msgstr "Άκυρο όνομα ροής '%s'"
+
+#: src/utils/pactl.c:2766
 #, c-format
 msgid "Specify nothing, or one of: %s"
 msgstr "Ορίστε τίποτα, ή ένα από τα: %s"
 
-#: src/utils/pactl.c:1976
+#: src/utils/pactl.c:2776
 msgid "Please specify a sample file to load"
 msgstr "Παρακαλούμε ορίστε ένα αρχείο δείγματος για φόρτωση"
 
-#: src/utils/pactl.c:1989
+#: src/utils/pactl.c:2789
 msgid "Failed to open sound file."
 msgstr "Αποτυχία ανοίγματος αρχείου ήχου."
 
-#: src/utils/pactl.c:2001
+#: src/utils/pactl.c:2801
 msgid "Warning: Failed to determine sample specification from file."
 msgstr ""
 "Προειδοποίηση: Αποτυχία προσδιορισμού προδιαγραφής δείγματος από αρχείο."
 
-#: src/utils/pactl.c:2011
+#: src/utils/pactl.c:2811
 msgid "You have to specify a sample name to play"
 msgstr "Πρέπει να ορίσετε ένα όνομα δείγματος για αναπαραγωγή"
 
-#: src/utils/pactl.c:2023
+#: src/utils/pactl.c:2823
 msgid "You have to specify a sample name to remove"
 msgstr "Πρέπει να ορίσετε ένα όνομα δείγματος για αφαίρεση"
 
-#: src/utils/pactl.c:2032
+#: src/utils/pactl.c:2832
 msgid "You have to specify a sink input index and a sink"
 msgstr "Πρέπει να ορίσετε έναν δείκτη εισόδου δέκτη και έναν δέκτη"
 
-#: src/utils/pactl.c:2042
+#: src/utils/pactl.c:2842
 msgid "You have to specify a source output index and a source"
 msgstr "Πρέπει να ορίσετε έναν δείκτη εξόδου πηγής και μια πηγή"
 
-#: src/utils/pactl.c:2057
+#: src/utils/pactl.c:2857
 msgid "You have to specify a module name and arguments."
 msgstr "Πρέπει να ορίσετε ένα όνομα ενότητας και ορίσματα."
 
-#: src/utils/pactl.c:2077
+#: src/utils/pactl.c:2877
 msgid "You have to specify a module index or name"
 msgstr "Πρέπει να ορίσετε έναν δείκτη ενότητας ή όνομα"
 
-#: src/utils/pactl.c:2090
+#: src/utils/pactl.c:2890
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean value."
 msgstr ""
 "Δεν μπορείτε να ορίσετε περισσότερους από έναν δέκτη. Πρέπει να ορίσετε μια "
 "τιμή Μπουλ."
 
-#: src/utils/pactl.c:2095 src/utils/pactl.c:2115
+#: src/utils/pactl.c:2895 src/utils/pactl.c:2915
 msgid "Invalid suspend specification."
 msgstr "Άκυρη προδιαγραφή αναστολής."
 
-#: src/utils/pactl.c:2110
+#: src/utils/pactl.c:2910
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
@@ -3144,110 +3152,110 @@ msgstr ""
 "Δεν μπορείτε να ορίσετε περισσότερες από μία πηγές. Πρέπει να ορίσετε μια "
 "τιμή Μπουλ."
 
-#: src/utils/pactl.c:2127
+#: src/utils/pactl.c:2927
 msgid "You have to specify a card name/index and a profile name"
 msgstr "Πρέπει να ορίσετε ένα όνομα/δείκτη κάρτας και ένα όνομα κατατομής"
 
-#: src/utils/pactl.c:2138
+#: src/utils/pactl.c:2938
 msgid "You have to specify a sink name/index and a port name"
 msgstr "Πρέπει να ορίσετε ένα όνομα/δείκτη δέκτη και ένα όνομα θύρας"
 
-#: src/utils/pactl.c:2149
+#: src/utils/pactl.c:2949
 msgid "You have to specify a sink name"
 msgstr "Πρέπει να ορίσετε ένα όνομα δέκτη"
 
-#: src/utils/pactl.c:2162
+#: src/utils/pactl.c:2962
 msgid "You have to specify a source name/index and a port name"
 msgstr "Πρέπει να ορίσετε ένα όνομα/δείκτη πηγής και ένα όνομα θύρας"
 
-#: src/utils/pactl.c:2173
+#: src/utils/pactl.c:2973
 msgid "You have to specify a source name"
 msgstr "Πρέπει να ορίσετε ένα όνομα πηγής"
 
-#: src/utils/pactl.c:2186 src/utils/pactl.c:2264
+#: src/utils/pactl.c:2986 src/utils/pactl.c:3064
 #, fuzzy
 msgid "You have to specify a sink name/index"
 msgstr "Πρέπει να ορίσετε ένα όνομα δέκτη"
 
-#: src/utils/pactl.c:2196
+#: src/utils/pactl.c:2996
 msgid "You have to specify a sink name/index and a volume"
 msgstr "Πρέπει να ορίσετε ένα όνομα/δείκτη δέκτη και μια ένταση"
 
-#: src/utils/pactl.c:2209 src/utils/pactl.c:2289
+#: src/utils/pactl.c:3009 src/utils/pactl.c:3089
 #, fuzzy
 msgid "You have to specify a source name/index"
 msgstr "Πρέπει να ορίσετε ένα όνομα πηγής"
 
-#: src/utils/pactl.c:2219
+#: src/utils/pactl.c:3019
 msgid "You have to specify a source name/index and a volume"
 msgstr "Πρέπει να ορίσετε ένα όνομα/δείκτη πηγής και μια ένταση"
 
-#: src/utils/pactl.c:2232
+#: src/utils/pactl.c:3032
 msgid "You have to specify a sink input index and a volume"
 msgstr "Πρέπει να ορίσετε έναν δείκτη εισόδου δέκτη και μια ένταση"
 
-#: src/utils/pactl.c:2237
+#: src/utils/pactl.c:3037
 msgid "Invalid sink input index"
 msgstr "Άκυρος δείκτης εισόδου δέκτη"
 
-#: src/utils/pactl.c:2248
+#: src/utils/pactl.c:3048
 msgid "You have to specify a source output index and a volume"
 msgstr "Πρέπει να ορίσετε έναν δείκτη εξόδου πηγής και μια ένταση"
 
-#: src/utils/pactl.c:2253
+#: src/utils/pactl.c:3053
 msgid "Invalid source output index"
 msgstr "Άκυρος δείκτης εξόδου πηγής"
 
-#: src/utils/pactl.c:2274
+#: src/utils/pactl.c:3074
 #, fuzzy
 msgid ""
 "You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"
 msgstr "Πρέπει να ορίσετε έναν δείκτη/όνομα δέκτη και μια τιμή Μπουλ σίγασης"
 
-#: src/utils/pactl.c:2279 src/utils/pactl.c:2304 src/utils/pactl.c:2324
-#: src/utils/pactl.c:2342
+#: src/utils/pactl.c:3079 src/utils/pactl.c:3104 src/utils/pactl.c:3124
+#: src/utils/pactl.c:3142
 msgid "Invalid mute specification"
 msgstr "Άκυρη προδιαγραφή σίγασης"
 
-#: src/utils/pactl.c:2299
+#: src/utils/pactl.c:3099
 #, fuzzy
 msgid ""
 "You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
 msgstr "Πρέπει να ορίσετε ένα όνομα/δείκτη πηγής και μια τιμή Μπουλ σίγασης"
 
-#: src/utils/pactl.c:2314
+#: src/utils/pactl.c:3114
 #, fuzzy
 msgid ""
 "You have to specify a sink input index and a mute action (0, 1, or 'toggle')"
 msgstr "Πρέπει να ορίσετε έναν δείκτη εισόδου δέκτη και μια τιμή Μπουλ σίγασης"
 
-#: src/utils/pactl.c:2319
+#: src/utils/pactl.c:3119
 msgid "Invalid sink input index specification"
 msgstr "Άκυρη προδιαγραφή δείκτη εισόδου δέκτη"
 
-#: src/utils/pactl.c:2332
+#: src/utils/pactl.c:3132
 #, fuzzy
 msgid ""
 "You have to specify a source output index and a mute action (0, 1, or "
 "'toggle')"
 msgstr "Πρέπει να ορίσετε έναν δείκτη εξόδου πηγής και μια τιμή Μπουλ σίγασης"
 
-#: src/utils/pactl.c:2337
+#: src/utils/pactl.c:3137
 msgid "Invalid source output index specification"
 msgstr "Άκυρη προδιαγραφή δείκτη εξόδου πηγής"
 
-#: src/utils/pactl.c:2350
+#: src/utils/pactl.c:3150
 #, fuzzy
 msgid "You have to specify at least an object path and a message name"
 msgstr "Πρέπει να ορίσετε ένα όνομα/δείκτη δέκτη και ένα όνομα θύρας"
 
-#: src/utils/pactl.c:2360
+#: src/utils/pactl.c:3160
 msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
 msgstr ""
 
-#: src/utils/pactl.c:2370
+#: src/utils/pactl.c:3170
 msgid ""
 "You have to specify a sink index and a semicolon-separated list of supported "
 "formats"
@@ -3255,17 +3263,17 @@ msgstr ""
 "Πρέπει να ορίσετε έναν δείκτη δέκτη και έναν κατάλογο χωριζόμενο με ; των "
 "υποστηριζόμενων μορφών"
 
-#: src/utils/pactl.c:2382
+#: src/utils/pactl.c:3182
 msgid "You have to specify a card name/index, a port name and a latency offset"
 msgstr ""
 "Πρέπει να ορίσετε ένα όνομα/δείκτη κάρτας, ένα όνομα θύρας και μια "
 "μετατόπιση λανθάνοντος χρόνου"
 
-#: src/utils/pactl.c:2389
+#: src/utils/pactl.c:3189
 msgid "Could not parse latency offset"
 msgstr "Αδύνατη η ανάλυση μετατόπισης λανθάνοντος χρόνου"
 
-#: src/utils/pactl.c:2401
+#: src/utils/pactl.c:3201
 msgid "No valid command specified."
 msgstr "Δεν ορίστηκε έγκυρη εντολή."
 
