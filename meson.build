@@ -982,7 +982,7 @@ message('\n    '.join(summary))
 
 # Sanity checks
 
-if not speex_dep.found() and not webrtc_dep.found() and not get_option('adrian-aec')
+if get_option('daemon') and not speex_dep.found() and not webrtc_dep.found() and not get_option('adrian-aec')
   error('At least one echo canceller implementation must be available!')
 endif
 
@@ -1002,7 +1002,7 @@ if host_machine.system() != 'windows'
     ]
     warning('\n' + '\n'.join(message))
   endif
-  if host_machine.system() == 'linux' and not udev_dep.found()
+  if host_machine.system() == 'linux' and not udev_dep.found() and get_option('daemon')
     message = [
       'You do not have udev support enabled. It is strongly recommended',
       'that you enable udev support if your platform supports it as it is',
@@ -1011,7 +1011,7 @@ if host_machine.system() != 'windows'
     ]
     warning('\n' + '\n'.join(message))
   endif
-  if not speex_dep.found()
+  if not speex_dep.found() and get_option('daemon')
     message = [
       'You do not have speex support enabled. It is strongly recommended',
       'that you enable speex support if your platform supports it as it is',
