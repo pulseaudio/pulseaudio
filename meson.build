@@ -53,6 +53,8 @@ libpulse_mainloop_glib_version = '@0@.@1@.@2@'.format(
   libpulse_mainloop_glib_version_info[1],
 )
 
+i18n = import('i18n')
+
 # Paths
 
 prefix = get_option('prefix')
@@ -68,6 +70,7 @@ localedir = join_paths(prefix, get_option('localedir'))
 localstatedir = join_paths(prefix, get_option('localstatedir'))
 sysconfdir = join_paths(prefix, get_option('sysconfdir'))
 privlibdir = join_paths(libdir, 'pulseaudio')
+po_dir = join_paths(meson.current_source_dir(), 'po')
 
 if host_machine.system() == 'windows'
   # Windows only supports loading libraries from the same dir as the executable
@@ -817,19 +820,27 @@ check_dep = dependency('check', version : '>= 0.9.10', required : get_option('te
 if get_option('doxygen')
   subdir('doxygen')
 endif
-subdir('po')
+if not get_option('daemon-only')
+  subdir('po')
+endif
 if get_option('man')
   subdir('man')
 endif
 subdir('shell-completion/bash')
-subdir('shell-completion/zsh')
+if not get_option('daemon-only')
+  subdir('shell-completion/zsh')
+endif
 subdir('src')
-subdir('vala')
+if not get_option('daemon-only')
+ subdir('vala')
+endif
 
 # Now generate config.h from everything above
 configure_file(output : 'config.h', configuration : cdata)
 
 # pkg-config files
+
+if not get_option('daemon-only')
 
 pc_cdata = configuration_data()
 
@@ -863,7 +874,11 @@ foreach file : pc_files
     install_dir : pkgconfigdir)
 endforeach
 
+endif # !daemon-only
+
 # CMake files
+
+if not get_option('daemon-only')
 
 m4 = find_program('m4', required: true)
 
@@ -892,6 +907,8 @@ configure_file(
   install : true,
   install_dir : cmakedir,
 )
+
+endif # !daemon-only
 
 ############################################################
 

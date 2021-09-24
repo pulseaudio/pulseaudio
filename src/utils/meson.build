@@ -1,3 +1,4 @@
+if not get_option('daemon-only')
 pacat_sources = [
   'pacat.c',
 ]
@@ -41,6 +42,7 @@ executable('pactl',
   dependencies : [sndfile_dep, libintl_dep],
   c_args : pa_c_args,
 )
+endif
 
 if get_option('daemon')
   if host_machine.system() != 'windows'
@@ -53,8 +55,7 @@ if get_option('daemon')
       install: true,
       install_rpath : privlibdir,
       include_directories : [configinc, topinc],
-      link_with : [libpulsecommon, libpulse],
-      dependencies: [libintl_dep],
+      dependencies: [libintl_dep, libpulsecommon_dep, libpulse_dep],
       c_args : pa_c_args,
     )
 
@@ -67,13 +68,13 @@ if get_option('daemon')
       install: true,
       install_rpath : privlibdir,
       include_directories : [configinc, topinc],
-      link_with : [libpulsecommon, libpulse],
-      dependencies: [libintl_dep],
+      dependencies: [libintl_dep, libpulsecommon_dep, libpulse_dep],
       c_args : pa_c_args,
     )
   endif
 endif
 
+if not get_option('daemon-only')
 if x11_dep.found()
   pax11publish_sources = [
     'pax11publish.c',
@@ -121,3 +122,4 @@ if dbus_dep.found() and fftw_dep.found()
 endif
 
 install_data('pa-info', install_dir : bindir)
+endif

@@ -1,6 +1,9 @@
 option('daemon',
        type : 'boolean', value : true,
        description : 'Enable building and installation of pulseaudio daemon and supporting configuration files')
+option('daemon-only',
+       type : 'boolean', value : false,
+       description : 'Build and install only the pulseaudio daemon and supporting configuration files, relying on a system installation of libpulse')
 option('doxygen',
        type : 'boolean', value : true,
        description : 'Enable building and installation of documentation generated with doxygen')

@@ -20,8 +20,6 @@ default_tests += [
     [ check_dep, libpulse_dep, libpulsecommon_dep ] ],
   [ 'json-test', 'json-test.c',
     [ check_dep, libpulse_dep, libpulsecommon_dep ] ],
-  [ 'mainloop-test', 'mainloop-test.c',
-    [ check_dep, libpulse_dep, libpulsecommon_dep ] ],
   [ 'proplist-test', 'proplist-test.c',
     [ check_dep, libpulse_dep, libpulsecommon_dep ] ],
   [ 'thread-mainloop-test', 'thread-mainloop-test.c',
@@ -31,6 +29,13 @@ default_tests += [
   [ 'volume-test', 'volume-test.c',
     [ check_dep, libm_dep, libpulse_dep, libpulsecommon_dep ] ],
 ]
+
+if not get_option('daemon-only')
+  default_tests += [
+    [ 'mainloop-test', 'mainloop-test.c',
+      [ check_dep, libpulse_dep, libpulsecommon_dep ] ],
+  ]
+endif
 
 if get_option('daemon')
   default_tests += [

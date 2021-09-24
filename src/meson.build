@@ -188,6 +188,15 @@ else
 endif
 # FIXME: Do SIMD things
 
+if get_option('daemon-only')
+  libpulsecommon_dep = cc.find_library('pulsecommon-' + pa_version_major_minor, dirs : privlibdir, required : true)
+  libpulse_dep = dependency('libpulse', required : true)
+  libpulse_simple_dep = dependency('libpulse-simple', required : true)
+  if glib_dep.found()
+    libpulse_mainloop_glib_dep = dependency('libpulse-mainloop-glib', required : true)
+  endif
+else
+
 libpulsecommon = shared_library('pulsecommon-' + pa_version_major_minor,
   libpulsecommon_sources,
   libpulsecommon_headers,
@@ -207,6 +216,8 @@ libpulsecommon = shared_library('pulsecommon-' + pa_version_major_minor,
 libpulsecommon_dep = declare_dependency(link_with: libpulsecommon)
 
 subdir('pulse')
+endif
+
 if get_option('daemon')
   subdir('pulsecore')
   subdir('daemon')

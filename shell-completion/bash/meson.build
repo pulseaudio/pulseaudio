@@ -8,6 +8,7 @@ if bashcompletiondir != 'no'
     ]
   endif
 
+  if not get_option('daemon-only')
   aliases += [
     'pacat',
     'pactl',
@@ -16,6 +17,7 @@ if bashcompletiondir != 'no'
     'parec',
     'parecord',
   ]
+  endif
 
   install_data('pulseaudio', install_dir : bashcompletiondir)
 

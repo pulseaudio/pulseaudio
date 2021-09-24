@@ -14,6 +14,7 @@ if get_option('daemon')
   ]
 endif
 
+if not get_option('daemon-only')
 manpages += [
   ['pacat', '1', ['paplay', 'parec', 'parecord', 'pamon']],
   ['pactl', '1'],
@@ -30,6 +31,7 @@ if x11_dep.found()
   manpages += [
     ['pax11publish', '1'],
   ]
+endif
 endif
 
 # FIXME: Add esdcompat if HAVE_ESOUND
