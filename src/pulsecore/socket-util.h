@@ -35,9 +35,6 @@ void pa_make_udp_socket_low_delay(int fd);
 int pa_socket_set_sndbuf(int fd, size_t l);
 int pa_socket_set_rcvbuf(int fd, size_t l);
 
-int pa_unix_socket_is_stale(const char *fn);
-int pa_unix_socket_remove_stale(const char *fn);
-
 bool pa_socket_address_is_local(const struct sockaddr *sa);
 bool pa_socket_is_local(int fd);
 

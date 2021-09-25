@@ -50,9 +50,6 @@
 #ifdef HAVE_NETDB_H
 #include <netdb.h>
 #endif
-#ifdef HAVE_SYSTEMD_DAEMON
-#include <systemd/sd-daemon.h>
-#endif
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
@@ -220,86 +217,6 @@ int pa_socket_set_sndbuf(int fd, size_t l) {
 
     return 0;
 }
-
-#ifdef HAVE_SYS_UN_H
-
-int pa_unix_socket_is_stale(const char *fn) {
-    struct sockaddr_un sa;
-    int fd = -1, ret = -1;
-
-    pa_assert(fn);
-
-    if ((fd = pa_socket_cloexec(PF_UNIX, SOCK_STREAM, 0)) < 0) {
-        pa_log("socket(): %s", pa_cstrerror(errno));
-        goto finish;
-    }
-
-    sa.sun_family = AF_UNIX;
-    strncpy(sa.sun_path, fn, sizeof(sa.sun_path)-1);
-    sa.sun_path[sizeof(sa.sun_path) - 1] = 0;
-
-    if (connect(fd, (struct sockaddr*) &sa, sizeof(sa)) < 0) {
-#if !defined(OS_IS_WIN32)
-        if (errno == ECONNREFUSED)
-            ret = 1;
-#else
-        if (WSAGetLastError() == WSAECONNREFUSED || WSAGetLastError() == WSAEINVAL)
-            ret = 1;
-#endif
-    } else
-        ret = 0;
-
-finish:
-    if (fd >= 0)
-        pa_close(fd);
-
-    return ret;
-}
-
-int pa_unix_socket_remove_stale(const char *fn) {
-    int r;
-
-    pa_assert(fn);
-
-#ifdef HAVE_SYSTEMD_DAEMON
-    {
-        int n = sd_listen_fds(0);
-        if (n > 0) {
-            for (int i = 0; i < n; ++i) {
-                if (sd_is_socket_unix(SD_LISTEN_FDS_START + i, SOCK_STREAM, 1, fn, 0) > 0) {
-                    /* This is a socket activated socket, therefore do not consider
-                    * it stale. */
-                    return 0;
-                }
-            }
-        }
-    }
-#endif
-
-    if ((r = pa_unix_socket_is_stale(fn)) < 0)
-        return errno != ENOENT ? -1 : 0;
-
-    if (!r)
-        return 0;
-
-    /* Yes, here is a race condition. But who cares? */
-    if (unlink(fn) < 0)
-        return -1;
-
-    return 0;
-}
-
-#else /* HAVE_SYS_UN_H */
-
-int pa_unix_socket_is_stale(const char *fn) {
-    return -1;
-}
-
-int pa_unix_socket_remove_stale(const char *fn) {
-    return -1;
-}
-
-#endif /* HAVE_SYS_UN_H */
 
 bool pa_socket_address_is_local(const struct sockaddr *sa) {
     pa_assert(sa);

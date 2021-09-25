@@ -50,4 +50,7 @@ void pa_socket_server_set_callback(pa_socket_server*s, pa_socket_server_on_conne
 
 char *pa_socket_server_get_address(pa_socket_server *s, char *c, size_t l);
 
+int pa_unix_socket_is_stale(const char *fn);
+int pa_unix_socket_remove_stale(const char *fn);
+
 #endif
