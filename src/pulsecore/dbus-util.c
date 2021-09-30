@@ -737,7 +737,7 @@ pa_proplist *pa_dbus_get_proplist_arg(DBusConnection *c, DBusMessage *msg, DBusM
     pa_assert(msg);
     pa_assert(iter);
 
-    pa_assert(signature = dbus_message_iter_get_signature(iter));
+    pa_assert_se(signature = dbus_message_iter_get_signature(iter));
     pa_assert_se(pa_streq(signature, "a{say}"));
 
     dbus_free(signature);

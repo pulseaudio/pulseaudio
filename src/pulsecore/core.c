@@ -86,9 +86,9 @@ static char *message_handler_list(pa_core *c) {
 }
 
 static int core_message_handler(const char *object_path, const char *message, const pa_json_object *parameters, char **response, void *userdata) {
-    pa_core *c;
+    pa_core *c = userdata;
 
-    pa_assert(c = (pa_core *) userdata);
+    pa_assert(c);
     pa_assert(message);
     pa_assert(response);
     pa_assert(pa_safe_streq(object_path, "/core"));

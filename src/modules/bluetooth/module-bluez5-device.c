@@ -2513,10 +2513,10 @@ static int bluez5_device_message_handler(const char *object_path, const char *me
     pa_bluetooth_profile_t profile;
     const pa_a2dp_endpoint_conf *endpoint_conf;
     const char *codec_name;
-    struct userdata *u;
+    struct userdata *u = userdata;
     bool is_a2dp_sink;
 
-    pa_assert(u = (struct userdata *)userdata);
+    pa_assert(u);
     pa_assert(message);
     pa_assert(response);
 
