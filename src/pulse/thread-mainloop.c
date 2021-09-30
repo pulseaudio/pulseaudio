@@ -278,6 +278,8 @@ static void once_unlocked_cb(pa_mainloop_api *api, void *userdata) {
 
     pa_mutex_lock(data->mainloop->mutex);
     pa_atomic_store(&data->mainloop->in_once_unlocked, 0);
+
+    pa_xfree(data);
 }
 
 void pa_threaded_mainloop_once_unlocked(pa_threaded_mainloop *m, void (*callback)(pa_threaded_mainloop *m, void *userdata),
