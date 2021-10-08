@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2021-09-22 19:04+0300\n"
+"POT-Creation-Date: 2021-10-08 21:57+0300\n"
 "PO-Revision-Date: 2019-01-09 12:17+0200\n"
 "Last-Translator: F Wolff <friedel@translate.org.za>\n"
 "Language-Team: translate-discuss-af@lists.sourceforge.net\n"
@@ -791,7 +791,7 @@ msgid "Mono Chat + 7.1 Surround"
 msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:4740 src/modules/alsa/module-alsa-card.c:197
-#: src/modules/bluetooth/module-bluez5-device.c:2207
+#: src/modules/bluetooth/module-bluez5-device.c:2217
 msgid "Off"
 msgstr "Af"
 

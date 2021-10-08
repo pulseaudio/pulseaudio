@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: el\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2021-09-22 19:04+0300\n"
+"POT-Creation-Date: 2021-10-08 21:57+0300\n"
 "PO-Revision-Date: 2014-05-08 09:53+0300\n"
 "Last-Translator: Dimitris Spingos (Δημήτρης Σπίγγος) <dmtrs32@gmail.com>\n"
 "Language-Team: team@lists.gnome.gr\n"
@@ -921,7 +921,7 @@ msgid "Mono Chat + 7.1 Surround"
 msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:4740 src/modules/alsa/module-alsa-card.c:197
-#: src/modules/bluetooth/module-bluez5-device.c:2207
+#: src/modules/bluetooth/module-bluez5-device.c:2217
 msgid "Off"
 msgstr "Ανενεργό"
 
