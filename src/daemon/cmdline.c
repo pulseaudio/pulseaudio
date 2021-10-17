@@ -262,7 +262,7 @@ int pa_cmdline_parse(pa_daemon_conf *conf, int argc, char *const argv [], int *d
 
                 if (optarg) {
                     if (pa_daemon_conf_set_log_level(conf, optarg) < 0) {
-                        pa_log(_("--log-level expects log level argument (either numeric in range 0..4 or one of debug, info, notice, warn, error)."));
+                        pa_log(_("--log-level expects log level argument (either numeric in range 0..4 or one of error, warn, notice, info, debug)."));
                         goto fail;
                     }
                 } else {
