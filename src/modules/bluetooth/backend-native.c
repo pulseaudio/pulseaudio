@@ -337,8 +337,8 @@ static int sco_acquire_cb(pa_bluetooth_transport *t, bool optional, size_t *imtu
                 pa_log_debug("err is %s and reconnection count is %d", pa_cstrerror(errno), i);
                 pa_msleep(300);
                 continue;
-	    } else
-		break;
+            } else
+                break;
         }
     }
 
