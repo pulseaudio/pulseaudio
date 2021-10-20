@@ -60,6 +60,26 @@ struct userdata {
     pa_x11_client *x11_client;
 };
 
+typedef struct {
+    IceConn connection;
+    struct userdata *userdata;
+} ice_io_callback_data;
+
+static void* ice_io_cb_data_new(IceConn connection, struct userdata *userdata) {
+    ice_io_callback_data *data = pa_xnew(ice_io_callback_data, 1);
+
+    data->connection = connection;
+    data->userdata = userdata;
+
+    return data;
+}
+
+static void ice_io_cb_data_destroy(pa_mainloop_api*a, pa_io_event *e, void *userdata) {
+    pa_assert(userdata);
+
+    pa_xfree(userdata);
+}
+
 static void x11_kill_cb(pa_x11_wrapper *w, void *userdata) {
     struct userdata *u = userdata;
 
@@ -87,18 +107,25 @@ static void x11_kill_cb(pa_x11_wrapper *w, void *userdata) {
     pa_module_unload_request(u->module, true);
 }
 
+static void close_xsmp_connection(struct userdata *userdata) {
+    pa_assert(userdata);
+
+    if (userdata->connection) {
+        SmcCloseConnection(userdata->connection, 0, NULL);
+        userdata->connection = NULL;
+    }
+
+    pa_x11_wrapper_kill_deferred(userdata->x11_wrapper);
+}
+
 static void die_cb(SmcConn connection, SmPointer client_data) {
     struct userdata *u = client_data;
+
     pa_assert(u);
 
     pa_log_debug("Got die message from XSMP.");
 
-    if (u->connection) {
-        SmcCloseConnection(u->connection, 0, NULL);
-        u->connection = NULL;
-    }
-
-    pa_x11_wrapper_kill_deferred(u->x11_wrapper);
+    close_xsmp_connection(u);
 }
 
 static void save_complete_cb(SmcConn connection, SmPointer client_data) {
@@ -113,27 +140,36 @@ static void save_yourself_cb(SmcConn connection, SmPointer client_data, int save
 }
 
 static void ice_io_cb(pa_mainloop_api*a, pa_io_event *e, int fd, pa_io_event_flags_t flags, void *userdata) {
-    IceConn connection = userdata;
+    ice_io_callback_data *io_data = userdata;
 
-    if (IceProcessMessages(connection, NULL, NULL) == IceProcessMessagesIOError) {
-        pa_log_debug("IceProcessMessages: I/O error, closing ICE connection");
-        IceSetShutdownNegotiation(connection, False);
-        IceCloseConnection(connection);
+    pa_assert(io_data);
+
+    if (IceProcessMessages(io_data->connection, NULL, NULL) == IceProcessMessagesIOError) {
+        pa_log_debug("IceProcessMessages: I/O error, closing XSMP.");
+
+        IceSetShutdownNegotiation(io_data->connection, False);
+
+        /* SM owns this connection, close via SmcCloseConnection() */
+        close_xsmp_connection(io_data->userdata);
     }
 }
 
 static void new_ice_connection(IceConn connection, IcePointer client_data, Bool opening, IcePointer *watch_data) {
-    pa_core *c = client_data;
+    struct userdata *u = client_data;
 
-    if (opening)
-        *watch_data = c->mainloop->io_new(
-                c->mainloop,
+    pa_assert(u);
+
+    if (opening) {
+        *watch_data = u->core->mainloop->io_new(
+                u->core->mainloop,
                 IceConnectionNumber(connection),
                 PA_IO_EVENT_INPUT,
                 ice_io_cb,
-                connection);
-    else
-        c->mainloop->io_free(*watch_data);
+                ice_io_cb_data_new(connection, u));
+
+        u->core->mainloop->io_set_destroy(*watch_data, ice_io_cb_data_destroy);
+    } else
+        u->core->mainloop->io_free(*watch_data);
 }
 
 static IceIOErrorHandler ice_installed_handler;
@@ -174,9 +210,6 @@ int pa__init(pa_module*m) {
             ice_installed_handler = NULL;
 
         IceSetIOErrorHandler(ice_io_error_handler);
-
-        IceAddConnectionWatch(new_ice_connection, m->core);
-        ice_in_use = true;
     }
 
     m->userdata = u = pa_xnew(struct userdata, 1);
@@ -185,6 +218,9 @@ int pa__init(pa_module*m) {
     u->client = NULL;
     u->connection = NULL;
     u->x11_wrapper = NULL;
+
+    IceAddConnectionWatch(new_ice_connection, u);
+    ice_in_use = true;
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments");
@@ -298,6 +334,10 @@ void pa__done(pa_module*m) {
 
     pa_assert(m);
 
+    /* set original ICE I/O error handler and forget it */
+    IceSetIOErrorHandler(ice_installed_handler);
+    ice_installed_handler = NULL;
+
     if ((u = m->userdata)) {
 
         if (u->connection)
@@ -311,12 +351,13 @@ void pa__done(pa_module*m) {
 
         if (u->x11_wrapper)
             pa_x11_wrapper_unref(u->x11_wrapper);
-
-        pa_xfree(u);
     }
 
     if (ice_in_use) {
-        IceRemoveConnectionWatch(new_ice_connection, m->core);
+        IceRemoveConnectionWatch(new_ice_connection, u);
         ice_in_use = false;
     }
+
+    if (u)
+        pa_xfree(u);
 }
