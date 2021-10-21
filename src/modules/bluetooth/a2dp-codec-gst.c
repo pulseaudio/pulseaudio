@@ -28,6 +28,7 @@
 #include <pulsecore/once.h>
 #include <pulsecore/core-util.h>
 #include <pulse/sample.h>
+#include <pulse/timeval.h>
 #include <pulse/util.h>
 
 #include "a2dp-codecs.h"
@@ -206,7 +207,7 @@ common_fail:
     return false;
 }
 
-size_t gst_transcode_buffer(void *codec_info, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed) {
+size_t gst_transcode_buffer(void *codec_info, uint32_t timestamp, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed) {
     struct gst_info *info = (struct gst_info *) codec_info;
     gsize transcoded;
     GstBuffer *in_buf;
@@ -222,6 +223,14 @@ size_t gst_transcode_buffer(void *codec_info, const uint8_t *input_buffer, size_
     /* Acquire an extra reference to validate refcount afterwards */
     gst_mini_object_ref(GST_MINI_OBJECT_CAST(in_buf));
     pa_assert(GST_MINI_OBJECT_REFCOUNT_VALUE(in_buf) == 2);
+
+    if (timestamp == -1)
+        GST_BUFFER_TIMESTAMP(in_buf) = GST_CLOCK_TIME_NONE;
+    else {
+        // Timestamp is monotonically increasing with samplerate/packets-per-second;
+        // convert it to a timestamp in nanoseconds:
+        GST_BUFFER_TIMESTAMP(in_buf) = timestamp * PA_USEC_PER_SEC / info->ss->rate;
+    }
 
     ret = gst_pad_chain(info->pad_sink, in_buf);
     /**

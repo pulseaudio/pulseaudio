@@ -490,7 +490,7 @@ static size_t reduce_encoder_bitrate(void *codec_info, size_t write_link_mtu) {
 static size_t encode_buffer(void *codec_info, uint32_t timestamp, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed) {
     size_t written;
 
-    written = gst_transcode_buffer(codec_info, input_buffer, input_size, output_buffer, output_size, processed);
+    written = gst_transcode_buffer(codec_info, timestamp, input_buffer, input_size, output_buffer, output_size, processed);
     if (PA_UNLIKELY(*processed == 0 || *processed != input_size))
         pa_log_error("aptX encoding error");
 
@@ -526,7 +526,7 @@ static size_t encode_buffer_hd(void *codec_info, uint32_t timestamp, const uint8
 static size_t decode_buffer(void *codec_info, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed) {
     size_t written;
 
-    written = gst_transcode_buffer(codec_info, input_buffer, input_size, output_buffer, output_size, processed);
+    written = gst_transcode_buffer(codec_info, -1, input_buffer, input_size, output_buffer, output_size, processed);
 
     /* Due to aptX latency, aptx_decode starts filling output buffer after 90 input samples.
      * If input buffer contains less than 90 samples, aptx_decode returns zero (=no output)

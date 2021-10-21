@@ -411,7 +411,7 @@ static size_t encode_buffer(void *codec_info, uint32_t timestamp, const uint8_t 
         return 0;
     }
 
-    written = gst_transcode_buffer(codec_info, input_buffer, input_size, output_buffer + sizeof(*header) + sizeof(*payload), output_size - sizeof(*header) - sizeof(*payload), processed);
+    written = gst_transcode_buffer(codec_info, timestamp, input_buffer, input_size, output_buffer + sizeof(*header) + sizeof(*payload), output_size - sizeof(*header) - sizeof(*payload), processed);
     if (PA_UNLIKELY(*processed != input_size))
         pa_log_error("LDAC encoding error");
 

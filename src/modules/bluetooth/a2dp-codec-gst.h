@@ -53,5 +53,5 @@ struct gst_info {
 };
 
 bool gst_codec_init(struct gst_info *info, bool for_encoding, GstElement *transcoder);
-size_t gst_transcode_buffer(void *codec_info, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed);
+size_t gst_transcode_buffer(void *codec_info, uint32_t timestamp, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed);
 void gst_codec_deinit(void *codec_info);
