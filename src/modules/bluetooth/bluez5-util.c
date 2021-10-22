@@ -1491,6 +1491,7 @@ static void adapter_free(pa_bluetooth_adapter *a) {
         if (d->adapter == a)
             device_set_adapter(d, NULL);
 
+    pa_hashmap_free(a->uuids);
     pa_xfree(a->path);
     pa_xfree(a->address);
     pa_xfree(a);
