@@ -139,14 +139,14 @@ int pa_message_handler_send_message(pa_core *c, const char *object_path, const c
              * Wrap message parameters into JSON string and try again.
              * User might have missed double-quotes and passed ARGSTRING instead of proper JSON "ARGSTRING"
              */
-            pa_log_warn(_("Message parameters is not a valid JSON, wrapping into JSON string '\"%s\"'"), message_parameters);
+            pa_log_warn("Message parameters is not a valid JSON, wrapping into JSON string '\"%s\"'", message_parameters);
 
             wrapped_message_parameters = pa_sprintf_malloc("\"%s\"", message_parameters);
             parameters = pa_json_parse(wrapped_message_parameters);
             pa_xfree(wrapped_message_parameters);
 
             if (!parameters) {
-                pa_log_error(_("Message parameters is not a valid JSON object. Tried both '%s' and '\"%s\"'"),
+                pa_log_error("Message parameters is not a valid JSON object. Tried both '%s' and '\"%s\"'",
                         message_parameters, message_parameters);
                 return -PA_ERR_INVALID;
             }
