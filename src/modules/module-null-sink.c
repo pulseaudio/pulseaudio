@@ -113,6 +113,25 @@ static int sink_process_msg(
 }
 
 /* Called from the IO thread. */
+static void sink_recalculate_max_request_and_rewind(pa_sink *s) {
+    struct userdata *u;
+    size_t nbytes;
+
+    pa_sink_assert_ref(s);
+    pa_assert_se(u = s->userdata);
+
+    nbytes = pa_usec_to_bytes(u->block_usec, &s->sample_spec);
+
+    if (u->norewinds) {
+        pa_sink_set_max_rewind_within_thread(s, 0);
+    } else {
+        pa_sink_set_max_rewind_within_thread(s, nbytes);
+    }
+
+    pa_sink_set_max_request_within_thread(s, nbytes);
+}
+
+/* Called from the IO thread. */
 static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state, pa_suspend_cause_t new_suspend_cause) {
     struct userdata *u;
 
@@ -120,16 +139,23 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
     pa_assert_se(u = s->userdata);
 
     if (s->thread_info.state == PA_SINK_SUSPENDED || s->thread_info.state == PA_SINK_INIT) {
-        if (PA_SINK_IS_OPENED(new_state))
+        if (PA_SINK_IS_OPENED(new_state)) {
             u->timestamp = pa_rtclock_now();
+
+            /* If sink was suspended to change sample formats, both
+             * thread_info.max_request and thread_info.max_rewind
+             * must be updated before first block is rendered
+             */
+            sink_recalculate_max_request_and_rewind(s);
+        }
     }
 
     return 0;
 }
 
+/* Called from the IO thread. */
 static void sink_update_requested_latency_cb(pa_sink *s) {
     struct userdata *u;
-    size_t nbytes;
 
     pa_sink_assert_ref(s);
     pa_assert_se(u = s->userdata);
@@ -139,15 +165,7 @@ static void sink_update_requested_latency_cb(pa_sink *s) {
     if (u->block_usec == (pa_usec_t) -1)
         u->block_usec = s->thread_info.max_latency;
 
-    nbytes = pa_usec_to_bytes(u->block_usec, &s->sample_spec);
-
-    if(u->norewinds){
-        pa_sink_set_max_rewind_within_thread(s, 0);
-    } else {
-        pa_sink_set_max_rewind_within_thread(s, nbytes);
-    }
-
-    pa_sink_set_max_request_within_thread(s, nbytes);
+    sink_recalculate_max_request_and_rewind(s);
 }
 
 static void sink_reconfigure_cb(pa_sink *s, pa_sample_spec *spec, bool passthrough) {
