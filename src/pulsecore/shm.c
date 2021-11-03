@@ -91,7 +91,10 @@ struct shm_marker {
     uint64_t _reserved2;
     uint64_t _reserved3;
     uint64_t _reserved4;
-} PA_GCC_PACKED;
+};
+
+// Ensure struct is appropriately packed
+static_assert(sizeof(struct shm_marker) == 8 * 5, "`struct shm_marker` is not tightly packed");
 
 static inline size_t shm_marker_size(pa_mem_type_t type) {
     if (type == PA_MEM_TYPE_SHARED_POSIX)
