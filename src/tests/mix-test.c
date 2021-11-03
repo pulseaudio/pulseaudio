@@ -97,7 +97,7 @@ static void compare_block(const pa_sample_spec *ss, const pa_memchunk *chunk, in
             uint8_t *u = d;
 
             for (i = 0; i < chunk->length / pa_frame_size(ss); i++) {
-                fail_unless(*u == *v, NULL);
+                fail_unless(*u == *v);
                 ++u;
                 ++v;
             }
@@ -109,7 +109,7 @@ static void compare_block(const pa_sample_spec *ss, const pa_memchunk *chunk, in
             uint8_t *u = d;
 
             for (i = 0; i < chunk->length / pa_frame_size(ss); i++) {
-                fail_unless(*u == *v, NULL);
+                fail_unless(*u == *v);
                 ++u;
                 ++v;
             }
@@ -121,7 +121,7 @@ static void compare_block(const pa_sample_spec *ss, const pa_memchunk *chunk, in
             uint8_t *u = d;
 
             for (i = 0; i < chunk->length / pa_frame_size(ss); i++) {
-                fail_unless(*u == *v, NULL);
+                fail_unless(*u == *v);
                 ++u;
                 ++v;
             }
@@ -135,7 +135,7 @@ static void compare_block(const pa_sample_spec *ss, const pa_memchunk *chunk, in
 
             for (i = 0; i < chunk->length / pa_frame_size(ss); i++) {
                 uint16_t uu = PA_MAYBE_UINT16_SWAP(ss->format != PA_SAMPLE_S16NE, *u);
-                fail_unless(uu == *v, NULL);
+                fail_unless(uu == *v);
                 ++u;
                 ++v;
             }
@@ -149,7 +149,7 @@ static void compare_block(const pa_sample_spec *ss, const pa_memchunk *chunk, in
 
             for (i = 0; i < chunk->length / pa_frame_size(ss); i++) {
                 float uu = ss->format == PA_SAMPLE_FLOAT32NE ? *u : PA_READ_FLOAT32RE(u);
-                fail_unless(fabsf(uu - *v) <= 1e-6f, NULL);
+                fail_unless(fabsf(uu - *v) <= 1e-6f);
                 ++u;
                 ++v;
             }
@@ -163,7 +163,7 @@ static void compare_block(const pa_sample_spec *ss, const pa_memchunk *chunk, in
 
             for (i = 0; i < chunk->length / pa_frame_size(ss); i++) {
                 uint32_t uu = PA_MAYBE_UINT32_SWAP(ss->format != PA_SAMPLE_S32NE, *u);
-                fail_unless(uu == *v, NULL);
+                fail_unless(uu == *v);
                 ++u;
                 ++v;
             }
@@ -177,7 +177,7 @@ static void compare_block(const pa_sample_spec *ss, const pa_memchunk *chunk, in
 
             for (i = 0; i < chunk->length / pa_frame_size(ss); i++) {
                 uint32_t uu = PA_MAYBE_UINT32_SWAP(ss->format != PA_SAMPLE_S24_32NE, *u);
-                fail_unless(uu == *v, NULL);
+                fail_unless(uu == *v);
                 ++u;
                 ++v;
             }
@@ -191,7 +191,7 @@ static void compare_block(const pa_sample_spec *ss, const pa_memchunk *chunk, in
 
             for (i = 0; i < chunk->length / pa_frame_size(ss); i++) {
                 uint32_t uu = ss->format == PA_SAMPLE_S24LE ? PA_READ24LE(u) : PA_READ24BE(u);
-                fail_unless(uu == PA_READ24BE(v), NULL);
+                fail_unless(uu == PA_READ24BE(v));
 
                 u += 3;
                 v += 3;
@@ -286,7 +286,7 @@ START_TEST (mix_test) {
     if (!getenv("MAKE_CHECK"))
         pa_log_set_level(PA_LOG_DEBUG);
 
-    fail_unless((pool = pa_mempool_new(PA_MEM_TYPE_PRIVATE, 0, true)) != NULL, NULL);
+    fail_unless((pool = pa_mempool_new(PA_MEM_TYPE_PRIVATE, 0, true)) != NULL);
 
     a.channels = 1;
     a.rate = 44100;
