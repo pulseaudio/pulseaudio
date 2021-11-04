@@ -837,9 +837,7 @@ if get_option('man')
   subdir('man')
 endif
 subdir('shell-completion/bash')
-if get_option('client')
-  subdir('shell-completion/zsh')
-endif
+subdir('shell-completion/zsh')
 subdir('src')
 if get_option('client')
  subdir('vala')
