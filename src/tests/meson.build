@@ -9,32 +9,47 @@
 
 default_tests = []
 
-default_tests += [
-  [ 'channelmap-test', 'channelmap-test.c',
-    [ check_dep, libpulse_dep ] ],
-  [ 'core-util-test', 'core-util-test.c',
-    [ check_dep, libpulse_dep, libpulsecommon_dep ] ],
-  [ 'get-binary-name-test', 'get-binary-name-test.c',
-    [ check_dep, libpulse_dep, libpulsecommon_dep ] ],
-  [ 'hashmap-test', 'hashmap-test.c',
-    [ check_dep, libpulse_dep, libpulsecommon_dep ] ],
-  [ 'json-test', 'json-test.c',
-    [ check_dep, libpulse_dep, libpulsecommon_dep ] ],
-  [ 'proplist-test', 'proplist-test.c',
-    [ check_dep, libpulse_dep, libpulsecommon_dep ] ],
-  [ 'thread-mainloop-test', 'thread-mainloop-test.c',
-    [ check_dep, libpulse_dep, libpulsecommon_dep ] ],
-  [ 'utf8-test', 'utf8-test.c',
-    [ check_dep, libpulse_dep, libpulsecommon_dep ] ],
-  [ 'volume-test', 'volume-test.c',
-    [ check_dep, libm_dep, libpulse_dep, libpulsecommon_dep ] ],
-]
-
 if get_option('client')
+  default_tests += [
+    [ 'channelmap-test', 'channelmap-test.c',
+      [ check_dep, libpulse_dep ] ],
+    [ 'core-util-test', 'core-util-test.c',
+      [ check_dep, libpulse_dep, libpulsecommon_dep ] ],
+    [ 'get-binary-name-test', 'get-binary-name-test.c',
+      [ check_dep, libpulse_dep, libpulsecommon_dep ] ],
+    [ 'hashmap-test', 'hashmap-test.c',
+      [ check_dep, libpulse_dep, libpulsecommon_dep ] ],
+    [ 'json-test', 'json-test.c',
+      [ check_dep, libpulse_dep, libpulsecommon_dep ] ],
+    [ 'proplist-test', 'proplist-test.c',
+      [ check_dep, libpulse_dep, libpulsecommon_dep ] ],
+    [ 'thread-mainloop-test', 'thread-mainloop-test.c',
+      [ check_dep, libpulse_dep, libpulsecommon_dep ] ],
+    [ 'utf8-test', 'utf8-test.c',
+      [ check_dep, libpulse_dep, libpulsecommon_dep ] ],
+    [ 'volume-test', 'volume-test.c',
+      [ check_dep, libm_dep, libpulse_dep, libpulsecommon_dep ] ],
+  ]
+
   default_tests += [
     [ 'mainloop-test', 'mainloop-test.c',
       [ check_dep, libpulse_dep, libpulsecommon_dep ] ],
   ]
+
+  if cc.has_header('sys/eventfd.h')
+    default_tests += [
+      [ 'srbchannel-test', 'srbchannel-test.c',
+        [ check_dep, libpulse_dep, libpulsecommon_dep ] ]
+    ]
+  endif
+
+  if glib_dep.found()
+    default_tests += [
+      [ 'mainloop-test-glib', 'mainloop-test.c',
+        [ check_dep, glib_dep, libpulse_dep, libpulsecommon_dep, libpulse_mainloop_glib_dep ],
+        [], ['-DGLIB_MAIN_LOOP'] ]
+    ]
+  endif
 endif
 
 if get_option('daemon')
@@ -103,16 +118,6 @@ if get_option('daemon')
     ]
   endif
 
-endif
-
-if cc.has_header('sys/eventfd.h')
-  default_tests += [
-    [ 'srbchannel-test', 'srbchannel-test.c',
-      [ check_dep, libpulse_dep, libpulsecommon_dep ] ]
-  ]
-endif
-
-if get_option('daemon')
   if alsa_dep.found()
     default_tests += [
       [ 'alsa-mixer-path-test', 'alsa-mixer-path-test.c',
@@ -122,23 +127,24 @@ if get_option('daemon')
   endif
 endif
 
-if glib_dep.found()
-  default_tests += [
-    [ 'mainloop-test-glib', 'mainloop-test.c',
-      [ check_dep, glib_dep, libpulse_dep, libpulsecommon_dep, libpulse_mainloop_glib_dep ],
-      [], ['-DGLIB_MAIN_LOOP'] ]
-  ]
-endif
-
 # No-run tests
 norun_tests = []
 
-norun_tests += [
-  [ 'pacat-simple', 'pacat-simple.c',
-    [ libpulse_dep, libpulse_simple_dep ] ],
-  [ 'parec-simple', 'parec-simple.c',
-    [ libpulse_dep, libpulse_simple_dep ] ],
-]
+if get_option('client')
+  norun_tests += [
+    [ 'pacat-simple', 'pacat-simple.c',
+      [ libpulse_dep, libpulse_simple_dep ] ],
+    [ 'parec-simple', 'parec-simple.c',
+      [ libpulse_dep, libpulse_simple_dep ] ],
+  ]
+
+  if gtk_dep.found() and glib_dep.found()
+    norun_tests += [
+      [ 'gtk-test', 'gtk-test.c',
+        [ gtk_dep, libpulse_dep, libpulse_mainloop_glib_dep ] ]
+    ]
+  endif
+endif
 
 if get_option('daemon')
   norun_tests += [
@@ -184,26 +190,18 @@ if get_option('daemon')
     ]
   endif
 
-endif
+  if cc.has_function('pthread_setaffinity_np', dependencies : thread_dep)
+    norun_tests += [
+      [ 'atomic-test', 'atomic-test.c',
+        [ check_dep, libpulsecommon_dep, thread_dep ] ]
+    ]
+  endif
 
-if cc.has_function('pthread_setaffinity_np', dependencies : thread_dep)
-  norun_tests += [
-    [ 'atomic-test', 'atomic-test.c',
-      [ check_dep, libpulsecommon_dep, thread_dep ] ]
-  ]
-endif
-
-if alsa_dep.found()
-  norun_tests += [
-    [ 'alsa-time-test', 'alsa-time-test.c', [ alsa_dep, thread_dep ] ]
-  ]
-endif
-
-if gtk_dep.found() and glib_dep.found()
-  norun_tests += [
-    [ 'gtk-test', 'gtk-test.c',
-      [ gtk_dep, libpulse_dep, libpulse_mainloop_glib_dep ] ]
-  ]
+  if alsa_dep.found()
+    norun_tests += [
+      [ 'alsa-time-test', 'alsa-time-test.c', [ alsa_dep, thread_dep ] ]
+    ]
+  endif
 endif
 
 # Generate tests
