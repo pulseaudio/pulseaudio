@@ -15,23 +15,23 @@ if get_option('daemon')
 endif
 
 if get_option('client')
-manpages += [
-  ['pacat', '1', ['paplay', 'parec', 'parecord', 'pamon']],
-  ['pactl', '1'],
-  ['pulse-client.conf', '5'],
-]
-
-if cdata.has('HAVE_OSS_WRAPPER')
   manpages += [
-    ['padsp', '1'],
+    ['pacat', '1', ['paplay', 'parec', 'parecord', 'pamon']],
+    ['pactl', '1'],
+    ['pulse-client.conf', '5'],
   ]
-endif
 
-if x11_dep.found()
-  manpages += [
-    ['pax11publish', '1'],
-  ]
-endif
+  if cdata.has('HAVE_OSS_WRAPPER')
+    manpages += [
+      ['padsp', '1'],
+    ]
+  endif
+
+  if x11_dep.found()
+    manpages += [
+      ['pax11publish', '1'],
+    ]
+  endif
 endif
 
 # FIXME: Add esdcompat if HAVE_ESOUND

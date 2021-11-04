@@ -848,69 +848,69 @@ configure_file(output : 'config.h', configuration : cdata)
 
 if get_option('client')
 
-# pkg-config files
+  # pkg-config files
 
-pc_cdata = configuration_data()
+  pc_cdata = configuration_data()
 
-pc_cdata.set('prefix', prefix)
-pc_cdata.set('exec_prefix', prefix)
-pc_cdata.set('libdir', libdir)
-pc_cdata.set('includedir', includedir)
-pc_cdata.set('modlibexecdir', modlibexecdir)
-pc_cdata.set('PACKAGE_VERSION', pa_version_str)
-pc_cdata.set('PA_MAJORMINOR', pa_version_major_minor)
-# FIXME: the line below is wrong. Currently the meson thread dep lacks documentation,
-# and doesn't allow introspection, ie. none of get_pkgconfig_variable() or
-# get_configtool_variable() work with it, so we have no way to get this flag right,
-# unless we do all the work ourselves. See current work in glib, also meson #553.
-pc_cdata.set('PTHREAD_LIBS', '-pthread')
+  pc_cdata.set('prefix', prefix)
+  pc_cdata.set('exec_prefix', prefix)
+  pc_cdata.set('libdir', libdir)
+  pc_cdata.set('includedir', includedir)
+  pc_cdata.set('modlibexecdir', modlibexecdir)
+  pc_cdata.set('PACKAGE_VERSION', pa_version_str)
+  pc_cdata.set('PA_MAJORMINOR', pa_version_major_minor)
+  # FIXME: the line below is wrong. Currently the meson thread dep lacks documentation,
+  # and doesn't allow introspection, ie. none of get_pkgconfig_variable() or
+  # get_configtool_variable() work with it, so we have no way to get this flag right,
+  # unless we do all the work ourselves. See current work in glib, also meson #553.
+  pc_cdata.set('PTHREAD_LIBS', '-pthread')
 
-pc_files = [
-  'libpulse.pc',
-  'libpulse-simple.pc',
-]
+  pc_files = [
+    'libpulse.pc',
+    'libpulse-simple.pc',
+  ]
 
-if glib_dep.found()
-  pc_files += 'libpulse-mainloop-glib.pc'
-endif
+  if glib_dep.found()
+    pc_files += 'libpulse-mainloop-glib.pc'
+  endif
 
-foreach file : pc_files
+  foreach file : pc_files
+    configure_file(
+      input : file + '.in',
+      output : file,
+      configuration : pc_cdata,
+      install_dir : pkgconfigdir)
+  endforeach
+
+  # CMake files
+
+  m4 = find_program('m4', required: true)
+
+  cmakedir = join_paths(libdir, 'cmake', 'PulseAudio')
+
+  cmake_template_file = configure_file(
+    input : 'PulseAudioConfig.cmake.in',
+    output : 'PulseAudioConfig.cmake.tmp',
+    configuration: cdata,
+  )
+
+  custom_target('PulseAudioConfig.cmake',
+    input : cmake_template_file,
+    output : 'PulseAudioConfig.cmake',
+    capture : true,
+    command : [m4, '@INPUT@'],
+    build_by_default : true,
+    install : true,
+    install_dir : cmakedir,
+  )
+
   configure_file(
-    input : file + '.in',
-    output : file,
-    configuration : pc_cdata,
-    install_dir : pkgconfigdir)
-endforeach
-
-# CMake files
-
-m4 = find_program('m4', required: true)
-
-cmakedir = join_paths(libdir, 'cmake', 'PulseAudio')
-
-cmake_template_file = configure_file(
-  input : 'PulseAudioConfig.cmake.in',
-  output : 'PulseAudioConfig.cmake.tmp',
-  configuration: cdata,
-)
-
-custom_target('PulseAudioConfig.cmake',
-  input : cmake_template_file,
-  output : 'PulseAudioConfig.cmake',
-  capture : true,
-  command : [m4, '@INPUT@'],
-  build_by_default : true,
-  install : true,
-  install_dir : cmakedir,
-)
-
-configure_file(
-  input : 'PulseAudioConfigVersion.cmake.in',
-  output : 'PulseAudioConfigVersion.cmake',
-  configuration: cdata,
-  install : true,
-  install_dir : cmakedir,
-)
+    input : 'PulseAudioConfigVersion.cmake.in',
+    output : 'PulseAudioConfigVersion.cmake',
+    configuration: cdata,
+    install : true,
+    install_dir : cmakedir,
+  )
 
 endif # client
 

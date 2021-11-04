@@ -193,26 +193,25 @@ if not get_option('client')
   libpulse_dep = dependency('libpulse', required : true)
   libpulse_simple_dep = dependency('libpulse-simple', required : true)
 else
+  libpulsecommon = shared_library('pulsecommon-' + pa_version_major_minor,
+    libpulsecommon_sources,
+    libpulsecommon_headers,
+    include_directories : [configinc, topinc],
+    c_args : [pa_c_args],
+    link_args : [nodelete_link_args],
+    install : true,
+    install_dir : privlibdir,
+    dependencies : [
+      libm_dep, thread_dep, dl_dep, shm_dep, iconv_dep, sndfile_dep, dbus_dep,
+      x11_dep, libsystemd_dep, glib_dep.partial_dependency(compile_args: true),
+      gtk_dep.partial_dependency(compile_args: true), asyncns_dep, libintl_dep,
+      platform_dep, platform_socket_dep, execinfo_dep,
+    ],
+    implicit_include_directories : false)
 
-libpulsecommon = shared_library('pulsecommon-' + pa_version_major_minor,
-  libpulsecommon_sources,
-  libpulsecommon_headers,
-  include_directories : [configinc, topinc],
-  c_args : [pa_c_args],
-  link_args : [nodelete_link_args],
-  install : true,
-  install_dir : privlibdir,
-  dependencies : [
-    libm_dep, thread_dep, dl_dep, shm_dep, iconv_dep, sndfile_dep, dbus_dep,
-    x11_dep, libsystemd_dep, glib_dep.partial_dependency(compile_args: true),
-    gtk_dep.partial_dependency(compile_args: true), asyncns_dep, libintl_dep,
-    platform_dep, platform_socket_dep, execinfo_dep,
-  ],
-  implicit_include_directories : false)
+  libpulsecommon_dep = declare_dependency(link_with: libpulsecommon)
 
-libpulsecommon_dep = declare_dependency(link_with: libpulsecommon)
-
-subdir('pulse')
+  subdir('pulse')
 endif
 
 if get_option('daemon')
