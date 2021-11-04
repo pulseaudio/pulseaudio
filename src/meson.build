@@ -188,7 +188,7 @@ else
 endif
 # FIXME: Do SIMD things
 
-if get_option('daemon-only')
+if not get_option('client')
   libpulsecommon_dep = cc.find_library('pulsecommon-' + pa_version_major_minor, dirs : privlibdir, required : true)
   libpulse_dep = dependency('libpulse', required : true)
   libpulse_simple_dep = dependency('libpulse-simple', required : true)

@@ -820,18 +820,18 @@ check_dep = dependency('check', version : '>= 0.9.10', required : get_option('te
 if get_option('doxygen')
   subdir('doxygen')
 endif
-if not get_option('daemon-only')
+if get_option('client')
   subdir('po')
 endif
 if get_option('man')
   subdir('man')
 endif
 subdir('shell-completion/bash')
-if not get_option('daemon-only')
+if get_option('client')
   subdir('shell-completion/zsh')
 endif
 subdir('src')
-if not get_option('daemon-only')
+if get_option('client')
  subdir('vala')
 endif
 
@@ -840,7 +840,7 @@ configure_file(output : 'config.h', configuration : cdata)
 
 # pkg-config files
 
-if not get_option('daemon-only')
+if get_option('client')
 
 pc_cdata = configuration_data()
 
@@ -874,11 +874,11 @@ foreach file : pc_files
     install_dir : pkgconfigdir)
 endforeach
 
-endif # !daemon-only
+endif # client
 
 # CMake files
 
-if not get_option('daemon-only')
+if get_option('client')
 
 m4 = find_program('m4', required: true)
 
@@ -908,7 +908,7 @@ configure_file(
   install_dir : cmakedir,
 )
 
-endif # !daemon-only
+endif # client
 
 ############################################################
 

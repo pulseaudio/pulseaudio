@@ -8,7 +8,7 @@ if bashcompletiondir != 'no'
     ]
   endif
 
-  if not get_option('daemon-only')
+  if get_option('client')
   aliases += [
     'pacat',
     'pactl',

@@ -14,7 +14,7 @@ if get_option('daemon')
   ]
 endif
 
-if not get_option('daemon-only')
+if get_option('client')
 manpages += [
   ['pacat', '1', ['paplay', 'parec', 'parecord', 'pamon']],
   ['pactl', '1'],

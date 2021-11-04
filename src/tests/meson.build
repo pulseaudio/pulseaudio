@@ -30,7 +30,7 @@ default_tests += [
     [ check_dep, libm_dep, libpulse_dep, libpulsecommon_dep ] ],
 ]
 
-if not get_option('daemon-only')
+if get_option('client')
   default_tests += [
     [ 'mainloop-test', 'mainloop-test.c',
       [ check_dep, libpulse_dep, libpulsecommon_dep ] ],

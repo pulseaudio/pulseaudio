@@ -1,4 +1,4 @@
-if not get_option('daemon-only')
+if get_option('client')
 pacat_sources = [
   'pacat.c',
 ]
@@ -74,7 +74,7 @@ if get_option('daemon')
   endif
 endif
 
-if not get_option('daemon-only')
+if get_option('client')
 if x11_dep.found()
   pax11publish_sources = [
     'pax11publish.c',
