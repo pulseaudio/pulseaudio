@@ -257,6 +257,17 @@ static const char *transport_state_to_string(pa_bluetooth_transport_state_t stat
 bool pa_bluetooth_device_supports_profile(const pa_bluetooth_device *device, pa_bluetooth_profile_t profile) {
     bool show_hfp, show_hsp, r;
 
+    pa_assert(device);
+
+    /* While discovery is being released adapters will be removed from devices,
+     * and there are no profiles to support without adapter.
+     */
+    if (!device->adapter) {
+        pa_log_debug("Device %s (%s) has no adapter to support profile %s",
+                device->alias, device->address, pa_bluetooth_profile_to_string(profile));
+        return false;
+    }
+
     if (device->enable_hfp_hf) {
         show_hfp = pa_hashmap_get(device->uuids, PA_BLUETOOTH_UUID_HFP_HF);
         show_hsp = !show_hfp;
