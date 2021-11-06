@@ -26,8 +26,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <lirc/lirc_client.h>
-
 #include <pulse/xmalloc.h>
 
 #include <pulsecore/module.h>
@@ -42,6 +40,11 @@ PA_MODULE_DESCRIPTION("LIRC volume control");
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_LOAD_ONCE(true);
 PA_MODULE_USAGE("config=<config file> sink=<sink name> appname=<lirc application name> volume_limit=<volume limit> volume_step=<volume change step>");
+
+/* LIRC would provide it's own definition of PACKAGE_VERSION, include it after
+ * pulseaudio module definition block to prevent module loader version mismatch.
+ */
+#include <lirc/lirc_client.h>
 
 static const char* const valid_modargs[] = {
     "config",
