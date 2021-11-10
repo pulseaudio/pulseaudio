@@ -596,6 +596,12 @@ if dbus_dep.found()
   cdata.set('HAVE_DBUS', 1)
 endif
 
+glib_dep = dependency('glib-2.0', version : '>= 2.28.0', required: get_option('glib'))
+if glib_dep.found()
+  cdata.set('HAVE_GLIB', 1)
+  cdata.set('HAVE_GLIB20', 1) # to match the AM_CONDITIONAL for CMake file generation
+endif
+
 sndfile_dep = dependency('sndfile', version : '>= 1.0.20')
 
 libsystemd_dep = dependency('libsystemd', required : get_option('systemd'))
@@ -616,18 +622,17 @@ if cc.has_header('sys/soundcard.h', required: get_option('oss-output'))
   cdata.set('PULSEDSP_LOCATION', pulsedsp_location)
 endif
 
+fftw_dep = dependency('fftw3f', required : get_option('fftw'))
+if fftw_dep.found()
+  cdata.set('HAVE_FFTW', 1)
+endif
+
 # Client library dependencies
 
 if get_option('client')
   asyncns_dep = dependency('libasyncns', version : '>= 0.1', required : get_option('asyncns'))
   if asyncns_dep.found()
     cdata.set('HAVE_LIBASYNCNS', 1)
-  endif
-
-  glib_dep = dependency('glib-2.0', version : '>= 2.28.0', required: get_option('glib'))
-  if glib_dep.found()
-    cdata.set('HAVE_GLIB', 1)
-    cdata.set('HAVE_GLIB20', 1) # to match the AM_CONDITIONAL for CMake file generation
   endif
 
   gtk_dep = dependency('gtk+-3.0', required : get_option('gtk'))
@@ -766,11 +771,6 @@ if get_option('daemon')
     if get_option('bluez5-ofono-headset')
       cdata.set('HAVE_BLUEZ_5_OFONO_HEADSET', 1)
     endif
-  endif
-
-  fftw_dep = dependency('fftw3f', required : get_option('fftw'))
-  if fftw_dep.found()
-    cdata.set('HAVE_FFTW', 1)
   endif
 
   jack_dep = dependency('jack', version : '>= 0.117.0', required : get_option('jack'))
@@ -948,7 +948,9 @@ summary = [
   'Enable memfd shared memory:    @0@'.format(cdata.has('HAVE_MEMFD')),
   'Enable X11:                    @0@'.format(x11_dep.found()),
   'Enable D-Bus:                  @0@'.format(dbus_dep.found()),
+  'Enable GLib 2:                 @0@'.format(glib_dep.found()),
   'Enable systemd integration:    @0@'.format(libsystemd_dep.found()),
+  'Enable FFTW:                   @0@'.format(fftw_dep.found()),
   'Enable IPv6:                   @0@'.format(get_option('ipv6')),
   'Enable Gcov coverage:          @0@'.format(get_option('gcov')),
   'Enable Valgrind:               @0@'.format(cdata.has('HAVE_VALGRIND_MEMCHECK_H')),
@@ -961,7 +963,6 @@ summary += [
   '',
   '--- Pulseaudio client features ---',
   '',
-  'Enable GLib 2:                 @0@'.format(glib_dep.found()),
   'Enable Gtk+ 3:                 @0@'.format(gtk_dep.found()),
   'Enable Async DNS:              @0@'.format(asyncns_dep.found()),
   'Enable OSS Wrapper:            @0@'.format(cdata.has('HAVE_OSS_WRAPPER')),
@@ -990,7 +991,6 @@ summary += [
   '  Enable GStreamer based codecs: @0@'.format(have_bluez5_gstreamer),
   'Enable GStreamer:              @0@'.format(have_gstreamer),
   'Enable libsamplerate:          @0@'.format(samplerate_dep.found()),
-  'Enable FFTW:                   @0@'.format(fftw_dep.found()),
   'Enable ORC:                    @0@'.format(have_orcc),
   'Enable Adrian echo canceller:  @0@'.format(get_option('adrian-aec')),
   'Enable Speex (resampler, AEC): @0@'.format(speex_dep.found()),

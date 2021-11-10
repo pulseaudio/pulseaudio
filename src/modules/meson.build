@@ -161,7 +161,7 @@ if dbus_dep.found() and fftw_dep.found()
   ]
 endif
 
-if get_option('gsettings').enabled() and gio_dep.found()
+if get_option('gsettings').enabled() and glib_dep.found() and gio_dep.found()
   subdir('gsettings')
   all_modules += [
     [ 'module-gsettings',
