@@ -158,6 +158,11 @@ static struct entry *entry_from_card(pa_card *card) {
     if (card->save_profile || entry->profile_is_sticky)
         entry->profile = pa_xstrdup(card->active_profile->name);
 
+    if (card->preferred_input_port)
+        entry->preferred_input_port = pa_xstrdup(card->preferred_input_port->name);
+    if (card->preferred_output_port)
+        entry->preferred_output_port = pa_xstrdup(card->preferred_output_port->name);
+
     PA_HASHMAP_FOREACH(port, card->ports, state) {
         p_info = port_info_new(port);
         pa_assert_se(pa_hashmap_put(entry->ports, p_info->name, p_info) >= 0);
