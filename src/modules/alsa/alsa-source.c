@@ -1595,7 +1595,7 @@ static int source_set_port_ucm_cb(pa_source *s, pa_device_port *p) {
     else
         sync_mixer(u, p);
 
-    return pa_alsa_ucm_set_port(u->ucm_context, p, false);
+    return pa_alsa_ucm_set_port(u->ucm_context, p);
 }
 
 static int source_set_port_cb(pa_source *s, pa_device_port *p) {
@@ -1943,7 +1943,7 @@ static int setup_mixer(struct userdata *u, bool ignore_dB) {
      * will be NULL, but the UCM device enable sequence will still need to be
      * executed. */
     if (u->source->active_port && u->ucm_context) {
-        if (pa_alsa_ucm_set_port(u->ucm_context, u->source->active_port, false) < 0)
+        if (pa_alsa_ucm_set_port(u->ucm_context, u->source->active_port) < 0)
             return -1;
     }
 
