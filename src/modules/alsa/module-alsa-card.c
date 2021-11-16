@@ -162,7 +162,7 @@ static void add_profiles(struct userdata *u, pa_hashmap *h, pa_hashmap *ports) {
 
             PA_IDXSET_FOREACH(m, ap->output_mappings, idx) {
                 if (u->use_ucm)
-                    pa_alsa_ucm_add_ports_combination(NULL, &m->ucm_context, true, ports, cp, u->core);
+                    pa_alsa_ucm_add_port(NULL, &m->ucm_context, true, ports, cp, u->core);
                 else
                     pa_alsa_path_set_add_ports(m->output_path_set, cp, ports, NULL, u->core);
                 if (m->channel_map.channels > cp->max_sink_channels)
@@ -175,7 +175,7 @@ static void add_profiles(struct userdata *u, pa_hashmap *h, pa_hashmap *ports) {
 
             PA_IDXSET_FOREACH(m, ap->input_mappings, idx) {
                 if (u->use_ucm)
-                    pa_alsa_ucm_add_ports_combination(NULL, &m->ucm_context, false, ports, cp, u->core);
+                    pa_alsa_ucm_add_port(NULL, &m->ucm_context, false, ports, cp, u->core);
                 else
                     pa_alsa_path_set_add_ports(m->input_path_set, cp, ports, NULL, u->core);
                 if (m->channel_map.channels > cp->max_source_channels)
