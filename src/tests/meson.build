@@ -238,6 +238,8 @@ if get_option('daemon')
   daemon_tests = [
     [ 'extended-test', 'extended-test.c',
       [ check_dep, libm_dep, libpulse_dep ] ],
+    [ 'passthrough-test', 'passthrough-test.c',
+      [ check_dep, libpulse_dep, libpulsecommon_dep ] ],
     [ 'sync-playback', 'sync-playback.c',
       [ check_dep, libm_dep, libpulse_dep ] ],
   ]
