@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-10-08 21:57+0300\n"
-"PO-Revision-Date: 2021-08-17 15:04+0000\n"
+"PO-Revision-Date: 2021-11-20 12:35+0000\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/pl/>\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 4.7.2\n"
+"X-Generator: Weblate 4.9\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -3041,7 +3041,7 @@ msgstr ""
 "mogą być używane do podania domyślnego odpływu, źródła i monitora.\n"
 
 #: src/utils/pactl.c:2653
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "  -h, --help                            Show this help\n"
@@ -3058,6 +3058,7 @@ msgstr ""
 "  -h, --help                            Wyświetla tę pomoc\n"
 "      --version                         Wyświetla wersję\n"
 "\n"
+"  -f, --format=FORMAT                   Format wyjścia, „normal” lub „json”\n"
 "  -s, --server=SERWER                   Nazwa serwera do połączenia się\n"
 "  -n, --client-name=NAZWA               Jak nazwać tego klienta w serwerze\n"
 
@@ -3073,9 +3074,9 @@ msgstr ""
 "Skonsolidowane za pomocą libpulse %s\n"
 
 #: src/utils/pactl.c:2739
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid format value '%s'"
-msgstr "Nieprawidłowa nazwa potoku „%s”"
+msgstr "Nieprawidłowa wartość formatu „%s”"
 
 #: src/utils/pactl.c:2766
 #, c-format
