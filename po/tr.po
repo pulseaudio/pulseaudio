@@ -11,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-10-08 21:57+0300\n"
-"PO-Revision-Date: 2021-08-26 16:04+0000\n"
+"PO-Revision-Date: 2021-11-24 13:16+0000\n"
 "Last-Translator: Oğuz Ersen <oguzersen@protonmail.com>\n"
 "Language-Team: Turkish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/tr/>\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.8\n"
+"X-Generator: Weblate 4.9\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -2999,7 +2999,7 @@ msgstr ""
 "öntanımlı alıcıyı, kaynağı ve ekranı belirtmek için kullanılabilir.\n"
 
 #: src/utils/pactl.c:2653
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "  -h, --help                            Show this help\n"
@@ -3016,6 +3016,8 @@ msgstr ""
 "  -h, --help                            Yardım gösterir\n"
 "      --version                         Sürüm gösterir\n"
 "\n"
+"  -f, --format=BİÇİM                    Çıktı biçimi. \"normal\" veya \"json"
+"\" seçeneklerinden birisi\n"
 "  -s, --server=SUNUCU                   Bağlantı kurulacak sunucu adı\n"
 "  -n, --client-name=AD                Sunucu üzerinde bu istemci nasıl "
 "çağrılacak\n"
@@ -3032,9 +3034,9 @@ msgstr ""
 "Libpulse %s ile bağlantılı\n"
 
 #: src/utils/pactl.c:2739
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid format value '%s'"
-msgstr "Geçersiz akış adı '%s'"
+msgstr "Geçersiz biçim değeri '%s'"
 
 #: src/utils/pactl.c:2766
 #, c-format
