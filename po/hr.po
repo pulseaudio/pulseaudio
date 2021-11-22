@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-10-08 21:57+0300\n"
-"PO-Revision-Date: 2021-09-14 14:05+0000\n"
+"PO-Revision-Date: 2021-11-22 15:07+0000\n"
 "Last-Translator: Gogo Gogsi <linux.hr@protonmail.com>\n"
 "Language-Team: Croatian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/hr/>\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 4.8\n"
+"X-Generator: Weblate 4.9\n"
 "X-Launchpad-Export-Date: 2017-04-20 21:04+0000\n"
 
 #: src/daemon/cmdline.c:113
@@ -3042,7 +3042,7 @@ msgstr ""
 "mogu se koristiti za određivanje zadanog slivnika, izvora i nadgledanja.\n"
 
 #: src/utils/pactl.c:2653
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "  -h, --help                            Show this help\n"
@@ -3059,8 +3059,11 @@ msgstr ""
 "  -h, --help                            Prikazuje ovu pomoć\n"
 "      --version                         Prikazuje inačicu\n"
 "\n"
-"  -s, --server=SERVER                   Naziv poslužitelja za povezivanje\n"
-"  -n, --client-name=NAME                Kako nazvati ovaj klijent na "
+"   -f, --format=FORMAT                   Format izlaza. Ili \"normal\" ili "
+"\"json\"\n"
+"  -s, --server=POSLUŽITELJ                   Naziv poslužitelja za "
+"povezivanje\n"
+"  -n, --client-name=NAZIV                Kako nazvati ovaj klijent na "
 "poslužitelju\n"
 
 #: src/utils/pactl.c:2696
@@ -3075,9 +3078,9 @@ msgstr ""
 "Povezano s libpulse %s\n"
 
 #: src/utils/pactl.c:2739
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid format value '%s'"
-msgstr "Neispravan naziv strujanja '%s'"
+msgstr "Neispravna vrijednost formata '%s'"
 
 #: src/utils/pactl.c:2766
 #, c-format
@@ -3141,11 +3144,11 @@ msgstr ""
 
 #: src/utils/pactl.c:2927
 msgid "You have to specify a card name/index and a profile name"
-msgstr "Morate odrediti naziv kartice/sadržaj i naziv profila"
+msgstr "Morate odrediti naziv/sadržaj kartice i naziv profila"
 
 #: src/utils/pactl.c:2938
 msgid "You have to specify a sink name/index and a port name"
-msgstr "Morate odrediti naziv slivnika/sadržaj i naziv ulaza"
+msgstr "Morate odrediti naziv/sadržaj slivnika i naziv ulaza"
 
 #: src/utils/pactl.c:2949
 msgid "You have to specify a sink name"
@@ -3153,7 +3156,7 @@ msgstr "Morate odrediti naziv slivnika"
 
 #: src/utils/pactl.c:2962
 msgid "You have to specify a source name/index and a port name"
-msgstr "Morate odrediti naziv izvora/sadržaj i naziv ulaza"
+msgstr "Morate odrediti naziv/sadržaj izvora i naziv ulaza"
 
 #: src/utils/pactl.c:2973
 msgid "You have to specify a source name"
@@ -3165,7 +3168,7 @@ msgstr "Morate odrediti naziv/sadržaj slivnika"
 
 #: src/utils/pactl.c:2996
 msgid "You have to specify a sink name/index and a volume"
-msgstr "Morate odrediti naziv slivnika/sadržaj i glasnoću zvuka"
+msgstr "Morate odrediti naziv/sadržaj slivnika i glasnoću zvuka"
 
 #: src/utils/pactl.c:3009 src/utils/pactl.c:3089
 msgid "You have to specify a source name/index"
@@ -3173,7 +3176,7 @@ msgstr "Morate odrediti naziv/sadržaj izvora"
 
 #: src/utils/pactl.c:3019
 msgid "You have to specify a source name/index and a volume"
-msgstr "Morate odrediti naziv izvora/sadržaj i glasnoću zvuka"
+msgstr "Morate odrediti naziv/sadržaj izvora i glasnoću zvuka"
 
 #: src/utils/pactl.c:3032
 msgid "You have to specify a sink input index and a volume"
@@ -3195,7 +3198,7 @@ msgstr "Neispravan sadržaj izlaza izvora"
 msgid ""
 "You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"
 msgstr ""
-"Morate odrediti naziv slivnika/sadržaj i radnju utišavanja (0, 1, ili "
+"Morate odrediti naziv/sadržaj slivnika i radnju utišavanja (0, 1, ili "
 "'prebacivanje')"
 
 #: src/utils/pactl.c:3079 src/utils/pactl.c:3104 src/utils/pactl.c:3124
@@ -3207,7 +3210,7 @@ msgstr "Neispravne specifikacije utišavanja"
 msgid ""
 "You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
 msgstr ""
-"Morate odrediti naziv izvora/sadržaj i radnju utišavanja (0, 1, ili "
+"Morate odrediti naziv/sadržaj izvora i radnju utišavanja (0, 1, ili "
 "'prebacivanje')"
 
 #: src/utils/pactl.c:3114
@@ -3255,7 +3258,7 @@ msgstr ""
 
 #: src/utils/pactl.c:3182
 msgid "You have to specify a card name/index, a port name and a latency offset"
-msgstr "Morate odrediti naziv kartice/sadržaj, naziv ulaza i pomak latencije"
+msgstr "Morate odrediti naziv/sadržaj kartice, naziv ulaza i pomak latencije"
 
 #: src/utils/pactl.c:3189
 msgid "Could not parse latency offset"
@@ -3303,7 +3306,7 @@ msgstr "SIGINT, izlazim.\n"
 #: src/utils/pasuspender.c:219
 #, c-format
 msgid "WARNING: Child process terminated by signal %u\n"
-msgstr "WARNING: podređeni proces je završen sa signalom %u\n"
+msgstr "UPOZORENJE: podređeni proces je završen sa signalom %u\n"
 
 #: src/utils/pasuspender.c:228
 #, c-format
@@ -3318,13 +3321,14 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
-"%s [mogućnosti] -- PROGRAM [ARGUMENTI ...]\n"
+"%s [mogućnosti] -- PROGRAM [ARGUMENTI...]\n"
 "\n"
 "Privremeno suspendira PulseAudio dok je PROGRAM pokrenut.\n"
 "\n"
 "  -h, --help                            Prikazuje ovu pomoć\n"
 "      --version                         Prikazuje inačicu\n"
-"  -s, --server=SERVER                   Naziv poslužitelja za povezivanje\n"
+"  -s, --server=POSLUŽITELJ                   Naziv poslužitelja za "
+"povezivanje\n"
 "\n"
 
 #: src/utils/pasuspender.c:267
