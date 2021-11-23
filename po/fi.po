@@ -10,7 +10,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-10-08 21:57+0300\n"
-"PO-Revision-Date: 2021-09-18 17:05+0000\n"
+"PO-Revision-Date: 2021-11-24 13:16+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/fi/>\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.8\n"
+"X-Generator: Weblate 4.9\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -2980,7 +2980,7 @@ msgid ""
 msgstr ""
 
 #: src/utils/pactl.c:2653
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "  -h, --help                            Show this help\n"
@@ -2996,7 +2996,8 @@ msgstr ""
 "\n"
 "  -h, --help                            Näytä tämä ohje\n"
 "      --version                         Näytä versio\n"
-"      \n"
+"\n"
+"  -f, --format=FORMAT Tulosteen muoto. Joko \"normaali\" tai \"json\"   \n"
 "  -s, --server=PALVELIN                 Sen palvelimen nimi, johon "
 "yhdistetään\n"
 "  -n, --client-name=NIMI                  Asiakkaan nimi palvelimella\n"
@@ -3013,9 +3014,9 @@ msgstr ""
 "Linkitetty libpulsen versiolle %s\n"
 
 #: src/utils/pactl.c:2739
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid format value '%s'"
-msgstr "Virheellinen virran nimi ”%s”"
+msgstr "Virheellinen muotoarvo ”%s”"
 
 #: src/utils/pactl.c:2766
 #, c-format
