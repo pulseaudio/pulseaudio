@@ -15,8 +15,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-10-08 21:57+0300\n"
-"PO-Revision-Date: 2021-01-09 11:36+0000\n"
-"Last-Translator: Tobias Weise <tobias.weise@web.de>\n"
+"PO-Revision-Date: 2021-12-05 21:16+0000\n"
+"Last-Translator: Ettore Atalan <atalanttore@googlemail.com>\n"
 "Language-Team: German <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/de/>\n"
 "Language: de\n"
@@ -24,7 +24,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.4\n"
+"X-Generator: Weblate 4.9.1\n"
 
 #: src/daemon/cmdline.c:113
 #, fuzzy, c-format
@@ -567,9 +567,8 @@ msgid "pa_core_new() failed."
 msgstr "pa_core_new() fehlgeschlagen."
 
 #: src/daemon/main.c:1268
-#, fuzzy
 msgid "command line arguments"
-msgstr "Zu viele Argumente."
+msgstr "Befehlszeilenargumente"
 
 #: src/daemon/main.c:1275
 #, c-format
@@ -700,14 +699,12 @@ msgid "Analog Output"
 msgstr "Analoge Ausgabe"
 
 #: src/modules/alsa/alsa-mixer.c:2808
-#, fuzzy
 msgid "Headphones 2"
-msgstr "Kopfhörer"
+msgstr "Kopfhörer 2"
 
 #: src/modules/alsa/alsa-mixer.c:2809
-#, fuzzy
 msgid "Headphones Mono Output"
-msgstr "Analoge Mono-Ausgabe"
+msgstr "Kopfhörer Mono-Ausgabe"
 
 #: src/modules/alsa/alsa-mixer.c:2810
 msgid "Line Out"
@@ -742,38 +739,32 @@ msgid "Multichannel Output"
 msgstr "Mehrkanalausgang"
 
 #: src/modules/alsa/alsa-mixer.c:2818
-#, fuzzy
 msgid "Game Output"
-msgstr "%s-Ausgabe"
+msgstr "Spiel-Ausgabe"
 
 #: src/modules/alsa/alsa-mixer.c:2819 src/modules/alsa/alsa-mixer.c:2820
-#, fuzzy
 msgid "Chat Output"
-msgstr "%s-Ausgabe"
+msgstr "Chat-Ausgabe"
 
 #: src/modules/alsa/alsa-mixer.c:2821
-#, fuzzy
 msgid "Chat Input"
-msgstr "%s-Eingabe"
+msgstr "Chat-Eingabe"
 
 #: src/modules/alsa/alsa-mixer.c:2822
-#, fuzzy
 msgid "Virtual Surround 7.1"
-msgstr "Virtuelles Surround-Ziel"
+msgstr "Virtueller Surround 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4563
 msgid "Analog Mono"
 msgstr "Analog Mono"
 
 #: src/modules/alsa/alsa-mixer.c:4564
-#, fuzzy
 msgid "Analog Mono (Left)"
-msgstr "Analog Mono"
+msgstr "Analog Mono (Links)"
 
 #: src/modules/alsa/alsa-mixer.c:4565
-#, fuzzy
 msgid "Analog Mono (Right)"
-msgstr "Analog Mono"
+msgstr "Analog Mono (Rechts)"
 
 #. Note: Not translated to "Analog Stereo Input", because the source
 #. * name gets "Input" appended to it automatically, so adding "Input"
@@ -800,9 +791,8 @@ msgid "Headset"
 msgstr "Headset"
 
 #: src/modules/alsa/alsa-mixer.c:4577 src/modules/alsa/alsa-mixer.c:4735
-#, fuzzy
 msgid "Speakerphone"
-msgstr "Lautsprecher"
+msgstr "Freisprecheinrichtung"
 
 #: src/modules/alsa/alsa-mixer.c:4578 src/modules/alsa/alsa-mixer.c:4579
 msgid "Multichannel"
@@ -878,11 +868,11 @@ msgstr "Digital Surround 5.1 (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4597
 msgid "Chat"
-msgstr ""
+msgstr "Chat"
 
 #: src/modules/alsa/alsa-mixer.c:4598
 msgid "Game"
-msgstr ""
+msgstr "Spiel"
 
 #: src/modules/alsa/alsa-mixer.c:4732
 msgid "Analog Mono Duplex"
@@ -901,13 +891,12 @@ msgid "Multichannel Duplex"
 msgstr "Mehrkanal-Duplex"
 
 #: src/modules/alsa/alsa-mixer.c:4738
-#, fuzzy
 msgid "Stereo Duplex"
-msgstr "Analog Stereo Duplex"
+msgstr "Stereo Duplex"
 
 #: src/modules/alsa/alsa-mixer.c:4739
 msgid "Mono Chat + 7.1 Surround"
-msgstr ""
+msgstr "Mono Chat + 7.1 Surround"
 
 #: src/modules/alsa/alsa-mixer.c:4740 src/modules/alsa/module-alsa-card.c:197
 #: src/modules/bluetooth/module-bluez5-device.c:2217
@@ -1086,24 +1075,20 @@ msgid "High Fidelity Capture (A2DP Source)"
 msgstr "High Fidelity Aufnahme (A2DP-Quelle)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2020
-#, fuzzy
 msgid "Headset Head Unit (HSP)"
-msgstr "Kopfhörer Kopf-Einheit (HSP/HFP)"
+msgstr "Kopfhörer Kopf-Einheit (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2033
-#, fuzzy
 msgid "Headset Audio Gateway (HSP)"
-msgstr "Kopfhörer Audio Gateway (HSP/HFP)"
+msgstr "Kopfhörer Audio-Gateway (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2046
-#, fuzzy
 msgid "Handsfree Head Unit (HFP)"
-msgstr "Kopfhörer Kopf-Einheit (HSP/HFP)"
+msgstr "Freisprechanlage Kopf-Einheit (HFP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2059
-#, fuzzy
 msgid "Handsfree Audio Gateway (HFP)"
-msgstr "Kopfhörer Audio Gateway (HSP/HFP)"
+msgstr "Freisprechanlage Audio-Gateway (HFP)"
 
 #: src/modules/echo-cancel/module-echo-cancel.c:59
 msgid ""
@@ -1268,13 +1253,12 @@ msgstr ""
 "zu/left_hrir.wav "
 
 #: src/modules/raop/module-raop-discover.c:295
-#, fuzzy
 msgid "Unknown device model"
-msgstr "Unbekannter Fehlercode"
+msgstr "Unbekanntes Gerätemodell"
 
 #: src/modules/raop/raop-sink.c:655
 msgid "RAOP standard profile"
-msgstr ""
+msgstr "RAOP-Standardprofil"
 
 #: src/modules/reserve-wrap.c:149
 msgid "PulseAudio Sound Server"
@@ -2398,7 +2382,7 @@ msgstr "Beziehen der Server-Information fehlgeschlagen: %s"
 #: src/utils/pactl.c:224 src/utils/pactl.c:236
 #, c-format
 msgid "%s\n"
-msgstr ""
+msgstr "%s\n"
 
 #: src/utils/pactl.c:281
 #, c-format
@@ -2442,20 +2426,19 @@ msgstr ""
 
 #: src/utils/pactl.c:320
 msgid "availability unknown"
-msgstr ""
+msgstr "Verfügbarkeit unbekannt"
 
 #: src/utils/pactl.c:321
 msgid "available"
-msgstr ""
+msgstr "verfügbar"
 
 #: src/utils/pactl.c:322
 msgid "not available"
-msgstr ""
+msgstr "nicht verfügbar"
 
 #: src/utils/pactl.c:331 src/utils/pactl.c:355
-#, fuzzy
 msgid "Unknown"
-msgstr "unbekannt"
+msgstr "Unbekannt"
 
 #: src/utils/pactl.c:332
 msgid "Aux"
@@ -2468,46 +2451,43 @@ msgstr "Line-Eingang"
 
 #: src/utils/pactl.c:336
 msgid "Mic"
-msgstr ""
+msgstr "Mikro"
 
 #: src/utils/pactl.c:338
-#, fuzzy
 msgid "Handset"
-msgstr "Headset"
+msgstr "Hörer"
 
 #: src/utils/pactl.c:339
 msgid "Earpiece"
-msgstr ""
+msgstr "Ohrhörer"
 
 #: src/utils/pactl.c:340
 msgid "SPDIF"
-msgstr ""
+msgstr "SPDIF"
 
 #: src/utils/pactl.c:341
 msgid "HDMI"
-msgstr ""
+msgstr "HDMI"
 
 #: src/utils/pactl.c:342
 msgid "TV"
-msgstr ""
+msgstr "TV"
 
 #: src/utils/pactl.c:345
 msgid "USB"
-msgstr ""
+msgstr "USB"
 
 #: src/utils/pactl.c:346
-#, fuzzy
 msgid "Bluetooth"
-msgstr "Bluetooth-Eingabe"
+msgstr "Bluetooth"
 
 #: src/utils/pactl.c:352
 msgid "Network"
-msgstr ""
+msgstr "Netzwerk"
 
 #: src/utils/pactl.c:353
-#, fuzzy
 msgid "Analog"
-msgstr "Analog Mono"
+msgstr "Analog"
 
 #: src/utils/pactl.c:567 src/utils/pactl.c:1834 src/utils/pactl.c:1852
 #: src/utils/pactl.c:1875 src/utils/pactl.c:1992
@@ -2560,13 +2540,13 @@ msgid "\tPorts:\n"
 msgstr "\tPorts:\n"
 
 #: src/utils/pactl.c:708 src/utils/pactl.c:892
-#, fuzzy, c-format
+#, c-format
 msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
-msgstr "\t\t%s: %s (Ziele: %u, Quellen: %u, Priorität: %u, verfügbar: %s)\n"
+msgstr "\t\t%s: %s (Typ: %s, Priorität: %u%s%s, %s)\n"
 
 #: src/utils/pactl.c:710 src/utils/pactl.c:894 src/utils/pactl.c:1256
 msgid ", availability group: "
-msgstr ""
+msgstr ", Verfügbarkeitsgruppe: "
 
 #: src/utils/pactl.c:715 src/utils/pactl.c:899
 #, c-format
@@ -2715,6 +2695,7 @@ msgstr "\tAktives Profil: %s\n"
 msgid ""
 "\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s, %s)\n"
 msgstr ""
+"\t\t%s: %s (Typ: %s, Priorität: %u, Latenzversatz: %<PRId64> usec%s%s, %s)\n"
 
 #: src/utils/pactl.c:1261
 #, c-format
@@ -2858,9 +2839,9 @@ msgid "Failure: %s"
 msgstr "Fehlgeschlagen: %s"
 
 #: src/utils/pactl.c:1667
-#, fuzzy, c-format
+#, c-format
 msgid "Send message failed: %s"
-msgstr "read() fehlgeschlagen: %s"
+msgstr ""
 
 #: src/utils/pactl.c:1695
 #, c-format
@@ -3079,9 +3060,9 @@ msgstr ""
 "Gelinkt mit libpulse %s\n"
 
 #: src/utils/pactl.c:2739
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid format value '%s'"
-msgstr "Ungültiger Stream-Name »%s«"
+msgstr ""
 
 #: src/utils/pactl.c:2766
 #, c-format
