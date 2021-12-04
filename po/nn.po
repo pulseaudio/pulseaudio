@@ -8,7 +8,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-10-08 21:57+0300\n"
-"PO-Revision-Date: 2021-09-09 20:04+0000\n"
+"PO-Revision-Date: 2021-12-05 21:16+0000\n"
 "Last-Translator: Karl Ove Hufthammer <karl@huftis.org>\n"
 "Language-Team: Norwegian Nynorsk <https://translate.fedoraproject.org/"
 "projects/pulseaudio/pulseaudio/nn/>\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.8\n"
+"X-Generator: Weblate 4.9.1\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -3007,7 +3007,7 @@ msgstr ""
 "for å velja høvesvis standard sluk, kjelde og avlytting.\n"
 
 #: src/utils/pactl.c:2653
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "  -h, --help                            Show this help\n"
@@ -3025,8 +3025,10 @@ msgstr ""
 "      --version                         Vis versjonsinformasjon.\n"
 "\n"
 "  -s, --server=TENAR                    Namnet på tenaren å kopla til.\n"
-"  -n, --client-name=NAMN                Kva klienten skal kallast på "
-"tenaren.\n"
+"  -f, --format=FORMAT                   Format på utdataa. Anten «normal» "
+"eller «json».\n"
+"  -n, --client-name=NAMN                Kva klienten skal kallast på tenaren."
+"\n"
 
 #: src/utils/pactl.c:2696
 #, c-format
@@ -3040,9 +3042,9 @@ msgstr ""
 "Lenkja til libpulse %s\n"
 
 #: src/utils/pactl.c:2739
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid format value '%s'"
-msgstr "Ugyldig straumnamn «%s»"
+msgstr "Ugyldig formatverdi: %s"
 
 #: src/utils/pactl.c:2766
 #, c-format
