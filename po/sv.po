@@ -21,7 +21,7 @@ msgstr ""
 "issues/new\n"
 "POT-Creation-Date: 2021-10-08 21:57+0300\n"
 "PO-Revision-Date: 2021-12-10 22:16+0000\n"
-"Last-Translator: Anders Jonsson <anders.jonsson@norsjovallen.se>\n"
+"Last-Translator: Luna Jernberg <bittin@reimu.nl>\n"
 "Language-Team: Swedish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/sv/>\n"
 "Language: sv\n"
@@ -3007,7 +3007,7 @@ msgstr ""
 "kan användas för att ange standardmottagare, källa och övervakare.\n"
 
 #: src/utils/pactl.c:2653
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "  -h, --help                            Show this help\n"
@@ -3024,6 +3024,8 @@ msgstr ""
 "  -h, --help                            Visa detta hjälpmeddelande\n"
 "      --version                         Visa version\n"
 "\n"
+"  -f --format=FORMAT                    Utdataformatet. Antingen \"normal\" "
+"eller \"json\"\n"
 "  -s, --server=SERVER                   Namnet på servern att ansluta till\n"
 "  -n, --client-name=NAMN                Vad klienten ska kallas på servern\n"
 
