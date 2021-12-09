@@ -36,7 +36,7 @@
 
 PA_MODULE_AUTHOR("David Henningsson");
 PA_MODULE_DESCRIPTION("Adds JACK sink/source ports when JACK is started");
-PA_MODULE_LOAD_ONCE(true);
+PA_MODULE_LOAD_ONCE(false);
 PA_MODULE_VERSION(PACKAGE_VERSION);
 PA_MODULE_USAGE(
     "channels=<number of channels> "
