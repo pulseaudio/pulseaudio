@@ -71,11 +71,13 @@ PA_MODULE_USAGE(
 
 static const char* const valid_modargs[] = {
     "channels",
+    "sink_enabled",
     "sink_name",
     "sink_properties",
     "sink_client_name",
     "sink_channels",
     "sink_channel_map",
+    "source_enabled",
     "source_name",
     "source_properties",
     "source_client_name",
@@ -100,6 +102,7 @@ static const char* const modtypes[JACK_SS_COUNT] = {
 };
 
 struct moddata {
+    bool enabled;
     char *name;
     pa_proplist *proplist;
     char *client_name;
@@ -178,7 +181,7 @@ static void ensure_ports_started(struct userdata* u) {
     pa_assert(u);
 
     for (i = 0; i < JACK_SS_COUNT; i++)
-        if (!u->jack_module_index[i]) {
+        if (u->mod_args[i].enabled && !u->jack_module_index[i]) {
             pa_strbuf *args_buf = pa_strbuf_new();
             char *args;
             pa_module *m;
@@ -340,6 +343,13 @@ int pa__init(pa_module *m) {
     }
 
     for (i = 0; i < JACK_SS_COUNT; i++) {
+        u->mod_args[i].enabled = true;
+        pa_snprintf(argname, sizeof(argname), "%s_enabled", modtypes[i]);
+        if (pa_modargs_get_value_boolean(ma, argname, &u->mod_args[i].enabled) < 0) {
+            pa_log("Failed to parse %s= argument.", argname);
+            goto fail;
+        }
+
         pa_snprintf(argname, sizeof(argname), "%s_name", modtypes[i]);
         name = pa_modargs_get_value(ma, argname, NULL);
         u->mod_args[i].name = pa_xstrdup(name);
