@@ -20,8 +20,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-10-08 21:57+0300\n"
-"PO-Revision-Date: 2021-11-28 13:16+0000\n"
-"Last-Translator: Luna Jernberg <bittin@reimu.nl>\n"
+"PO-Revision-Date: 2021-12-10 22:16+0000\n"
+"Last-Translator: Anders Jonsson <anders.jonsson@norsjovallen.se>\n"
 "Language-Team: Swedish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/sv/>\n"
 "Language: sv\n"
@@ -3041,7 +3041,7 @@ msgstr ""
 #: src/utils/pactl.c:2739
 #, c-format
 msgid "Invalid format value '%s'"
-msgstr "Ogiltigt format värde '%s'"
+msgstr "Ogiltigt formatvärde '%s'"
 
 #: src/utils/pactl.c:2766
 #, c-format
