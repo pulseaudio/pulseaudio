@@ -794,6 +794,14 @@ int pa_alsa_ucm_query_profiles(pa_alsa_ucm_config *ucm, int card_index) {
 
     pa_log_info("UCM available for card %s", card_name);
 
+    if (snd_use_case_get(ucm->ucm_mgr, "_alibpref", &value) == 0) {
+        if (value[0]) {
+            ucm->alib_prefix = pa_xstrdup(value);
+            pa_log_debug("UCM _alibpref=%s", ucm->alib_prefix);
+        }
+        free((void *)value);
+    }
+
     /* get a list of all UCM verbs (profiles) for this card */
     num_verbs = snd_use_case_verb_list(ucm->ucm_mgr, &verb_list);
     if (num_verbs < 0) {
@@ -1554,15 +1562,11 @@ static pa_alsa_mapping* ucm_alsa_mapping_get(pa_alsa_ucm_config *ucm, pa_alsa_pr
     pa_alsa_mapping *m;
     char *mapping_name;
     size_t ucm_alibpref_len = 0;
-    const char *value;
 
     /* find private alsa-lib's configuration device prefix */
-    if (snd_use_case_get(ucm->ucm_mgr, "_alibpref", &value) == 0) {
-        if (value[0] && pa_startswith(device_str, value))
-            ucm_alibpref_len = strlen(value);
 
-        free((void *)value);
-    }
+    if (ucm->alib_prefix && pa_startswith(device_str, ucm->alib_prefix))
+        ucm_alibpref_len = strlen(ucm->alib_prefix);
 
     mapping_name = pa_sprintf_malloc("Mapping %s: %s: %s", verb_name, device_str + ucm_alibpref_len, is_sink ? "sink" : "source");
 
@@ -1884,7 +1888,7 @@ static void mapping_init_eld(pa_alsa_mapping *m, snd_pcm_t *pcm)
     pa_alsa_ucm_mapping_context *context = &m->ucm_context;
     pa_alsa_ucm_device *dev;
     uint32_t idx;
-    char *mdev;
+    char *mdev, *alib_prefix;
     snd_pcm_info_t *info;
     int pcm_card, pcm_device;
 
@@ -1897,8 +1901,10 @@ static void mapping_init_eld(pa_alsa_mapping *m, snd_pcm_t *pcm)
     if ((pcm_device = snd_pcm_info_get_device(info)) < 0)
         return;
 
+    alib_prefix = context->ucm->alib_prefix;
+
     PA_IDXSET_FOREACH(dev, context->ucm_devices, idx) {
-       mdev = pa_sprintf_malloc("hw:%i", pcm_card);
+       mdev = pa_sprintf_malloc("%shw:%i", alib_prefix ? alib_prefix : "", pcm_card);
        if (mdev == NULL)
            continue;
        dev->eld_mixer_device_name = mdev;
@@ -2164,6 +2170,8 @@ void pa_alsa_ucm_free(pa_alsa_ucm_config *ucm) {
         snd_use_case_mgr_close(ucm->ucm_mgr);
         ucm->ucm_mgr = NULL;
     }
+    pa_xfree(ucm->alib_prefix);
+    ucm->alib_prefix = NULL;
 }
 
 void pa_alsa_ucm_mapping_context_free(pa_alsa_ucm_mapping_context *context) {
