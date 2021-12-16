@@ -964,11 +964,12 @@ static void probe_volumes(pa_hashmap *hash, bool is_sink, snd_pcm_t *pcm_handle,
             if (pa_alsa_path_probe(path, NULL, mixer_handle, ignore_dB) < 0) {
                 pa_log_warn("Could not probe path: %s, using s/w volume", path->name);
                 pa_hashmap_remove(data->paths, profile);
-            } else if (!path->has_volume) {
-                pa_log_warn("Path %s is not a volume control", path->name);
+            } else if (!path->has_volume && !path->has_mute) {
+                pa_log_warn("Path %s is not a volume or mute control", path->name);
                 pa_hashmap_remove(data->paths, profile);
             } else
-                pa_log_debug("Set up h/w volume using '%s' for %s:%s", path->name, profile, port->name);
+                pa_log_debug("Set up h/w %s using '%s' for %s:%s", path->has_volume ? "volume" : "mute",
+                                path->name, profile, port->name);
         }
     }
 
