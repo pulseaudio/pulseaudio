@@ -931,6 +931,19 @@ static void set_eld_devices(pa_hashmap *hash)
     }
 }
 
+static void update_mixer_paths(pa_hashmap *ports, const char *profile) {
+    pa_device_port *port;
+    pa_alsa_ucm_port_data *data;
+    void *state;
+
+    /* select volume controls on ports */
+    PA_HASHMAP_FOREACH(port, ports, state) {
+        pa_log_info("Updating mixer path for %s: %s", profile, port->name);
+        data = PA_DEVICE_PORT_DATA(port);
+        data->path = pa_hashmap_get(data->paths, profile);
+    }
+}
+
 static void probe_volumes(pa_hashmap *hash, bool is_sink, snd_pcm_t *pcm_handle, pa_hashmap *mixers, bool ignore_dB) {
     pa_device_port *port;
     pa_alsa_path *path;
@@ -1321,6 +1334,14 @@ void pa_alsa_ucm_add_ports(
     /* now set up volume paths if any */
     probe_volumes(*p, is_sink, pcm_handle, context->ucm->mixers, ignore_dB);
 
+    /* probe_volumes() removes per-profile paths from ports if probing them
+     * fails. The path for the current profile is cached in
+     * pa_alsa_ucm_port_data.path, which is not cleared by probe_volumes() if
+     * the path gets removed, so we have to call update_mixer_paths() here to
+     * unset the cached path if needed. */
+    if (card->active_profile)
+        update_mixer_paths(*p, card->active_profile->name);
+
     /* then set property PA_PROP_DEVICE_INTENDED_ROLES */
     merged_roles = pa_xstrdup(pa_proplist_gets(proplist, PA_PROP_DEVICE_INTENDED_ROLES));
     PA_IDXSET_FOREACH(dev, context->ucm_devices, idx) {
@@ -1349,9 +1370,6 @@ int pa_alsa_ucm_set_profile(pa_alsa_ucm_config *ucm, pa_card *card, const char *
     int ret = 0;
     const char *profile;
     pa_alsa_ucm_verb *verb;
-    pa_device_port *port;
-    pa_alsa_ucm_port_data *data;
-    void *state;
 
     if (new_profile == old_profile)
         return ret;
@@ -1380,12 +1398,7 @@ int pa_alsa_ucm_set_profile(pa_alsa_ucm_config *ucm, pa_card *card, const char *
         }
     }
 
-    /* select volume controls on ports */
-    PA_HASHMAP_FOREACH(port, card->ports, state) {
-        data = PA_DEVICE_PORT_DATA(port);
-        data->path = pa_hashmap_get(data->paths, profile);
-    }
-
+    update_mixer_paths(card->ports, profile);
     return ret;
 }
 
