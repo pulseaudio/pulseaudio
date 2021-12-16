@@ -1092,8 +1092,6 @@ static void ucm_add_port_combination(
         if (num == 1) {
             /* To keep things simple and not worry about stacking controls, we only support hardware volumes on non-combination
              * ports. */
-            data = PA_DEVICE_PORT_DATA(port);
-
             PA_HASHMAP_FOREACH_KV(profile, vol, is_sink ? dev->playback_volumes : dev->capture_volumes, state) {
                 pa_alsa_path *path = pa_alsa_path_synthesize(vol->mixer_elem,
                                                              is_sink ? PA_ALSA_DIRECTION_OUTPUT : PA_ALSA_DIRECTION_INPUT);
