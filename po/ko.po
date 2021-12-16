@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2021-10-08 21:57+0300\n"
+"POT-Creation-Date: 2021-12-16 18:45+0200\n"
 "PO-Revision-Date: 2021-11-21 13:16+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/"
@@ -154,9 +154,10 @@ msgid "--fail expects boolean argument"
 msgstr "--fail은 부울 인수를 예상합니다"
 
 #: src/daemon/cmdline.c:265
+#, fuzzy
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
-"of debug, info, notice, warn, error)."
+"of error, warn, notice, info, debug)."
 msgstr ""
 "--log-level은 로그 수준 논의가 예상됩니다 (0..4 숫자 범위 내의 수 또는 디버그"
 "중의 하나, 정보, 알림, 경고, 오류)."
@@ -571,7 +572,7 @@ msgid "Line In"
 msgstr "라인 입력"
 
 #: src/modules/alsa/alsa-mixer.c:2713 src/modules/alsa/alsa-mixer.c:2797
-#: src/modules/bluetooth/module-bluez5-device.c:1910
+#: src/modules/bluetooth/module-bluez5-device.c:1956
 msgid "Microphone"
 msgstr "마이크"
 
@@ -634,7 +635,7 @@ msgid "No Bass Boost"
 msgstr "베이스 부스트 없음"
 
 #: src/modules/alsa/alsa-mixer.c:2728
-#: src/modules/bluetooth/module-bluez5-device.c:1918 src/utils/pactl.c:333
+#: src/modules/bluetooth/module-bluez5-device.c:1964 src/utils/pactl.c:333
 msgid "Speaker"
 msgstr "스피커"
 
@@ -747,7 +748,7 @@ msgid "Stereo"
 msgstr "스테레오"
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
-#: src/modules/bluetooth/module-bluez5-device.c:1898 src/utils/pactl.c:337
+#: src/modules/bluetooth/module-bluez5-device.c:1944 src/utils/pactl.c:337
 msgid "Headset"
 msgstr "헤드셋"
 
@@ -860,7 +861,7 @@ msgid "Mono Chat + 7.1 Surround"
 msgstr "모노 Chat + 7.1 Surround"
 
 #: src/modules/alsa/alsa-mixer.c:4740 src/modules/alsa/module-alsa-card.c:197
-#: src/modules/bluetooth/module-bluez5-device.c:2217
+#: src/modules/bluetooth/module-bluez5-device.c:2263
 msgid "Off"
 msgstr "끄기"
 
@@ -874,7 +875,7 @@ msgstr "%s 출력"
 msgid "%s Input"
 msgstr "%s 입력"
 
-#: src/modules/alsa/alsa-sink.c:652 src/modules/alsa/alsa-sink.c:842
+#: src/modules/alsa/alsa-sink.c:672 src/modules/alsa/alsa-sink.c:862
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -890,7 +891,7 @@ msgstr ""
 "POLLOUT 세트로 불러 오려했지만 결과적으로 snd_pcm_avail()이 0 또는 다른 값 < "
 "min_avail을 반환했습니다."
 
-#: src/modules/alsa/alsa-source.c:611 src/modules/alsa/alsa-source.c:777
+#: src/modules/alsa/alsa-source.c:636 src/modules/alsa/alsa-source.c:802
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -970,62 +971,62 @@ msgstr[0] ""
 "ALSA 드라이버 '%s'의 오류일 수 있습니다. ALSA 개발자에게 이 문제를 보고해 주"
 "시기 바랍니다."
 
-#: src/modules/bluetooth/module-bluez5-device.c:1891
-#: src/modules/bluetooth/module-bluez5-device.c:1917
-#: src/modules/bluetooth/module-bluez5-device.c:1924
+#: src/modules/bluetooth/module-bluez5-device.c:1937
+#: src/modules/bluetooth/module-bluez5-device.c:1963
+#: src/modules/bluetooth/module-bluez5-device.c:1970
 msgid "Bluetooth Input"
 msgstr "블루투스 출력"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1892
-#: src/modules/bluetooth/module-bluez5-device.c:1911
+#: src/modules/bluetooth/module-bluez5-device.c:1938
+#: src/modules/bluetooth/module-bluez5-device.c:1957
 msgid "Bluetooth Output"
 msgstr "블루투스 출력"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1904 src/utils/pactl.c:348
+#: src/modules/bluetooth/module-bluez5-device.c:1950 src/utils/pactl.c:348
 msgid "Handsfree"
 msgstr "핸즈프리"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1925
+#: src/modules/bluetooth/module-bluez5-device.c:1971
 msgid "Headphone"
 msgstr "헤드폰"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1931 src/utils/pactl.c:347
+#: src/modules/bluetooth/module-bluez5-device.c:1977 src/utils/pactl.c:347
 msgid "Portable"
 msgstr "이동식"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1937 src/utils/pactl.c:349
+#: src/modules/bluetooth/module-bluez5-device.c:1983 src/utils/pactl.c:349
 msgid "Car"
 msgstr "자동차"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1943 src/utils/pactl.c:350
+#: src/modules/bluetooth/module-bluez5-device.c:1989 src/utils/pactl.c:350
 msgid "HiFi"
 msgstr "하이파이"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1949 src/utils/pactl.c:351
+#: src/modules/bluetooth/module-bluez5-device.c:1995 src/utils/pactl.c:351
 msgid "Phone"
 msgstr "전화기"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1996
+#: src/modules/bluetooth/module-bluez5-device.c:2042
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "고 충실도 재생 (A2DP Sink)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:2008
+#: src/modules/bluetooth/module-bluez5-device.c:2054
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "고 충실도 순간찍기 (A2DP Source)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:2020
+#: src/modules/bluetooth/module-bluez5-device.c:2066
 msgid "Headset Head Unit (HSP)"
 msgstr "헤드셋 헤드 유닛 (HSP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:2033
+#: src/modules/bluetooth/module-bluez5-device.c:2079
 msgid "Headset Audio Gateway (HSP)"
 msgstr "헤드셋 오디오 게이트웨어 (HSP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:2046
+#: src/modules/bluetooth/module-bluez5-device.c:2092
 msgid "Handsfree Head Unit (HFP)"
 msgstr "핸즈프리 헤드 유닛 (HFP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:2059
+#: src/modules/bluetooth/module-bluez5-device.c:2105
 msgid "Handsfree Audio Gateway (HFP)"
 msgstr "블루투스 핸즈프리 게이트웨이 (HFP)"
 
@@ -1124,11 +1125,11 @@ msgstr ""
 msgid "Clocked NULL sink"
 msgstr "클럭 사용 빈 싱크"
 
-#: src/modules/module-null-sink.c:338
+#: src/modules/module-null-sink.c:356
 msgid "Null Output"
 msgstr "빈 출력"
 
-#: src/modules/module-null-sink.c:350 src/utils/pactl.c:2064
+#: src/modules/module-null-sink.c:368 src/utils/pactl.c:2064
 #, c-format
 msgid "Failed to set format: invalid format string %s"
 msgstr "포맷 설정 실패: 잘못된 포맷 문자열 %s"
@@ -1187,7 +1188,7 @@ msgstr ""
 msgid "Unknown device model"
 msgstr "알 수 없는 장치 모델"
 
-#: src/modules/raop/raop-sink.c:655
+#: src/modules/raop/raop-sink.c:689
 msgid "RAOP standard profile"
 msgstr "RAOP 표준 프로파일"
 
@@ -1505,11 +1506,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "잘못된 기록 대상."
 
-#: src/pulsecore/sink.c:3539
+#: src/pulsecore/sink.c:3600
 msgid "Built-in Audio"
 msgstr "내장 오디오"
 
-#: src/pulsecore/sink.c:3544
+#: src/pulsecore/sink.c:3605
 msgid "Modem"
 msgstr "모뎀"
 
@@ -2952,7 +2953,8 @@ msgstr ""
 "  -h, --help 도움말 표시\n"
 " --version 버전 표시\n"
 "\n"
-"  -f, --format=FORMAT                   출력 형식. \"normal\" 또는 \"json\" 중의 하나\n"
+"  -f, --format=FORMAT                   출력 형식. \"normal\" 또는 \"json\" "
+"중의 하나\n"
 " -s, --server=SERVER 연결할 서버 이름\n"
 " -n, --client-name=NAME 서버에서 클라이언트 호출 방법\n"
 

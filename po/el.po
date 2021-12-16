@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: el\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2021-10-08 21:57+0300\n"
+"POT-Creation-Date: 2021-12-16 18:45+0200\n"
 "PO-Revision-Date: 2014-05-08 09:53+0300\n"
 "Last-Translator: Dimitris Spingos (Δημήτρης Σπίγγος) <dmtrs32@gmail.com>\n"
 "Language-Team: team@lists.gnome.gr\n"
@@ -181,9 +181,10 @@ msgid "--fail expects boolean argument"
 msgstr "Το --fail περιμένει όρισμα τιμής Μπουλ"
 
 #: src/daemon/cmdline.c:265
+#, fuzzy
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
-"of debug, info, notice, warn, error)."
+"of error, warn, notice, info, debug)."
 msgstr ""
 "Το --log-level περιμένει όρισμα επιπέδου καταγραφής (είτε αριθμητικό σε "
 "διάστημα 0..4 ή ένα όρισμα αποσφαλμάτωσης, πληροφορίας, ειδοποίησης, "
@@ -620,7 +621,7 @@ msgid "Line In"
 msgstr "Γραμμή εισόδου"
 
 #: src/modules/alsa/alsa-mixer.c:2713 src/modules/alsa/alsa-mixer.c:2797
-#: src/modules/bluetooth/module-bluez5-device.c:1910
+#: src/modules/bluetooth/module-bluez5-device.c:1956
 msgid "Microphone"
 msgstr "Μικρόφωνο"
 
@@ -683,7 +684,7 @@ msgid "No Bass Boost"
 msgstr "Χωρίς ενίσχυση μπάσων"
 
 #: src/modules/alsa/alsa-mixer.c:2728
-#: src/modules/bluetooth/module-bluez5-device.c:1918 src/utils/pactl.c:333
+#: src/modules/bluetooth/module-bluez5-device.c:1964 src/utils/pactl.c:333
 msgid "Speaker"
 msgstr "Ηχείο"
 
@@ -806,7 +807,7 @@ msgid "Stereo"
 msgstr "Στερεοφωνικό"
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
-#: src/modules/bluetooth/module-bluez5-device.c:1898 src/utils/pactl.c:337
+#: src/modules/bluetooth/module-bluez5-device.c:1944 src/utils/pactl.c:337
 msgid "Headset"
 msgstr "Ακουστικά"
 
@@ -921,7 +922,7 @@ msgid "Mono Chat + 7.1 Surround"
 msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:4740 src/modules/alsa/module-alsa-card.c:197
-#: src/modules/bluetooth/module-bluez5-device.c:2217
+#: src/modules/bluetooth/module-bluez5-device.c:2263
 msgid "Off"
 msgstr "Ανενεργό"
 
@@ -935,7 +936,7 @@ msgstr "Έξοδος %s"
 msgid "%s Input"
 msgstr "Είσοδος %s"
 
-#: src/modules/alsa/alsa-sink.c:652 src/modules/alsa/alsa-sink.c:842
+#: src/modules/alsa/alsa-sink.c:672 src/modules/alsa/alsa-sink.c:862
 #, fuzzy, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -952,7 +953,7 @@ msgstr ""
 "Ενεργοποίηση με ορισμό POLLOUT -- όμως η επόμενη snd_pcm_avail() επέστρεψε 0 "
 "ή άλλη τιμή < min_avail."
 
-#: src/modules/alsa/alsa-source.c:611 src/modules/alsa/alsa-source.c:777
+#: src/modules/alsa/alsa-source.c:636 src/modules/alsa/alsa-source.c:802
 #, fuzzy, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -1051,62 +1052,62 @@ msgstr[1] ""
 "Το πιθανότερο αυτό είναι ένα σφάλμα στον οδηγό ALSA '%s'. Παρακαλούμε, "
 "αναφέρτε αυτό το θέμα στους προγραμματιστές ALSA."
 
-#: src/modules/bluetooth/module-bluez5-device.c:1891
-#: src/modules/bluetooth/module-bluez5-device.c:1917
-#: src/modules/bluetooth/module-bluez5-device.c:1924
+#: src/modules/bluetooth/module-bluez5-device.c:1937
+#: src/modules/bluetooth/module-bluez5-device.c:1963
+#: src/modules/bluetooth/module-bluez5-device.c:1970
 msgid "Bluetooth Input"
 msgstr "Είσοδος μπλουτούθ"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1892
-#: src/modules/bluetooth/module-bluez5-device.c:1911
+#: src/modules/bluetooth/module-bluez5-device.c:1938
+#: src/modules/bluetooth/module-bluez5-device.c:1957
 msgid "Bluetooth Output"
 msgstr "Έξοδος μπλουτούθ"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1904 src/utils/pactl.c:348
+#: src/modules/bluetooth/module-bluez5-device.c:1950 src/utils/pactl.c:348
 msgid "Handsfree"
 msgstr "Ανοιχτής ακρόασης"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1925
+#: src/modules/bluetooth/module-bluez5-device.c:1971
 msgid "Headphone"
 msgstr "Ακουστικό"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1931 src/utils/pactl.c:347
+#: src/modules/bluetooth/module-bluez5-device.c:1977 src/utils/pactl.c:347
 msgid "Portable"
 msgstr "Φορητό"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1937 src/utils/pactl.c:349
+#: src/modules/bluetooth/module-bluez5-device.c:1983 src/utils/pactl.c:349
 msgid "Car"
 msgstr "Αυτοκίνητο"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1943 src/utils/pactl.c:350
+#: src/modules/bluetooth/module-bluez5-device.c:1989 src/utils/pactl.c:350
 msgid "HiFi"
 msgstr "Υψηλή πιστότητα"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1949 src/utils/pactl.c:351
+#: src/modules/bluetooth/module-bluez5-device.c:1995 src/utils/pactl.c:351
 msgid "Phone"
 msgstr "Τηλέφωνο"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1996
+#: src/modules/bluetooth/module-bluez5-device.c:2042
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "Αναπαραγωγή υψηλής ποιότητας (δέκτης A2DP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:2008
+#: src/modules/bluetooth/module-bluez5-device.c:2054
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "Λήψη υψηλής ποιότητας (πηγή A2DP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:2020
+#: src/modules/bluetooth/module-bluez5-device.c:2066
 msgid "Headset Head Unit (HSP)"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:2033
+#: src/modules/bluetooth/module-bluez5-device.c:2079
 msgid "Headset Audio Gateway (HSP)"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:2046
+#: src/modules/bluetooth/module-bluez5-device.c:2092
 msgid "Handsfree Head Unit (HFP)"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:2059
+#: src/modules/bluetooth/module-bluez5-device.c:2105
 msgid "Handsfree Audio Gateway (HFP)"
 msgstr ""
 
@@ -1212,11 +1213,11 @@ msgstr ""
 msgid "Clocked NULL sink"
 msgstr "Δέκτης NULL με χρονιστή"
 
-#: src/modules/module-null-sink.c:338
+#: src/modules/module-null-sink.c:356
 msgid "Null Output"
 msgstr "Μηδενική έξοδος"
 
-#: src/modules/module-null-sink.c:350 src/utils/pactl.c:2064
+#: src/modules/module-null-sink.c:368 src/utils/pactl.c:2064
 #, c-format
 msgid "Failed to set format: invalid format string %s"
 msgstr "Αποτυχία ορισμού μορφής: άκυρη συμβολοσειρά μορφής %s"
@@ -1277,7 +1278,7 @@ msgstr ""
 msgid "Unknown device model"
 msgstr "Άγνωστος κωδικός σφάλματος"
 
-#: src/modules/raop/raop-sink.c:655
+#: src/modules/raop/raop-sink.c:689
 msgid "RAOP standard profile"
 msgstr ""
 
@@ -1596,11 +1597,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "Άκυρος προορισμός καταγραφής."
 
-#: src/pulsecore/sink.c:3539
+#: src/pulsecore/sink.c:3600
 msgid "Built-in Audio"
 msgstr "Εσωτερικός ήχος"
 
-#: src/pulsecore/sink.c:3544
+#: src/pulsecore/sink.c:3605
 msgid "Modem"
 msgstr "Μόντεμ"
 

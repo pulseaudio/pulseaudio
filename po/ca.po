@@ -28,7 +28,7 @@ msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2021-10-08 21:57+0300\n"
+"POT-Creation-Date: 2021-12-16 18:45+0200\n"
 "PO-Revision-Date: 2012-01-30 09:52+0000\n"
 "Last-Translator: Josep Torné Llavall <josep.torne@gmail.com>\n"
 "Language-Team: Catalan <fedora@softcatala.net>\n"
@@ -200,9 +200,10 @@ msgid "--fail expects boolean argument"
 msgstr "--fail necessita un argument booleà"
 
 #: src/daemon/cmdline.c:265
+#, fuzzy
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
-"of debug, info, notice, warn, error)."
+"of error, warn, notice, info, debug)."
 msgstr ""
 "--log-level necessita un argument de nivell de log (valor númeric 0..4 o "
 "debug, info, notice, warn, error)."
@@ -625,7 +626,7 @@ msgid "Line In"
 msgstr "Entrada de línia"
 
 #: src/modules/alsa/alsa-mixer.c:2713 src/modules/alsa/alsa-mixer.c:2797
-#: src/modules/bluetooth/module-bluez5-device.c:1910
+#: src/modules/bluetooth/module-bluez5-device.c:1956
 msgid "Microphone"
 msgstr "Micròfon"
 
@@ -688,7 +689,7 @@ msgid "No Bass Boost"
 msgstr "Sense accentuació dels baixos"
 
 #: src/modules/alsa/alsa-mixer.c:2728
-#: src/modules/bluetooth/module-bluez5-device.c:1918 src/utils/pactl.c:333
+#: src/modules/bluetooth/module-bluez5-device.c:1964 src/utils/pactl.c:333
 msgid "Speaker"
 msgstr "Altaveu"
 
@@ -811,7 +812,7 @@ msgid "Stereo"
 msgstr "Estèreo"
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
-#: src/modules/bluetooth/module-bluez5-device.c:1898 src/utils/pactl.c:337
+#: src/modules/bluetooth/module-bluez5-device.c:1944 src/utils/pactl.c:337
 msgid "Headset"
 msgstr "Auricular"
 
@@ -927,7 +928,7 @@ msgid "Mono Chat + 7.1 Surround"
 msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:4740 src/modules/alsa/module-alsa-card.c:197
-#: src/modules/bluetooth/module-bluez5-device.c:2217
+#: src/modules/bluetooth/module-bluez5-device.c:2263
 msgid "Off"
 msgstr "Inactiu"
 
@@ -941,7 +942,7 @@ msgstr "Sortida %s"
 msgid "%s Input"
 msgstr "Entrada %s"
 
-#: src/modules/alsa/alsa-sink.c:652 src/modules/alsa/alsa-sink.c:842
+#: src/modules/alsa/alsa-sink.c:672 src/modules/alsa/alsa-sink.c:862
 #, fuzzy, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -958,7 +959,7 @@ msgstr ""
 "Ens han aixecat amb POLLOUT activat -- tanmateix una crida posterior a "
 "snd_pcm_avail() ha retornat 0 o un altre valor < min_avail."
 
-#: src/modules/alsa/alsa-source.c:611 src/modules/alsa/alsa-source.c:777
+#: src/modules/alsa/alsa-source.c:636 src/modules/alsa/alsa-source.c:802
 #, fuzzy, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -1057,62 +1058,62 @@ msgstr[1] ""
 "Probablement es tracta d'un error del controlador de l'ALSA '%s'. Informeu "
 "d'aquest incident als desenvolupadors de l'ALSA."
 
-#: src/modules/bluetooth/module-bluez5-device.c:1891
-#: src/modules/bluetooth/module-bluez5-device.c:1917
-#: src/modules/bluetooth/module-bluez5-device.c:1924
+#: src/modules/bluetooth/module-bluez5-device.c:1937
+#: src/modules/bluetooth/module-bluez5-device.c:1963
+#: src/modules/bluetooth/module-bluez5-device.c:1970
 msgid "Bluetooth Input"
 msgstr "Entrada bluetooth"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1892
-#: src/modules/bluetooth/module-bluez5-device.c:1911
+#: src/modules/bluetooth/module-bluez5-device.c:1938
+#: src/modules/bluetooth/module-bluez5-device.c:1957
 msgid "Bluetooth Output"
 msgstr "Sortida bluetooth"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1904 src/utils/pactl.c:348
+#: src/modules/bluetooth/module-bluez5-device.c:1950 src/utils/pactl.c:348
 msgid "Handsfree"
 msgstr "Mans lliures"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1925
+#: src/modules/bluetooth/module-bluez5-device.c:1971
 msgid "Headphone"
 msgstr "Auricular"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1931 src/utils/pactl.c:347
+#: src/modules/bluetooth/module-bluez5-device.c:1977 src/utils/pactl.c:347
 msgid "Portable"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1937 src/utils/pactl.c:349
+#: src/modules/bluetooth/module-bluez5-device.c:1983 src/utils/pactl.c:349
 msgid "Car"
 msgstr "Cotxe"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1943 src/utils/pactl.c:350
+#: src/modules/bluetooth/module-bluez5-device.c:1989 src/utils/pactl.c:350
 msgid "HiFi"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:1949 src/utils/pactl.c:351
+#: src/modules/bluetooth/module-bluez5-device.c:1995 src/utils/pactl.c:351
 msgid "Phone"
 msgstr "Telèfon"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1996
+#: src/modules/bluetooth/module-bluez5-device.c:2042
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "Reproducció d'alta fidelitat (canonada A2DP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:2008
+#: src/modules/bluetooth/module-bluez5-device.c:2054
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "Captura d'alta fidelitat (origen A2DP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:2020
+#: src/modules/bluetooth/module-bluez5-device.c:2066
 msgid "Headset Head Unit (HSP)"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:2033
+#: src/modules/bluetooth/module-bluez5-device.c:2079
 msgid "Headset Audio Gateway (HSP)"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:2046
+#: src/modules/bluetooth/module-bluez5-device.c:2092
 msgid "Handsfree Head Unit (HFP)"
 msgstr ""
 
-#: src/modules/bluetooth/module-bluez5-device.c:2059
+#: src/modules/bluetooth/module-bluez5-device.c:2105
 #, fuzzy
 msgid "Handsfree Audio Gateway (HFP)"
 msgstr "Passarel·la de mans lliures"
@@ -1211,11 +1212,11 @@ msgstr ""
 msgid "Clocked NULL sink"
 msgstr "Conducte NULL"
 
-#: src/modules/module-null-sink.c:338
+#: src/modules/module-null-sink.c:356
 msgid "Null Output"
 msgstr "Sortida nul·la"
 
-#: src/modules/module-null-sink.c:350 src/utils/pactl.c:2064
+#: src/modules/module-null-sink.c:368 src/utils/pactl.c:2064
 #, fuzzy, c-format
 msgid "Failed to set format: invalid format string %s"
 msgstr "No s'ha pogut obtenir la informació de la font: %s"
@@ -1276,7 +1277,7 @@ msgstr ""
 msgid "Unknown device model"
 msgstr "Codi d'error desconegut"
 
-#: src/modules/raop/raop-sink.c:655
+#: src/modules/raop/raop-sink.c:689
 msgid "RAOP standard profile"
 msgstr ""
 
@@ -1589,11 +1590,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr ""
 
-#: src/pulsecore/sink.c:3539
+#: src/pulsecore/sink.c:3600
 msgid "Built-in Audio"
 msgstr "Àudio intern"
 
-#: src/pulsecore/sink.c:3544
+#: src/pulsecore/sink.c:3605
 msgid "Modem"
 msgstr "Mòdem"
 

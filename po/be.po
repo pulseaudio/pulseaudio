@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: PulseAudio\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2021-10-08 21:57+0300\n"
+"POT-Creation-Date: 2021-12-16 18:45+0200\n"
 "PO-Revision-Date: 2016-07-19 11:06+0300\n"
 "Last-Translator: Viktar Vaŭčkievič <victorenator@gmail.com>\n"
 "Language-Team: Belarusian <>\n"
@@ -181,9 +181,10 @@ msgid "--fail expects boolean argument"
 msgstr "--fail чакае булевы аргумент"
 
 #: src/daemon/cmdline.c:265
+#, fuzzy
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
-"of debug, info, notice, warn, error)."
+"of error, warn, notice, info, debug)."
 msgstr ""
 "--log-level чакае значэнне ўзроўню інфарматыўнасці (лікавае ў дыяпазоне 0–4 "
 "ці адно з debug, info, notice, warn, error)."
@@ -606,7 +607,7 @@ msgid "Line In"
 msgstr "Лінейны ўваход"
 
 #: src/modules/alsa/alsa-mixer.c:2713 src/modules/alsa/alsa-mixer.c:2797
-#: src/modules/bluetooth/module-bluez5-device.c:1910
+#: src/modules/bluetooth/module-bluez5-device.c:1956
 msgid "Microphone"
 msgstr "Мікрафон"
 
@@ -669,7 +670,7 @@ msgid "No Bass Boost"
 msgstr "Без ўзмацнення басоў"
 
 #: src/modules/alsa/alsa-mixer.c:2728
-#: src/modules/bluetooth/module-bluez5-device.c:1918 src/utils/pactl.c:333
+#: src/modules/bluetooth/module-bluez5-device.c:1964 src/utils/pactl.c:333
 msgid "Speaker"
 msgstr "Дынамік"
 
@@ -790,7 +791,7 @@ msgid "Stereo"
 msgstr "Стэрэа"
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
-#: src/modules/bluetooth/module-bluez5-device.c:1898 src/utils/pactl.c:337
+#: src/modules/bluetooth/module-bluez5-device.c:1944 src/utils/pactl.c:337
 msgid "Headset"
 msgstr "Гарнітура"
 
@@ -905,7 +906,7 @@ msgid "Mono Chat + 7.1 Surround"
 msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:4740 src/modules/alsa/module-alsa-card.c:197
-#: src/modules/bluetooth/module-bluez5-device.c:2217
+#: src/modules/bluetooth/module-bluez5-device.c:2263
 msgid "Off"
 msgstr "Адключаны"
 
@@ -919,7 +920,7 @@ msgstr "%s выхад"
 msgid "%s Input"
 msgstr "%s уваход"
 
-#: src/modules/alsa/alsa-sink.c:652 src/modules/alsa/alsa-sink.c:842
+#: src/modules/alsa/alsa-sink.c:672 src/modules/alsa/alsa-sink.c:862
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -936,7 +937,7 @@ msgstr ""
 "Мы прачнуліся з устаноўленым POLLOUT, аднак наступны выклік snd_pcm_avail() "
 "вярнуў 0 або іншае значэнне, меншае за min_avail."
 
-#: src/modules/alsa/alsa-source.c:611 src/modules/alsa/alsa-source.c:777
+#: src/modules/alsa/alsa-source.c:636 src/modules/alsa/alsa-source.c:802
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -1050,65 +1051,65 @@ msgstr[2] ""
 "Хутчэй за ўсё, гэта памылка ў ALSA-драйверы «%s». Калі ласка, паведаміце аб "
 "гэтым распрацоўнікам ALSA."
 
-#: src/modules/bluetooth/module-bluez5-device.c:1891
-#: src/modules/bluetooth/module-bluez5-device.c:1917
-#: src/modules/bluetooth/module-bluez5-device.c:1924
+#: src/modules/bluetooth/module-bluez5-device.c:1937
+#: src/modules/bluetooth/module-bluez5-device.c:1963
+#: src/modules/bluetooth/module-bluez5-device.c:1970
 msgid "Bluetooth Input"
 msgstr "Bluetooth-уваход"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1892
-#: src/modules/bluetooth/module-bluez5-device.c:1911
+#: src/modules/bluetooth/module-bluez5-device.c:1938
+#: src/modules/bluetooth/module-bluez5-device.c:1957
 msgid "Bluetooth Output"
 msgstr "Bluetooth-выхад"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1904 src/utils/pactl.c:348
+#: src/modules/bluetooth/module-bluez5-device.c:1950 src/utils/pactl.c:348
 msgid "Handsfree"
 msgstr "Хэндс-фры"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1925
+#: src/modules/bluetooth/module-bluez5-device.c:1971
 msgid "Headphone"
 msgstr "Навушнік"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1931 src/utils/pactl.c:347
+#: src/modules/bluetooth/module-bluez5-device.c:1977 src/utils/pactl.c:347
 msgid "Portable"
 msgstr "Партатыўная сістэма"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1937 src/utils/pactl.c:349
+#: src/modules/bluetooth/module-bluez5-device.c:1983 src/utils/pactl.c:349
 msgid "Car"
 msgstr "Аўтамабільная сістэма"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1943 src/utils/pactl.c:350
+#: src/modules/bluetooth/module-bluez5-device.c:1989 src/utils/pactl.c:350
 msgid "HiFi"
 msgstr "Hi-Fi"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1949 src/utils/pactl.c:351
+#: src/modules/bluetooth/module-bluez5-device.c:1995 src/utils/pactl.c:351
 msgid "Phone"
 msgstr "Тэлефон"
 
-#: src/modules/bluetooth/module-bluez5-device.c:1996
+#: src/modules/bluetooth/module-bluez5-device.c:2042
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "Прайграванне высокай якасці (A2DP-прыёмнік)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:2008
+#: src/modules/bluetooth/module-bluez5-device.c:2054
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "Захоп высокай якасці (A2DP-крыніца)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:2020
+#: src/modules/bluetooth/module-bluez5-device.c:2066
 #, fuzzy
 msgid "Headset Head Unit (HSP)"
 msgstr "Навушнікі гарнітуры (HSP/HFP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:2033
+#: src/modules/bluetooth/module-bluez5-device.c:2079
 #, fuzzy
 msgid "Headset Audio Gateway (HSP)"
 msgstr "Аўдыяшлюз гарнітуры (HSP/HFP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:2046
+#: src/modules/bluetooth/module-bluez5-device.c:2092
 #, fuzzy
 msgid "Handsfree Head Unit (HFP)"
 msgstr "Навушнікі гарнітуры (HSP/HFP)"
 
-#: src/modules/bluetooth/module-bluez5-device.c:2059
+#: src/modules/bluetooth/module-bluez5-device.c:2105
 #, fuzzy
 msgid "Handsfree Audio Gateway (HFP)"
 msgstr "Аўдыяшлюз гарнітуры (HSP/HFP)"
@@ -1215,11 +1216,11 @@ msgstr ""
 msgid "Clocked NULL sink"
 msgstr "Сінхронны пусты прыёмнік"
 
-#: src/modules/module-null-sink.c:338
+#: src/modules/module-null-sink.c:356
 msgid "Null Output"
 msgstr "Пусты выхад"
 
-#: src/modules/module-null-sink.c:350 src/utils/pactl.c:2064
+#: src/modules/module-null-sink.c:368 src/utils/pactl.c:2064
 #, c-format
 msgid "Failed to set format: invalid format string %s"
 msgstr "Не атрымалася задаць фармат: некарэктны фармат «%s»"
@@ -1280,7 +1281,7 @@ msgstr ""
 msgid "Unknown device model"
 msgstr "Невядомы код памылкі"
 
-#: src/modules/raop/raop-sink.c:655
+#: src/modules/raop/raop-sink.c:689
 msgid "RAOP standard profile"
 msgstr ""
 
@@ -1596,11 +1597,11 @@ msgstr "Не атрымалася адкрыць файлы журнала «%s�
 msgid "Invalid log target."
 msgstr "Некарэктны журнал."
 
-#: src/pulsecore/sink.c:3539
+#: src/pulsecore/sink.c:3600
 msgid "Built-in Audio"
 msgstr "Убудаванае аўдыя"
 
-#: src/pulsecore/sink.c:3544
+#: src/pulsecore/sink.c:3605
 msgid "Modem"
 msgstr "Мадэм"
 
