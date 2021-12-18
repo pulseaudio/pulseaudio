@@ -171,5 +171,6 @@ load-module module-filter-apply
 
 ### Allow including a default.pa.d directory, which if present, can be used
 ### for additional configuration snippets.
+### Note that those snippet files must have a .pa file extension, not .conf
 .nofail
 .include @PA_DEFAULT_CONFIG_DIR_UNQUOTED@/default.pa.d
