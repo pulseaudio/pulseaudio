@@ -115,7 +115,7 @@ option('gsettings',
        type : 'feature', value : 'auto',
        description : 'Optional GSettings support')
 option('gstreamer',
-       type : 'feature', value : 'disabled',
+       type : 'feature', value : 'auto',
        description : 'Optional GStreamer dependency for media-related functionality')
 option('gtk',
        type : 'feature', value : 'auto',
