@@ -8,7 +8,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-12-16 18:45+0200\n"
-"PO-Revision-Date: 2021-11-21 13:16+0000\n"
+"PO-Revision-Date: 2022-01-10 01:16+0000\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/uk/>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 4.9\n"
+"X-Generator: Weblate 4.10.1\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -185,14 +185,13 @@ msgid "--fail expects boolean argument"
 msgstr "Для параметра --fail слід вказувати булевий аргумент"
 
 #: src/daemon/cmdline.c:265
-#, fuzzy
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of error, warn, notice, info, debug)."
 msgstr ""
-"Для параметра --log-level слід вказувати значення рівня журналювання "
-"(числове у діапазоні 0..4 або одне зі значень debug, info, notice, warn, "
-"error)."
+"Для параметра --log-level слід вказувати значення рівня журналювання ("
+"числове у діапазоні 0..4 або одне зі значень error, warn, notice, info, "
+"debug)."
 
 #: src/daemon/cmdline.c:277
 msgid "--high-priority expects boolean argument"
