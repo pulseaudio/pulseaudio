@@ -7,8 +7,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-12-16 18:45+0200\n"
-"PO-Revision-Date: 2021-11-21 13:16+0000\n"
-"Last-Translator: simmon <simmon@nplob.com>\n"
+"PO-Revision-Date: 2022-01-11 06:16+0000\n"
+"Last-Translator: baek inchan <bn6024@naver.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ko/>\n"
 "Language: ko\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.9\n"
+"X-Generator: Weblate 4.10.1\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -154,13 +154,11 @@ msgid "--fail expects boolean argument"
 msgstr "--fail은 부울 인수를 예상합니다"
 
 #: src/daemon/cmdline.c:265
-#, fuzzy
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of error, warn, notice, info, debug)."
 msgstr ""
-"--log-level은 로그 수준 논의가 예상됩니다 (0..4 숫자 범위 내의 수 또는 디버그"
-"중의 하나, 정보, 알림, 경고, 오류)."
+"--log-level은 로그 수준 논의가 예상됩니다 (0..4 숫자 범위 내의 수 또는 디버그중의 하나, 정보, 알림, 경고, 오류)."
 
 #: src/daemon/cmdline.c:277
 msgid "--high-priority expects boolean argument"
