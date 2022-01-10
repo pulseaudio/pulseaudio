@@ -14,8 +14,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-12-16 18:45+0200\n"
-"PO-Revision-Date: 2021-09-20 01:05+0000\n"
-"Last-Translator: Daniel Dantur <danidantur@gmail.com>\n"
+"PO-Revision-Date: 2022-01-11 06:16+0000\n"
+"Last-Translator: Daniel Hernandez <hernandez101900daniel@gmail.com>\n"
 "Language-Team: Spanish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/es/>\n"
 "Language: es\n"
@@ -23,7 +23,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.8\n"
+"X-Generator: Weblate 4.10.1\n"
 "X-Poedit-Language: Spanish\n"
 
 #: src/daemon/cmdline.c:113
@@ -113,8 +113,7 @@ msgstr ""
 "  -k  --kill                            Mata un demonio en ejecución\n"
 "      --check                           Comprueba si hay un demonio en "
 "marcha\n"
-"                                        (sólo devuelve el código de "
-"retorno)\n"
+"                                        (sólo devuelve el código de retorno)"
 "\n"
 "\n"
 "OPCIONES:\n"
@@ -186,14 +185,12 @@ msgid "--fail expects boolean argument"
 msgstr "--fail espera un argumento booleano"
 
 #: src/daemon/cmdline.c:265
-#, fuzzy
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of error, warn, notice, info, debug)."
 msgstr ""
 "--log-level espera un argumento en el nivel del log (ya sea numérico, que "
-"caiga en el rango de 0..4; ya sea uno de debug, info, notice, warn, o "
-"error). "
+"caiga en el rango de 0-4; ya sea uno de debug, info, notice, warn, o error)."
 
 #: src/daemon/cmdline.c:277
 msgid "--high-priority expects boolean argument"
@@ -242,7 +239,7 @@ msgstr "--log-meta espera un argumento booleano"
 #: src/daemon/cmdline.c:366
 #, c-format
 msgid "Invalid resample method '%s'."
-msgstr "Método de remuestreo inválido '%s'"
+msgstr "Método de remuestreo inválido '%s'."
 
 #: src/daemon/cmdline.c:373
 msgid "--system expects boolean argument"
@@ -532,7 +529,7 @@ msgstr "Falló la operación read(): %s"
 
 #: src/daemon/main.c:954
 msgid "Daemon startup failed."
-msgstr "Falló el inicio del demonio. "
+msgstr "Falló el inicio del demonio."
 
 #: src/daemon/main.c:987
 #, c-format
@@ -715,7 +712,7 @@ msgstr "Línea de salida"
 
 #: src/modules/alsa/alsa-mixer.c:2811
 msgid "Analog Mono Output"
-msgstr "Salida mono analógica "
+msgstr "Salida mono analógica"
 
 #: src/modules/alsa/alsa-mixer.c:2812
 msgid "Speakers"
@@ -1149,7 +1146,7 @@ msgstr ""
 "destino> sink_master=<destino al que conectar> format=<formato de muestra> "
 "rate=<tasa de muestra> channels=<número de canales> channel_map=<mapeo de "
 "canales> autoloaded=<activado si este módulo se está cargando "
-"automáticamente> use_volume_sharing=<yes o no>"
+"automáticamente> use_volume_sharing=<yes o no> "
 
 #: src/modules/module-equalizer-sink.c:1094
 #: src/modules/module-equalizer-sink.c:1217
@@ -1453,7 +1450,7 @@ msgstr "Frontal superior derecho"
 
 #: src/pulse/channelmap.c:160
 msgid "Top Rear Center"
-msgstr "Posterior central superior "
+msgstr "Posterior central superior"
 
 #: src/pulse/channelmap.c:161
 msgid "Top Rear Left"
@@ -1541,9 +1538,9 @@ msgid ""
 "over the native protocol. Don't do that.)"
 msgstr ""
 "XDG_RUNTIME_DIR (%s) no es de nuestra propiedad (usuario %d), sino del "
-"usuario %d. Puede pasar, por ejemplo, al intentar conectarse como "
+"usuario %d! (Puede pasar, por ejemplo, al intentar conectarse como "
 "superusuario a un servidor PulseAudio que se ejecuta sin privilegios de "
-"administrador mediante el protocolo nativo. No lo haga."
+"administrador mediante el protocolo nativo. No lo haga.)"
 
 #: src/pulsecore/core-util.h:97
 msgid "yes"
@@ -1560,7 +1557,7 @@ msgstr "No se puede acceder al bloqueo de autogeneración."
 #: src/pulsecore/log.c:165
 #, c-format
 msgid "Failed to open target file '%s'."
-msgstr "No se pudo abrir el archivo de destino '%s'"
+msgstr "No se pudo abrir el archivo de destino '%s'."
 
 #: src/pulsecore/log.c:188
 #, c-format
@@ -1809,7 +1806,7 @@ msgstr "Fujo trasladado al dispositivo %s (%u, %ssuspended).%s"
 
 #: src/utils/pacat.c:393
 msgid "not "
-msgstr "no"
+msgstr "no "
 
 #: src/utils/pacat.c:400
 #, c-format
@@ -1960,7 +1957,6 @@ msgstr ""
 "%s [opciones]\n"
 "%s\n"
 "\n"
-"\n"
 "  -h, --help                         Muestra esta ayuda\n"
 "      --version                      Muestra la versión\n"
 "\n"
@@ -1979,10 +1975,10 @@ msgstr ""
 "      --volume=VOLUMEN               Volumen inicial (lineal) de 0 a 65536\n"
 "      --rate=TASA                    Tasa de muestreo en Hz (pred. 44100)\n"
 "      --format=FORMATO               Tipo de muestra: s16le, s16be, u8,\n"
-"                                     float32le, float32be, ulaw, alaw, "
-"s32le,\n"
-"                                     s32be, s24le, s24be, s24-32le, "
-"s24-32be\n"
+"                                     float32le, float32be, ulaw, alaw, s32le,"
+"\n"
+"                                     s32be, s24le, s24be, s24-32le, s24-"
+"32be\n"
 "                                     (pred. s16ne)\n"
 "      --channels=CANALES             Número de canales: 1 mono, 2 estéreo\n"
 "                                     (pred. 2)\n"
@@ -2159,7 +2155,7 @@ msgstr "playback"
 
 #: src/utils/pacat.c:1162
 msgid "Failed to set media name."
-msgstr "No se pudo establecer el nombre del medio"
+msgstr "No se pudo establecer el nombre del medio."
 
 #: src/utils/pacat.c:1172 src/utils/pactl.c:3206
 msgid "pa_mainloop_new() failed."
@@ -2475,18 +2471,16 @@ msgid "USB"
 msgstr "USB"
 
 #: src/utils/pactl.c:346
-#, fuzzy
 msgid "Bluetooth"
-msgstr "Entrada bluetooth"
+msgstr "Bluetooth"
 
 #: src/utils/pactl.c:352
 msgid "Network"
 msgstr "Red"
 
 #: src/utils/pactl.c:353
-#, fuzzy
 msgid "Analog"
-msgstr "Mono analógico"
+msgstr "Analógico"
 
 #: src/utils/pactl.c:567 src/utils/pactl.c:1834 src/utils/pactl.c:1852
 #: src/utils/pactl.c:1875 src/utils/pactl.c:1992
@@ -2840,9 +2834,9 @@ msgid "Failure: %s"
 msgstr "Falla: %s"
 
 #: src/utils/pactl.c:1667
-#, fuzzy, c-format
+#, c-format
 msgid "Send message failed: %s"
-msgstr "Falló la operación read(): %s"
+msgstr "Fallo el envío del mensaje: %s"
 
 #: src/utils/pactl.c:1695
 #, c-format
@@ -3028,7 +3022,7 @@ msgstr ""
 "predeterminados.\n"
 
 #: src/utils/pactl.c:2653
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "  -h, --help                            Show this help\n"
@@ -3042,12 +3036,14 @@ msgid ""
 "server\n"
 msgstr ""
 "\n"
-"  -h, --help                            Muestra esta ayuda\n"
-"      --version                         Muestra la versión\n"
+"  -h, --help                            Mostrar esta ayuda\n"
+"      --version                         Mostrar la versión\n"
 "\n"
-"  -s, --server=SERVIDOR                 El nombre del servidor al que "
-"conectar\n"
-"  -n, --client-name=NOMBRE              Cómo llamar a este cliente\n"
+"  -f, --format=FORMAT                   El formato de la salida. Puede ser "
+"\"normal\" o \"json\"\n"
+"  -s, --server=SERVER                   El nombre del servidor a conectar\n"
+"  -n, --client-name=NAME                Cómo llamar a este cliente en el "
+"servidor\n"
 
 #: src/utils/pactl.c:2696
 #, c-format
@@ -3061,9 +3057,9 @@ msgstr ""
 "Enlazado con libpulse %s\n"
 
 #: src/utils/pactl.c:2739
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid format value '%s'"
-msgstr "Nombre de flujo '%s' inválido"
+msgstr "Valor de formato inválido '%s'"
 
 #: src/utils/pactl.c:2766
 #, c-format
@@ -3148,18 +3144,16 @@ msgid "You have to specify a source name"
 msgstr "Debe indicar un nombre de fuente"
 
 #: src/utils/pactl.c:2986 src/utils/pactl.c:3064
-#, fuzzy
 msgid "You have to specify a sink name/index"
-msgstr "Debe indicar un nombre de destino"
+msgstr "Debe indicar un nombre de sink/index"
 
 #: src/utils/pactl.c:2996
 msgid "You have to specify a sink name/index and a volume"
 msgstr "Debe especificar un nombre/índice de destino y el volumen"
 
 #: src/utils/pactl.c:3009 src/utils/pactl.c:3089
-#, fuzzy
 msgid "You have to specify a source name/index"
-msgstr "Debe indicar un nombre de fuente"
+msgstr "Debe indicar un nombre de origen/index"
 
 #: src/utils/pactl.c:3019
 msgid "You have to specify a source name/index and a volume"
@@ -3182,11 +3176,11 @@ msgid "Invalid source output index"
 msgstr "El índice de salida de la fuente no es válido"
 
 #: src/utils/pactl.c:3074
-#, fuzzy
 msgid ""
 "You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"
 msgstr ""
-"Debe especificar un nombre/índice de destino y un booleano de silenciador"
+"Debe especificar un nombre de sink/index y una acción de muteo (0, 1 o "
+"'toggle')"
 
 #: src/utils/pactl.c:3079 src/utils/pactl.c:3104 src/utils/pactl.c:3124
 #: src/utils/pactl.c:3142
@@ -3194,37 +3188,39 @@ msgid "Invalid mute specification"
 msgstr "La especificación de silencio no es válida"
 
 #: src/utils/pactl.c:3099
-#, fuzzy
 msgid ""
 "You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
-msgstr "Debe especificar un nombre/índice de fuente y un booleano para mudo"
+msgstr ""
+"Debe especificar un nombre de origen/index y una acción de muteo (0, 1 o "
+"'toggle')"
 
 #: src/utils/pactl.c:3114
-#, fuzzy
 msgid ""
 "You have to specify a sink input index and a mute action (0, 1, or 'toggle')"
 msgstr ""
-"Debe especificar un índice de entrada a destino y un booleano de silenciador"
+"Debe especificar un índice de entrada de sink y una acción de muteo (0, 1 o "
+"'toggle')"
 
 #: src/utils/pactl.c:3119
 msgid "Invalid sink input index specification"
 msgstr "La especificación de índice de entrada a destino no es válida"
 
 #: src/utils/pactl.c:3132
-#, fuzzy
 msgid ""
 "You have to specify a source output index and a mute action (0, 1, or "
 "'toggle')"
-msgstr "Debe especificar un índice de salida y un indicador de silencio"
+msgstr ""
+"Debe especificar un índice de salida de la origen y una acción de muteo (0, "
+"1 o 'toggle')"
 
 #: src/utils/pactl.c:3137
 msgid "Invalid source output index specification"
 msgstr "La especificación de índice de salida de la fuente no es válida"
 
 #: src/utils/pactl.c:3150
-#, fuzzy
 msgid "You have to specify at least an object path and a message name"
-msgstr "Debe especificar un nombre/índice de destino y un nombre de puerto"
+msgstr ""
+"Debe especificar al menos una ruta de acceso al objeto y un nombre de mensaje"
 
 #: src/utils/pactl.c:3160
 msgid ""
