@@ -7,8 +7,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-12-16 18:45+0200\n"
-"PO-Revision-Date: 2022-01-11 06:16+0000\n"
-"Last-Translator: baek inchan <bn6024@naver.com>\n"
+"PO-Revision-Date: 2022-01-14 21:17+0000\n"
+"Last-Translator: Sungjoon Moon <sumoon@seoulsaram.org>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ko/>\n"
 "Language: ko\n"
@@ -147,83 +147,83 @@ msgstr ""
 
 #: src/daemon/cmdline.c:246
 msgid "--daemonize expects boolean argument"
-msgstr "--daemonize는 부울 인수를 예상합니다"
+msgstr "--daemonize 에는 부울 인수가 필요합니다"
 
 #: src/daemon/cmdline.c:254
 msgid "--fail expects boolean argument"
-msgstr "--fail은 부울 인수를 예상합니다"
+msgstr "--fail 에는 부울 인수가 필요합니다"
 
 #: src/daemon/cmdline.c:265
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of error, warn, notice, info, debug)."
 msgstr ""
-"--log-level은 로그 수준 논의가 예상됩니다 (0..4 숫자 범위 내의 수 또는 디버그중의 하나, 정보, 알림, 경고, 오류)."
+"--log-level 에는 로그 레벨 인수가 필요합니다 (0~4 숫자 범위 또는 오류, 경고, 알림, 정보, 디버그 중 하나 )."
 
 #: src/daemon/cmdline.c:277
 msgid "--high-priority expects boolean argument"
-msgstr "--high-priority는 boolean 인수를 사용합니다"
+msgstr "--high-priority 에는 부울 인수가 필요합니다"
 
 #: src/daemon/cmdline.c:285
 msgid "--realtime expects boolean argument"
-msgstr "--realtime은 boolean 인수를 사용합니다"
+msgstr "--realtime 에는 부울 인수가 필요합니다"
 
 #: src/daemon/cmdline.c:293
 msgid "--disallow-module-loading expects boolean argument"
-msgstr "--disallow-module-loading는 boolean 인수를 사용합니다"
+msgstr "--disallow-module-loading 에는 부울 인수가 필요합니다"
 
 #: src/daemon/cmdline.c:301
 msgid "--disallow-exit expects boolean argument"
-msgstr "--disallow-exit는 boolean 인수를 사용합니다"
+msgstr "--disallow-exit 에는 부울 인수가 필요합니다"
 
 #: src/daemon/cmdline.c:309
 msgid "--use-pid-file expects boolean argument"
-msgstr "--use-pid-file는 boolean 인수를 사용합니다"
+msgstr "--use-pid-file 부울 인수가 필요합니다"
 
 #: src/daemon/cmdline.c:328
 msgid ""
 "Invalid log target: use either 'syslog', 'journal', 'stderr' or 'auto' or a "
 "valid file name 'file:<path>', 'newfile:<path>'."
 msgstr ""
-"잘못된 로그 대상: 'syslog', 'stderr','auto' 또는 유효한 파일 이름 'file:"
-"<path>', 'newfile:<path>' 중에 하나를 사용하십시오."
+"잘못된 로그 대상: 'syslog', 'journal', 'stderr' 또는 'auto' 또는 유효한 파일 이름 'file:"
+"<path>', 'newfile:<path>'를 사용하십시오."
 
 #: src/daemon/cmdline.c:330
 msgid ""
 "Invalid log target: use either 'syslog', 'stderr' or 'auto' or a valid file "
 "name 'file:<path>', 'newfile:<path>'."
 msgstr ""
-"잘못된 로그 대상: 'syslog', 'stderr','auto' 또는 유효한 파일 이름 'file:"
-"<path>', 'newfile:<path>' 중에 하나를 사용하십시오."
+"잘못된 로그 대상: 'syslog', 'stderr' 또는 'auto' 또는 유효한 파일 이름 'file:<path>', 'newfile:"
+"<path>'를 사용하십시오."
 
 #: src/daemon/cmdline.c:338
 msgid "--log-time expects boolean argument"
-msgstr "--log-time은 boolean 인수를 사용합니다"
+msgstr "--log-time 에는 부울 인수가 필요합니다"
 
 #: src/daemon/cmdline.c:346
 msgid "--log-meta expects boolean argument"
-msgstr "--log-meta는 boolean 인수를 사용합니다"
+msgstr "--log-meta 에는 부울 인수가 필요합니다"
 
 #: src/daemon/cmdline.c:366
 #, c-format
 msgid "Invalid resample method '%s'."
-msgstr "'%s'는 잘못된 리샘플링 방법입니다."
+msgstr "잘못된 리샘플링 방법 '%s'."
 
 #: src/daemon/cmdline.c:373
 msgid "--system expects boolean argument"
-msgstr "--system는 boolean 인수를 사용합니다"
+msgstr "--system 에는 부울 인수가 필요합니다"
 
 #: src/daemon/cmdline.c:381
 msgid "--no-cpu-limit expects boolean argument"
-msgstr "--no-cpu-limit는 boolean 인수를 사용합니다"
+msgstr "--no-cpu-limit 에는 부울 인수가 필요합니다"
 
 #: src/daemon/cmdline.c:389
 msgid "--disable-shm expects boolean argument"
-msgstr "--disable-shm는 boolean 인수를 사용합니다"
+msgstr "--disable-shm 에는 부울 인수가 필요합니다"
 
 #: src/daemon/cmdline.c:397
 msgid "--enable-memfd expects boolean argument"
-msgstr "--enable-memfd은 boolean 인수를 예상합니다"
+msgstr "--enable-memfd 에는 부울 인수가 필요합니다"
 
 #: src/daemon/daemon-conf.c:270
 #, c-format
@@ -253,7 +253,7 @@ msgstr "[%s:%u] 잘못된 샘플 형식 '%s'."
 #: src/daemon/daemon-conf.c:359 src/daemon/daemon-conf.c:376
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
-msgstr "[%s:%u] 잘못된 샘플 비율 '%s'."
+msgstr "[%s:%u] 잘못된 샘플 속도 '%s'."
 
 #: src/daemon/daemon-conf.c:399
 #, c-format
@@ -278,7 +278,7 @@ msgstr "[%s:%u] 잘못된 fragment 크기 '%s'."
 #: src/daemon/daemon-conf.c:467
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
-msgstr "[%s:%u] 잘못된 nice 레벨 '%s'."
+msgstr "[%s:%u] 잘못된 우선 순위 수준 '%s'."
 
 #: src/daemon/daemon-conf.c:552
 #, c-format
@@ -1024,12 +1024,12 @@ msgstr "전화기"
 #: src/modules/bluetooth/module-bluez5-device.c:2042
 #: src/modules/bluetooth/module-bluez5-device.c:1996
 msgid "High Fidelity Playback (A2DP Sink)"
-msgstr "고 충실도 재생 (A2DP Sink)"
+msgstr "Hi-Fi 재생 (A2DP Sink)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2054
 #: src/modules/bluetooth/module-bluez5-device.c:2008
 msgid "High Fidelity Capture (A2DP Source)"
-msgstr "고 충실도 순간찍기 (A2DP Source)"
+msgstr "Hi-Fi 캡쳐 (A2DP Source)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2066
 #: src/modules/bluetooth/module-bluez5-device.c:2020
