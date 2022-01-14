@@ -7,7 +7,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-12-16 18:45+0200\n"
-"PO-Revision-Date: 2022-01-14 21:17+0000\n"
+"PO-Revision-Date: 2022-01-15 22:16+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ko/>\n"
@@ -158,7 +158,7 @@ msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of error, warn, notice, info, debug)."
 msgstr ""
-"--log-level 에는 로그 레벨 인수가 필요합니다 (0~4 숫자 범위 또는 오류, 경고, 알림, 정보, 디버그 중 하나 )."
+"--log-level 에는 로그 수준 인수가 필요합니다 (0~4 숫자 범위 또는 오류, 경고, 알림, 정보, 디버그 중 하나 )."
 
 #: src/daemon/cmdline.c:277
 msgid "--high-priority expects boolean argument"
@@ -253,7 +253,7 @@ msgstr "[%s:%u] 잘못된 샘플 형식 '%s'."
 #: src/daemon/daemon-conf.c:359 src/daemon/daemon-conf.c:376
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
-msgstr "[%s:%u] 잘못된 샘플 속도 '%s'."
+msgstr "[%s:%u] 잘못된 샘플링 속도 '%s'."
 
 #: src/daemon/daemon-conf.c:399
 #, c-format
