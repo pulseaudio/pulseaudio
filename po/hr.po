@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-12-16 18:45+0200\n"
-"PO-Revision-Date: 2021-11-22 15:07+0000\n"
+"PO-Revision-Date: 2022-01-14 21:17+0000\n"
 "Last-Translator: Gogo Gogsi <linux.hr@protonmail.com>\n"
 "Language-Team: Croatian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/hr/>\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 4.9\n"
+"X-Generator: Weblate 4.10.1\n"
 "X-Launchpad-Export-Date: 2017-04-20 21:04+0000\n"
 
 #: src/daemon/cmdline.c:113
@@ -184,13 +184,12 @@ msgid "--fail expects boolean argument"
 msgstr "--fail očekuje boolean argument"
 
 #: src/daemon/cmdline.c:265
-#, fuzzy
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of error, warn, notice, info, debug)."
 msgstr ""
-"--log-level očekuje argument na razini zapisa (numerički u rasponu od 0 do 4 "
-"ili jedan od sljedećih: debug, info, notice, warn, error)."
+"--log-level očekuje argument na razini zapisa (brojčani u rasponu od 0 do 4 "
+"ili jedan od sljedećih: error, debug, info, notice, warn)."
 
 #: src/daemon/cmdline.c:277
 msgid "--high-priority expects boolean argument"
