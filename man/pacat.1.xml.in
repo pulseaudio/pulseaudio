@@ -79,7 +79,7 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
     <option>
       <p><opt>-d | --device</opt><arg>=SINKORSOURCE</arg></p>
 
-      <optdesc><p>Specify the symbolic name of the sink/source to play/record this stream on/from.</p></optdesc>
+      <optdesc><p>Specify the symbolic name of the sink/source to play/record this stream on/from. The special names @DEFAULT_SINK@, @DEFAULT_SOURCE@ and @DEFAULT_MONITOR@ can be used to specify the default sink, source and monitor respectively.</p></optdesc>
     </option>
 
     <option>
