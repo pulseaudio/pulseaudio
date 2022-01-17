@@ -70,7 +70,7 @@ class QPaeq(QtWidgets.QWidget):
 
     def __init__(self):
         QtWidgets.QWidget.__init__(self)
-        self.setWindowTitle('qpaeq')
+        self.setWindowTitle('Pulseaudio Equalizer Interface') # Thang Ha
         self.slider_widget=None
         self.sink_name=None
         self.filter_state=None
@@ -281,7 +281,7 @@ class QPaeq(QtWidgets.QWidget):
         #print(self.filter_frequencies)
         self.filter_state.readback()
     def reset(self):
-        coefs=dbus.Array([1/math.sqrt(2.0)]*(self.filter_state.filter_rate//2+1))
+        coefs=dbus.Array([1.0]*(self.filter_state.filter_rate//2+1)) # Thang Ha, 20220115: remove the last sqrt(2.0) scale factor
         preamp=1.0
         self.filter_state.set_filter(preamp,coefs)
     def _set_profile_name(self):
@@ -365,29 +365,34 @@ class SliderArraySub(QtWidgets.QWidget):
         self.setLayout(QtWidgets.QGridLayout())
         self.slider=[None]*len(self.filter_state.frequencies)
         self.label=[None]*len(self.slider)
+        self.vlabel=[None]*len(self.slider) # Thang Ha, 20220115: adding value label for each slider
         #self.setStyleSheet('padding: 0px; border-width: 0px; margin: 0px;')
         #self.setStyleSheet('font-family: monospace;'+outline%('blue'))
         qt=QtCore.Qt
         #self.layout().setHorizontalSpacing(1)
-        def add_slider(slider,label, c):
+        def add_slider(slider,label,vlabel, c): # Thang Ha
             self.layout().addWidget(slider,0,c,qt.AlignHCenter)
             self.layout().addWidget(label,1,c,qt.AlignHCenter)
-            self.layout().setColumnMinimumWidth(c,max(label.sizeHint().width(),slider.sizeHint().width()))
+            self.layout().addWidget(vlabel,2,c,qt.AlignHCenter) # Thang Ha, 20220115: add value label widget
+            self.layout().setColumnMinimumWidth(c,max(label.sizeHint().width(),vlabel.sizeHint().width(),slider.sizeHint().width())) # Thang Ha, 20220115: take care of vlabel's width
         def create_slider(slider_label):
             slider=QtWidgets.QSlider(QtCore.Qt.Vertical,self)
+            slider.setMinimumHeight(400) # Thang Ha, 20220115: make slider more elongated
             label=SliderLabel(slider_label,filter_state,self)
-            slider.setRange(-1000,2000)
+            vlabel=QtWidgets.QLabel("") # Thang Ha, 20220115: create a dummy label
+            slider.setRange(-60,60) # Thang Ha: -30db to +30db, 0.5db increment. Old range: (-1000,2000)
             slider.setSingleStep(1)
-            return (slider,label)
-        self.preamp_slider,self.preamp_label=create_slider('Preamp')
-        add_slider(self.preamp_slider,self.preamp_label,0)
+            return (slider,label,vlabel) # Thang Ha
+        self.preamp_slider,self.preamp_label,self.preamp_vlabel=create_slider('Preamp') # Thang Ha, 20220115
+        add_slider(self.preamp_slider,self.preamp_label,self.preamp_vlabel,0) # Thang Ha, 20220115
         for i,hz in enumerate(self.filter_state.frequencies):
-            slider,label=create_slider(self.hz2label(hz))
+            slider,label,vlabel=create_slider(self.hz2label(hz)) # Thang Ha, 20220115
             self.slider[i]=slider
             #slider.setStyleSheet('font-family: monospace;'+outline%('red',))
             self.label[i]=label
+            self.vlabel[i]=vlabel # Thang Ha, 20220115
             c=i+1
-            add_slider(slider,label,i+1)
+            add_slider(slider,label,vlabel,i+1) # Thang Ha, 20220115
     def hz2label(self, hz):
         if hz==0:
             label_text='DC'
@@ -437,27 +442,31 @@ class SliderArraySub(QtWidgets.QWidget):
 
     def write_preamp(self, v):
         self.filter_state.preamp=self.slider2coef(v)
+        self.preamp_vlabel.setText("%0.1f\ndB" %(0.5*v)) # Thang Ha, 20220115: preamp label update
         self.filter_state.seed()
     def sync_preamp(self):
         self.preamp_slider.blockSignals(True)
         self.preamp_slider.setValue(self.coef2slider(self.filter_state.preamp))
+        self.preamp_vlabel.setText("%0.1f\ndB" %(0.5*self.preamp_slider.value())) # Thang Ha, 20220115: preamp label update
         self.preamp_slider.blockSignals(False)
 
 
     def write_coefficient(self,i,v):
-        self.filter_state.coefficients[i]=self.slider2coef(v)/math.sqrt(2.0)
+        self.filter_state.coefficients[i]=self.slider2coef(v) # Thang Ha
+        self.vlabel[i].setText("%0.1f\ndB" %(0.5*v)) # Thang Ha, 20220115: individual slider value label update
         self.filter_state.seed()
     def sync_coefficient(self,i):
         slider=self.slider[i]
         slider.blockSignals(True)
-        slider.setValue(self.coef2slider(math.sqrt(2.0)*self.filter_state.coefficients[i]))
+        slider.setValue(self.coef2slider(self.filter_state.coefficients[i])) # Thang Ha
+        self.vlabel[i].setText("%0.1f\ndB" %(0.5*slider.value())) # Thang Ha, 20220115: individual slider value label update
         slider.blockSignals(False)
     @staticmethod
     def slider2coef(x):
-        return (1.0+(x/1000.0))
+        return math.pow(10.0,0.025*x) #Thang Ha, 20220115: old: (1.0+(x/1000.0))
     @staticmethod
     def coef2slider(x):
-        return int((x-1.0)*1000)
+        return round(math.log10(x)*40.0) #Thang Ha, 20220115: old: int((x-1.0)*1000)
 outline='border-width: 1px; border-style: solid; border-color: %s;'
 
 class SliderLabel(QtWidgets.QLabel):
