@@ -10,7 +10,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-12-16 18:45+0200\n"
-"PO-Revision-Date: 2021-11-24 13:16+0000\n"
+"PO-Revision-Date: 2022-01-25 17:16+0000\n"
 "Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/fi/>\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.9\n"
+"X-Generator: Weblate 4.10.1\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -181,13 +181,12 @@ msgid "--fail expects boolean argument"
 msgstr "--fail vaatii totuusarvoisen argumentin"
 
 #: src/daemon/cmdline.c:265
-#, fuzzy
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of error, warn, notice, info, debug)."
 msgstr ""
 "--log-level vaatii lokikirjoituksen tason argumentiksi (joko numero väliltä "
-"0..4 tai yksi seuraavista: debug, info, notice, warn, error)."
+"0..4 tai yksi seuraavista: error, warn, notice, info, debug)."
 
 #: src/daemon/cmdline.c:277
 msgid "--high-priority expects boolean argument"
