@@ -2552,19 +2552,30 @@ static int parse_volume(const char *vol_spec, pa_volume_t *vol, enum volume_flag
     pa_xfree(vs);
 
     if (*vol_flags & VOL_RELATIVE) {
-        if ((*vol_flags & 0x0F) == VOL_UINT)
-            v += (double) PA_VOLUME_NORM;
-        if ((*vol_flags & 0x0F) == VOL_PERCENT)
-            v += 100.0;
-        if ((*vol_flags & 0x0F) == VOL_LINEAR)
-            v += 1.0;
+	switch (*vol_flags & 0x0F) {
+	    case VOL_UINT:
+		v += (double) PA_VOLUME_NORM;
+		break;
+	    case VOL_PERCENT:
+		v += 100.0;
+		break;
+	    case VOL_LINEAR:
+		v += 1.0;
+		break;
+	}
     }
-    if ((*vol_flags & 0x0F) == VOL_PERCENT)
-        v = v * (double) PA_VOLUME_NORM / 100;
-    if ((*vol_flags & 0x0F) == VOL_LINEAR)
-        v = pa_sw_volume_from_linear(v);
-    if ((*vol_flags & 0x0F) == VOL_DECIBEL)
-        v = pa_sw_volume_from_dB(v);
+
+    switch (*vol_flags & 0x0F) {
+	case VOL_PERCENT:
+	    v = v * (double) PA_VOLUME_NORM / 100;
+	    break;
+	case VOL_LINEAR:
+	    v = pa_sw_volume_from_linear(v);
+	    break;
+	case VOL_DECIBEL:
+	    v = pa_sw_volume_from_dB(v);
+	    break;
+    }
 
     if (!PA_VOLUME_IS_VALID((pa_volume_t) v)) {
         pa_log(_("Volume outside permissible range.\n"));
