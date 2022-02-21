@@ -41,7 +41,7 @@ struct rtp_header {
 	uint32_t csrc[0];
 } __attribute__ ((packed));
 
-struct rtp_sbc_payload {
+struct rtp_payload {
 	uint8_t frame_count:4;
 	uint8_t rfa0:1;
 	uint8_t is_last_fragment:1;
@@ -67,7 +67,7 @@ struct rtp_header {
 	uint32_t csrc[0];
 } __attribute__ ((packed));
 
-struct rtp_sbc_payload {
+struct rtp_payload {
 	uint8_t is_fragmented:1;
 	uint8_t is_first_fragment:1;
 	uint8_t is_last_fragment:1;

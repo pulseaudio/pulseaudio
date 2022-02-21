@@ -704,7 +704,7 @@ static int reset(void *codec_info) {
 
 static size_t get_block_size(void *codec_info, size_t link_mtu) {
     struct sbc_info *sbc_info = (struct sbc_info *) codec_info;
-    size_t rtp_size = sizeof(struct rtp_header) + sizeof(struct rtp_sbc_payload);
+    size_t rtp_size = sizeof(struct rtp_header) + sizeof(struct rtp_payload);
     size_t frame_count = (link_mtu - rtp_size) / sbc_info->frame_length;
 
     /* frame_count is only 4 bit number */
@@ -716,7 +716,7 @@ static size_t get_block_size(void *codec_info, size_t link_mtu) {
 
 static size_t get_encoded_block_size(void *codec_info, size_t input_size) {
     struct sbc_info *sbc_info = (struct sbc_info *) codec_info;
-    size_t rtp_size = sizeof(struct rtp_header) + sizeof(struct rtp_sbc_payload);
+    size_t rtp_size = sizeof(struct rtp_header) + sizeof(struct rtp_payload);
 
     /* input size should be aligned to codec input block size */
     pa_assert_fp(input_size % sbc_info->codesize == 0);
@@ -753,14 +753,14 @@ static size_t increase_encoder_bitrate(void *codec_info, size_t write_link_mtu) 
 static size_t encode_buffer(void *codec_info, uint32_t timestamp, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed) {
     struct sbc_info *sbc_info = (struct sbc_info *) codec_info;
     struct rtp_header *header;
-    struct rtp_sbc_payload *payload;
+    struct rtp_payload *payload;
     uint8_t *d;
     const uint8_t *p;
     size_t to_write, to_encode;
     uint8_t frame_count;
 
     header = (struct rtp_header*) output_buffer;
-    payload = (struct rtp_sbc_payload*) (output_buffer + sizeof(*header));
+    payload = (struct rtp_payload*) (output_buffer + sizeof(*header));
 
     frame_count = 0;
 
@@ -836,14 +836,14 @@ static size_t decode_buffer(void *codec_info, const uint8_t *input_buffer, size_
     struct sbc_info *sbc_info = (struct sbc_info *) codec_info;
 
     struct rtp_header *header;
-    struct rtp_sbc_payload *payload;
+    struct rtp_payload *payload;
     const uint8_t *p;
     uint8_t *d;
     size_t to_write, to_decode;
     uint8_t frame_count;
 
     header = (struct rtp_header *) input_buffer;
-    payload = (struct rtp_sbc_payload*) (input_buffer + sizeof(*header));
+    payload = (struct rtp_payload*) (input_buffer + sizeof(*header));
 
     frame_count = payload->frame_count;
 

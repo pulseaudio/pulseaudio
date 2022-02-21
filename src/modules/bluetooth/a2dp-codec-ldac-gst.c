@@ -403,7 +403,7 @@ static size_t reduce_encoder_bitrate(void *codec_info, size_t write_link_mtu) {
 static size_t encode_buffer(void *codec_info, uint32_t timestamp, const uint8_t *input_buffer, size_t input_size, uint8_t *output_buffer, size_t output_size, size_t *processed) {
     struct gst_info *info = (struct gst_info *) codec_info;
     struct rtp_header *header;
-    struct rtp_sbc_payload *payload;
+    struct rtp_payload *payload;
     size_t written;
 
     if (PA_UNLIKELY(output_size < sizeof(*header) + sizeof(*payload))) {
@@ -423,7 +423,7 @@ static size_t encode_buffer(void *codec_info, uint32_t timestamp, const uint8_t 
         header->sequence_number = htons(info->seq_num++);
         header->timestamp = htonl(timestamp);
         header->ssrc = htonl(1);
-        payload = (struct rtp_sbc_payload*) (output_buffer + sizeof(*header));
+        payload = (struct rtp_payload*) (output_buffer + sizeof(*header));
         payload->frame_count = get_ldac_num_frames(codec_info, info->codec_type);
         written += sizeof(*header) + sizeof(*payload);
     }
