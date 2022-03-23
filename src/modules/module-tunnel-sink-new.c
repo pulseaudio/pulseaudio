@@ -85,6 +85,11 @@ struct userdata {
     char *cookie_file;
     char *remote_server;
     char *remote_sink_name;
+    char *sink_name;
+
+    pa_proplist *sink_proplist;
+    pa_sample_spec sample_spec;
+    pa_channel_map channel_map;
 };
 
 static const char* const valid_modargs[] = {
@@ -487,14 +492,51 @@ static int sink_set_state_in_io_thread_cb(pa_sink *s, pa_sink_state_t new_state,
     return 0;
 }
 
+static int create_sink(struct userdata *u) {
+    pa_sink_new_data sink_data;
+
+    pa_assert_ctl_context();
+
+    /* Create sink */
+    pa_sink_new_data_init(&sink_data);
+    sink_data.driver = __FILE__;
+    sink_data.module = u->module;
+
+    pa_sink_new_data_set_name(&sink_data, u->sink_name);
+    pa_sink_new_data_set_sample_spec(&sink_data, &u->sample_spec);
+    pa_sink_new_data_set_channel_map(&sink_data, &u->channel_map);
+
+    pa_proplist_update(sink_data.proplist, PA_UPDATE_REPLACE, u->sink_proplist);
+
+    if (!(u->sink = pa_sink_new(u->module->core, &sink_data, PA_SINK_LATENCY | PA_SINK_DYNAMIC_LATENCY | PA_SINK_NETWORK))) {
+        pa_log("Failed to create sink.");
+        goto fail;
+    }
+
+    pa_sink_new_data_done(&sink_data);
+
+    u->sink->userdata = u;
+    u->sink->parent.process_msg = sink_process_msg_cb;
+    u->sink->set_state_in_io_thread = sink_set_state_in_io_thread_cb;
+    u->sink->update_requested_latency = sink_update_requested_latency_cb;
+    pa_sink_set_latency_range(u->sink, 0, MAX_LATENCY_USEC);
+
+    /* set thread message queue */
+    pa_sink_set_asyncmsgq(u->sink, u->thread_mq->inq);
+    pa_sink_set_rtpoll(u->sink, u->rtpoll);
+
+    return 0;
+
+fail:
+    pa_sink_new_data_done(&sink_data);
+
+    return -1;
+}
+
 int pa__init(pa_module *m) {
     struct userdata *u = NULL;
     pa_modargs *ma = NULL;
-    pa_sink_new_data sink_data;
-    pa_sample_spec ss;
-    pa_channel_map map;
     const char *remote_server = NULL;
-    const char *sink_name = NULL;
     char *default_sink_name = NULL;
 
     pa_assert(m);
@@ -504,9 +546,13 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
-    ss = m->core->default_sample_spec;
-    map = m->core->default_channel_map;
-    if (pa_modargs_get_sample_spec_and_channel_map(ma, &ss, &map, PA_CHANNEL_MAP_DEFAULT) < 0) {
+    u = pa_xnew0(struct userdata, 1);
+    u->module = m;
+    m->userdata = u;
+
+    u->sample_spec = m->core->default_sample_spec;
+    u->channel_map = m->core->default_channel_map;
+    if (pa_modargs_get_sample_spec_and_channel_map(ma, &u->sample_spec, &u->channel_map, PA_CHANNEL_MAP_DEFAULT) < 0) {
         pa_log("Invalid sample format specification or channel map");
         goto fail;
     }
@@ -517,9 +563,6 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
-    u = pa_xnew0(struct userdata, 1);
-    u->module = m;
-    m->userdata = u;
     u->remote_server = pa_xstrdup(remote_server);
     u->thread_mainloop = pa_mainloop_new();
     if (u->thread_mainloop == NULL) {
@@ -546,46 +589,26 @@ int pa__init(pa_module *m) {
      * with module-tunnel-sink-new. */
     u->rtpoll = pa_rtpoll_new();
 
-    /* Create sink */
-    pa_sink_new_data_init(&sink_data);
-    sink_data.driver = __FILE__;
-    sink_data.module = m;
-
     default_sink_name = pa_sprintf_malloc("tunnel-sink-new.%s", remote_server);
-    sink_name = pa_modargs_get_value(ma, "sink_name", default_sink_name);
+    u->sink_name = pa_xstrdup(pa_modargs_get_value(ma, "sink_name", default_sink_name));
 
-    pa_sink_new_data_set_name(&sink_data, sink_name);
-    pa_sink_new_data_set_sample_spec(&sink_data, &ss);
-    pa_sink_new_data_set_channel_map(&sink_data, &map);
-
-    pa_proplist_sets(sink_data.proplist, PA_PROP_DEVICE_CLASS, "sound");
-    pa_proplist_setf(sink_data.proplist,
+    u->sink_proplist = pa_proplist_new();
+    pa_proplist_sets(u->sink_proplist, PA_PROP_DEVICE_CLASS, "sound");
+    pa_proplist_setf(u->sink_proplist,
                      PA_PROP_DEVICE_DESCRIPTION,
                      _("Tunnel to %s/%s"),
                      remote_server,
                      pa_strempty(u->remote_sink_name));
 
-    if (pa_modargs_get_proplist(ma, "sink_properties", sink_data.proplist, PA_UPDATE_REPLACE) < 0) {
+    if (pa_modargs_get_proplist(ma, "sink_properties", u->sink_proplist, PA_UPDATE_REPLACE) < 0) {
         pa_log("Invalid properties");
-        pa_sink_new_data_done(&sink_data);
         goto fail;
     }
-    if (!(u->sink = pa_sink_new(m->core, &sink_data, PA_SINK_LATENCY | PA_SINK_DYNAMIC_LATENCY | PA_SINK_NETWORK))) {
+
+    if (create_sink(u) < 0) {
         pa_log("Failed to create sink.");
-        pa_sink_new_data_done(&sink_data);
         goto fail;
     }
-
-    pa_sink_new_data_done(&sink_data);
-    u->sink->userdata = u;
-    u->sink->parent.process_msg = sink_process_msg_cb;
-    u->sink->set_state_in_io_thread = sink_set_state_in_io_thread_cb;
-    u->sink->update_requested_latency = sink_update_requested_latency_cb;
-    pa_sink_set_latency_range(u->sink, 0, MAX_LATENCY_USEC);
-
-    /* set thread message queue */
-    pa_sink_set_asyncmsgq(u->sink, u->thread_mq->inq);
-    pa_sink_set_rtpoll(u->sink, u->rtpoll);
 
     if (!(u->thread = pa_thread_new("tunnel-sink", thread_func, u))) {
         pa_log("Failed to create thread.");
@@ -593,6 +616,7 @@ int pa__init(pa_module *m) {
     }
 
     pa_sink_put(u->sink);
+
     pa_modargs_free(ma);
     pa_xfree(default_sink_name);
 
@@ -648,6 +672,12 @@ void pa__done(pa_module *m) {
 
     if (u->rtpoll)
         pa_rtpoll_free(u->rtpoll);
+
+    if (u->sink_proplist)
+        pa_proplist_free(u->sink_proplist);
+
+    if (u->sink_name)
+        pa_xfree(u->sink_name);
 
     pa_xfree(u);
 }
