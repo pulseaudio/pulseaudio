@@ -39,6 +39,11 @@
 #include "bluez5-util.h"
 #include "bt-codec-msbc.h"
 
+#define MANDATORY_CALL_INDICATORS \
+        "(\"call\",(0-1))," \
+        "(\"callsetup\",(0-3))," \
+        "(\"callheld\",(0-2))" \
+
 struct pa_bluetooth_backend {
   pa_core *core;
   pa_dbus_connection *connection;
@@ -47,6 +52,8 @@ struct pa_bluetooth_backend {
   bool enable_shared_profiles;
   bool enable_hsp_hs;
   bool enable_hfp_hf;
+  bool cmer_indicator_reporting_enabled;
+  uint32_t cind_enabled_indicators;
 
   PA_LLIST_HEAD(pa_dbus_pending, pending);
 };
@@ -96,6 +103,20 @@ enum hfp_ag_features {
     HFP_AG_CODECS = 9,
     HFP_AG_INDICATORS = 10,
 };
+
+/*
+ * Always keep this struct in sync with indicator discovery of AT+CIND=?
+ * These indicators are used in bitflags and intentionally start at 1
+ * since AT+CIND indicators start at index 1.
+ */
+typedef enum pa_bluetooth_ag_to_hf_indicators {
+    CIND_CALL_INDICATOR = 1,
+    CIND_CALL_SETUP_INDICATOR = 2,
+    CIND_CALL_HELD_INDICATOR = 3,
+    CIND_SERVICE_INDICATOR = 4,
+    CIND_BATT_CHG_INDICATOR = 5,
+    CIND_INDICATOR_MAX = 6
+} pa_bluetooth_ag_to_hf_indicators_t;
 
 /* gateway features we support, which is as little as we can get away with */
 static uint32_t hfp_features =
@@ -588,12 +609,13 @@ static pa_volume_t set_source_volume(pa_bluetooth_transport *t, pa_volume_t volu
 
 static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf)
 {
+    struct pa_bluetooth_discovery *discovery = t->device->discovery;
     struct hfp_config *c = t->config;
-    int indicator, val;
+    int indicator, mode, val;
     char str[5];
     const char *r;
     size_t len;
-    const char *state;
+    const char *state = NULL;
 
     /* first-time initialize selected codec to CVSD */
     if (c->selected_codec == 0)
@@ -608,10 +630,37 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
         c->state = 1;
 
         return true;
+    } else if (sscanf(buf, "AT+BIA=%s", str) == 1) {
+        /* Indicators start with index 1 and follow the order of the AT+CIND=? response */
+        indicator = 1;
+
+        while ((r = pa_split_in_place(str, ",", &len, &state))) {
+            /* Ignore updates to mandantory indicators which are always ON */
+            if (indicator == CIND_CALL_INDICATOR 
+                || indicator == CIND_CALL_SETUP_INDICATOR
+                || indicator == CIND_CALL_HELD_INDICATOR) 
+                continue;
+
+            /* Indicators may have no value and should be skipped */
+            if (len == 0)
+                continue;
+
+            if (len == 1 && r[0] == '1')
+                discovery->native_backend->cind_enabled_indicators |= (1 << indicator);
+            else if (len == 1 && r[0] == '0')
+                discovery->native_backend->cind_enabled_indicators &= ~(1 << indicator);
+	    else {
+                pa_log_error("Unable to parse indicator of AT+BIA command: %s", buf);
+                rfcomm_write_response(fd, "ERROR");
+	        return false;
+            }
+
+            indicator++;
+        }
+
+	return true;
     } else if (sscanf(buf, "AT+BAC=%3s", str) == 1) {
         c->support_msbc = false;
-
-        state = NULL;
 
         /* check if codec id 2 (mSBC) is in the list of supported codecs */
         while ((r = pa_split_in_place(str, ",", &len, &state))) {
@@ -637,10 +686,8 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
         rfcomm_write_response(fd, "+CIND: "
                      /* many indicators can be supported, only call and
                       * callheld are mandatory, so that's all we reply */
-                     "(\"service\",(0-1)),"
-                     "(\"call\",(0-1)),"
-                     "(\"callsetup\",(0-3)),"
-                     "(\"callheld\",(0-2))");
+                     MANDATORY_CALL_INDICATORS ",",
+                     "(\"service\",(0-1))");
         c->state = 2;
 
         return true;
@@ -650,7 +697,24 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
 
         return true;
     } else if ((c->state == 2 || c->state == 3) && pa_startswith(buf, "AT+CMER=")) {
-        rfcomm_write_response(fd, "OK");
+	if (sscanf(buf, "AT+CMER=%d,%*d,%*d,%d", &mode, &val) == 2) {
+            /* Bluetooth HFP spec only defines mode == 3 */
+            if (mode != 3) {
+                pa_log_warn("Unexpected mode for AT+CMER: %d", mode);
+	    }
+
+	    /* Configure CMER event reporting */
+	    discovery->native_backend->cmer_indicator_reporting_enabled = !!val;
+
+            pa_log_debug("Event indications enabled? %s", pa_yes_no(val));
+
+            rfcomm_write_response(fd, "OK");
+        }
+        else {
+            pa_log_error("Unable to parse AT+CMER command: %s", buf);
+            rfcomm_write_response(fd, "ERROR");
+	    return false;
+        }
 
         if (c->support_codec_negotiation) {
             if (c->support_msbc && pa_bluetooth_discovery_get_enable_msbc(t->device->discovery)) {
@@ -740,6 +804,8 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
 
 static void rfcomm_io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event_flags_t events, void *userdata) {
     pa_bluetooth_transport *t = userdata;
+    pa_bluetooth_discovery *discovery = t->device->discovery;
+    int i;
 
     pa_assert(io);
     pa_assert(t);
@@ -860,6 +926,11 @@ static void rfcomm_io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_i
     return;
 
 fail:
+    /* Service Connection lost, reset indicators and event reporting to default values */
+    discovery->native_backend->cmer_indicator_reporting_enabled = false;
+    for (i = 1; i < CIND_INDICATOR_MAX; i++)
+        discovery->native_backend->cind_enabled_indicators |= (1 << i);
+
     pa_bluetooth_transport_unlink(t);
     pa_bluetooth_transport_free(t);
 }
@@ -1188,6 +1259,7 @@ void pa_bluetooth_native_backend_enable_shared_profiles(pa_bluetooth_backend *na
 pa_bluetooth_backend *pa_bluetooth_native_backend_new(pa_core *c, pa_bluetooth_discovery *y, bool enable_shared_profiles) {
     pa_bluetooth_backend *backend;
     DBusError err;
+    int i;
 
     pa_log_debug("Bluetooth Headset Backend API support using the native backend");
 
@@ -1219,6 +1291,14 @@ pa_bluetooth_backend *pa_bluetooth_native_backend_new(pa_core *c, pa_bluetooth_d
 
     if (backend->enable_shared_profiles)
         native_backend_apply_profile_registration_change(backend, true);
+
+    /* All CIND indicators are enabled by default until overriden by AT+BIA */
+    for (i = 1; i < CIND_INDICATOR_MAX; i++)
+        backend->cind_enabled_indicators |= (1 << i);
+
+    /* While all CIND indicators are enabled, event reporting is not enabled by default */
+    backend->cmer_indicator_reporting_enabled = false;
+
 
     return backend;
 }
