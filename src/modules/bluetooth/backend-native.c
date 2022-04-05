@@ -38,6 +38,7 @@
 
 #include "bluez5-util.h"
 #include "bt-codec-msbc.h"
+#include "upower.h"
 
 #define MANDATORY_CALL_INDICATORS \
         "(\"call\",(0-1))," \
@@ -49,6 +50,8 @@ struct pa_bluetooth_backend {
   pa_dbus_connection *connection;
   pa_bluetooth_discovery *discovery;
   pa_hook_slot *adapter_uuids_changed_slot;
+  pa_hook_slot *host_battery_level_changed_slot;
+  pa_upower_backend *upower;
   bool enable_shared_profiles;
   bool enable_hsp_hs;
   bool enable_hfp_hf;
@@ -682,17 +685,27 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
 
         return true;
     } else if (c->state == 1 && pa_startswith(buf, "AT+CIND=?")) {
-        /* we declare minimal no indicators */
-        rfcomm_write_response(fd, "+CIND: "
-                     /* many indicators can be supported, only call and
-                      * callheld are mandatory, so that's all we reply */
-                     MANDATORY_CALL_INDICATORS ",",
-                     "(\"service\",(0-1))");
+        /* UPower backend available, declare support for more indicators */
+        if (discovery->native_backend->upower) {
+            rfcomm_write_response(fd, "+CIND: "
+                         MANDATORY_CALL_INDICATORS ","
+                         "(\"service\",(0-1)),"
+                         "(\"battchg\",(0-5))");
+
+        /* Minimal indicators supported without any additional backend */
+        } else {
+            rfcomm_write_response(fd, "+CIND: "
+                         MANDATORY_CALL_INDICATORS ","
+			 "(\"service\",(0-1))");
+        }
         c->state = 2;
 
         return true;
     } else if (c->state == 2 && pa_startswith(buf, "AT+CIND?")) {
-        rfcomm_write_response(fd, "+CIND: 0,0,0,0");
+        if (discovery->native_backend->upower)
+            rfcomm_write_response(fd, "+CIND: 0,0,0,0,%u", pa_upower_get_battery_level(discovery->native_backend->upower));
+        else
+            rfcomm_write_response(fd, "+CIND: 0,0,0,0");
         c->state = 3;
 
         return true;
@@ -800,6 +813,58 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
      * update, but we process only the ones we care about
      */
     return true;
+}
+
+static int get_rfcomm_fd (pa_bluetooth_discovery *discovery) {
+    struct pa_bluetooth_transport *t;
+    struct transport_data *trd = NULL;
+    void *state = NULL;
+
+    /* Find RFCOMM transport by checking if a HSP or HFP profile transport is available */
+    while ((t = pa_hashmap_iterate(discovery->transports, &state, NULL))) {
+        /* Skip non-connected transports */
+        if (!t || t->state == PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED) {
+            pa_log_debug("Profile disconnected or unavailable");
+            continue;
+        }
+
+        /* Break when an RFCOMM capable transport profile is available */
+        if (t->profile == PA_BLUETOOTH_PROFILE_HFP_HF) {
+            trd = t->userdata;
+            break;
+        }
+    }
+
+    /* Skip if RFCOMM channel is not available yet */
+    if (!trd) {
+        pa_log_info("RFCOMM not available yet, skipping notification");
+        return -1;
+    }
+
+    return trd->rfcomm_fd;
+}
+
+static pa_hook_result_t host_battery_level_changed_cb(pa_bluetooth_discovery *y, const pa_upower_backend *u, pa_bluetooth_backend *b) {
+    int rfcomm_fd;
+
+    pa_assert(y);
+    pa_assert(u);
+    pa_assert(b);
+
+    /* Get RFCOMM channel if available */
+    rfcomm_fd = get_rfcomm_fd (y);
+    if (rfcomm_fd < 0)
+        return PA_HOOK_OK;
+
+    /* Notify HF about AG battery level change over RFCOMM */
+    if (b->cmer_indicator_reporting_enabled && (b->cind_enabled_indicators & (1 << CIND_BATT_CHG_INDICATOR))) {
+    	rfcomm_write_response(rfcomm_fd, "+CIEV: %d,%d", CIND_BATT_CHG_INDICATOR, u->battery_level);
+    	pa_log_debug("HG notified of AG's battery level change");
+    /* Skip notification if indicator is disabled or event reporting is completely disabled */
+    } else
+        pa_log_debug("Battery level change indicator disabled, skipping notification");
+
+    return PA_HOOK_OK;
 }
 
 static void rfcomm_io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event_flags_t events, void *userdata) {
@@ -1283,6 +1348,10 @@ pa_bluetooth_backend *pa_bluetooth_native_backend_new(pa_core *c, pa_bluetooth_d
         pa_hook_connect(pa_bluetooth_discovery_hook(y, PA_BLUETOOTH_HOOK_ADAPTER_UUIDS_CHANGED), PA_HOOK_NORMAL,
                         (pa_hook_cb_t) adapter_uuids_changed_cb, backend);
 
+    backend->host_battery_level_changed_slot =
+        pa_hook_connect(pa_bluetooth_discovery_hook(y, PA_BLUETOOTH_HOOK_HOST_BATTERY_LEVEL_CHANGED), PA_HOOK_NORMAL,
+                        (pa_hook_cb_t) host_battery_level_changed_cb, backend);
+
     if (!backend->enable_hsp_hs && !backend->enable_hfp_hf)
         pa_log_warn("Both HSP HS and HFP HF bluetooth profiles disabled in native backend. Native backend will not register for headset connections.");
 
@@ -1291,6 +1360,8 @@ pa_bluetooth_backend *pa_bluetooth_native_backend_new(pa_core *c, pa_bluetooth_d
 
     if (backend->enable_shared_profiles)
         native_backend_apply_profile_registration_change(backend, true);
+
+    backend->upower = pa_upower_backend_new(c, y);
 
     /* All CIND indicators are enabled by default until overriden by AT+BIA */
     for (i = 1; i < CIND_INDICATOR_MAX; i++)
@@ -1311,11 +1382,17 @@ void pa_bluetooth_native_backend_free(pa_bluetooth_backend *backend) {
     if (backend->adapter_uuids_changed_slot)
         pa_hook_slot_free(backend->adapter_uuids_changed_slot);
 
+    if (backend->host_battery_level_changed_slot)
+        pa_hook_slot_free(backend->host_battery_level_changed_slot);
+
     if (backend->enable_shared_profiles)
         native_backend_apply_profile_registration_change(backend, false);
 
     if (backend->enable_hsp_hs)
         profile_done(backend, PA_BLUETOOTH_PROFILE_HSP_HS);
+
+    if (backend->upower)
+        pa_upower_backend_free(backend->upower);
 
     pa_dbus_connection_unref(backend->connection);
 
