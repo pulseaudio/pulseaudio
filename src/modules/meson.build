@@ -123,7 +123,7 @@ if cdata.has('HAVE_BLUEZ_5')
   all_modules += [
     [ 'module-bluetooth-discover', 'bluetooth/module-bluetooth-discover.c' ],
     [ 'module-bluetooth-policy', 'bluetooth/module-bluetooth-policy.c', [], [], [dbus_dep] ],
-    [ 'module-bluez5-device', 'bluetooth/module-bluez5-device.c', [], [], [], libbluez5_util ],
+    [ 'module-bluez5-device', 'bluetooth/module-bluez5-device.c', [], [], [dbus_dep], libbluez5_util ],
     [ 'module-bluez5-discover', 'bluetooth/module-bluez5-discover.c', [], [], [dbus_dep], libbluez5_util ],
   ]
 endif

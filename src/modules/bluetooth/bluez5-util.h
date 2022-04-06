@@ -22,6 +22,7 @@
 ***/
 
 #include <pulsecore/core.h>
+#include <pulsecore/dbus-shared.h>
 
 #include "a2dp-codec-util.h"
 
@@ -133,6 +134,29 @@ struct pa_bluetooth_transport {
     pa_bluetooth_transport_set_volume_cb set_source_volume;
     void *userdata;
 };
+
+struct pa_bluetooth_discovery {
+    PA_REFCNT_DECLARE;
+
+    pa_core *core;
+    pa_dbus_connection *connection;
+    bool filter_added;
+    bool matches_added;
+    bool objects_listed;
+    pa_hook hooks[PA_BLUETOOTH_HOOK_MAX];
+    pa_hashmap *adapters;
+    pa_hashmap *devices;
+    pa_hashmap *transports;
+    pa_bluetooth_profile_status_t profiles_status[PA_BLUETOOTH_PROFILE_COUNT];
+
+    int headset_backend;
+    pa_bluetooth_backend *ofono_backend, *native_backend;
+    PA_LLIST_HEAD(pa_dbus_pending, pending);
+    bool enable_native_hsp_hs;
+    bool enable_native_hfp_hf;
+    bool enable_msbc;
+};
+
 
 struct pa_bluetooth_device {
     pa_bluetooth_discovery *discovery;
