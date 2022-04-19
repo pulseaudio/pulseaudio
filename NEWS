@@ -1,3 +1,29 @@
+PulseAudio 16.0
+
+Changes at a glance:
+ * Notes for end users
+   * Opus support in RTP modules
+   * Improved hardware support
+     * EPOS/Sennheiser GSP 670 USB/wireless headset
+     * SteelSeries GameDAC
+     * Behringer UMC22 generalized to Texas Instruments PCM2902 to support more products
+     * NI Komplete Audio 6 MK2 profiles
+   * Tunnel latency is now configurable
+   * Bluetooth device battery level reporting added
+   * Tunnel and combine-sunk latency fixes
+   * patcl can show information in JSON format
+   * Channel remixing can be disabled for module-combine-sink
+   * A lot of fixes to ALSA, bluetooth, and other components.
+ * Notes for application developers
+   * Module installation location changed, remember to upgrade paprefs to the latest version!
+ * Notes for packagers
+   * Opus support in the RTP modules requires enabling GStreamer
+   * Bluetooth battery level reporting via BlueZ requires enabling experimentals features in BlueZ
+   * New time smoother implementation
+   * Change Meson option 'daemon-only' to 'client'
+   * glib and fftw are now common dependencies, not only for the client.
+   * Enable GStreamer-based RTP by default when available
+
 PulseAudio 15.0
 
 Changes at a glance:
