@@ -731,6 +731,14 @@ static size_t get_block_size(void *codec_info, size_t link_mtu) {
     if (frame_count > 15)
         frame_count = 15;
 
+    /* Code dealing with read/write block size expects it to be
+     * non-zero to make progress, make it at least one frame.
+     */
+    if (frame_count < 1) {
+        pa_log_warn("SBC packet size %lu is larger than link MTU %lu", sbc_info->frame_length + rtp_size, link_mtu);
+        frame_count = 1;
+    }
+
     return frame_count * sbc_info->codesize;
 }
 
