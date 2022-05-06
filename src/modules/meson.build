@@ -57,7 +57,7 @@ all_modules = [
   [ 'module-tunnel-sink', 'module-tunnel.c', [], ['-DTUNNEL_SINK=1'], [x11_dep] ],
   [ 'module-tunnel-sink-new', ['module-tunnel-sink-new.c', 'restart-module.c'] ],
   [ 'module-tunnel-source', 'module-tunnel.c', [], [], [x11_dep] ],
-  [ 'module-tunnel-source-new', 'module-tunnel-source-new.c' ],
+  [ 'module-tunnel-source-new', ['module-tunnel-source-new.c', 'restart-module.c'] ],
   [ 'module-virtual-sink', 'module-virtual-sink.c' ],
   [ 'module-virtual-source', 'module-virtual-source.c' ],
   [ 'module-volume-restore', 'module-volume-restore.c' ],
