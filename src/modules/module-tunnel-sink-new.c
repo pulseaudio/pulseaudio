@@ -21,6 +21,8 @@
 #include <config.h>
 #endif
 
+#include "restart-module.h"
+
 #include <pulse/context.h>
 #include <pulse/timeval.h>
 #include <pulse/xmalloc.h>
@@ -50,6 +52,7 @@ PA_MODULE_USAGE(
         "sink=<name of the remote sink> "
         "sink_name=<name for the local sink> "
         "sink_properties=<properties for the local sink> "
+        "reconnect_interval_ms=<interval to try reconnects, 0 or omitted if disabled> "
         "format=<sample format> "
         "channels=<number of channels> "
         "rate=<sample rate> "
@@ -60,6 +63,8 @@ PA_MODULE_USAGE(
 #define MAX_LATENCY_USEC (200 * PA_USEC_PER_MSEC)
 #define TUNNEL_THREAD_FAILED_MAINLOOP 1
 
+static int do_init(pa_module *m);
+static void do_done(pa_module *m);
 static void stream_state_cb(pa_stream *stream, void *userdata);
 static void stream_changed_buffer_attr_cb(pa_stream *stream, void *userdata);
 static void stream_set_buffer_attr_cb(pa_stream *stream, int success, void *userdata);
@@ -75,6 +80,7 @@ PA_DEFINE_PRIVATE_CLASS(tunnel_msg, pa_msgobject);
 
 enum {
     TUNNEL_MESSAGE_CREATE_SINK_REQUEST,
+    TUNNEL_MESSAGE_MAYBE_RESTART,
 };
 
 enum {
@@ -108,6 +114,8 @@ struct userdata {
     pa_channel_map channel_map;
 
     tunnel_msg *msg;
+
+    pa_usec_t reconnect_interval_us;
 };
 
 static const char* const valid_modargs[] = {
@@ -120,7 +128,7 @@ static const char* const valid_modargs[] = {
     "rate",
     "channel_map",
     "cookie",
-   /* "reconnect", reconnect if server comes back again - unimplemented */
+    "reconnect_interval_ms",
     NULL,
 };
 
@@ -166,6 +174,7 @@ static pa_proplist* tunnel_new_proplist(struct userdata *u) {
 static void thread_func(void *userdata) {
     struct userdata *u = userdata;
     pa_proplist *proplist;
+
     pa_assert(u);
 
     pa_log_debug("Thread starting up");
@@ -192,7 +201,7 @@ static void thread_func(void *userdata) {
                            u->remote_server,
                            PA_CONTEXT_NOAUTOSPAWN,
                            NULL) < 0) {
-        pa_log("Failed to connect libpulse context");
+        pa_log("Failed to connect libpulse context: %s", pa_strerror(pa_context_errno(u->context)));
         goto fail;
     }
 
@@ -244,7 +253,10 @@ static void thread_func(void *userdata) {
         }
     }
 fail:
-    pa_asyncmsgq_post(u->thread_mq->outq, PA_MSGOBJECT(u->module->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, 0, NULL, NULL);
+    /* send a message to the ctl thread to ask it to either terminate us, or
+     * restart us, but either way this thread will exit, so then wait for the
+     * shutdown message */
+    pa_asyncmsgq_post(u->thread_mq->outq, PA_MSGOBJECT(u->msg), TUNNEL_MESSAGE_MAYBE_RESTART, u, 0, NULL, NULL);
     pa_asyncmsgq_wait_for(u->thread_mq->inq, PA_MESSAGE_SHUTDOWN);
 
 finish:
@@ -321,6 +333,17 @@ static void stream_underflow_callback(pa_stream *stream, void *userdata) {
 /* called when the server experiences an overrun of our buffer */
 static void stream_overflow_callback(pa_stream *stream, void *userdata) {
     pa_log_info("Server signalled buffer overrun.");
+}
+
+/* Do a reinit of the module.  Note that u will be freed as a result of this
+ * call. */
+static void maybe_restart(struct userdata *u) {
+    if (u->reconnect_interval_us > 0) {
+        pa_restart_module_reinit(u->module, do_init, do_done, u->reconnect_interval_us);
+    } else {
+        /* exit the module */
+        pa_asyncmsgq_post(u->thread_mq->outq, PA_MSGOBJECT(u->module->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, 0, NULL, NULL);
+    }
 }
 
 static void on_sink_created(struct userdata *u) {
@@ -596,16 +619,20 @@ static int tunnel_process_msg(pa_msgobject *o, int code, void *data, int64_t off
         case TUNNEL_MESSAGE_CREATE_SINK_REQUEST:
             create_sink(u);
             break;
+        case TUNNEL_MESSAGE_MAYBE_RESTART:
+            maybe_restart(u);
+            break;
     }
 
     return 0;
 }
 
-int pa__init(pa_module *m) {
+static int do_init(pa_module *m) {
     struct userdata *u = NULL;
     pa_modargs *ma = NULL;
     const char *remote_server = NULL;
     char *default_sink_name = NULL;
+    uint32_t reconnect_interval_ms = 0;
 
     pa_assert(m);
 
@@ -676,6 +703,9 @@ int pa__init(pa_module *m) {
         goto fail;
     }
 
+    pa_modargs_get_value_u32(ma, "reconnect_interval_ms", &reconnect_interval_ms);
+    u->reconnect_interval_us = reconnect_interval_ms * PA_USEC_PER_MSEC;
+
     if (!(u->thread = pa_thread_new("tunnel-sink", thread_func, u))) {
         pa_log("Failed to create thread.");
         goto fail;
@@ -693,13 +723,11 @@ fail:
     if (default_sink_name)
         pa_xfree(default_sink_name);
 
-    pa__done(m);
-
     return -1;
 }
 
-void pa__done(pa_module *m) {
-    struct userdata *u;
+static void do_done(pa_module *m) {
+    struct userdata *u = NULL;
 
     pa_assert(m);
 
@@ -748,4 +776,25 @@ void pa__done(pa_module *m) {
     pa_xfree(u->msg);
 
     pa_xfree(u);
+
+    m->userdata = NULL;
+}
+
+int pa__init(pa_module *m) {
+    int ret;
+
+    pa_assert(m);
+
+    ret = do_init(m);
+
+    if (ret < 0)
+        pa__done(m);
+
+    return ret;
+}
+
+void pa__done(pa_module *m) {
+    pa_assert(m);
+
+    do_done(m);
 }
