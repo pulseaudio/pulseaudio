@@ -385,8 +385,17 @@ static pa_hook_result_t device_state_changed_hook_cb(pa_core *c, pa_object *o, s
     pa_object_assert_ref(o);
     pa_assert(u);
 
-    if (!(d = pa_hashmap_get(u->device_infos, o)))
-        return PA_HOOK_OK;
+    if (!(d = pa_hashmap_get(u->device_infos, o))) {
+        /* We never suspend monitor sources, therefore they are not in the map.
+         * Still, when monitor source becomes idle it may happen that monitored
+         * sink has no uncorked inputs anymore and can now be suspended.
+         */
+        if (pa_source_isinstance(o) && PA_SOURCE(o)->monitor_of) {
+            pa_log_debug("State of monitor source '%s' has changed, checking state of monitored sink", PA_SOURCE(o)->name);
+            return device_state_changed_hook_cb(c, PA_OBJECT(PA_SOURCE(o)->monitor_of), u);
+        } else
+            return PA_HOOK_OK;
+    }
 
     if (pa_sink_isinstance(o)) {
         pa_sink *s = PA_SINK(o);
