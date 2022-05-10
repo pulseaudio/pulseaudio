@@ -11,7 +11,7 @@ msgstr ""
 "issues/new\n"
 "POT-Creation-Date: 2021-12-16 18:45+0200\n"
 "PO-Revision-Date: 2022-05-10 03:33+0000\n"
-"Last-Translator: Alexey Rubtsov <rushills@gmail.com>\n"
+"Last-Translator: Sergey A. <sw@atrus.ru>\n"
 "Language-Team: Russian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ru/>\n"
 "Language: ru\n"
@@ -2437,9 +2437,9 @@ msgid "Failed to get server information: %s"
 msgstr "Не удалось получить информацию о сервере: %s"
 
 #: src/utils/pactl.c:224 src/utils/pactl.c:236
-#, fuzzy, c-format
+#, c-format
 msgid "%s\n"
-msgstr "%s %s\n"
+msgstr "%s\n"
 
 # Tile Size = PA_MEMPOOL_SLOT_SIZE in src/pulsecore/memblock.c. --aspotashev
 #: src/utils/pactl.c:281
@@ -2499,7 +2499,6 @@ msgid "Unknown"
 msgstr "Неизвестный"
 
 #: src/utils/pactl.c:332
-#, fuzzy
 msgid "Aux"
 msgstr "Aux"
 
@@ -2520,12 +2519,10 @@ msgid "Earpiece"
 msgstr "Наушник"
 
 #: src/utils/pactl.c:340
-#, fuzzy
 msgid "SPDIF"
 msgstr "SPDIF"
 
 #: src/utils/pactl.c:341
-#, fuzzy
 msgid "HDMI"
 msgstr "HDMI"
 
@@ -2927,7 +2924,7 @@ msgstr ""
 #: src/utils/pactl.c:1800
 #, c-format
 msgid "Failed to unload module: Module %s not loaded"
-msgstr "Не удалось выгрузить модуль: модуль «%s» не загружен."
+msgstr "Не удалось выгрузить модуль: модуль «%s» не загружен"
 
 #: src/utils/pactl.c:1818
 #, c-format
