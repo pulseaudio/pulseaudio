@@ -10,7 +10,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2021-12-16 18:45+0200\n"
-"PO-Revision-Date: 2022-05-10 03:33+0000\n"
+"PO-Revision-Date: 2022-05-12 15:18+0000\n"
 "Last-Translator: Sergey A. <sw@atrus.ru>\n"
 "Language-Team: Russian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ru/>\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 4.12.1\n"
+"X-Generator: Weblate 4.12.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -182,14 +182,13 @@ msgstr ""
 
 #: src/daemon/cmdline.c:246
 msgid "--daemonize expects boolean argument"
-msgstr "«--daemonize» ожидает логический аргумент."
+msgstr "«--daemonize» ожидает логический аргумент"
 
 #: src/daemon/cmdline.c:254
 msgid "--fail expects boolean argument"
-msgstr "«--fail» ожидает логический аргумент."
+msgstr "«--fail» ожидает логический аргумент"
 
 #: src/daemon/cmdline.c:265
-#, fuzzy
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of error, warn, notice, info, debug)."
@@ -199,23 +198,23 @@ msgstr ""
 
 #: src/daemon/cmdline.c:277
 msgid "--high-priority expects boolean argument"
-msgstr "«--high-priority» ожидает логический аргумент."
+msgstr "«--high-priority» ожидает логический аргумент"
 
 #: src/daemon/cmdline.c:285
 msgid "--realtime expects boolean argument"
-msgstr "«--realtime» ожидает логический аргумент."
+msgstr "«--realtime» ожидает логический аргумент"
 
 #: src/daemon/cmdline.c:293
 msgid "--disallow-module-loading expects boolean argument"
-msgstr "«--disallow-module-loading» ожидает логический аргумент."
+msgstr "«--disallow-module-loading» ожидает логический аргумент"
 
 #: src/daemon/cmdline.c:301
 msgid "--disallow-exit expects boolean argument"
-msgstr "«--disallow-exit» ожидает логический аргумент."
+msgstr "«--disallow-exit» ожидает логический аргумент"
 
 #: src/daemon/cmdline.c:309
 msgid "--use-pid-file expects boolean argument"
-msgstr "«--use-pid-file» ожидает логический аргумент."
+msgstr "«--use-pid-file» ожидает логический аргумент"
 
 #: src/daemon/cmdline.c:328
 msgid ""
@@ -235,11 +234,11 @@ msgstr ""
 
 #: src/daemon/cmdline.c:338
 msgid "--log-time expects boolean argument"
-msgstr "«--log-time» ожидает логический аргумент."
+msgstr "«--log-time» ожидает логический аргумент"
 
 #: src/daemon/cmdline.c:346
 msgid "--log-meta expects boolean argument"
-msgstr "«--log-meta» ожидает логический аргумент."
+msgstr "«--log-meta» ожидает логический аргумент"
 
 #: src/daemon/cmdline.c:366
 #, c-format
@@ -248,19 +247,19 @@ msgstr "Недопустимый метод передискретизации �
 
 #: src/daemon/cmdline.c:373
 msgid "--system expects boolean argument"
-msgstr "«--system» ожидает логический аргумент."
+msgstr "«--system» ожидает логический аргумент"
 
 #: src/daemon/cmdline.c:381
 msgid "--no-cpu-limit expects boolean argument"
-msgstr "«--no-cpu-limit» ожидает логический аргумент."
+msgstr "«--no-cpu-limit» ожидает логический аргумент"
 
 #: src/daemon/cmdline.c:389
 msgid "--disable-shm expects boolean argument"
-msgstr "«--disable-shm» ожидает логический аргумент."
+msgstr "«--disable-shm» ожидает логический аргумент"
 
 #: src/daemon/cmdline.c:397
 msgid "--enable-memfd expects boolean argument"
-msgstr "«--enable-memfd» ожидает логический аргумент."
+msgstr "«--enable-memfd» ожидает логический аргумент"
 
 #: src/daemon/daemon-conf.c:270
 #, c-format
@@ -546,7 +545,7 @@ msgstr "Произошла ошибка при выполнении setsid(): %s
 
 #: src/daemon/main.c:1119
 msgid "Failed to get machine ID"
-msgstr "Не удалось получить идентификатор компьютера."
+msgstr "Не удалось получить идентификатор компьютера"
 
 #: src/daemon/main.c:1145
 msgid ""
@@ -1149,12 +1148,11 @@ msgstr "Фиктивный выход"
 #: src/modules/module-always-sink.c:34
 msgid "Always keeps at least one sink loaded even if it's a null one"
 msgstr ""
-"Всегда оставлять хотя бы один аудиоприёмник загруженным, даже если он пустой."
+"Всегда оставлять хотя бы один аудиоприёмник загруженным, даже если он пустой"
 
 #: src/modules/module-always-source.c:35
 msgid "Always keeps at least one source loaded even if it's a null one"
-msgstr ""
-"Всегда оставлять хотя бы один источник загруженным, даже если он пустой."
+msgstr "Всегда оставлять хотя бы один источник загруженным, даже если он пустой"
 
 #: src/modules/module-equalizer-sink.c:68
 msgid "General Purpose Equalizer"
@@ -1222,7 +1220,7 @@ msgstr "Пустой выход"
 #: src/modules/module-null-sink.c:368 src/utils/pactl.c:2064
 #, c-format
 msgid "Failed to set format: invalid format string %s"
-msgstr "Не удалось задать формат: недопустимый формат «%s»."
+msgstr "Не удалось задать формат: недопустимый формат «%s»"
 
 #: src/modules/module-rygel-media-server.c:506
 #: src/modules/module-rygel-media-server.c:544
@@ -1517,11 +1515,11 @@ msgstr "Объёмный 7.1"
 
 #: src/pulse/client-conf-x11.c:61 src/utils/pax11publish.c:97
 msgid "xcb_connect() failed"
-msgstr "Произошла ошибка при выполнении pa_context_connect()."
+msgstr "Произошла ошибка при выполнении xcb_connect()"
 
 #: src/pulse/client-conf-x11.c:66 src/utils/pax11publish.c:102
 msgid "xcb_connection_has_error() returned true"
-msgstr "Вызов xcb_connection_has_error() вернул «true»."
+msgstr "Вызов xcb_connection_has_error() вернул «true»"
 
 #: src/pulse/client-conf-x11.c:102
 msgid "Failed to parse cookie data"
@@ -1540,7 +1538,7 @@ msgstr "waitpid(): %s"
 #: src/pulse/context.c:1488
 #, c-format
 msgid "Received message for unknown extension '%s'"
-msgstr "Получено сообщение для неизвестного расширения «%s»."
+msgstr "Получено сообщение для неизвестного расширения «%s»"
 
 #: src/pulse/direction.c:37
 msgid "input"
@@ -1848,13 +1846,11 @@ msgstr "Атрибуты буфера потока изменены.%s"
 
 #: src/utils/pacat.c:415
 msgid "Cork request stack is empty: corking stream"
-msgstr "Поток на данный момент не был приостановлен, приостановка потока."
+msgstr "Стек запросов по закупорке пуст: закупоривание потока"
 
 #: src/utils/pacat.c:421
 msgid "Cork request stack is empty: uncorking stream"
-msgstr ""
-"Поток на данный момент был приостановлен только по одному запросу, "
-"возобновление потока."
+msgstr "Стек запросов по закупорке пуст: откупоривание потока"
 
 #: src/utils/pacat.c:425
 msgid "Warning: Received more uncork requests than cork requests."
@@ -2111,32 +2107,32 @@ msgstr ""
 #: src/utils/pacat.c:852 src/utils/pactl.c:2720
 #, c-format
 msgid "Invalid client name '%s'"
-msgstr "Недопустимое имя клиента «%s»."
+msgstr "Недопустимое имя клиента «%s»"
 
 #: src/utils/pacat.c:867
 #, c-format
 msgid "Invalid stream name '%s'"
-msgstr "Недопустимое имя потока «%s»."
+msgstr "Недопустимое имя потока «%s»"
 
 #: src/utils/pacat.c:904
 #, c-format
 msgid "Invalid channel map '%s'"
-msgstr "Недопустимая схема каналов «%s»."
+msgstr "Недопустимая схема каналов «%s»"
 
 #: src/utils/pacat.c:933 src/utils/pacat.c:947
 #, c-format
 msgid "Invalid latency specification '%s'"
-msgstr "Недопустимое значение задержки «%s»."
+msgstr "Недопустимое значение задержки «%s»"
 
 #: src/utils/pacat.c:940 src/utils/pacat.c:954
 #, c-format
 msgid "Invalid process time specification '%s'"
-msgstr "Недопустимое время процесса «%s»."
+msgstr "Недопустимое время процесса «%s»"
 
 #: src/utils/pacat.c:966
 #, c-format
 msgid "Invalid property '%s'"
-msgstr "Недопустимое свойство «%s»."
+msgstr "Недопустимое свойство «%s»"
 
 #: src/utils/pacat.c:985
 #, c-format
@@ -2145,11 +2141,11 @@ msgstr "Неизвестный формат файла «%s»."
 
 #: src/utils/pacat.c:1000
 msgid "Failed to parse the argument for --monitor-stream"
-msgstr "Не удалось разобрать аргумент ключа «--monitor-stream»."
+msgstr "Не удалось разобрать аргумент ключа «--monitor-stream»"
 
 #: src/utils/pacat.c:1011
 msgid "Invalid sample specification"
-msgstr "Недопустимая спецификация отсчётов."
+msgstr "Недопустимая спецификация отсчётов"
 
 #: src/utils/pacat.c:1021
 #, c-format
@@ -2191,7 +2187,7 @@ msgstr "Предупреждение: не удалось определить �
 
 #: src/utils/pacat.c:1111
 msgid "Channel map doesn't match sample specification"
-msgstr "Схема каналов не соответствует спецификации отсчётов."
+msgstr "Схема каналов не соответствует спецификации отсчётов"
 
 #: src/utils/pacat.c:1122
 msgid "Warning: failed to write channel map to file."
@@ -2345,9 +2341,9 @@ msgid ""
 "When no command is given pacmd starts in the interactive mode.\n"
 msgstr ""
 "\n"
-"  -h, --help                            Показать эту справку о параметрах\n"
+"  -h, --help                            Показать эту справку\n"
 "      --version                         Показать сведения о версии\n"
-"Если команда для выполнения не указана, pacmd будет запущен в интерактивном\n"
+"Если команда для выполнения не указана, pacmd будет запущен в интерактивном "
 "режиме.\n"
 
 #: src/utils/pacmd.c:129
@@ -2599,9 +2595,7 @@ msgstr "\tПорты:\n"
 #: src/utils/pactl.c:708 src/utils/pactl.c:892
 #, c-format
 msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
-msgstr ""
-"\t\t\\t\\t%s: %s (тип: %s, приоритет: %u%s%s, %s)\\n"
-"\n"
+msgstr "\t\t%s: %s (тип: %s, приоритет: %u%s%s, %s)\n"
 
 #: src/utils/pactl.c:710 src/utils/pactl.c:894 src/utils/pactl.c:1256
 msgid ", availability group: "
@@ -2910,11 +2904,11 @@ msgstr ""
 
 #: src/utils/pactl.c:1711 src/utils/pactl.c:1760
 msgid "list-handlers message response could not be parsed correctly"
-msgstr ""
+msgstr "не удалось правильно обработать ответ list-handlers"
 
 #: src/utils/pactl.c:1718
 msgid "list-handlers message response is not a JSON array"
-msgstr ""
+msgstr "ответ list-handlers не является массивом JSON"
 
 #: src/utils/pactl.c:1729
 #, c-format
@@ -2951,7 +2945,7 @@ msgstr "Не удалось загрузить сэмпл в кэш: %s"
 
 #: src/utils/pactl.c:2124
 msgid "Premature end of file"
-msgstr "Неожиданный конец файла."
+msgstr "Неожиданный конец файла"
 
 #: src/utils/pactl.c:2144
 msgid "new"
@@ -3026,7 +3020,7 @@ msgstr "Получен сигнал для остановки (SIGINT), выхо
 
 #: src/utils/pactl.c:2547
 msgid "Invalid volume specification"
-msgstr "Недопустимое значение громкости."
+msgstr "Недопустимое значение громкости"
 
 #: src/utils/pactl.c:2570
 msgid "Volume outside permissible range.\n"
@@ -3093,11 +3087,11 @@ msgid ""
 msgstr ""
 "\n"
 "Специальные имена @DEFAULT_SINK@, @DEFAULT_SOURCE@ и @DEFAULT_MONITOR@\n"
-"можно использовать для указания аудиоприёмника, источника и монитора,\n"
+"можно использовать для указания аудиоприёмника, источника и монитора, "
 "используемых по умолчанию.\n"
 
 #: src/utils/pactl.c:2653
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "  -h, --help                            Show this help\n"
@@ -3111,13 +3105,14 @@ msgid ""
 "server\n"
 msgstr ""
 "\n"
-"  -h, --help                            Показать эту справку о параметрах\n"
-"      --version                         Показать сведения о версии\n"
+"  -h, --help                            Показать эту справку\n"
+"      --version                         Показать версию\n"
 "\n"
-"  -s, --server=СЕРВЕР                   Имя сервера, к которому нужно\n"
-"                                        подключиться.\n"
-"  -n, --client-name=ИМЯ                 Имя этого клиента, которое будет\n"
-"                                        представлено серверу.\n"
+"  -f, --format=ФОРМАТ                   Формат вывода. Варианты: «normal» "
+"или «json»\n"
+"  -s, --server=СЕРВЕР                   Имя сервера, к которому нужно "
+"подключиться\n"
+"  -n, --client-name=ИМЯ                 Имя этого клиента на сервере\n"
 
 #: src/utils/pactl.c:2696
 #, c-format
@@ -3131,9 +3126,9 @@ msgstr ""
 "Скомпоновано с libpulse %s\n"
 
 #: src/utils/pactl.c:2739
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid format value '%s'"
-msgstr "Недопустимое имя потока «%s»."
+msgstr "Недопустимое значение формата «%s»"
 
 #: src/utils/pactl.c:2766
 #, c-format
@@ -3142,7 +3137,7 @@ msgstr "Не указывайте ничего либо укажите одно 
 
 #: src/utils/pactl.c:2776
 msgid "Please specify a sample file to load"
-msgstr "Необходимо указать файл, из которого будет загружен сэмпл."
+msgstr "Необходимо указать файл, из которого будет загружен сэмпл"
 
 #: src/utils/pactl.c:2789
 msgid "Failed to open sound file."
@@ -3154,19 +3149,19 @@ msgstr "Предупреждение: не удалось определить �
 
 #: src/utils/pactl.c:2811
 msgid "You have to specify a sample name to play"
-msgstr "Необходимо указать имя сэмпла для воспроизведения."
+msgstr "Необходимо указать имя сэмпла для воспроизведения"
 
 #: src/utils/pactl.c:2823
 msgid "You have to specify a sample name to remove"
-msgstr "Необходимо указать имя сэмпла для удаления."
+msgstr "Необходимо указать имя сэмпла для удаления"
 
 #: src/utils/pactl.c:2832
 msgid "You have to specify a sink input index and a sink"
-msgstr "Необходимо указать номер входа аудиоприёмника и аудиоприёмник."
+msgstr "Необходимо указать номер входа аудиоприёмника и аудиоприёмник"
 
 #: src/utils/pactl.c:2842
 msgid "You have to specify a source output index and a source"
-msgstr "Необходимо указать номер выхода источника и источник."
+msgstr "Необходимо указать номер выхода источника и источник"
 
 #: src/utils/pactl.c:2857
 msgid "You have to specify a module name and arguments."
@@ -3174,7 +3169,7 @@ msgstr "Необходимо указать имя модуля и аргуме�
 
 #: src/utils/pactl.c:2877
 msgid "You have to specify a module index or name"
-msgstr "Необходимо указать номер или имя модуля."
+msgstr "Необходимо указать номер или имя модуля"
 
 #: src/utils/pactl.c:2890
 msgid ""
@@ -3198,87 +3193,85 @@ msgstr ""
 
 #: src/utils/pactl.c:2927
 msgid "You have to specify a card name/index and a profile name"
-msgstr "Необходимо указать имя или номер звуковой платы и имя профиля."
+msgstr "Необходимо указать имя или номер звуковой платы и имя профиля"
 
 #: src/utils/pactl.c:2938
 msgid "You have to specify a sink name/index and a port name"
-msgstr "Необходимо указать имя или номер аудиоприёмника и имя порта."
+msgstr "Необходимо указать имя или номер аудиоприёмника и имя порта"
 
 #: src/utils/pactl.c:2949
 msgid "You have to specify a sink name"
-msgstr "Необходимо указать имя аудиоприёмника."
+msgstr "Необходимо указать имя аудиоприёмника"
 
 #: src/utils/pactl.c:2962
 msgid "You have to specify a source name/index and a port name"
-msgstr "Необходимо указать имя или номер источника и имя порта."
+msgstr "Необходимо указать имя или номер источника и имя порта"
 
 #: src/utils/pactl.c:2973
 msgid "You have to specify a source name"
-msgstr "Необходимо указать имя источника."
+msgstr "Необходимо указать имя источника"
 
 #: src/utils/pactl.c:2986 src/utils/pactl.c:3064
-#, fuzzy
 msgid "You have to specify a sink name/index"
-msgstr "Необходимо указать имя аудиоприёмника."
+msgstr "Необходимо указать имя или номер аудиоприёмника"
 
 #: src/utils/pactl.c:2996
 msgid "You have to specify a sink name/index and a volume"
-msgstr "Необходимо указать имя или номер аудиоприёмника и громкость."
+msgstr "Необходимо указать имя или номер аудиоприёмника и громкость"
 
 #: src/utils/pactl.c:3009 src/utils/pactl.c:3089
-#, fuzzy
 msgid "You have to specify a source name/index"
-msgstr "Необходимо указать имя источника."
+msgstr "Необходимо указать имя или номер источника"
 
 #: src/utils/pactl.c:3019
 msgid "You have to specify a source name/index and a volume"
-msgstr "Необходимо указать имя или номер источника и громкость."
+msgstr "Необходимо указать имя или номер источника и громкость"
 
 #: src/utils/pactl.c:3032
 msgid "You have to specify a sink input index and a volume"
-msgstr "Необходимо указать номер входа аудиоприёмника и громкость."
+msgstr "Необходимо указать номер входа аудиоприёмника и громкость"
 
 #: src/utils/pactl.c:3037
 msgid "Invalid sink input index"
-msgstr "Недопустимый номер входа аудиоприёмника."
+msgstr "Недопустимый номер входа аудиоприёмника"
 
 #: src/utils/pactl.c:3048
 msgid "You have to specify a source output index and a volume"
-msgstr "Необходимо указать номер выхода источника и громкость."
+msgstr "Необходимо указать номер выхода источника и громкость"
 
 #: src/utils/pactl.c:3053
 msgid "Invalid source output index"
-msgstr "Недопустимый номер выхода источника."
+msgstr "Недопустимый номер выхода источника"
 
 #: src/utils/pactl.c:3074
 msgid ""
 "You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"
 msgstr ""
 "Необходимо указать имя или номер аудиоприёмника и логическое значение "
-"выключения звука (0, 1 или «toggle»)."
+"выключения звука (0, 1 или «toggle»)"
 
 #: src/utils/pactl.c:3079 src/utils/pactl.c:3104 src/utils/pactl.c:3124
 #: src/utils/pactl.c:3142
 msgid "Invalid mute specification"
-msgstr "Недопустимое логическое значение выключения звука."
+msgstr "Недопустимое логическое значение выключения звука"
 
 #: src/utils/pactl.c:3099
 msgid ""
 "You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
 msgstr ""
 "Необходимо указать имя или номер источника и логическое значение выключения "
-"звука (0, 1 или «toggle»)."
+"звука (0, 1 или «toggle»)"
 
 #: src/utils/pactl.c:3114
 msgid ""
 "You have to specify a sink input index and a mute action (0, 1, or 'toggle')"
 msgstr ""
 "Необходимо указать номер входа аудиоприёмника и логическое значение "
-"выключения звука (0, 1 или «toggle»)."
+"выключения звука (0, 1 или «toggle»)"
 
 #: src/utils/pactl.c:3119
 msgid "Invalid sink input index specification"
-msgstr "Недопустимый номер входа аудиоприёмника."
+msgstr "Недопустимый номер входа аудиоприёмника"
 
 #: src/utils/pactl.c:3132
 msgid ""
@@ -3286,11 +3279,11 @@ msgid ""
 "'toggle')"
 msgstr ""
 "Необходимо указать номер выхода источника и логическое значение выключения "
-"звука (0, 1 или «toggle»)."
+"звука (0, 1 или «toggle»)"
 
 #: src/utils/pactl.c:3137
 msgid "Invalid source output index specification"
-msgstr "Недопустимый номер выхода источника."
+msgstr "Недопустимый номер выхода источника"
 
 #: src/utils/pactl.c:3150
 msgid "You have to specify at least an object path and a message name"
@@ -3308,15 +3301,15 @@ msgid ""
 "formats"
 msgstr ""
 "Необходимо указать номер аудиоприёмника и разделённый запятыми список "
-"поддерживаемых форматов."
+"поддерживаемых форматов"
 
 #: src/utils/pactl.c:3182
 msgid "You have to specify a card name/index, a port name and a latency offset"
-msgstr "Необходимо указать имя или номер звуковой платы, имя порта и задержку."
+msgstr "Необходимо указать имя или номер звуковой платы, имя порта и задержку"
 
 #: src/utils/pactl.c:3189
 msgid "Could not parse latency offset"
-msgstr "Недопустимое значение задержки."
+msgstr "Недопустимое значение задержки"
 
 #: src/utils/pactl.c:3201
 msgid "No valid command specified."
@@ -3364,7 +3357,7 @@ msgid "WARNING: Child process terminated by signal %u\n"
 msgstr "Предупреждение: дочерний процесс завершён по сигналу %u\n"
 
 #: src/utils/pasuspender.c:228
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] -- PROGRAM [ARGUMENTS ...]\n"
 "\n"
@@ -3376,12 +3369,14 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
-"%s [параметры] ... \n"
+"%s [параметры] -- ПРОГРАММА [АРГУМЕНТЫ ...]\n"
 "\n"
-"  -h, --help                            Показать эту справку о параметрах\n"
-"      --version                         Показать сведения о версии\n"
-"  -s, --server=СЕРВЕР                   Имя сервера, к которому нужно\n"
-"                                        подключиться.\n"
+"Временно приостановить работу PulseAudio, пока работает ПРОГРАММА.\n"
+"\n"
+"  -h, --help                            Показать эту справку\n"
+"      --version                         Показать версию\n"
+"  -s, --server=СЕРВЕР                   Имя сервера, к которому нужно "
+"подключиться\n"
 "\n"
 
 #: src/utils/pasuspender.c:267
