@@ -739,7 +739,7 @@ static pa_hook_result_t sink_new_hook_callback(pa_core *c, pa_sink_new_data *new
 
         if (e->port_valid) {
             if (!new_data->active_port) {
-                pa_log_info("Restoring port for sink %s.", name);
+                pa_log_info("Restoring port '%s' for sink %s.", pa_strnull(e->port), name);
                 pa_sink_new_data_set_port(new_data, e->port);
                 new_data->save_port = true;
             } else
@@ -881,7 +881,7 @@ static pa_hook_result_t source_new_hook_callback(pa_core *c, pa_source_new_data 
 
         if (e->port_valid) {
             if (!new_data->active_port) {
-                pa_log_info("Restoring port for source %s.", name);
+                pa_log_info("Restoring port '%s' for source %s.", pa_strnull(e->port), name);
                 pa_source_new_data_set_port(new_data, e->port);
                 new_data->save_port = true;
             } else
