@@ -1816,8 +1816,8 @@ static pa_usec_t calc_time(const pa_stream *s, bool ignore_transport) {
 }
 
 #ifdef USE_SMOOTHER_2
-static inline size_t calc_bytes(pa_stream *s, bool ignore_transport) {
-    return pa_usec_to_bytes(calc_time(s, ignore_transport), &s->sample_spec);
+static inline uint64_t calc_bytes(pa_stream *s, bool ignore_transport) {
+    return (uint64_t)(calc_time(s, ignore_transport) * s->sample_spec.rate / PA_USEC_PER_SEC * pa_frame_size(&s->sample_spec));
 }
 #endif
 

@@ -258,7 +258,7 @@ void pa_smoother_2_put(pa_smoother_2 *s, pa_usec_t time_stamp, int64_t byte_coun
 }
 
 /* Calculate the current latency. For a source, the sign must be inverted */
-int64_t pa_smoother_2_get_delay(pa_smoother_2 *s, pa_usec_t time_stamp, size_t byte_count) {
+int64_t pa_smoother_2_get_delay(pa_smoother_2 *s, pa_usec_t time_stamp, uint64_t byte_count) {
     int64_t now, delay;
 
     pa_assert(s);
