@@ -56,6 +56,14 @@ function cmd_do {
 	echo "> $1"
 	$1
 }
+function dot_d_files {
+    local files=$1
+    if ls -d1 "$files" 2> /dev/null; then
+        for fn in $files; do
+            cmd_do "cat $fn";
+        done
+    fi
+}
 cmds=(
 	'pulseaudio_ps_do'
 	'which pulseaudio'
@@ -65,7 +73,9 @@ cmds=(
 	'pactl list'
 	'cat /etc/pulse/daemon.conf'
 	'cat /etc/pulse/client.conf'
+	'dot_d_files /etc/pulse/client.conf.d/*.conf'
 	'cat /etc/pulse/default.pa'
+	'dot_d_files /etc/pulse/default.pa.d/*.pa'
 	'cat /etc/pulse/system.pa'
 	'ls -alt /dev/snd/*'
 	'lsof /dev/snd/*'
