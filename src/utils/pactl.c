@@ -2746,6 +2746,7 @@ int main(int argc, char *argv[]) {
         format = TEXT;
     } else if (pa_streq(opt_format, "json")) {
         format = JSON;
+        setlocale(LC_NUMERIC, "C");
     } else {
         pa_log(_("Invalid format value '%s'"), opt_format);
         goto quit;
