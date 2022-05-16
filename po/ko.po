@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2021-12-16 18:45+0200\n"
+"POT-Creation-Date: 2022-05-16 23:56+0300\n"
 "PO-Revision-Date: 2022-01-15 22:16+0000\n"
 "Last-Translator: simmon <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/"
@@ -158,7 +158,8 @@ msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of error, warn, notice, info, debug)."
 msgstr ""
-"--log-level 에는 로그 수준 인수가 필요합니다 (0~4 숫자 범위 또는 오류, 경고, 알림, 정보, 디버그 중 하나 )."
+"--log-level 에는 로그 수준 인수가 필요합니다 (0~4 숫자 범위 또는 오류, 경고, "
+"알림, 정보, 디버그 중 하나 )."
 
 #: src/daemon/cmdline.c:277
 msgid "--high-priority expects boolean argument"
@@ -185,16 +186,16 @@ msgid ""
 "Invalid log target: use either 'syslog', 'journal', 'stderr' or 'auto' or a "
 "valid file name 'file:<path>', 'newfile:<path>'."
 msgstr ""
-"잘못된 로그 대상: 'syslog', 'journal', 'stderr' 또는 'auto' 또는 유효한 파일 이름 'file:"
-"<path>', 'newfile:<path>'를 사용하십시오."
+"잘못된 로그 대상: 'syslog', 'journal', 'stderr' 또는 'auto' 또는 유효한 파일 "
+"이름 'file:<path>', 'newfile:<path>'를 사용하십시오."
 
 #: src/daemon/cmdline.c:330
 msgid ""
 "Invalid log target: use either 'syslog', 'stderr' or 'auto' or a valid file "
 "name 'file:<path>', 'newfile:<path>'."
 msgstr ""
-"잘못된 로그 대상: 'syslog', 'stderr' 또는 'auto' 또는 유효한 파일 이름 'file:<path>', 'newfile:"
-"<path>'를 사용하십시오."
+"잘못된 로그 대상: 'syslog', 'stderr' 또는 'auto' 또는 유효한 파일 이름 'file:"
+"<path>', 'newfile:<path>'를 사용하십시오."
 
 #: src/daemon/cmdline.c:338
 msgid "--log-time expects boolean argument"
@@ -571,7 +572,6 @@ msgstr "라인 입력"
 
 #: src/modules/alsa/alsa-mixer.c:2713 src/modules/alsa/alsa-mixer.c:2797
 #: src/modules/bluetooth/module-bluez5-device.c:1956
-#: src/modules/bluetooth/module-bluez5-device.c:1910
 msgid "Microphone"
 msgstr "마이크"
 
@@ -635,7 +635,6 @@ msgstr "베이스 부스트 없음"
 
 #: src/modules/alsa/alsa-mixer.c:2728
 #: src/modules/bluetooth/module-bluez5-device.c:1964 src/utils/pactl.c:333
-#: src/modules/bluetooth/module-bluez5-device.c:1918
 msgid "Speaker"
 msgstr "스피커"
 
@@ -749,7 +748,6 @@ msgstr "스테레오"
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
 #: src/modules/bluetooth/module-bluez5-device.c:1944 src/utils/pactl.c:337
-#: src/modules/bluetooth/module-bluez5-device.c:1898
 msgid "Headset"
 msgstr "헤드셋"
 
@@ -863,7 +861,6 @@ msgstr "모노 Chat + 7.1 Surround"
 
 #: src/modules/alsa/alsa-mixer.c:4740 src/modules/alsa/module-alsa-card.c:197
 #: src/modules/bluetooth/module-bluez5-device.c:2263
-#: src/modules/bluetooth/module-bluez5-device.c:2217
 msgid "Off"
 msgstr "끄기"
 
@@ -878,7 +875,6 @@ msgid "%s Input"
 msgstr "%s 입력"
 
 #: src/modules/alsa/alsa-sink.c:672 src/modules/alsa/alsa-sink.c:862
-#: src/modules/alsa/alsa-sink.c:652 src/modules/alsa/alsa-sink.c:842
 #, c-format
 msgid ""
 "ALSA woke us up to write new data to the device, but there was actually "
@@ -895,7 +891,6 @@ msgstr ""
 "min_avail을 반환했습니다."
 
 #: src/modules/alsa/alsa-source.c:636 src/modules/alsa/alsa-source.c:802
-#: src/modules/alsa/alsa-source.c:611 src/modules/alsa/alsa-source.c:777
 #, c-format
 msgid ""
 "ALSA woke us up to read new data from the device, but there was actually "
@@ -978,76 +973,59 @@ msgstr[0] ""
 #: src/modules/bluetooth/module-bluez5-device.c:1937
 #: src/modules/bluetooth/module-bluez5-device.c:1963
 #: src/modules/bluetooth/module-bluez5-device.c:1970
-#: src/modules/bluetooth/module-bluez5-device.c:1891
-#: src/modules/bluetooth/module-bluez5-device.c:1917
-#: src/modules/bluetooth/module-bluez5-device.c:1924
 msgid "Bluetooth Input"
 msgstr "블루투스 출력"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1938
 #: src/modules/bluetooth/module-bluez5-device.c:1957
-#: src/modules/bluetooth/module-bluez5-device.c:1892
-#: src/modules/bluetooth/module-bluez5-device.c:1911
 msgid "Bluetooth Output"
 msgstr "블루투스 출력"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1950 src/utils/pactl.c:348
-#: src/modules/bluetooth/module-bluez5-device.c:1904
 msgid "Handsfree"
 msgstr "핸즈프리"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1971
-#: src/modules/bluetooth/module-bluez5-device.c:1925
 msgid "Headphone"
 msgstr "헤드폰"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1977 src/utils/pactl.c:347
-#: src/modules/bluetooth/module-bluez5-device.c:1931
 msgid "Portable"
 msgstr "이동식"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1983 src/utils/pactl.c:349
-#: src/modules/bluetooth/module-bluez5-device.c:1937
 msgid "Car"
 msgstr "자동차"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1989 src/utils/pactl.c:350
-#: src/modules/bluetooth/module-bluez5-device.c:1943
 msgid "HiFi"
 msgstr "하이파이"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1995 src/utils/pactl.c:351
-#: src/modules/bluetooth/module-bluez5-device.c:1949
 msgid "Phone"
 msgstr "전화기"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2042
-#: src/modules/bluetooth/module-bluez5-device.c:1996
 msgid "High Fidelity Playback (A2DP Sink)"
 msgstr "Hi-Fi 재생 (A2DP Sink)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2054
-#: src/modules/bluetooth/module-bluez5-device.c:2008
 msgid "High Fidelity Capture (A2DP Source)"
 msgstr "Hi-Fi 캡쳐 (A2DP Source)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2066
-#: src/modules/bluetooth/module-bluez5-device.c:2020
 msgid "Headset Head Unit (HSP)"
 msgstr "헤드셋 헤드 유닛 (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2079
-#: src/modules/bluetooth/module-bluez5-device.c:2033
 msgid "Headset Audio Gateway (HSP)"
 msgstr "헤드셋 오디오 게이트웨어 (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2092
-#: src/modules/bluetooth/module-bluez5-device.c:2046
 msgid "Handsfree Head Unit (HFP)"
 msgstr "핸즈프리 헤드 유닛 (HFP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2105
-#: src/modules/bluetooth/module-bluez5-device.c:2059
 msgid "Handsfree Audio Gateway (HFP)"
 msgstr "블루투스 핸즈프리 게이트웨이 (HFP)"
 
@@ -1146,12 +1124,11 @@ msgstr ""
 msgid "Clocked NULL sink"
 msgstr "클럭 사용 빈 싱크"
 
-#: src/modules/module-null-sink.c:356 src/modules/module-null-sink.c:338
+#: src/modules/module-null-sink.c:356
 msgid "Null Output"
 msgstr "빈 출력"
 
 #: src/modules/module-null-sink.c:368 src/utils/pactl.c:2064
-#: src/modules/module-null-sink.c:350
 #, c-format
 msgid "Failed to set format: invalid format string %s"
 msgstr "포맷 설정 실패: 잘못된 포맷 문자열 %s"
@@ -1174,14 +1151,14 @@ msgstr "호스트 @HOSTNAME@의 오디오"
 
 #. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
 #. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
-#: src/modules/module-tunnel-sink-new.c:320
-#: src/modules/module-tunnel-source-new.c:305
+#: src/modules/module-tunnel-sink-new.c:356
+#: src/modules/module-tunnel-source-new.c:342
 #, c-format
 msgid "Tunnel for %s@%s"
 msgstr "%s@%s 위한 터널"
 
-#: src/modules/module-tunnel-sink-new.c:564
-#: src/modules/module-tunnel-source-new.c:540
+#: src/modules/module-tunnel-sink-new.c:697
+#: src/modules/module-tunnel-source-new.c:668
 #, c-format
 msgid "Tunnel to %s/%s"
 msgstr "%s/%s가는 터널"
@@ -1210,7 +1187,7 @@ msgstr ""
 msgid "Unknown device model"
 msgstr "알 수 없는 장치 모델"
 
-#: src/modules/raop/raop-sink.c:689 src/modules/raop/raop-sink.c:655
+#: src/modules/raop/raop-sink.c:689
 msgid "RAOP standard profile"
 msgstr "RAOP 표준 프로파일"
 
@@ -1528,11 +1505,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "잘못된 기록 대상."
 
-#: src/pulsecore/sink.c:3600 src/pulsecore/sink.c:3539
+#: src/pulsecore/sink.c:3600
 msgid "Built-in Audio"
 msgstr "내장 오디오"
 
-#: src/pulsecore/sink.c:3605 src/pulsecore/sink.c:3544
+#: src/pulsecore/sink.c:3605
 msgid "Modem"
 msgstr "모뎀"
 
@@ -1846,7 +1823,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() 실패: %s"
 
 #: src/utils/pacat.c:676
-#, c-format
+#, fuzzy, c-format
 msgid ""
 "%s [options]\n"
 "%s\n"
@@ -1862,7 +1839,9 @@ msgid ""
 "  -s, --server=SERVER                   The name of the server to connect "
 "to\n"
 "  -d, --device=DEVICE                   The name of the sink/source to "
-"connect to\n"
+"connect to. The special names @DEFAULT_SINK@, @DEFAULT_SOURCE@ and "
+"@DEFAULT_MONITOR@ can be used to specify the default sink, source and "
+"monitor respectively.\n"
 "  -n, --client-name=NAME                How to call this client on the "
 "server\n"
 "      --stream-name=NAME                How to call this stream on the "
@@ -2002,7 +1981,7 @@ msgstr ""
 "libpulse %s로 컴파일됨\n"
 "libpulse %s와 링크됨\n"
 
-#: src/utils/pacat.c:852 src/utils/pactl.c:2720
+#: src/utils/pacat.c:852 src/utils/pactl.c:2731
 #, c-format
 msgid "Invalid client name '%s'"
 msgstr "잘못된 클라이언트 이름 '%s'"
@@ -2073,7 +2052,7 @@ msgid ""
 "specification from file."
 msgstr "경고: 지정된 샘플 사양은 파일에서의 사양을 덮어쓰기하게 됩니다."
 
-#: src/utils/pacat.c:1091 src/utils/pactl.c:2794
+#: src/utils/pacat.c:1091 src/utils/pactl.c:2806
 msgid "Failed to determine sample specification from file."
 msgstr "파일에서 샘플 사양 지정에 실패했습니다."
 
@@ -2107,7 +2086,7 @@ msgstr "재생"
 msgid "Failed to set media name."
 msgstr "미디어 이름 설정에 실패했습니다."
 
-#: src/utils/pacat.c:1172 src/utils/pactl.c:3206
+#: src/utils/pacat.c:1172 src/utils/pactl.c:3218
 msgid "pa_mainloop_new() failed."
 msgstr "pa_mainloop_new() 실패."
 
@@ -2115,11 +2094,11 @@ msgstr "pa_mainloop_new() 실패."
 msgid "io_new() failed."
 msgstr "io_new() 실패."
 
-#: src/utils/pacat.c:1202 src/utils/pactl.c:3218
+#: src/utils/pacat.c:1202 src/utils/pactl.c:3230
 msgid "pa_context_new() failed."
 msgstr "pa_context_new() 실패."
 
-#: src/utils/pacat.c:1210 src/utils/pactl.c:3224
+#: src/utils/pacat.c:1210 src/utils/pactl.c:3236
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_connect() 실패: %s"
@@ -2128,21 +2107,21 @@ msgstr "pa_context_connect() 실패: %s"
 msgid "pa_context_rttime_new() failed."
 msgstr "pa_context_rttime_new() 실패."
 
-#: src/utils/pacat.c:1223 src/utils/pactl.c:3229
+#: src/utils/pacat.c:1223 src/utils/pactl.c:3241
 msgid "pa_mainloop_run() failed."
 msgstr "pa_mainloop_run() 실패."
 
-#: src/utils/pacmd.c:51 src/utils/pactl.c:2632
+#: src/utils/pacmd.c:51 src/utils/pactl.c:2643
 msgid "NAME [ARGS ...]"
 msgstr "이름 [인수 ...]"
 
-#: src/utils/pacmd.c:52 src/utils/pacmd.c:60 src/utils/pactl.c:2633
-#: src/utils/pactl.c:2640 src/utils/pactl.c:2641
+#: src/utils/pacmd.c:52 src/utils/pacmd.c:60 src/utils/pactl.c:2644
+#: src/utils/pactl.c:2651 src/utils/pactl.c:2652
 msgid "NAME|#N"
 msgstr "이름|#N"
 
-#: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:2631
-#: src/utils/pactl.c:2638
+#: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:2642
+#: src/utils/pactl.c:2649
 msgid "NAME"
 msgstr "이름"
 
@@ -2154,7 +2133,7 @@ msgstr "이름|#N 볼륨"
 msgid "#N VOLUME"
 msgstr "#N 볼륨"
 
-#: src/utils/pacmd.c:56 src/utils/pacmd.c:70 src/utils/pactl.c:2635
+#: src/utils/pacmd.c:56 src/utils/pacmd.c:70 src/utils/pactl.c:2646
 msgid "NAME|#N 1|0"
 msgstr "이름|#N 1|0"
 
@@ -2190,7 +2169,7 @@ msgstr "경로이름"
 msgid "FILENAME SINK|#N"
 msgstr "파일 이름 싱크|#N"
 
-#: src/utils/pacmd.c:69 src/utils/pactl.c:2634
+#: src/utils/pacmd.c:69 src/utils/pactl.c:2645
 msgid "#N SINK|SOURCE"
 msgstr "#N 싱크|소스"
 
@@ -2198,15 +2177,15 @@ msgstr "#N 싱크|소스"
 msgid "1|0"
 msgstr "1|0"
 
-#: src/utils/pacmd.c:72 src/utils/pactl.c:2636
+#: src/utils/pacmd.c:72 src/utils/pactl.c:2647
 msgid "CARD PROFILE"
 msgstr "카드 프로파일"
 
-#: src/utils/pacmd.c:73 src/utils/pactl.c:2639
+#: src/utils/pacmd.c:73 src/utils/pactl.c:2650
 msgid "NAME|#N PORT"
 msgstr "이름|#N 포트"
 
-#: src/utils/pacmd.c:74 src/utils/pactl.c:2647
+#: src/utils/pacmd.c:74 src/utils/pactl.c:2658
 msgid "CARD-NAME|CARD-#N PORT OFFSET"
 msgstr "카드-이름|카드-#N 포트 오프셋"
 
@@ -2222,7 +2201,7 @@ msgstr "숫자 레벨"
 msgid "FRAMES"
 msgstr "프레임"
 
-#: src/utils/pacmd.c:80 src/utils/pactl.c:2648
+#: src/utils/pacmd.c:80 src/utils/pactl.c:2659
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
 msgstr "수신인 메시지 [ 메시지_매개변수]"
 
@@ -2890,63 +2869,63 @@ msgstr "SIGINT를 받았습니다. 종료합니다."
 msgid "Invalid volume specification"
 msgstr "잘못된 볼륨 사양"
 
-#: src/utils/pactl.c:2570
+#: src/utils/pactl.c:2581
 msgid "Volume outside permissible range.\n"
 msgstr "볼륨이 허용 범위를 벗어납니다.\n"
 
-#: src/utils/pactl.c:2583
+#: src/utils/pactl.c:2594
 msgid "Invalid number of volume specifications.\n"
 msgstr "볼륨 사양의 수가 잘못되었습니다.\n"
 
-#: src/utils/pactl.c:2595
+#: src/utils/pactl.c:2606
 msgid "Inconsistent volume specification.\n"
 msgstr "볼륨 사양이 일치하지 않습니다.\n"
 
-#: src/utils/pactl.c:2625 src/utils/pactl.c:2626 src/utils/pactl.c:2627
-#: src/utils/pactl.c:2628 src/utils/pactl.c:2629 src/utils/pactl.c:2630
-#: src/utils/pactl.c:2631 src/utils/pactl.c:2632 src/utils/pactl.c:2633
-#: src/utils/pactl.c:2634 src/utils/pactl.c:2635 src/utils/pactl.c:2636
-#: src/utils/pactl.c:2637 src/utils/pactl.c:2638 src/utils/pactl.c:2639
-#: src/utils/pactl.c:2640 src/utils/pactl.c:2641 src/utils/pactl.c:2642
-#: src/utils/pactl.c:2643 src/utils/pactl.c:2644 src/utils/pactl.c:2645
-#: src/utils/pactl.c:2646 src/utils/pactl.c:2647 src/utils/pactl.c:2648
-#: src/utils/pactl.c:2649
+#: src/utils/pactl.c:2636 src/utils/pactl.c:2637 src/utils/pactl.c:2638
+#: src/utils/pactl.c:2639 src/utils/pactl.c:2640 src/utils/pactl.c:2641
+#: src/utils/pactl.c:2642 src/utils/pactl.c:2643 src/utils/pactl.c:2644
+#: src/utils/pactl.c:2645 src/utils/pactl.c:2646 src/utils/pactl.c:2647
+#: src/utils/pactl.c:2648 src/utils/pactl.c:2649 src/utils/pactl.c:2650
+#: src/utils/pactl.c:2651 src/utils/pactl.c:2652 src/utils/pactl.c:2653
+#: src/utils/pactl.c:2654 src/utils/pactl.c:2655 src/utils/pactl.c:2656
+#: src/utils/pactl.c:2657 src/utils/pactl.c:2658 src/utils/pactl.c:2659
+#: src/utils/pactl.c:2660
 msgid "[options]"
 msgstr "[옵션]"
 
-#: src/utils/pactl.c:2627
+#: src/utils/pactl.c:2638
 msgid "[TYPE]"
 msgstr "[유형]"
 
-#: src/utils/pactl.c:2629
+#: src/utils/pactl.c:2640
 msgid "FILENAME [NAME]"
 msgstr "파일이름 [NAME]"
 
-#: src/utils/pactl.c:2630
+#: src/utils/pactl.c:2641
 msgid "NAME [SINK]"
 msgstr "이름 [싱크]"
 
-#: src/utils/pactl.c:2642
+#: src/utils/pactl.c:2653
 msgid "NAME|#N VOLUME [VOLUME ...]"
 msgstr "이름|#N VOLUME [VOLUME ...]"
 
-#: src/utils/pactl.c:2643
+#: src/utils/pactl.c:2654
 msgid "#N VOLUME [VOLUME ...]"
 msgstr "#N VOLUME [볼륨 ...]"
 
-#: src/utils/pactl.c:2644
+#: src/utils/pactl.c:2655
 msgid "NAME|#N 1|0|toggle"
 msgstr "이름|#N 1|0|toggle"
 
-#: src/utils/pactl.c:2645
+#: src/utils/pactl.c:2656
 msgid "#N 1|0|toggle"
 msgstr "#N 1|0|toggle"
 
-#: src/utils/pactl.c:2646
+#: src/utils/pactl.c:2657
 msgid "#N FORMATS"
 msgstr "#N 포맷"
 
-#: src/utils/pactl.c:2650
+#: src/utils/pactl.c:2661
 #, c-format
 msgid ""
 "\n"
@@ -2957,7 +2936,7 @@ msgstr ""
 "특별한 이름 @DEFAULT_SINK@, @DEFAULT_SOURCE@ and @DEFAULT_MONITOR@은\n"
 "기본싱크, 소스 및 모니터를 지정하는데 사용 할 수 있습니다.\n"
 
-#: src/utils/pactl.c:2653
+#: src/utils/pactl.c:2664
 #, c-format
 msgid ""
 "\n"
@@ -2980,7 +2959,7 @@ msgstr ""
 " -s, --server=SERVER 연결할 서버 이름\n"
 " -n, --client-name=NAME 서버에서 클라이언트 호출 방법\n"
 
-#: src/utils/pactl.c:2696
+#: src/utils/pactl.c:2707
 #, c-format
 msgid ""
 "pactl %s\n"
@@ -2991,158 +2970,158 @@ msgstr ""
 "libpulse %s로 컴파일 됨\n"
 "libpulse %s와 링크됨\n"
 
-#: src/utils/pactl.c:2739
+#: src/utils/pactl.c:2751
 #, c-format
 msgid "Invalid format value '%s'"
 msgstr "잘못된 형식 값 '%s'"
 
-#: src/utils/pactl.c:2766
+#: src/utils/pactl.c:2778
 #, c-format
 msgid "Specify nothing, or one of: %s"
 msgstr "아무것도 지정하지 않거나 다움 중 하나을 지정합니다: %s"
 
-#: src/utils/pactl.c:2776
+#: src/utils/pactl.c:2788
 msgid "Please specify a sample file to load"
 msgstr "적재 할 샘플 파일을 지정하십시오"
 
-#: src/utils/pactl.c:2789
+#: src/utils/pactl.c:2801
 msgid "Failed to open sound file."
 msgstr "사운드 파일을 열 수 없습니다."
 
-#: src/utils/pactl.c:2801
+#: src/utils/pactl.c:2813
 msgid "Warning: Failed to determine sample specification from file."
 msgstr "경고: 파일에서 샘플 사양을 지정할 수 없습니다."
 
-#: src/utils/pactl.c:2811
+#: src/utils/pactl.c:2823
 msgid "You have to specify a sample name to play"
 msgstr "재생할 샘플 이름을 지정해야 합니다"
 
-#: src/utils/pactl.c:2823
+#: src/utils/pactl.c:2835
 msgid "You have to specify a sample name to remove"
 msgstr "제거할 샘플 이름을 지정해야 합니다"
 
-#: src/utils/pactl.c:2832
+#: src/utils/pactl.c:2844
 msgid "You have to specify a sink input index and a sink"
 msgstr "싱크 입력 인덱스와 싱크를 지정해야 합니다"
 
-#: src/utils/pactl.c:2842
+#: src/utils/pactl.c:2854
 msgid "You have to specify a source output index and a source"
 msgstr "소스 출력 인덱스와 소스를 지정해야 합니다"
 
-#: src/utils/pactl.c:2857
+#: src/utils/pactl.c:2869
 msgid "You have to specify a module name and arguments."
 msgstr "모듈 이름과 인수를 지정해야 합니다."
 
-#: src/utils/pactl.c:2877
+#: src/utils/pactl.c:2889
 msgid "You have to specify a module index or name"
 msgstr "모듈 인덱스 또는 이름을 지정해야 합니다"
 
-#: src/utils/pactl.c:2890
+#: src/utils/pactl.c:2902
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean value."
 msgstr "하나 이상의 싱크를 지정할 수 없습니다. 부울 값을 지정해야 합니다."
 
-#: src/utils/pactl.c:2895 src/utils/pactl.c:2915
+#: src/utils/pactl.c:2907 src/utils/pactl.c:2927
 msgid "Invalid suspend specification."
 msgstr "일시 중지 사양이 잘못되었습니다."
 
-#: src/utils/pactl.c:2910
+#: src/utils/pactl.c:2922
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
 msgstr "하나 이상의 소스를 지정할 수 없습니다. 부울 값을 지정해야 합니다."
 
-#: src/utils/pactl.c:2927
+#: src/utils/pactl.c:2939
 msgid "You have to specify a card name/index and a profile name"
 msgstr "카드 이름/인덱스와 프로파일 이름을 지정해야 합니다"
 
-#: src/utils/pactl.c:2938
+#: src/utils/pactl.c:2950
 msgid "You have to specify a sink name/index and a port name"
 msgstr "싱크 이름/인덱스와 포트 이름을 지정해야 합니다"
 
-#: src/utils/pactl.c:2949
+#: src/utils/pactl.c:2961
 msgid "You have to specify a sink name"
 msgstr "모듈 인덱스 또는 이름을 지정해야 합니다"
 
-#: src/utils/pactl.c:2962
+#: src/utils/pactl.c:2974
 msgid "You have to specify a source name/index and a port name"
 msgstr "소스 이름/인덱스와 포트 이름을 지정해야 합니다"
 
-#: src/utils/pactl.c:2973
+#: src/utils/pactl.c:2985
 msgid "You have to specify a source name"
 msgstr "모듈 인덱스 또는 이름을 지정해야 합니다"
 
-#: src/utils/pactl.c:2986 src/utils/pactl.c:3064
+#: src/utils/pactl.c:2998 src/utils/pactl.c:3076
 msgid "You have to specify a sink name/index"
 msgstr "싱크 이름/색인을 지정해야 합니다"
 
-#: src/utils/pactl.c:2996
+#: src/utils/pactl.c:3008
 msgid "You have to specify a sink name/index and a volume"
 msgstr "싱크 이름/인덱스와 볼륨을 지정해야 합니다"
 
-#: src/utils/pactl.c:3009 src/utils/pactl.c:3089
+#: src/utils/pactl.c:3021 src/utils/pactl.c:3101
 msgid "You have to specify a source name/index"
 msgstr "원천 이름/색인을 지정해야 합니다"
 
-#: src/utils/pactl.c:3019
+#: src/utils/pactl.c:3031
 msgid "You have to specify a source name/index and a volume"
 msgstr "소스 이름/인덱스와 볼륨을 지정해야 합니다"
 
-#: src/utils/pactl.c:3032
+#: src/utils/pactl.c:3044
 msgid "You have to specify a sink input index and a volume"
 msgstr "싱크 입력 인덱스와 볼륨을 지정해야 합니다"
 
-#: src/utils/pactl.c:3037
+#: src/utils/pactl.c:3049
 msgid "Invalid sink input index"
 msgstr "잘못된 싱크 입력 인덱스"
 
-#: src/utils/pactl.c:3048
+#: src/utils/pactl.c:3060
 msgid "You have to specify a source output index and a volume"
 msgstr "소스 출력 인덱스와 볼륨을 지정해야 합니다"
 
-#: src/utils/pactl.c:3053
+#: src/utils/pactl.c:3065
 msgid "Invalid source output index"
 msgstr "잘못된 소스 출력 인덱스"
 
-#: src/utils/pactl.c:3074
+#: src/utils/pactl.c:3086
 msgid ""
 "You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"
 msgstr "싱크 이름/인덱스와 무음 부울을 지정해야 합니다"
 
-#: src/utils/pactl.c:3079 src/utils/pactl.c:3104 src/utils/pactl.c:3124
-#: src/utils/pactl.c:3142
+#: src/utils/pactl.c:3091 src/utils/pactl.c:3116 src/utils/pactl.c:3136
+#: src/utils/pactl.c:3154
 msgid "Invalid mute specification"
 msgstr "잘못된 무음 사양"
 
-#: src/utils/pactl.c:3099
+#: src/utils/pactl.c:3111
 msgid ""
 "You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
 msgstr "소스 이름/인덱스와 무음 부울을 지정해야 합니다 (0, 1, 또는 '토글')"
 
-#: src/utils/pactl.c:3114
+#: src/utils/pactl.c:3126
 msgid ""
 "You have to specify a sink input index and a mute action (0, 1, or 'toggle')"
 msgstr "싱크 입력 인덱스와 무음 부울을 지정해야 합니다. (0, 1, or '토글')"
 
-#: src/utils/pactl.c:3119
+#: src/utils/pactl.c:3131
 msgid "Invalid sink input index specification"
 msgstr "잘못된 싱크 입력 인덱스 사양"
 
-#: src/utils/pactl.c:3132
+#: src/utils/pactl.c:3144
 msgid ""
 "You have to specify a source output index and a mute action (0, 1, or "
 "'toggle')"
 msgstr "소스 출력 인덱스와 무음 부울을 지정해야 합니다. (0, 1, or '토글')"
 
-#: src/utils/pactl.c:3137
+#: src/utils/pactl.c:3149
 msgid "Invalid source output index specification"
 msgstr "잘못된 소스 출력 인덱스 사양"
 
-#: src/utils/pactl.c:3150
+#: src/utils/pactl.c:3162
 msgid "You have to specify at least an object path and a message name"
 msgstr "최소한 객체 경로와 메시지 이름을 지정해야만 합니다"
 
-#: src/utils/pactl.c:3160
+#: src/utils/pactl.c:3172
 msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
@@ -3150,22 +3129,22 @@ msgstr ""
 "초과 인수가 주어지면, 이들은 무시될 것입니다. 모든 메시지 변수는 단일 문자열"
 "로 주어져야 합니다."
 
-#: src/utils/pactl.c:3170
+#: src/utils/pactl.c:3182
 msgid ""
 "You have to specify a sink index and a semicolon-separated list of supported "
 "formats"
 msgstr ""
 "싱크 인덱스 및 지원하는 형식의 쌍반점(;)으로 분리된 목록을 지정해야 합니다"
 
-#: src/utils/pactl.c:3182
+#: src/utils/pactl.c:3194
 msgid "You have to specify a card name/index, a port name and a latency offset"
 msgstr "카드 이름/인덱스, 포트 이름 및 지연 오프셋을 지정해야 합니다"
 
-#: src/utils/pactl.c:3189
+#: src/utils/pactl.c:3201
 msgid "Could not parse latency offset"
 msgstr "지연 오프셋을 분석할 수 없습니다"
 
-#: src/utils/pactl.c:3201
+#: src/utils/pactl.c:3213
 msgid "No valid command specified."
 msgstr "유효한 명령이 지정되어 있지 않습니다."
 
@@ -3326,13 +3305,12 @@ msgstr "쿠키 데이터 읽기 실패\n"
 msgid "Not yet implemented.\n"
 msgstr "아직 구현되지 않았습니다.\n"
 
-#: src/daemon/cmdline.c:265
-msgid ""
-"--log-level expects log level argument (either numeric in range 0..4 or one "
-"of debug, info, notice, warn, error)."
-msgstr ""
-"--log-level은 로그 수준 논의가 예상됩니다 (0..4 숫자 범위 내의 수 또는 디버그"
-"중의 하나, 정보, 알림, 경고, 오류)."
+#~ msgid ""
+#~ "--log-level expects log level argument (either numeric in range 0..4 or "
+#~ "one of debug, info, notice, warn, error)."
+#~ msgstr ""
+#~ "--log-level은 로그 수준 논의가 예상됩니다 (0..4 숫자 범위 내의 수 또는 디"
+#~ "버그중의 하나, 정보, 알림, 경고, 오류)."
 
 #~ msgid "Got signal %s."
 #~ msgstr "시그널 %s를 받았습니다."

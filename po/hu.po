@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: PulseAudio master\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2021-12-16 18:45+0200\n"
+"POT-Creation-Date: 2022-05-16 23:56+0300\n"
 "PO-Revision-Date: 2021-11-21 13:16+0000\n"
 "Last-Translator: . Ovari <ovari123@zoho.com>\n"
 "Language-Team: Hungarian <https://translate.fedoraproject.org/projects/"
@@ -1230,14 +1230,14 @@ msgstr "Hangok ezen a számítógépen: @HOSTNAME@"
 
 #. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
 #. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
-#: src/modules/module-tunnel-sink-new.c:320
-#: src/modules/module-tunnel-source-new.c:305
+#: src/modules/module-tunnel-sink-new.c:356
+#: src/modules/module-tunnel-source-new.c:342
 #, c-format
 msgid "Tunnel for %s@%s"
 msgstr "Alagút ennek: %s@%s"
 
-#: src/modules/module-tunnel-sink-new.c:564
-#: src/modules/module-tunnel-source-new.c:540
+#: src/modules/module-tunnel-sink-new.c:697
+#: src/modules/module-tunnel-source-new.c:668
 #, c-format
 msgid "Tunnel to %s/%s"
 msgstr "Alagút ehhez: %s/%s"
@@ -1926,7 +1926,9 @@ msgid ""
 "  -s, --server=SERVER                   The name of the server to connect "
 "to\n"
 "  -d, --device=DEVICE                   The name of the sink/source to "
-"connect to\n"
+"connect to. The special names @DEFAULT_SINK@, @DEFAULT_SOURCE@ and "
+"@DEFAULT_MONITOR@ can be used to specify the default sink, source and "
+"monitor respectively.\n"
 "  -n, --client-name=NAME                How to call this client on the "
 "server\n"
 "      --stream-name=NAME                How to call this stream on the "
@@ -2078,7 +2080,7 @@ msgstr ""
 "Lefordítva a libpulse %s programkönyvtárral\n"
 "Összeszerkesztve a libpulse %s programkönyvtárhoz\n"
 
-#: src/utils/pacat.c:852 src/utils/pactl.c:2720
+#: src/utils/pacat.c:852 src/utils/pactl.c:2731
 #, c-format
 msgid "Invalid client name '%s'"
 msgstr "Érvénytelen kliensnév: „%s”"
@@ -2151,7 +2153,7 @@ msgstr ""
 "Figyelmeztetés: a megadott mintavételi meghatározás felül lesz írva a "
 "fájlból származó meghatározással."
 
-#: src/utils/pacat.c:1091 src/utils/pactl.c:2794
+#: src/utils/pacat.c:1091 src/utils/pactl.c:2806
 msgid "Failed to determine sample specification from file."
 msgstr "Nem sikerült meghatározni a mintavételi meghatározást a fájlból."
 
@@ -2188,7 +2190,7 @@ msgstr "lejátszás"
 msgid "Failed to set media name."
 msgstr "Nem sikerült beállítani a médianevet."
 
-#: src/utils/pacat.c:1172 src/utils/pactl.c:3206
+#: src/utils/pacat.c:1172 src/utils/pactl.c:3218
 msgid "pa_mainloop_new() failed."
 msgstr "A „pa_mainloop_new()” függvényhívás meghiúsult."
 
@@ -2196,11 +2198,11 @@ msgstr "A „pa_mainloop_new()” függvényhívás meghiúsult."
 msgid "io_new() failed."
 msgstr "Az „io_new()” függvényhívás meghiúsult."
 
-#: src/utils/pacat.c:1202 src/utils/pactl.c:3218
+#: src/utils/pacat.c:1202 src/utils/pactl.c:3230
 msgid "pa_context_new() failed."
 msgstr "A „pa_context_new()” függvényhívás meghiúsult."
 
-#: src/utils/pacat.c:1210 src/utils/pactl.c:3224
+#: src/utils/pacat.c:1210 src/utils/pactl.c:3236
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "A „pa_context_connect()” függvényhívás meghiúsult: %s"
@@ -2209,21 +2211,21 @@ msgstr "A „pa_context_connect()” függvényhívás meghiúsult: %s"
 msgid "pa_context_rttime_new() failed."
 msgstr "A „pa_context_rttime_new()” függvényhívás meghiúsult."
 
-#: src/utils/pacat.c:1223 src/utils/pactl.c:3229
+#: src/utils/pacat.c:1223 src/utils/pactl.c:3241
 msgid "pa_mainloop_run() failed."
 msgstr "A „pa_mainloop_run()” függvényhívás meghiúsult."
 
-#: src/utils/pacmd.c:51 src/utils/pactl.c:2632
+#: src/utils/pacmd.c:51 src/utils/pactl.c:2643
 msgid "NAME [ARGS ...]"
 msgstr "NÉV [ARGUMENTUMOK …]"
 
-#: src/utils/pacmd.c:52 src/utils/pacmd.c:60 src/utils/pactl.c:2633
-#: src/utils/pactl.c:2640 src/utils/pactl.c:2641
+#: src/utils/pacmd.c:52 src/utils/pacmd.c:60 src/utils/pactl.c:2644
+#: src/utils/pactl.c:2651 src/utils/pactl.c:2652
 msgid "NAME|#N"
 msgstr "NÉV|#N"
 
-#: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:2631
-#: src/utils/pactl.c:2638
+#: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:2642
+#: src/utils/pactl.c:2649
 msgid "NAME"
 msgstr "NÉV"
 
@@ -2235,7 +2237,7 @@ msgstr "NÉV|#N HANGERŐ"
 msgid "#N VOLUME"
 msgstr "#N HANGERŐ"
 
-#: src/utils/pacmd.c:56 src/utils/pacmd.c:70 src/utils/pactl.c:2635
+#: src/utils/pacmd.c:56 src/utils/pacmd.c:70 src/utils/pactl.c:2646
 msgid "NAME|#N 1|0"
 msgstr "NÉV|#N 1|0"
 
@@ -2271,7 +2273,7 @@ msgstr "ÚTVONALNÉV"
 msgid "FILENAME SINK|#N"
 msgstr "FÁJLNÉV NYELŐ|#N"
 
-#: src/utils/pacmd.c:69 src/utils/pactl.c:2634
+#: src/utils/pacmd.c:69 src/utils/pactl.c:2645
 msgid "#N SINK|SOURCE"
 msgstr "#N NYELŐ|FORRÁS"
 
@@ -2279,15 +2281,15 @@ msgstr "#N NYELŐ|FORRÁS"
 msgid "1|0"
 msgstr "1|0"
 
-#: src/utils/pacmd.c:72 src/utils/pactl.c:2636
+#: src/utils/pacmd.c:72 src/utils/pactl.c:2647
 msgid "CARD PROFILE"
 msgstr "KÁRTYAPROFIL"
 
-#: src/utils/pacmd.c:73 src/utils/pactl.c:2639
+#: src/utils/pacmd.c:73 src/utils/pactl.c:2650
 msgid "NAME|#N PORT"
 msgstr "NÉV|#N PORT"
 
-#: src/utils/pacmd.c:74 src/utils/pactl.c:2647
+#: src/utils/pacmd.c:74 src/utils/pactl.c:2658
 msgid "CARD-NAME|CARD-#N PORT OFFSET"
 msgstr "KÁRTYANÉV|KÁRTYA-#N PORTELTOLÁS"
 
@@ -2303,7 +2305,7 @@ msgstr "SZÁMOZOTT-SZINT"
 msgid "FRAMES"
 msgstr "KERETEK"
 
-#: src/utils/pacmd.c:80 src/utils/pactl.c:2648
+#: src/utils/pacmd.c:80 src/utils/pactl.c:2659
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
 msgstr "CÍMZETT ÜZENET [MESSAGE_PARAMETERS]"
 
@@ -2974,63 +2976,63 @@ msgstr "Kilépés, SIGINT szignál hatására."
 msgid "Invalid volume specification"
 msgstr "A hangerő megadása érvénytelen"
 
-#: src/utils/pactl.c:2570
+#: src/utils/pactl.c:2581
 msgid "Volume outside permissible range.\n"
 msgstr "A hangerő a megengedett tartományon kívül esik.\n"
 
-#: src/utils/pactl.c:2583
+#: src/utils/pactl.c:2594
 msgid "Invalid number of volume specifications.\n"
 msgstr "A hangerőmegadások száma érvénytelen.\n"
 
-#: src/utils/pactl.c:2595
+#: src/utils/pactl.c:2606
 msgid "Inconsistent volume specification.\n"
 msgstr "A hangerő megadása inkonzisztens.\n"
 
-#: src/utils/pactl.c:2625 src/utils/pactl.c:2626 src/utils/pactl.c:2627
-#: src/utils/pactl.c:2628 src/utils/pactl.c:2629 src/utils/pactl.c:2630
-#: src/utils/pactl.c:2631 src/utils/pactl.c:2632 src/utils/pactl.c:2633
-#: src/utils/pactl.c:2634 src/utils/pactl.c:2635 src/utils/pactl.c:2636
-#: src/utils/pactl.c:2637 src/utils/pactl.c:2638 src/utils/pactl.c:2639
-#: src/utils/pactl.c:2640 src/utils/pactl.c:2641 src/utils/pactl.c:2642
-#: src/utils/pactl.c:2643 src/utils/pactl.c:2644 src/utils/pactl.c:2645
-#: src/utils/pactl.c:2646 src/utils/pactl.c:2647 src/utils/pactl.c:2648
-#: src/utils/pactl.c:2649
+#: src/utils/pactl.c:2636 src/utils/pactl.c:2637 src/utils/pactl.c:2638
+#: src/utils/pactl.c:2639 src/utils/pactl.c:2640 src/utils/pactl.c:2641
+#: src/utils/pactl.c:2642 src/utils/pactl.c:2643 src/utils/pactl.c:2644
+#: src/utils/pactl.c:2645 src/utils/pactl.c:2646 src/utils/pactl.c:2647
+#: src/utils/pactl.c:2648 src/utils/pactl.c:2649 src/utils/pactl.c:2650
+#: src/utils/pactl.c:2651 src/utils/pactl.c:2652 src/utils/pactl.c:2653
+#: src/utils/pactl.c:2654 src/utils/pactl.c:2655 src/utils/pactl.c:2656
+#: src/utils/pactl.c:2657 src/utils/pactl.c:2658 src/utils/pactl.c:2659
+#: src/utils/pactl.c:2660
 msgid "[options]"
 msgstr "[kapcsolók]"
 
-#: src/utils/pactl.c:2627
+#: src/utils/pactl.c:2638
 msgid "[TYPE]"
 msgstr "[TÍPUS]"
 
-#: src/utils/pactl.c:2629
+#: src/utils/pactl.c:2640
 msgid "FILENAME [NAME]"
 msgstr "FÁJLNÉV [NÉV]"
 
-#: src/utils/pactl.c:2630
+#: src/utils/pactl.c:2641
 msgid "NAME [SINK]"
 msgstr "NÉV [NYELŐ]"
 
-#: src/utils/pactl.c:2642
+#: src/utils/pactl.c:2653
 msgid "NAME|#N VOLUME [VOLUME ...]"
 msgstr "NÉV|#N HANGERŐ [HANGERŐ …]"
 
-#: src/utils/pactl.c:2643
+#: src/utils/pactl.c:2654
 msgid "#N VOLUME [VOLUME ...]"
 msgstr "#N HANGERŐ [HANGERŐ …]"
 
-#: src/utils/pactl.c:2644
+#: src/utils/pactl.c:2655
 msgid "NAME|#N 1|0|toggle"
 msgstr "NÉV|#N 1|0|váltás"
 
-#: src/utils/pactl.c:2645
+#: src/utils/pactl.c:2656
 msgid "#N 1|0|toggle"
 msgstr "#N 1|0|váltás"
 
-#: src/utils/pactl.c:2646
+#: src/utils/pactl.c:2657
 msgid "#N FORMATS"
 msgstr "#N FORMÁTUMOK"
 
-#: src/utils/pactl.c:2650
+#: src/utils/pactl.c:2661
 #, c-format
 msgid ""
 "\n"
@@ -3041,7 +3043,7 @@ msgstr ""
 "A speciális @DEFAULT_SINK@, @DEFAULT_SOURCE@ and @DEFAULT_MONITOR@ nevek\n"
 "használhatók az alapértelmezett nyelő, forrás és megfigyelő megadására.\n"
 
-#: src/utils/pactl.c:2653
+#: src/utils/pactl.c:2664
 #, fuzzy, c-format
 msgid ""
 "\n"
@@ -3062,7 +3064,7 @@ msgstr ""
 "  -s, --server=KISZOLGÁLÓ               Csatlakozás ehhez a kiszolgálóhoz\n"
 "  -n, --client-name=NÉV                 A kliens neve a kiszolgálón\n"
 
-#: src/utils/pactl.c:2696
+#: src/utils/pactl.c:2707
 #, c-format
 msgid ""
 "pactl %s\n"
@@ -3073,154 +3075,154 @@ msgstr ""
 "Lefordítva a libpulse %s programkönyvtárral\n"
 "Összeszerkesztve a libpulse %s programkönyvtárhoz\n"
 
-#: src/utils/pactl.c:2739
+#: src/utils/pactl.c:2751
 #, c-format
 msgid "Invalid format value '%s'"
 msgstr "Érvénytelen formátumérték: „%s”"
 
-#: src/utils/pactl.c:2766
+#: src/utils/pactl.c:2778
 #, c-format
 msgid "Specify nothing, or one of: %s"
 msgstr "Ne adjon meg semmit, vagy a következők egyikét: %s"
 
-#: src/utils/pactl.c:2776
+#: src/utils/pactl.c:2788
 msgid "Please specify a sample file to load"
 msgstr "Adja meg a betöltendő mintafájlt"
 
-#: src/utils/pactl.c:2789
+#: src/utils/pactl.c:2801
 msgid "Failed to open sound file."
 msgstr "Nem sikerült megnyitni a hangfájlt."
 
-#: src/utils/pactl.c:2801
+#: src/utils/pactl.c:2813
 msgid "Warning: Failed to determine sample specification from file."
 msgstr ""
 "Figyelmeztetés: Nem sikerült meghatározni a mintavételi meghatározást a "
 "fájlból."
 
-#: src/utils/pactl.c:2811
+#: src/utils/pactl.c:2823
 msgid "You have to specify a sample name to play"
 msgstr "Meg kell adnia a lejátszandó minta nevét"
 
-#: src/utils/pactl.c:2823
+#: src/utils/pactl.c:2835
 msgid "You have to specify a sample name to remove"
 msgstr "Meg kell adnia az eltávolítandó minta nevét"
 
-#: src/utils/pactl.c:2832
+#: src/utils/pactl.c:2844
 msgid "You have to specify a sink input index and a sink"
 msgstr "Meg kell adnia egy nyelőbemenet tárgymutatót és egy nyelőt"
 
-#: src/utils/pactl.c:2842
+#: src/utils/pactl.c:2854
 msgid "You have to specify a source output index and a source"
 msgstr "Meg kell adnia egy forráskimenet tárgymutatót és egy forrást"
 
-#: src/utils/pactl.c:2857
+#: src/utils/pactl.c:2869
 msgid "You have to specify a module name and arguments."
 msgstr "Meg kell adnia a modul nevét és argumentumait."
 
-#: src/utils/pactl.c:2877
+#: src/utils/pactl.c:2889
 msgid "You have to specify a module index or name"
 msgstr "Meg kell adnia a modul tárgymutatóját vagy nevét"
 
-#: src/utils/pactl.c:2890
+#: src/utils/pactl.c:2902
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean value."
 msgstr "Nem adhat meg egynél több nyelőt. Egy logikai értéket kell megadnia."
 
-#: src/utils/pactl.c:2895 src/utils/pactl.c:2915
+#: src/utils/pactl.c:2907 src/utils/pactl.c:2927
 msgid "Invalid suspend specification."
 msgstr "Érvénytelen felfüggesztési meghatározás."
 
-#: src/utils/pactl.c:2910
+#: src/utils/pactl.c:2922
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
 msgstr "Nem adhat meg egynél több forrást. Egy logikai értéket kell megadnia."
 
-#: src/utils/pactl.c:2927
+#: src/utils/pactl.c:2939
 msgid "You have to specify a card name/index and a profile name"
 msgstr "Meg kell adnia a kártya nevét vagy indexét és egy profil nevét"
 
-#: src/utils/pactl.c:2938
+#: src/utils/pactl.c:2950
 msgid "You have to specify a sink name/index and a port name"
 msgstr "Meg kell adnia a nyelő nevét vagy indexét, és egy port nevét"
 
-#: src/utils/pactl.c:2949
+#: src/utils/pactl.c:2961
 msgid "You have to specify a sink name"
 msgstr "Meg kell adnia egy nyelő nevét"
 
-#: src/utils/pactl.c:2962
+#: src/utils/pactl.c:2974
 msgid "You have to specify a source name/index and a port name"
 msgstr "Meg kell adnia egy forrás nevét vagy indexét, és egy port nevét"
 
-#: src/utils/pactl.c:2973
+#: src/utils/pactl.c:2985
 msgid "You have to specify a source name"
 msgstr "Meg kell adnia egy forrás nevét"
 
-#: src/utils/pactl.c:2986 src/utils/pactl.c:3064
+#: src/utils/pactl.c:2998 src/utils/pactl.c:3076
 #, fuzzy
 msgid "You have to specify a sink name/index"
 msgstr "Meg kell adnia egy nyelő nevét"
 
-#: src/utils/pactl.c:2996
+#: src/utils/pactl.c:3008
 msgid "You have to specify a sink name/index and a volume"
 msgstr "Meg kell adnia egy nyelő nevét vagy indexét és egy hangerőt"
 
-#: src/utils/pactl.c:3009 src/utils/pactl.c:3089
+#: src/utils/pactl.c:3021 src/utils/pactl.c:3101
 #, fuzzy
 msgid "You have to specify a source name/index"
 msgstr "Meg kell adnia egy forrás nevét"
 
-#: src/utils/pactl.c:3019
+#: src/utils/pactl.c:3031
 msgid "You have to specify a source name/index and a volume"
 msgstr "Meg kell adnia egy forrás nevét vagy indexét és egy hangerőt"
 
-#: src/utils/pactl.c:3032
+#: src/utils/pactl.c:3044
 msgid "You have to specify a sink input index and a volume"
 msgstr "Meg kell adnia egy nyelő bemenet indexét és egy hangerőt"
 
-#: src/utils/pactl.c:3037
+#: src/utils/pactl.c:3049
 msgid "Invalid sink input index"
 msgstr "A nyelőbemenet indexe érvénytelen"
 
-#: src/utils/pactl.c:3048
+#: src/utils/pactl.c:3060
 msgid "You have to specify a source output index and a volume"
 msgstr "Meg kell adnia egy forráskimenet indexét és egy hangerőt"
 
-#: src/utils/pactl.c:3053
+#: src/utils/pactl.c:3065
 msgid "Invalid source output index"
 msgstr "A nyelőkimenet indexe érvénytelen"
 
-#: src/utils/pactl.c:3074
+#: src/utils/pactl.c:3086
 msgid ""
 "You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"
 msgstr ""
 "Meg kell adnia egy nyelő nevét vagy indexét, és a némítási műveletet (0, 1 "
 "vagy „toggle”)"
 
-#: src/utils/pactl.c:3079 src/utils/pactl.c:3104 src/utils/pactl.c:3124
-#: src/utils/pactl.c:3142
+#: src/utils/pactl.c:3091 src/utils/pactl.c:3116 src/utils/pactl.c:3136
+#: src/utils/pactl.c:3154
 msgid "Invalid mute specification"
 msgstr "Érvénytelen némításmeghatározás"
 
-#: src/utils/pactl.c:3099
+#: src/utils/pactl.c:3111
 msgid ""
 "You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
 msgstr ""
 "Meg kell adnia egy forrás nevét vagy indexét, és a némítási műveletet (0, 1 "
 "vagy „toggle”)"
 
-#: src/utils/pactl.c:3114
+#: src/utils/pactl.c:3126
 msgid ""
 "You have to specify a sink input index and a mute action (0, 1, or 'toggle')"
 msgstr ""
 "Meg kell adnia egy nyelő bemeneti indexét, és a némítási műveletet (0, 1 "
 "vagy „toggle”)"
 
-#: src/utils/pactl.c:3119
+#: src/utils/pactl.c:3131
 msgid "Invalid sink input index specification"
 msgstr "A nyelő bemeneti indexének megadása érvénytelen"
 
-#: src/utils/pactl.c:3132
+#: src/utils/pactl.c:3144
 msgid ""
 "You have to specify a source output index and a mute action (0, 1, or "
 "'toggle')"
@@ -3228,22 +3230,22 @@ msgstr ""
 "Meg kell adnia egy forráskimenet indexét, és a némítási műveletet (0, 1 vagy "
 "„toggle”)"
 
-#: src/utils/pactl.c:3137
+#: src/utils/pactl.c:3149
 msgid "Invalid source output index specification"
 msgstr "A forrás bemeneti indexének megadása érvénytelen"
 
-#: src/utils/pactl.c:3150
+#: src/utils/pactl.c:3162
 #, fuzzy
 msgid "You have to specify at least an object path and a message name"
 msgstr "Meg kell adnia a nyelő nevét vagy indexét, és egy port nevét"
 
-#: src/utils/pactl.c:3160
+#: src/utils/pactl.c:3172
 msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
 msgstr ""
 
-#: src/utils/pactl.c:3170
+#: src/utils/pactl.c:3182
 msgid ""
 "You have to specify a sink index and a semicolon-separated list of supported "
 "formats"
@@ -3251,17 +3253,17 @@ msgstr ""
 "Meg kell adnia egy nyelő indexét és a támogatott formátumok pontosvesszővel "
 "elválasztott listáját"
 
-#: src/utils/pactl.c:3182
+#: src/utils/pactl.c:3194
 msgid "You have to specify a card name/index, a port name and a latency offset"
 msgstr ""
 "Meg kell adnia egy kártya nevét vagy indexét, egy port nevét és egy "
 "késleltetéseltolást"
 
-#: src/utils/pactl.c:3189
+#: src/utils/pactl.c:3201
 msgid "Could not parse latency offset"
 msgstr "Nem dolgozható fel a késleltetéseltolás"
 
-#: src/utils/pactl.c:3201
+#: src/utils/pactl.c:3213
 msgid "No valid command specified."
 msgstr "Érvénytelen parancs lett megadva."
 

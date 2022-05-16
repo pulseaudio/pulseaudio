@@ -14,7 +14,7 @@ msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.de\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2021-12-16 18:45+0200\n"
+"POT-Creation-Date: 2022-05-16 23:56+0300\n"
 "PO-Revision-Date: 2021-12-05 21:16+0000\n"
 "Last-Translator: Ettore Atalan <atalanttore@googlemail.com>\n"
 "Language-Team: German <https://translate.fedoraproject.org/projects/"
@@ -1220,14 +1220,14 @@ msgstr "Audio auf @HOSTNAME@"
 
 #. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
 #. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
-#: src/modules/module-tunnel-sink-new.c:320
-#: src/modules/module-tunnel-source-new.c:305
+#: src/modules/module-tunnel-sink-new.c:356
+#: src/modules/module-tunnel-source-new.c:342
 #, c-format
 msgid "Tunnel for %s@%s"
 msgstr "Tunnel für %s@%s"
 
-#: src/modules/module-tunnel-sink-new.c:564
-#: src/modules/module-tunnel-source-new.c:540
+#: src/modules/module-tunnel-sink-new.c:697
+#: src/modules/module-tunnel-source-new.c:668
 #, c-format
 msgid "Tunnel to %s/%s"
 msgstr "Tunnel zu %s/%s"
@@ -1915,7 +1915,9 @@ msgid ""
 "  -s, --server=SERVER                   The name of the server to connect "
 "to\n"
 "  -d, --device=DEVICE                   The name of the sink/source to "
-"connect to\n"
+"connect to. The special names @DEFAULT_SINK@, @DEFAULT_SOURCE@ and "
+"@DEFAULT_MONITOR@ can be used to specify the default sink, source and "
+"monitor respectively.\n"
 "  -n, --client-name=NAME                How to call this client on the "
 "server\n"
 "      --stream-name=NAME                How to call this stream on the "
@@ -2064,7 +2066,7 @@ msgstr ""
 "Kompiliert mit libpulse %s\n"
 "Gelinkt mit libpulse %s\n"
 
-#: src/utils/pacat.c:852 src/utils/pactl.c:2720
+#: src/utils/pacat.c:852 src/utils/pactl.c:2731
 #, c-format
 msgid "Invalid client name '%s'"
 msgstr "Ungültiger Client-Name »%s«"
@@ -2135,7 +2137,7 @@ msgid ""
 "specification from file."
 msgstr "Warnung: Beziehen der Abtastwert-Angabe aus Datei fehlgeschlagen."
 
-#: src/utils/pacat.c:1091 src/utils/pactl.c:2794
+#: src/utils/pacat.c:1091 src/utils/pactl.c:2806
 msgid "Failed to determine sample specification from file."
 msgstr "Beziehen der Abtastwert-Informationen der Datei fehlgeschlagen."
 
@@ -2170,7 +2172,7 @@ msgstr "abspielen"
 msgid "Failed to set media name."
 msgstr "Medienname konnte nicht gesetzt werden."
 
-#: src/utils/pacat.c:1172 src/utils/pactl.c:3206
+#: src/utils/pacat.c:1172 src/utils/pactl.c:3218
 msgid "pa_mainloop_new() failed."
 msgstr "pa_mainloop_new() fehlgeschlagen"
 
@@ -2178,11 +2180,11 @@ msgstr "pa_mainloop_new() fehlgeschlagen"
 msgid "io_new() failed."
 msgstr "io_new() fehlgeschlagen."
 
-#: src/utils/pacat.c:1202 src/utils/pactl.c:3218
+#: src/utils/pacat.c:1202 src/utils/pactl.c:3230
 msgid "pa_context_new() failed."
 msgstr "pa_context_new() fehlgeschlagen."
 
-#: src/utils/pacat.c:1210 src/utils/pactl.c:3224
+#: src/utils/pacat.c:1210 src/utils/pactl.c:3236
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_new() fehlgeschlagen: %s"
@@ -2191,21 +2193,21 @@ msgstr "pa_context_new() fehlgeschlagen: %s"
 msgid "pa_context_rttime_new() failed."
 msgstr "pa_context_rttime_new() fehlgeschlagen."
 
-#: src/utils/pacat.c:1223 src/utils/pactl.c:3229
+#: src/utils/pacat.c:1223 src/utils/pactl.c:3241
 msgid "pa_mainloop_run() failed."
 msgstr "pa_mainloop_run() fehlgeschlagen."
 
-#: src/utils/pacmd.c:51 src/utils/pactl.c:2632
+#: src/utils/pacmd.c:51 src/utils/pactl.c:2643
 msgid "NAME [ARGS ...]"
 msgstr "NAME [ARGUMENTE …]"
 
-#: src/utils/pacmd.c:52 src/utils/pacmd.c:60 src/utils/pactl.c:2633
-#: src/utils/pactl.c:2640 src/utils/pactl.c:2641
+#: src/utils/pacmd.c:52 src/utils/pacmd.c:60 src/utils/pactl.c:2644
+#: src/utils/pactl.c:2651 src/utils/pactl.c:2652
 msgid "NAME|#N"
 msgstr "NAME|#N"
 
-#: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:2631
-#: src/utils/pactl.c:2638
+#: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:2642
+#: src/utils/pactl.c:2649
 msgid "NAME"
 msgstr "NAME"
 
@@ -2217,7 +2219,7 @@ msgstr "NAME|#N LAUTSTÄRKE"
 msgid "#N VOLUME"
 msgstr "#N LAUTSTÄRKE"
 
-#: src/utils/pacmd.c:56 src/utils/pacmd.c:70 src/utils/pactl.c:2635
+#: src/utils/pacmd.c:56 src/utils/pacmd.c:70 src/utils/pactl.c:2646
 msgid "NAME|#N 1|0"
 msgstr "NAME|#N 1|0"
 
@@ -2253,7 +2255,7 @@ msgstr "PFADNAME"
 msgid "FILENAME SINK|#N"
 msgstr "DATEINAME ZIEL|#N"
 
-#: src/utils/pacmd.c:69 src/utils/pactl.c:2634
+#: src/utils/pacmd.c:69 src/utils/pactl.c:2645
 msgid "#N SINK|SOURCE"
 msgstr "#N ZIEL|QUELLE"
 
@@ -2261,15 +2263,15 @@ msgstr "#N ZIEL|QUELLE"
 msgid "1|0"
 msgstr "1|0"
 
-#: src/utils/pacmd.c:72 src/utils/pactl.c:2636
+#: src/utils/pacmd.c:72 src/utils/pactl.c:2647
 msgid "CARD PROFILE"
 msgstr "KARTENPROFIL"
 
-#: src/utils/pacmd.c:73 src/utils/pactl.c:2639
+#: src/utils/pacmd.c:73 src/utils/pactl.c:2650
 msgid "NAME|#N PORT"
 msgstr "NAME|#N PORT"
 
-#: src/utils/pacmd.c:74 src/utils/pactl.c:2647
+#: src/utils/pacmd.c:74 src/utils/pactl.c:2658
 msgid "CARD-NAME|CARD-#N PORT OFFSET"
 msgstr "KARTENNAME|KARTEN-#N PORT POSITION"
 
@@ -2285,7 +2287,7 @@ msgstr "NUMERISCHE STUFE"
 msgid "FRAMES"
 msgstr "FRAMES"
 
-#: src/utils/pacmd.c:80 src/utils/pactl.c:2648
+#: src/utils/pacmd.c:80 src/utils/pactl.c:2659
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
 msgstr ""
 
@@ -2956,63 +2958,63 @@ msgstr "SIGINT empfangen, wird beendet."
 msgid "Invalid volume specification"
 msgstr "Ungültige Angabe der Lautstärke"
 
-#: src/utils/pactl.c:2570
+#: src/utils/pactl.c:2581
 msgid "Volume outside permissible range.\n"
 msgstr "Lautstärke ist außerhalb des einstellbaren Bereichs.\n"
 
-#: src/utils/pactl.c:2583
+#: src/utils/pactl.c:2594
 msgid "Invalid number of volume specifications.\n"
 msgstr "Ungültige Anzahl in der Lautstärkeangabe.\n"
 
-#: src/utils/pactl.c:2595
+#: src/utils/pactl.c:2606
 msgid "Inconsistent volume specification.\n"
 msgstr "Inkonsistente Angabe der Lautstärke.\n"
 
-#: src/utils/pactl.c:2625 src/utils/pactl.c:2626 src/utils/pactl.c:2627
-#: src/utils/pactl.c:2628 src/utils/pactl.c:2629 src/utils/pactl.c:2630
-#: src/utils/pactl.c:2631 src/utils/pactl.c:2632 src/utils/pactl.c:2633
-#: src/utils/pactl.c:2634 src/utils/pactl.c:2635 src/utils/pactl.c:2636
-#: src/utils/pactl.c:2637 src/utils/pactl.c:2638 src/utils/pactl.c:2639
-#: src/utils/pactl.c:2640 src/utils/pactl.c:2641 src/utils/pactl.c:2642
-#: src/utils/pactl.c:2643 src/utils/pactl.c:2644 src/utils/pactl.c:2645
-#: src/utils/pactl.c:2646 src/utils/pactl.c:2647 src/utils/pactl.c:2648
-#: src/utils/pactl.c:2649
+#: src/utils/pactl.c:2636 src/utils/pactl.c:2637 src/utils/pactl.c:2638
+#: src/utils/pactl.c:2639 src/utils/pactl.c:2640 src/utils/pactl.c:2641
+#: src/utils/pactl.c:2642 src/utils/pactl.c:2643 src/utils/pactl.c:2644
+#: src/utils/pactl.c:2645 src/utils/pactl.c:2646 src/utils/pactl.c:2647
+#: src/utils/pactl.c:2648 src/utils/pactl.c:2649 src/utils/pactl.c:2650
+#: src/utils/pactl.c:2651 src/utils/pactl.c:2652 src/utils/pactl.c:2653
+#: src/utils/pactl.c:2654 src/utils/pactl.c:2655 src/utils/pactl.c:2656
+#: src/utils/pactl.c:2657 src/utils/pactl.c:2658 src/utils/pactl.c:2659
+#: src/utils/pactl.c:2660
 msgid "[options]"
 msgstr "[Optionen]"
 
-#: src/utils/pactl.c:2627
+#: src/utils/pactl.c:2638
 msgid "[TYPE]"
 msgstr "[TYP]"
 
-#: src/utils/pactl.c:2629
+#: src/utils/pactl.c:2640
 msgid "FILENAME [NAME]"
 msgstr "DATEINAME [NAME]"
 
-#: src/utils/pactl.c:2630
+#: src/utils/pactl.c:2641
 msgid "NAME [SINK]"
 msgstr "NAME [ZIEL]"
 
-#: src/utils/pactl.c:2642
+#: src/utils/pactl.c:2653
 msgid "NAME|#N VOLUME [VOLUME ...]"
 msgstr "NAME|#N LAUTSTÄRKE [LAUTSTÄRKE …]"
 
-#: src/utils/pactl.c:2643
+#: src/utils/pactl.c:2654
 msgid "#N VOLUME [VOLUME ...]"
 msgstr "#N LAUTSTÄRKE [LAUTSTÄRKE …]"
 
-#: src/utils/pactl.c:2644
+#: src/utils/pactl.c:2655
 msgid "NAME|#N 1|0|toggle"
 msgstr "NAME|#N 1|0|toggle"
 
-#: src/utils/pactl.c:2645
+#: src/utils/pactl.c:2656
 msgid "#N 1|0|toggle"
 msgstr "#N 1|0|toggle"
 
-#: src/utils/pactl.c:2646
+#: src/utils/pactl.c:2657
 msgid "#N FORMATS"
 msgstr "#N FORMATE"
 
-#: src/utils/pactl.c:2650
+#: src/utils/pactl.c:2661
 #, c-format
 msgid ""
 "\n"
@@ -3025,7 +3027,7 @@ msgstr ""
 "können zur Angabe des Standard-Ziels, der Standard-Quelle und der Standard-"
 "Überwachung verwendet werden.\n"
 
-#: src/utils/pactl.c:2653
+#: src/utils/pactl.c:2664
 #, fuzzy, c-format
 msgid ""
 "\n"
@@ -3049,7 +3051,7 @@ msgstr ""
 "  -n, --client-name=NAME                gibt den Namen dieses Clients auf "
 "dem Server an\n"
 
-#: src/utils/pactl.c:2696
+#: src/utils/pactl.c:2707
 #, c-format
 msgid ""
 "pactl %s\n"
@@ -3060,65 +3062,65 @@ msgstr ""
 "Kompiliert mit libpulse %s\n"
 "Gelinkt mit libpulse %s\n"
 
-#: src/utils/pactl.c:2739
+#: src/utils/pactl.c:2751
 #, c-format
 msgid "Invalid format value '%s'"
 msgstr ""
 
-#: src/utils/pactl.c:2766
+#: src/utils/pactl.c:2778
 #, c-format
 msgid "Specify nothing, or one of: %s"
 msgstr "Geben Sie nichts oder eines der Folgenden an: %s"
 
-#: src/utils/pactl.c:2776
+#: src/utils/pactl.c:2788
 msgid "Please specify a sample file to load"
 msgstr "Geben Sie eine zu öffnende Sample-Datei an"
 
-#: src/utils/pactl.c:2789
+#: src/utils/pactl.c:2801
 msgid "Failed to open sound file."
 msgstr "Öffnen der Audio-Datei fehlgeschlagen."
 
-#: src/utils/pactl.c:2801
+#: src/utils/pactl.c:2813
 msgid "Warning: Failed to determine sample specification from file."
 msgstr "Warnung: Beziehen der Abtastwert-Angabe aus Datei fehlgeschlagen."
 
-#: src/utils/pactl.c:2811
+#: src/utils/pactl.c:2823
 msgid "You have to specify a sample name to play"
 msgstr "Sie müssen eine abzuspielende Sample-Datei angeben"
 
-#: src/utils/pactl.c:2823
+#: src/utils/pactl.c:2835
 msgid "You have to specify a sample name to remove"
 msgstr "Sie müssen eine zu löschende Sample-Datei angeben"
 
-#: src/utils/pactl.c:2832
+#: src/utils/pactl.c:2844
 msgid "You have to specify a sink input index and a sink"
 msgstr "Sie müssen einen Ziel-Eingabe-Indexwert und ein Ziel angeben"
 
-#: src/utils/pactl.c:2842
+#: src/utils/pactl.c:2854
 msgid "You have to specify a source output index and a source"
 msgstr ""
 "Sie müssen eine Indexwert für die Quell-Ausgabe und eine Quelle angeben"
 
-#: src/utils/pactl.c:2857
+#: src/utils/pactl.c:2869
 msgid "You have to specify a module name and arguments."
 msgstr "Sie müssen einen Modulnamen angeben und Argumente übergeben."
 
-#: src/utils/pactl.c:2877
+#: src/utils/pactl.c:2889
 msgid "You have to specify a module index or name"
 msgstr "Sie müssen einen Indexwert für ein Modul oder einen Namen angeben"
 
-#: src/utils/pactl.c:2890
+#: src/utils/pactl.c:2902
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean value."
 msgstr ""
 "Sie dürfen nicht mehrere Ziele angeben. Sie müssen zumindest eine boolesche "
 "Variable übergeben."
 
-#: src/utils/pactl.c:2895 src/utils/pactl.c:2915
+#: src/utils/pactl.c:2907 src/utils/pactl.c:2927
 msgid "Invalid suspend specification."
 msgstr "Ungültige Aussetzungs-Angaben."
 
-#: src/utils/pactl.c:2910
+#: src/utils/pactl.c:2922
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
@@ -3126,92 +3128,92 @@ msgstr ""
 "Sie dürfen nicht mehrere Quellen angeben. Sie müssen zumindest eine "
 "boolesche Variable übergeben."
 
-#: src/utils/pactl.c:2927
+#: src/utils/pactl.c:2939
 msgid "You have to specify a card name/index and a profile name"
 msgstr "Sie müssen einen Karten-Namen/Indexwert und einen Profilnamen angeben."
 
-#: src/utils/pactl.c:2938
+#: src/utils/pactl.c:2950
 msgid "You have to specify a sink name/index and a port name"
 msgstr "Sie müssen einen Ziel-Namen/-Indexwert und einen Portnamen angeben."
 
-#: src/utils/pactl.c:2949
+#: src/utils/pactl.c:2961
 msgid "You have to specify a sink name"
 msgstr "Sie müssen einen Ziel-Namen angeben."
 
-#: src/utils/pactl.c:2962
+#: src/utils/pactl.c:2974
 msgid "You have to specify a source name/index and a port name"
 msgstr "Sie müssen einen Quellennamen/-Indexwert und einen Portnamen angeben."
 
-#: src/utils/pactl.c:2973
+#: src/utils/pactl.c:2985
 msgid "You have to specify a source name"
 msgstr "Sie müssen einen Quellennamen angeben."
 
-#: src/utils/pactl.c:2986 src/utils/pactl.c:3064
+#: src/utils/pactl.c:2998 src/utils/pactl.c:3076
 #, fuzzy
 msgid "You have to specify a sink name/index"
 msgstr "Sie müssen einen Ziel-Namen angeben."
 
-#: src/utils/pactl.c:2996
+#: src/utils/pactl.c:3008
 msgid "You have to specify a sink name/index and a volume"
 msgstr "Sie müssen einen Ziel-Namen/-Indexwert und eine Lautstärke angeben."
 
-#: src/utils/pactl.c:3009 src/utils/pactl.c:3089
+#: src/utils/pactl.c:3021 src/utils/pactl.c:3101
 #, fuzzy
 msgid "You have to specify a source name/index"
 msgstr "Sie müssen einen Quellennamen angeben."
 
-#: src/utils/pactl.c:3019
+#: src/utils/pactl.c:3031
 msgid "You have to specify a source name/index and a volume"
 msgstr "Sie müssen einen Quellennamen/-Indexwert und einen Portnamen angeben"
 
-#: src/utils/pactl.c:3032
+#: src/utils/pactl.c:3044
 msgid "You have to specify a sink input index and a volume"
 msgstr "Sie müssen einen Ziel-Eingabe-Indexwert und eine Lautstärke angeben."
 
-#: src/utils/pactl.c:3037
+#: src/utils/pactl.c:3049
 msgid "Invalid sink input index"
 msgstr "Ungültiger Ziel-Eingabe-Index"
 
-#: src/utils/pactl.c:3048
+#: src/utils/pactl.c:3060
 msgid "You have to specify a source output index and a volume"
 msgstr ""
 "Sie müssen eine Indexwert für die Quell-Ausgabe und eine Lautstärke angeben."
 
-#: src/utils/pactl.c:3053
+#: src/utils/pactl.c:3065
 msgid "Invalid source output index"
 msgstr "Ungültiger Quellen-Ausgabe-Index"
 
-#: src/utils/pactl.c:3074
+#: src/utils/pactl.c:3086
 msgid ""
 "You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"
 msgstr ""
 "Sie müssen einen Ziel-Namen/-Indexwert und eine Aktion für die "
 "Stummschaltung angeben (0, 1, oder »toggle«)."
 
-#: src/utils/pactl.c:3079 src/utils/pactl.c:3104 src/utils/pactl.c:3124
-#: src/utils/pactl.c:3142
+#: src/utils/pactl.c:3091 src/utils/pactl.c:3116 src/utils/pactl.c:3136
+#: src/utils/pactl.c:3154
 msgid "Invalid mute specification"
 msgstr "Ungültige Angaben zur Stummschaltung"
 
-#: src/utils/pactl.c:3099
+#: src/utils/pactl.c:3111
 msgid ""
 "You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
 msgstr ""
 "Sie müssen einen Quellennamen/-Indexwert und eine Aktion für die "
 "Stummschaltung angeben (0, 1, oder »toggle«)."
 
-#: src/utils/pactl.c:3114
+#: src/utils/pactl.c:3126
 msgid ""
 "You have to specify a sink input index and a mute action (0, 1, or 'toggle')"
 msgstr ""
 "Sie müssen einen Ziel-Eingabe-Index und eine Aktion für die Stummschaltung "
 "angeben (0, 1, oder »toggle«)."
 
-#: src/utils/pactl.c:3119
+#: src/utils/pactl.c:3131
 msgid "Invalid sink input index specification"
 msgstr "Ungültige Ziel-Eingabe-Index-Angaben"
 
-#: src/utils/pactl.c:3132
+#: src/utils/pactl.c:3144
 msgid ""
 "You have to specify a source output index and a mute action (0, 1, or "
 "'toggle')"
@@ -3219,22 +3221,22 @@ msgstr ""
 "Sie müssen einen Quellen-Ausgabe-Index und eine Aktion für die "
 "Stummschaltung angeben (0, 1, oder »toggle«)."
 
-#: src/utils/pactl.c:3137
+#: src/utils/pactl.c:3149
 msgid "Invalid source output index specification"
 msgstr "Ungültige Quellen-Ausgabe-Index-Angaben"
 
-#: src/utils/pactl.c:3150
+#: src/utils/pactl.c:3162
 #, fuzzy
 msgid "You have to specify at least an object path and a message name"
 msgstr "Sie müssen einen Ziel-Namen/-Indexwert und einen Portnamen angeben."
 
-#: src/utils/pactl.c:3160
+#: src/utils/pactl.c:3172
 msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
 msgstr ""
 
-#: src/utils/pactl.c:3170
+#: src/utils/pactl.c:3182
 msgid ""
 "You have to specify a sink index and a semicolon-separated list of supported "
 "formats"
@@ -3242,17 +3244,17 @@ msgstr ""
 "Sie müssen einen Ziel-Indexwert und eine durch Kommata getrennte Liste der "
 "unterstützten Formate angeben"
 
-#: src/utils/pactl.c:3182
+#: src/utils/pactl.c:3194
 msgid "You have to specify a card name/index, a port name and a latency offset"
 msgstr ""
 "Sie müssen einen Karten-Namen/Indexwert, einen Portnamen und einen "
 "Latenzversatz angeben"
 
-#: src/utils/pactl.c:3189
+#: src/utils/pactl.c:3201
 msgid "Could not parse latency offset"
 msgstr "Latenzversatz konnte nicht ausgewertet werden"
 
-#: src/utils/pactl.c:3201
+#: src/utils/pactl.c:3213
 msgid "No valid command specified."
 msgstr "Kein gültiger Befehl angegeben."
 

@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2021-12-16 18:45+0200\n"
+"POT-Creation-Date: 2022-05-16 23:56+0300\n"
 "PO-Revision-Date: 2022-03-28 19:10+0000\n"
 "Last-Translator: Gogo Gogsi <linux.hr@protonmail.com>\n"
 "Language-Team: Croatian <https://translate.fedoraproject.org/projects/"
@@ -1227,14 +1227,14 @@ msgstr "Zvuk na @NAZIVRAČUNALA@"
 
 #. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
 #. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
-#: src/modules/module-tunnel-sink-new.c:320
-#: src/modules/module-tunnel-source-new.c:305
+#: src/modules/module-tunnel-sink-new.c:356
+#: src/modules/module-tunnel-source-new.c:342
 #, c-format
 msgid "Tunnel for %s@%s"
 msgstr "Tunel za %s@%s"
 
-#: src/modules/module-tunnel-sink-new.c:564
-#: src/modules/module-tunnel-source-new.c:540
+#: src/modules/module-tunnel-sink-new.c:697
+#: src/modules/module-tunnel-source-new.c:668
 #, c-format
 msgid "Tunnel to %s/%s"
 msgstr "Tunel do %s/%s"
@@ -1904,7 +1904,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() neuspjelo: %s"
 
 #: src/utils/pacat.c:676
-#, c-format
+#, fuzzy, c-format
 msgid ""
 "%s [options]\n"
 "%s\n"
@@ -1920,7 +1920,9 @@ msgid ""
 "  -s, --server=SERVER                   The name of the server to connect "
 "to\n"
 "  -d, --device=DEVICE                   The name of the sink/source to "
-"connect to\n"
+"connect to. The special names @DEFAULT_SINK@, @DEFAULT_SOURCE@ and "
+"@DEFAULT_MONITOR@ can be used to specify the default sink, source and "
+"monitor respectively.\n"
 "  -n, --client-name=NAME                How to call this client on the "
 "server\n"
 "      --stream-name=NAME                How to call this stream on the "
@@ -2069,7 +2071,7 @@ msgstr ""
 "Kompiliran s libpulse %s\n"
 "Povezan s libpulse %s\n"
 
-#: src/utils/pacat.c:852 src/utils/pactl.c:2720
+#: src/utils/pacat.c:852 src/utils/pactl.c:2731
 #, c-format
 msgid "Invalid client name '%s'"
 msgstr "Neispravan naziv klijenta '%s'"
@@ -2141,7 +2143,7 @@ msgid ""
 msgstr ""
 "Upozorenje: određeni opis uzorka biti će prepisan s opisom iz datoteke."
 
-#: src/utils/pacat.c:1091 src/utils/pactl.c:2794
+#: src/utils/pacat.c:1091 src/utils/pactl.c:2806
 msgid "Failed to determine sample specification from file."
 msgstr "Neuspjelo određivanje opisa uzorka iz datoteke."
 
@@ -2175,7 +2177,7 @@ msgstr "reprodukcija"
 msgid "Failed to set media name."
 msgstr "Neuspjelo postavljanje medijskog naziva."
 
-#: src/utils/pacat.c:1172 src/utils/pactl.c:3206
+#: src/utils/pacat.c:1172 src/utils/pactl.c:3218
 msgid "pa_mainloop_new() failed."
 msgstr "pa_mainloop_new() neuspjelo."
 
@@ -2183,11 +2185,11 @@ msgstr "pa_mainloop_new() neuspjelo."
 msgid "io_new() failed."
 msgstr "io_new() neuspjelo."
 
-#: src/utils/pacat.c:1202 src/utils/pactl.c:3218
+#: src/utils/pacat.c:1202 src/utils/pactl.c:3230
 msgid "pa_context_new() failed."
 msgstr "pa_context_new() neuspjelo."
 
-#: src/utils/pacat.c:1210 src/utils/pactl.c:3224
+#: src/utils/pacat.c:1210 src/utils/pactl.c:3236
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_connect() neuspjelo: %s"
@@ -2196,21 +2198,21 @@ msgstr "pa_context_connect() neuspjelo: %s"
 msgid "pa_context_rttime_new() failed."
 msgstr "pa_context_rttime_new() neuspjelo."
 
-#: src/utils/pacat.c:1223 src/utils/pactl.c:3229
+#: src/utils/pacat.c:1223 src/utils/pactl.c:3241
 msgid "pa_mainloop_run() failed."
 msgstr "pa_mainloop_run() neuspjelo."
 
-#: src/utils/pacmd.c:51 src/utils/pactl.c:2632
+#: src/utils/pacmd.c:51 src/utils/pactl.c:2643
 msgid "NAME [ARGS ...]"
 msgstr "NAZIV [ARGU ...]"
 
-#: src/utils/pacmd.c:52 src/utils/pacmd.c:60 src/utils/pactl.c:2633
-#: src/utils/pactl.c:2640 src/utils/pactl.c:2641
+#: src/utils/pacmd.c:52 src/utils/pacmd.c:60 src/utils/pactl.c:2644
+#: src/utils/pactl.c:2651 src/utils/pactl.c:2652
 msgid "NAME|#N"
 msgstr "NAZIV|#N"
 
-#: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:2631
-#: src/utils/pactl.c:2638
+#: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:2642
+#: src/utils/pactl.c:2649
 msgid "NAME"
 msgstr "NAZIV"
 
@@ -2222,7 +2224,7 @@ msgstr "NAZIV|#N UREĐAJ"
 msgid "#N VOLUME"
 msgstr "#N UREĐAJ"
 
-#: src/utils/pacmd.c:56 src/utils/pacmd.c:70 src/utils/pactl.c:2635
+#: src/utils/pacmd.c:56 src/utils/pacmd.c:70 src/utils/pactl.c:2646
 msgid "NAME|#N 1|0"
 msgstr "NAZIV|#N 1|0"
 
@@ -2258,7 +2260,7 @@ msgstr "NAZIV PUTANJE"
 msgid "FILENAME SINK|#N"
 msgstr "NAZIV DATOTEKE SLIVNIKA|#N"
 
-#: src/utils/pacmd.c:69 src/utils/pactl.c:2634
+#: src/utils/pacmd.c:69 src/utils/pactl.c:2645
 msgid "#N SINK|SOURCE"
 msgstr "#N SLIVNIK|IZVOR"
 
@@ -2266,15 +2268,15 @@ msgstr "#N SLIVNIK|IZVOR"
 msgid "1|0"
 msgstr "1|0"
 
-#: src/utils/pacmd.c:72 src/utils/pactl.c:2636
+#: src/utils/pacmd.c:72 src/utils/pactl.c:2647
 msgid "CARD PROFILE"
 msgstr "PROFIL KARTICE"
 
-#: src/utils/pacmd.c:73 src/utils/pactl.c:2639
+#: src/utils/pacmd.c:73 src/utils/pactl.c:2650
 msgid "NAME|#N PORT"
 msgstr "NAZIV|#N ULAZ"
 
-#: src/utils/pacmd.c:74 src/utils/pactl.c:2647
+#: src/utils/pacmd.c:74 src/utils/pactl.c:2658
 msgid "CARD-NAME|CARD-#N PORT OFFSET"
 msgstr "NAZIV-KARTICE|KARTICA-#N POMAK ULAZA"
 
@@ -2290,7 +2292,7 @@ msgstr "BROJČANA-RAZINA"
 msgid "FRAMES"
 msgstr "OKVIRI"
 
-#: src/utils/pacmd.c:80 src/utils/pactl.c:2648
+#: src/utils/pacmd.c:80 src/utils/pactl.c:2659
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
 msgstr "PORUKA PRIMATELJA [PARAMETRI_PORUKE]"
 
@@ -2974,63 +2976,63 @@ msgstr "SIGINT, izlazim."
 msgid "Invalid volume specification"
 msgstr "Neispravan opis glasoće zvuka"
 
-#: src/utils/pactl.c:2570
+#: src/utils/pactl.c:2581
 msgid "Volume outside permissible range.\n"
 msgstr "Glasnoća zvuka je izvan dopuštenog raspona.\n"
 
-#: src/utils/pactl.c:2583
+#: src/utils/pactl.c:2594
 msgid "Invalid number of volume specifications.\n"
 msgstr "Pogrešan broj specifikacija glasnoće zvuka.\n"
 
-#: src/utils/pactl.c:2595
+#: src/utils/pactl.c:2606
 msgid "Inconsistent volume specification.\n"
 msgstr "Nedosljedna specifikacija glasnoće zvuka.\n"
 
-#: src/utils/pactl.c:2625 src/utils/pactl.c:2626 src/utils/pactl.c:2627
-#: src/utils/pactl.c:2628 src/utils/pactl.c:2629 src/utils/pactl.c:2630
-#: src/utils/pactl.c:2631 src/utils/pactl.c:2632 src/utils/pactl.c:2633
-#: src/utils/pactl.c:2634 src/utils/pactl.c:2635 src/utils/pactl.c:2636
-#: src/utils/pactl.c:2637 src/utils/pactl.c:2638 src/utils/pactl.c:2639
-#: src/utils/pactl.c:2640 src/utils/pactl.c:2641 src/utils/pactl.c:2642
-#: src/utils/pactl.c:2643 src/utils/pactl.c:2644 src/utils/pactl.c:2645
-#: src/utils/pactl.c:2646 src/utils/pactl.c:2647 src/utils/pactl.c:2648
-#: src/utils/pactl.c:2649
+#: src/utils/pactl.c:2636 src/utils/pactl.c:2637 src/utils/pactl.c:2638
+#: src/utils/pactl.c:2639 src/utils/pactl.c:2640 src/utils/pactl.c:2641
+#: src/utils/pactl.c:2642 src/utils/pactl.c:2643 src/utils/pactl.c:2644
+#: src/utils/pactl.c:2645 src/utils/pactl.c:2646 src/utils/pactl.c:2647
+#: src/utils/pactl.c:2648 src/utils/pactl.c:2649 src/utils/pactl.c:2650
+#: src/utils/pactl.c:2651 src/utils/pactl.c:2652 src/utils/pactl.c:2653
+#: src/utils/pactl.c:2654 src/utils/pactl.c:2655 src/utils/pactl.c:2656
+#: src/utils/pactl.c:2657 src/utils/pactl.c:2658 src/utils/pactl.c:2659
+#: src/utils/pactl.c:2660
 msgid "[options]"
 msgstr "[mogućnosti]"
 
-#: src/utils/pactl.c:2627
+#: src/utils/pactl.c:2638
 msgid "[TYPE]"
 msgstr "[VRSTA]"
 
-#: src/utils/pactl.c:2629
+#: src/utils/pactl.c:2640
 msgid "FILENAME [NAME]"
 msgstr "NAZIV-DATOTEKE [NAZIV]"
 
-#: src/utils/pactl.c:2630
+#: src/utils/pactl.c:2641
 msgid "NAME [SINK]"
 msgstr "NAZIV [SLIVNIK]"
 
-#: src/utils/pactl.c:2642
+#: src/utils/pactl.c:2653
 msgid "NAME|#N VOLUME [VOLUME ...]"
 msgstr "NAZIV|#N GLASNOĆA ZVUKA [GLASNOĆA ZVUKA ...]"
 
-#: src/utils/pactl.c:2643
+#: src/utils/pactl.c:2654
 msgid "#N VOLUME [VOLUME ...]"
 msgstr "#N GLASNOĆA ZVUKA [GLASNOĆA ZVUKA ...]"
 
-#: src/utils/pactl.c:2644
+#: src/utils/pactl.c:2655
 msgid "NAME|#N 1|0|toggle"
 msgstr "NAZIV|#N 1|0|prebacivanje"
 
-#: src/utils/pactl.c:2645
+#: src/utils/pactl.c:2656
 msgid "#N 1|0|toggle"
 msgstr "#N 1|0|prebacivanje"
 
-#: src/utils/pactl.c:2646
+#: src/utils/pactl.c:2657
 msgid "#N FORMATS"
 msgstr "#N FORMATI"
 
-#: src/utils/pactl.c:2650
+#: src/utils/pactl.c:2661
 #, c-format
 msgid ""
 "\n"
@@ -3041,7 +3043,7 @@ msgstr ""
 "Posebni nazivi @DEFAULT_SINK@, @DEFAULT_SOURCE@ i @DEFAULT_MONITOR@\n"
 "mogu se koristiti za određivanje zadanog slivnika, izvora i nadgledanja.\n"
 
-#: src/utils/pactl.c:2653
+#: src/utils/pactl.c:2664
 #, c-format
 msgid ""
 "\n"
@@ -3066,7 +3068,7 @@ msgstr ""
 "  -n, --client-name=NAZIV                Kako nazvati ovaj klijent na "
 "poslužitelju\n"
 
-#: src/utils/pactl.c:2696
+#: src/utils/pactl.c:2707
 #, c-format
 msgid ""
 "pactl %s\n"
@@ -3077,64 +3079,64 @@ msgstr ""
 "Kompilirano s libpulse %s\n"
 "Povezano s libpulse %s\n"
 
-#: src/utils/pactl.c:2739
+#: src/utils/pactl.c:2751
 #, c-format
 msgid "Invalid format value '%s'"
 msgstr "Neispravna vrijednost formata '%s'"
 
-#: src/utils/pactl.c:2766
+#: src/utils/pactl.c:2778
 #, c-format
 msgid "Specify nothing, or one of: %s"
 msgstr "Ne određuj ništa, ili jedan od: %s"
 
-#: src/utils/pactl.c:2776
+#: src/utils/pactl.c:2788
 msgid "Please specify a sample file to load"
 msgstr "Odredi datoteku uzorka za učitavanje"
 
-#: src/utils/pactl.c:2789
+#: src/utils/pactl.c:2801
 msgid "Failed to open sound file."
 msgstr "Neuspjelo otvaranje datoteke zvuka."
 
-#: src/utils/pactl.c:2801
+#: src/utils/pactl.c:2813
 msgid "Warning: Failed to determine sample specification from file."
 msgstr "Upozorenje: neuspjelo otkrivanje specifikacija uzorka iz datoteke."
 
-#: src/utils/pactl.c:2811
+#: src/utils/pactl.c:2823
 msgid "You have to specify a sample name to play"
 msgstr "Morate odrediti naziv uzorka za reprodukciju"
 
-#: src/utils/pactl.c:2823
+#: src/utils/pactl.c:2835
 msgid "You have to specify a sample name to remove"
 msgstr "Morate odrediti naziv uzorka za uklanjanje"
 
-#: src/utils/pactl.c:2832
+#: src/utils/pactl.c:2844
 msgid "You have to specify a sink input index and a sink"
 msgstr "Morate odrediti sadržaj ulaza slivnika i slivnik"
 
-#: src/utils/pactl.c:2842
+#: src/utils/pactl.c:2854
 msgid "You have to specify a source output index and a source"
 msgstr "Morate odrediti sadržaj izlaza izvora i izvor"
 
-#: src/utils/pactl.c:2857
+#: src/utils/pactl.c:2869
 msgid "You have to specify a module name and arguments."
 msgstr "Morate odrediti naziv modula i argumente."
 
-#: src/utils/pactl.c:2877
+#: src/utils/pactl.c:2889
 msgid "You have to specify a module index or name"
 msgstr "Morate odrediti sadržaj modula ili naziv"
 
-#: src/utils/pactl.c:2890
+#: src/utils/pactl.c:2902
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean value."
 msgstr ""
 "Možda niste odredili više od jednog slivnika. Morate odrediti boolean "
 "vrijednosti."
 
-#: src/utils/pactl.c:2895 src/utils/pactl.c:2915
+#: src/utils/pactl.c:2907 src/utils/pactl.c:2927
 msgid "Invalid suspend specification."
 msgstr "Neispravna specifikacija suspendiranja."
 
-#: src/utils/pactl.c:2910
+#: src/utils/pactl.c:2922
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
@@ -3142,89 +3144,89 @@ msgstr ""
 "Možda niste odredili više od jednog izvora. Morate odrediti boolean "
 "vrijednosti."
 
-#: src/utils/pactl.c:2927
+#: src/utils/pactl.c:2939
 msgid "You have to specify a card name/index and a profile name"
 msgstr "Morate odrediti naziv/sadržaj kartice i naziv profila"
 
-#: src/utils/pactl.c:2938
+#: src/utils/pactl.c:2950
 msgid "You have to specify a sink name/index and a port name"
 msgstr "Morate odrediti naziv/sadržaj slivnika i naziv ulaza"
 
-#: src/utils/pactl.c:2949
+#: src/utils/pactl.c:2961
 msgid "You have to specify a sink name"
 msgstr "Morate odrediti naziv slivnika"
 
-#: src/utils/pactl.c:2962
+#: src/utils/pactl.c:2974
 msgid "You have to specify a source name/index and a port name"
 msgstr "Morate odrediti naziv/sadržaj izvora i naziv ulaza"
 
-#: src/utils/pactl.c:2973
+#: src/utils/pactl.c:2985
 msgid "You have to specify a source name"
 msgstr "Morate odrediti naziv izvora"
 
-#: src/utils/pactl.c:2986 src/utils/pactl.c:3064
+#: src/utils/pactl.c:2998 src/utils/pactl.c:3076
 msgid "You have to specify a sink name/index"
 msgstr "Morate odrediti naziv/sadržaj slivnika"
 
-#: src/utils/pactl.c:2996
+#: src/utils/pactl.c:3008
 msgid "You have to specify a sink name/index and a volume"
 msgstr "Morate odrediti naziv/sadržaj slivnika i glasnoću zvuka"
 
-#: src/utils/pactl.c:3009 src/utils/pactl.c:3089
+#: src/utils/pactl.c:3021 src/utils/pactl.c:3101
 msgid "You have to specify a source name/index"
 msgstr "Morate odrediti naziv/sadržaj izvora"
 
-#: src/utils/pactl.c:3019
+#: src/utils/pactl.c:3031
 msgid "You have to specify a source name/index and a volume"
 msgstr "Morate odrediti naziv/sadržaj izvora i glasnoću zvuka"
 
-#: src/utils/pactl.c:3032
+#: src/utils/pactl.c:3044
 msgid "You have to specify a sink input index and a volume"
 msgstr "Morate odrediti sadržaj ulaza slivnika i glasnoću zvuka"
 
-#: src/utils/pactl.c:3037
+#: src/utils/pactl.c:3049
 msgid "Invalid sink input index"
 msgstr "Neispravan sadržaj ulaza slivnika"
 
-#: src/utils/pactl.c:3048
+#: src/utils/pactl.c:3060
 msgid "You have to specify a source output index and a volume"
 msgstr "Morate odrediti sadržaj izlaza izvora i glasanoću zvuka"
 
-#: src/utils/pactl.c:3053
+#: src/utils/pactl.c:3065
 msgid "Invalid source output index"
 msgstr "Neispravan sadržaj izlaza izvora"
 
-#: src/utils/pactl.c:3074
+#: src/utils/pactl.c:3086
 msgid ""
 "You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"
 msgstr ""
 "Morate odrediti naziv/sadržaj slivnika i radnju utišavanja (0, 1, ili "
 "'prebacivanje')"
 
-#: src/utils/pactl.c:3079 src/utils/pactl.c:3104 src/utils/pactl.c:3124
-#: src/utils/pactl.c:3142
+#: src/utils/pactl.c:3091 src/utils/pactl.c:3116 src/utils/pactl.c:3136
+#: src/utils/pactl.c:3154
 msgid "Invalid mute specification"
 msgstr "Neispravne specifikacije utišavanja"
 
-#: src/utils/pactl.c:3099
+#: src/utils/pactl.c:3111
 msgid ""
 "You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
 msgstr ""
 "Morate odrediti naziv/sadržaj izvora i radnju utišavanja (0, 1, ili "
 "'prebacivanje')"
 
-#: src/utils/pactl.c:3114
+#: src/utils/pactl.c:3126
 msgid ""
 "You have to specify a sink input index and a mute action (0, 1, or 'toggle')"
 msgstr ""
 "Morate odrediti naziv sadržaj ulaza slivnika i radnju utišavanja (0, 1, ili "
 "'prebacivanje')"
 
-#: src/utils/pactl.c:3119
+#: src/utils/pactl.c:3131
 msgid "Invalid sink input index specification"
 msgstr "Neispravna specifikacija sadržaja ulaza slivnika"
 
-#: src/utils/pactl.c:3132
+#: src/utils/pactl.c:3144
 msgid ""
 "You have to specify a source output index and a mute action (0, 1, or "
 "'toggle')"
@@ -3232,15 +3234,15 @@ msgstr ""
 "Morate odrediti sadržaj izlaza izvora i radnju utišavanja (0, 1, ili "
 "'prebacivanje')"
 
-#: src/utils/pactl.c:3137
+#: src/utils/pactl.c:3149
 msgid "Invalid source output index specification"
 msgstr "Neispravna specifikacija sadržaja izlaza izvora"
 
-#: src/utils/pactl.c:3150
+#: src/utils/pactl.c:3162
 msgid "You have to specify at least an object path and a message name"
 msgstr "Morate odrediti bar putanju objekta i naziv poruke"
 
-#: src/utils/pactl.c:3160
+#: src/utils/pactl.c:3172
 msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
@@ -3248,7 +3250,7 @@ msgstr ""
 "Višak argumenata je naveden, biti će zanemareni. Zapamtite da svi parametri "
 "poruke moraju biti navedeni kao jedan niz."
 
-#: src/utils/pactl.c:3170
+#: src/utils/pactl.c:3182
 msgid ""
 "You have to specify a sink index and a semicolon-separated list of supported "
 "formats"
@@ -3256,15 +3258,15 @@ msgstr ""
 "Morate odrediti sadržaj slivnika i popis podržanih formata odvojenih točka-"
 "zarezom"
 
-#: src/utils/pactl.c:3182
+#: src/utils/pactl.c:3194
 msgid "You have to specify a card name/index, a port name and a latency offset"
 msgstr "Morate odrediti naziv/sadržaj kartice, naziv ulaza i pomak latencije"
 
-#: src/utils/pactl.c:3189
+#: src/utils/pactl.c:3201
 msgid "Could not parse latency offset"
 msgstr "Nemoguća obrada pomaka latencije"
 
-#: src/utils/pactl.c:3201
+#: src/utils/pactl.c:3213
 msgid "No valid command specified."
 msgstr "Nema određenih valjanih naredbi."
 

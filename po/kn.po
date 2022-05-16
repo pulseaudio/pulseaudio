@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: pulseaudio.master-tx.kn\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2021-12-16 18:45+0200\n"
+"POT-Creation-Date: 2022-05-16 23:56+0300\n"
 "PO-Revision-Date: 2012-01-30 09:54+0000\n"
 "Last-Translator: Shankar Prasad <svenkate@redhat.com>\n"
 "Language-Team: Kannada <kde-l10n-kn@kde.org>\n"
@@ -1217,14 +1217,14 @@ msgstr "@HOSTNAME@ ನಲ್ಲಿನ ಆಡಿಯೊ"
 
 #. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
 #. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
-#: src/modules/module-tunnel-sink-new.c:320
-#: src/modules/module-tunnel-source-new.c:305
+#: src/modules/module-tunnel-sink-new.c:356
+#: src/modules/module-tunnel-source-new.c:342
 #, c-format
 msgid "Tunnel for %s@%s"
 msgstr ""
 
-#: src/modules/module-tunnel-sink-new.c:564
-#: src/modules/module-tunnel-source-new.c:540
+#: src/modules/module-tunnel-sink-new.c:697
+#: src/modules/module-tunnel-source-new.c:668
 #, c-format
 msgid "Tunnel to %s/%s"
 msgstr ""
@@ -1910,7 +1910,9 @@ msgid ""
 "  -s, --server=SERVER                   The name of the server to connect "
 "to\n"
 "  -d, --device=DEVICE                   The name of the sink/source to "
-"connect to\n"
+"connect to. The special names @DEFAULT_SINK@, @DEFAULT_SOURCE@ and "
+"@DEFAULT_MONITOR@ can be used to specify the default sink, source and "
+"monitor respectively.\n"
 "  -n, --client-name=NAME                How to call this client on the "
 "server\n"
 "      --stream-name=NAME                How to call this stream on the "
@@ -2044,7 +2046,7 @@ msgstr ""
 "libpulse %s ನೊಂದಿಗೆ ಕಂಪೈಲ್ ಮಾಡಲಾಗಿದೆ\n"
 "libpulse %s ನೊಂದಿಗೆ ಜೋಡಿಸಲಾಗಿದೆ\n"
 
-#: src/utils/pacat.c:852 src/utils/pactl.c:2720
+#: src/utils/pacat.c:852 src/utils/pactl.c:2731
 #, c-format
 msgid "Invalid client name '%s'"
 msgstr "ಅಮಾನ್ಯವಾದ ಕ್ಲೈಂಟಿನ ಹೆಸರು '%s'"
@@ -2116,7 +2118,7 @@ msgid ""
 msgstr ""
 "ಎಚ್ಚರಿಕೆ: ಸೂಚಿಸಲಾದ ನಮೂನೆ ವಿವರಣೆಯನ್ನು ಕಡತದಲ್ಲಿನ ವಿವರಣೆಯಿಂದ ತಿದ್ದಿಬರೆಯಲಾಗುತ್ತದೆ."
 
-#: src/utils/pacat.c:1091 src/utils/pactl.c:2794
+#: src/utils/pacat.c:1091 src/utils/pactl.c:2806
 msgid "Failed to determine sample specification from file."
 msgstr "ಕಡತದಿಂದ ನಮೂನೆಯ ವಿವರಣೆಯನ್ನು ನಿರ್ಧರಿಸುವಲ್ಲಿ ವಿಫಲಗೊಂಡಿದೆ."
 
@@ -2153,7 +2155,7 @@ msgstr "ಪ್ಲೇಬ್ಯಾಕ್‌"
 msgid "Failed to set media name."
 msgstr "ಆಜ್ಞಾ ಸಾಲನ್ನು ಪಾರ್ಸ್ ಮಾಡುವಲ್ಲಿ ವಿಫಲಗೊಂಡಿದೆ."
 
-#: src/utils/pacat.c:1172 src/utils/pactl.c:3206
+#: src/utils/pacat.c:1172 src/utils/pactl.c:3218
 msgid "pa_mainloop_new() failed."
 msgstr "pa_mainloop_new() ವಿಫಲಗೊಂಡಿದೆ."
 
@@ -2161,11 +2163,11 @@ msgstr "pa_mainloop_new() ವಿಫಲಗೊಂಡಿದೆ."
 msgid "io_new() failed."
 msgstr "io_new() ವಿಫಲಗೊಂಡಿದೆ."
 
-#: src/utils/pacat.c:1202 src/utils/pactl.c:3218
+#: src/utils/pacat.c:1202 src/utils/pactl.c:3230
 msgid "pa_context_new() failed."
 msgstr "pa_context_new() ವಿಫಲಗೊಂಡಿದೆ."
 
-#: src/utils/pacat.c:1210 src/utils/pactl.c:3224
+#: src/utils/pacat.c:1210 src/utils/pactl.c:3236
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "pa_context_connect() ವಿಫಲಗೊಂಡಿದೆ: %s"
@@ -2174,21 +2176,21 @@ msgstr "pa_context_connect() ವಿಫಲಗೊಂಡಿದೆ: %s"
 msgid "pa_context_rttime_new() failed."
 msgstr "pa_context_rttime_new() ವಿಫಲಗೊಂಡಿದೆ."
 
-#: src/utils/pacat.c:1223 src/utils/pactl.c:3229
+#: src/utils/pacat.c:1223 src/utils/pactl.c:3241
 msgid "pa_mainloop_run() failed."
 msgstr "pa_mainloop_run() ವಿಫಲಗೊಂಡಿದೆ."
 
-#: src/utils/pacmd.c:51 src/utils/pactl.c:2632
+#: src/utils/pacmd.c:51 src/utils/pactl.c:2643
 msgid "NAME [ARGS ...]"
 msgstr ""
 
-#: src/utils/pacmd.c:52 src/utils/pacmd.c:60 src/utils/pactl.c:2633
-#: src/utils/pactl.c:2640 src/utils/pactl.c:2641
+#: src/utils/pacmd.c:52 src/utils/pacmd.c:60 src/utils/pactl.c:2644
+#: src/utils/pactl.c:2651 src/utils/pactl.c:2652
 msgid "NAME|#N"
 msgstr ""
 
-#: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:2631
-#: src/utils/pactl.c:2638
+#: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:2642
+#: src/utils/pactl.c:2649
 msgid "NAME"
 msgstr ""
 
@@ -2200,7 +2202,7 @@ msgstr ""
 msgid "#N VOLUME"
 msgstr ""
 
-#: src/utils/pacmd.c:56 src/utils/pacmd.c:70 src/utils/pactl.c:2635
+#: src/utils/pacmd.c:56 src/utils/pacmd.c:70 src/utils/pactl.c:2646
 msgid "NAME|#N 1|0"
 msgstr ""
 
@@ -2236,7 +2238,7 @@ msgstr ""
 msgid "FILENAME SINK|#N"
 msgstr ""
 
-#: src/utils/pacmd.c:69 src/utils/pactl.c:2634
+#: src/utils/pacmd.c:69 src/utils/pactl.c:2645
 msgid "#N SINK|SOURCE"
 msgstr ""
 
@@ -2244,15 +2246,15 @@ msgstr ""
 msgid "1|0"
 msgstr ""
 
-#: src/utils/pacmd.c:72 src/utils/pactl.c:2636
+#: src/utils/pacmd.c:72 src/utils/pactl.c:2647
 msgid "CARD PROFILE"
 msgstr ""
 
-#: src/utils/pacmd.c:73 src/utils/pactl.c:2639
+#: src/utils/pacmd.c:73 src/utils/pactl.c:2650
 msgid "NAME|#N PORT"
 msgstr ""
 
-#: src/utils/pacmd.c:74 src/utils/pactl.c:2647
+#: src/utils/pacmd.c:74 src/utils/pactl.c:2658
 msgid "CARD-NAME|CARD-#N PORT OFFSET"
 msgstr ""
 
@@ -2268,7 +2270,7 @@ msgstr ""
 msgid "FRAMES"
 msgstr ""
 
-#: src/utils/pacmd.c:80 src/utils/pactl.c:2648
+#: src/utils/pacmd.c:80 src/utils/pactl.c:2659
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
 msgstr ""
 
@@ -2935,65 +2937,65 @@ msgstr "SIGINT ದೊರೆತಿದೆ, ನಿರ್ಗಮಿಸುತ್ತಿ
 msgid "Invalid volume specification"
 msgstr "ಅಮಾನ್ಯವಾದ ಧ್ವನಿ ಪ್ರಮಾಣದ ವಿವರ"
 
-#: src/utils/pactl.c:2570
+#: src/utils/pactl.c:2581
 msgid "Volume outside permissible range.\n"
 msgstr ""
 
-#: src/utils/pactl.c:2583
+#: src/utils/pactl.c:2594
 #, fuzzy
 msgid "Invalid number of volume specifications.\n"
 msgstr "ಅಮಾನ್ಯವಾದ ಧ್ವನಿ ಪ್ರಮಾಣದ ವಿವರ"
 
-#: src/utils/pactl.c:2595
+#: src/utils/pactl.c:2606
 #, fuzzy
 msgid "Inconsistent volume specification.\n"
 msgstr "ಅಮಾನ್ಯವಾದ ಧ್ವನಿ ಪ್ರಮಾಣದ ವಿವರ"
 
-#: src/utils/pactl.c:2625 src/utils/pactl.c:2626 src/utils/pactl.c:2627
-#: src/utils/pactl.c:2628 src/utils/pactl.c:2629 src/utils/pactl.c:2630
-#: src/utils/pactl.c:2631 src/utils/pactl.c:2632 src/utils/pactl.c:2633
-#: src/utils/pactl.c:2634 src/utils/pactl.c:2635 src/utils/pactl.c:2636
-#: src/utils/pactl.c:2637 src/utils/pactl.c:2638 src/utils/pactl.c:2639
-#: src/utils/pactl.c:2640 src/utils/pactl.c:2641 src/utils/pactl.c:2642
-#: src/utils/pactl.c:2643 src/utils/pactl.c:2644 src/utils/pactl.c:2645
-#: src/utils/pactl.c:2646 src/utils/pactl.c:2647 src/utils/pactl.c:2648
-#: src/utils/pactl.c:2649
+#: src/utils/pactl.c:2636 src/utils/pactl.c:2637 src/utils/pactl.c:2638
+#: src/utils/pactl.c:2639 src/utils/pactl.c:2640 src/utils/pactl.c:2641
+#: src/utils/pactl.c:2642 src/utils/pactl.c:2643 src/utils/pactl.c:2644
+#: src/utils/pactl.c:2645 src/utils/pactl.c:2646 src/utils/pactl.c:2647
+#: src/utils/pactl.c:2648 src/utils/pactl.c:2649 src/utils/pactl.c:2650
+#: src/utils/pactl.c:2651 src/utils/pactl.c:2652 src/utils/pactl.c:2653
+#: src/utils/pactl.c:2654 src/utils/pactl.c:2655 src/utils/pactl.c:2656
+#: src/utils/pactl.c:2657 src/utils/pactl.c:2658 src/utils/pactl.c:2659
+#: src/utils/pactl.c:2660
 msgid "[options]"
 msgstr ""
 
-#: src/utils/pactl.c:2627
+#: src/utils/pactl.c:2638
 msgid "[TYPE]"
 msgstr ""
 
-#: src/utils/pactl.c:2629
+#: src/utils/pactl.c:2640
 msgid "FILENAME [NAME]"
 msgstr ""
 
-#: src/utils/pactl.c:2630
+#: src/utils/pactl.c:2641
 msgid "NAME [SINK]"
 msgstr ""
 
-#: src/utils/pactl.c:2642
+#: src/utils/pactl.c:2653
 msgid "NAME|#N VOLUME [VOLUME ...]"
 msgstr ""
 
-#: src/utils/pactl.c:2643
+#: src/utils/pactl.c:2654
 msgid "#N VOLUME [VOLUME ...]"
 msgstr ""
 
-#: src/utils/pactl.c:2644
+#: src/utils/pactl.c:2655
 msgid "NAME|#N 1|0|toggle"
 msgstr ""
 
-#: src/utils/pactl.c:2645
+#: src/utils/pactl.c:2656
 msgid "#N 1|0|toggle"
 msgstr ""
 
-#: src/utils/pactl.c:2646
+#: src/utils/pactl.c:2657
 msgid "#N FORMATS"
 msgstr ""
 
-#: src/utils/pactl.c:2650
+#: src/utils/pactl.c:2661
 #, c-format
 msgid ""
 "\n"
@@ -3001,7 +3003,7 @@ msgid ""
 "can be used to specify the default sink, source and monitor.\n"
 msgstr ""
 
-#: src/utils/pactl.c:2653
+#: src/utils/pactl.c:2664
 #, fuzzy, c-format
 msgid ""
 "\n"
@@ -3022,7 +3024,7 @@ msgstr ""
 "  -s, --server=SERVER                   ಸಂಪರ್ಕಸಾಧಿಸಬೇಕಿರುವ ಪರಿಚಾರಕದ ಹೆಸರು\n"
 "\n"
 
-#: src/utils/pactl.c:2696
+#: src/utils/pactl.c:2707
 #, c-format
 msgid ""
 "pactl %s\n"
@@ -3033,66 +3035,66 @@ msgstr ""
 "libpulse %s ನೊಂದಿಗೆ ಕಂಪೈಲ್ ಮಾಡಲಾಗಿದೆ\n"
 "libpulse %s ನೊಂದಿಗೆ ಜೋಡಿಸಲಾಗಿದೆ\n"
 
-#: src/utils/pactl.c:2739
+#: src/utils/pactl.c:2751
 #, fuzzy, c-format
 msgid "Invalid format value '%s'"
 msgstr "ಅಮಾನ್ಯವಾದ ಸ್ಟ್ರೀಮ್‌ನ ಹೆಸರು '%s'"
 
-#: src/utils/pactl.c:2766
+#: src/utils/pactl.c:2778
 #, c-format
 msgid "Specify nothing, or one of: %s"
 msgstr ""
 
-#: src/utils/pactl.c:2776
+#: src/utils/pactl.c:2788
 msgid "Please specify a sample file to load"
 msgstr "ಲೋಡ್ ಮಾಡಬೇಕಿರುವ ಒಂದು ಕಡತದ ನಮೂನೆಯನ್ನು ಸೂಚಿಸಿ"
 
-#: src/utils/pactl.c:2789
+#: src/utils/pactl.c:2801
 msgid "Failed to open sound file."
 msgstr "ಧ್ವನಿ ಕಡತವನ್ನು ತೆರೆಯುವಲ್ಲಿ ವಿಫಲಗೊಂಡಿದೆ."
 
-#: src/utils/pactl.c:2801
+#: src/utils/pactl.c:2813
 msgid "Warning: Failed to determine sample specification from file."
 msgstr "ಎಚ್ಚರಿಕೆ: ಕಡತದಿಂದ ನಮೂನೆಯ ವಿವರವನ್ನು ನಿರ್ಧರಿಸುವಲ್ಲಿ ವಿಫಲಗೊಂಡಿದೆ."
 
-#: src/utils/pactl.c:2811
+#: src/utils/pactl.c:2823
 msgid "You have to specify a sample name to play"
 msgstr "ಚಲಾಯಿಸಲು ನೀವು ಒಂದು ನಮೂನೆಯ ಹೆಸರನ್ನು ಸೂಚಿಸಬೇಕಾಗುತ್ತದೆ"
 
-#: src/utils/pactl.c:2823
+#: src/utils/pactl.c:2835
 msgid "You have to specify a sample name to remove"
 msgstr "ತೆಗೆದು ಹಾಕಲು ನೀವು ಒಂದು ನಮೂನೆಯ ಹೆಸರನ್ನು ಸೂಚಿಸಬೇಕು"
 
-#: src/utils/pactl.c:2832
+#: src/utils/pactl.c:2844
 msgid "You have to specify a sink input index and a sink"
 msgstr "ನೀವು ಒಂದು ಸಿಂಕ್ ಇನ್‌ಪುಟ್ ಸೂಚಿಯನ್ನು ಹಾಗು ಒಂದು ಸಿಂಕ್‌ ಅನ್ನು ಸೂಚಿಸಬೇಕು."
 
-#: src/utils/pactl.c:2842
+#: src/utils/pactl.c:2854
 msgid "You have to specify a source output index and a source"
 msgstr "ನೀವು ಒಂದು ಆಕರ ಔಟ್‌ಪುಟ್ ಸೂಚಿಯನ್ನು ಹಾಗು ಒಂದು ಆಕರವನ್ನು ಸೂಚಿಸಬೇಕು."
 
-#: src/utils/pactl.c:2857
+#: src/utils/pactl.c:2869
 msgid "You have to specify a module name and arguments."
 msgstr "ನೀವು ಒಂದು ಘಟಕದ ಹೆಸರನ್ನು ಹಾಗು ಆರ್ಗುಮೆಂಟುಗಳನ್ನು ಸೂಚಿಸಬೇಕು."
 
-#: src/utils/pactl.c:2877
+#: src/utils/pactl.c:2889
 #, fuzzy
 msgid "You have to specify a module index or name"
 msgstr "ನೀವು ಒಂದು ಘಟಕ ಸೂಚಿಯನ್ನು ಸೂಚಿಸಬೇಕು"
 
-#: src/utils/pactl.c:2890
+#: src/utils/pactl.c:2902
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean value."
 msgstr ""
 "ನೀವು ಒಂದಕ್ಕಿಂತ ಹೆಚ್ಚಿನ ಸಿಂಕನ್ನು ಸೂಚಿಸಲಾಗುವುದಿಲ್ಲ. ನೀವು ಒಂದು ಬೂಲಿಯನ್‌ ಮೌಲ್ಯವನ್ನು "
 "ಸೂಚಿಸಬೇಕಾಗುತ್ತದೆ."
 
-#: src/utils/pactl.c:2895 src/utils/pactl.c:2915
+#: src/utils/pactl.c:2907 src/utils/pactl.c:2927
 #, fuzzy
 msgid "Invalid suspend specification."
 msgstr "ಅಮಾನ್ಯವಾದ ನಮೂನೆ ವಿವರ"
 
-#: src/utils/pactl.c:2910
+#: src/utils/pactl.c:2922
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
@@ -3100,132 +3102,132 @@ msgstr ""
 "ನೀವು ಒಂದಕ್ಕಿಂತ ಹೆಚ್ಚಿನ ಆಕರವನ್ನು ಸೂಚಿಸಲಾಗುವುದಿಲ್ಲ. ನೀವು ಒಂದು ಬೂಲಿಯನ್‌ ಮೌಲ್ಯವನ್ನು "
 "ಸೂಚಿಸಬೇಕಾಗುತ್ತದೆ."
 
-#: src/utils/pactl.c:2927
+#: src/utils/pactl.c:2939
 msgid "You have to specify a card name/index and a profile name"
 msgstr "ಒಂದು ಕಾರ್ಡಿನ ಹೆಸರು/ಸೂಚಿಯನ್ನು ಹಾಗು ಪ್ರೊಫೈಲ್‌ ಹೆಸರನ್ನು ಸೂಚಿಸಬೇಕು"
 
-#: src/utils/pactl.c:2938
+#: src/utils/pactl.c:2950
 msgid "You have to specify a sink name/index and a port name"
 msgstr "ನೀವು ಒಂದು ಸಿಂಕಿನ ಹೆಸರು/ಸೂಚಿಯನ್ನು ಹಾಗು ಸಂಪರ್ಕಸ್ಥಾನದ ಹೆಸರನ್ನು ಸೂಚಿಸಬೇಕು"
 
-#: src/utils/pactl.c:2949
+#: src/utils/pactl.c:2961
 #, fuzzy
 msgid "You have to specify a sink name"
 msgstr "ಚಲಾಯಿಸಲು ನೀವು ಒಂದು ನಮೂನೆಯ ಹೆಸರನ್ನು ಸೂಚಿಸಬೇಕಾಗುತ್ತದೆ"
 
-#: src/utils/pactl.c:2962
+#: src/utils/pactl.c:2974
 msgid "You have to specify a source name/index and a port name"
 msgstr "ನೀವು ಒಂದು ಆಕರದ ಹೆಸರು/ಸೂಚಿಯನ್ನು ಹಾಗು ಸಂಪರ್ಕಸ್ಥಾನದ ಹೆಸರನ್ನು ಸೂಚಿಸಬೇಕು"
 
-#: src/utils/pactl.c:2973
+#: src/utils/pactl.c:2985
 #, fuzzy
 msgid "You have to specify a source name"
 msgstr "ನೀವು ಒಂದು ಘಟಕ ಸೂಚಿಯನ್ನು ಸೂಚಿಸಬೇಕು"
 
-#: src/utils/pactl.c:2986 src/utils/pactl.c:3064
+#: src/utils/pactl.c:2998 src/utils/pactl.c:3076
 #, fuzzy
 msgid "You have to specify a sink name/index"
 msgstr "ಚಲಾಯಿಸಲು ನೀವು ಒಂದು ನಮೂನೆಯ ಹೆಸರನ್ನು ಸೂಚಿಸಬೇಕಾಗುತ್ತದೆ"
 
-#: src/utils/pactl.c:2996
+#: src/utils/pactl.c:3008
 msgid "You have to specify a sink name/index and a volume"
 msgstr "ನೀವು ಒಂದು ಸಿಂಕಿನ ಹೆಸರು/ಸೂಚಿಯನ್ನು ಹಾಗು ಸಂಪರ್ಕಸ್ಥಾನದ ಹೆಸರನ್ನು ಸೂಚಿಸಬೇಕು"
 
-#: src/utils/pactl.c:3009 src/utils/pactl.c:3089
+#: src/utils/pactl.c:3021 src/utils/pactl.c:3101
 #, fuzzy
 msgid "You have to specify a source name/index"
 msgstr "ನೀವು ಒಂದು ಘಟಕ ಸೂಚಿಯನ್ನು ಸೂಚಿಸಬೇಕು"
 
-#: src/utils/pactl.c:3019
+#: src/utils/pactl.c:3031
 msgid "You have to specify a source name/index and a volume"
 msgstr "ನೀವು ಒಂದು ಆಕರದ ಹೆಸರು/ಸೂಚಿಯನ್ನು ಹಾಗು ಸಂಪರ್ಕಸ್ಥಾನದ ಹೆಸರನ್ನು ಸೂಚಿಸಬೇಕು"
 
-#: src/utils/pactl.c:3032
+#: src/utils/pactl.c:3044
 msgid "You have to specify a sink input index and a volume"
 msgstr "ನೀವು ಒಂದು ಸಿಂಕ್ ಇನ್‌ಪುಟ್ ಸೂಚಿಯನ್ನು ಹಾಗು ಒಂದು ಸಿಂಕ್‌ ಅನ್ನು ಸೂಚಿಸಬೇಕು"
 
-#: src/utils/pactl.c:3037
+#: src/utils/pactl.c:3049
 msgid "Invalid sink input index"
 msgstr "ಅಮಾನ್ಯವಾದ ಸಿಂಕ್ ಇನ್‌ಪುಟ್ ಸೂಚಿ"
 
-#: src/utils/pactl.c:3048
+#: src/utils/pactl.c:3060
 #, fuzzy
 msgid "You have to specify a source output index and a volume"
 msgstr "ನೀವು ಒಂದು ಆಕರ ಔಟ್‌ಪುಟ್ ಸೂಚಿಯನ್ನು ಹಾಗು ಒಂದು ಆಕರವನ್ನು ಸೂಚಿಸಬೇಕು."
 
-#: src/utils/pactl.c:3053
+#: src/utils/pactl.c:3065
 #, fuzzy
 msgid "Invalid source output index"
 msgstr "ಅಮಾನ್ಯವಾದ ಸಿಂಕ್ ಇನ್‌ಪುಟ್ ಸೂಚಿ"
 
-#: src/utils/pactl.c:3074
+#: src/utils/pactl.c:3086
 #, fuzzy
 msgid ""
 "You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"
 msgstr "ನೀವು ಒಂದು ಸಿಂಕಿನ ಹೆಸರು/ಸೂಚಿಯನ್ನು ಹಾಗು ಸಂಪರ್ಕಸ್ಥಾನದ ಹೆಸರನ್ನು ಸೂಚಿಸಬೇಕು"
 
-#: src/utils/pactl.c:3079 src/utils/pactl.c:3104 src/utils/pactl.c:3124
-#: src/utils/pactl.c:3142
+#: src/utils/pactl.c:3091 src/utils/pactl.c:3116 src/utils/pactl.c:3136
+#: src/utils/pactl.c:3154
 #, fuzzy
 msgid "Invalid mute specification"
 msgstr "ಅಮಾನ್ಯವಾದ ನಮೂನೆ ವಿವರ"
 
-#: src/utils/pactl.c:3099
+#: src/utils/pactl.c:3111
 #, fuzzy
 msgid ""
 "You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
 msgstr "ನೀವು ಒಂದು ಆಕರದ ಹೆಸರು/ಸೂಚಿಯನ್ನು ಹಾಗು ಸಂಪರ್ಕಸ್ಥಾನದ ಹೆಸರನ್ನು ಸೂಚಿಸಬೇಕು"
 
-#: src/utils/pactl.c:3114
+#: src/utils/pactl.c:3126
 #, fuzzy
 msgid ""
 "You have to specify a sink input index and a mute action (0, 1, or 'toggle')"
 msgstr "ನೀವು ಒಂದು ಸಿಂಕ್ ಇನ್‌ಪುಟ್ ಸೂಚಿಯನ್ನು ಹಾಗು ಒಂದು ಸಿಂಕ್‌ ಅನ್ನು ಸೂಚಿಸಬೇಕು"
 
-#: src/utils/pactl.c:3119
+#: src/utils/pactl.c:3131
 msgid "Invalid sink input index specification"
 msgstr "ಅಮಾನ್ಯವಾದ ಸಿಂಕ್ ಇನ್‌ಪುಟ್ ಸೂಚಿ ವಿವರ"
 
-#: src/utils/pactl.c:3132
+#: src/utils/pactl.c:3144
 #, fuzzy
 msgid ""
 "You have to specify a source output index and a mute action (0, 1, or "
 "'toggle')"
 msgstr "ನೀವು ಒಂದು ಆಕರದ ಹೆಸರು/ಸೂಚಿಯನ್ನು ಹಾಗು ಸಂಪರ್ಕಸ್ಥಾನದ ಹೆಸರನ್ನು ಸೂಚಿಸಬೇಕು"
 
-#: src/utils/pactl.c:3137
+#: src/utils/pactl.c:3149
 #, fuzzy
 msgid "Invalid source output index specification"
 msgstr "ಅಮಾನ್ಯವಾದ ಸಿಂಕ್ ಇನ್‌ಪುಟ್ ಸೂಚಿ ವಿವರ"
 
-#: src/utils/pactl.c:3150
+#: src/utils/pactl.c:3162
 #, fuzzy
 msgid "You have to specify at least an object path and a message name"
 msgstr "ನೀವು ಒಂದು ಸಿಂಕಿನ ಹೆಸರು/ಸೂಚಿಯನ್ನು ಹಾಗು ಸಂಪರ್ಕಸ್ಥಾನದ ಹೆಸರನ್ನು ಸೂಚಿಸಬೇಕು"
 
-#: src/utils/pactl.c:3160
+#: src/utils/pactl.c:3172
 msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
 msgstr ""
 
-#: src/utils/pactl.c:3170
+#: src/utils/pactl.c:3182
 #, fuzzy
 msgid ""
 "You have to specify a sink index and a semicolon-separated list of supported "
 "formats"
 msgstr "ನೀವು ಒಂದು ಸಿಂಕಿನ ಹೆಸರು/ಸೂಚಿಯನ್ನು ಹಾಗು ಸಂಪರ್ಕಸ್ಥಾನದ ಹೆಸರನ್ನು ಸೂಚಿಸಬೇಕು"
 
-#: src/utils/pactl.c:3182
+#: src/utils/pactl.c:3194
 #, fuzzy
 msgid "You have to specify a card name/index, a port name and a latency offset"
 msgstr "ಒಂದು ಕಾರ್ಡಿನ ಹೆಸರು/ಸೂಚಿಯನ್ನು ಹಾಗು ಪ್ರೊಫೈಲ್‌ ಹೆಸರನ್ನು ಸೂಚಿಸಬೇಕು"
 
-#: src/utils/pactl.c:3189
+#: src/utils/pactl.c:3201
 msgid "Could not parse latency offset"
 msgstr ""
 
-#: src/utils/pactl.c:3201
+#: src/utils/pactl.c:3213
 msgid "No valid command specified."
 msgstr "ಮಾನ್ಯವಾದ ಯಾವುದೆ ಆಜ್ಞೆಯನ್ನು ಸೂಚಿಸಲಾಗಿಲ್ಲ."
 
