@@ -380,7 +380,7 @@ static void on_source_created(struct userdata *u) {
     if (pa_stream_connect_record(u->stream,
                                  u->remote_source_name,
                                  &bufferattr,
-                                 PA_STREAM_INTERPOLATE_TIMING|PA_STREAM_DONT_MOVE|PA_STREAM_AUTO_TIMING_UPDATE|PA_STREAM_START_CORKED) < 0) {
+                                 PA_STREAM_INTERPOLATE_TIMING|PA_STREAM_DONT_MOVE|PA_STREAM_AUTO_TIMING_UPDATE|PA_STREAM_START_CORKED|PA_STREAM_ADJUST_LATENCY) < 0) {
         pa_log_debug("Could not create stream: %s", pa_strerror(pa_context_errno(u->context)));
         u->thread_mainloop_api->quit(u->thread_mainloop_api, TUNNEL_THREAD_FAILED_MAINLOOP);
     }

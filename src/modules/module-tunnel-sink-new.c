@@ -398,7 +398,7 @@ static void on_sink_created(struct userdata *u) {
     if (pa_stream_connect_playback(u->stream,
                                    u->remote_sink_name,
                                    &bufferattr,
-                                   PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_DONT_MOVE | PA_STREAM_START_CORKED | PA_STREAM_AUTO_TIMING_UPDATE,
+                                   PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_DONT_MOVE | PA_STREAM_START_CORKED | PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_ADJUST_LATENCY,
                                    NULL,
                                    NULL) < 0) {
         pa_log_error("Could not connect stream.");
