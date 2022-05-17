@@ -1243,12 +1243,16 @@ msgstr "Аудио на @HOSTNAME@"
 #. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
 #: src/modules/module-tunnel-sink-new.c:356
 #: src/modules/module-tunnel-source-new.c:342
+#: src/modules/module-tunnel-sink-new.c:320
+#: src/modules/module-tunnel-source-new.c:305
 #, c-format
 msgid "Tunnel for %s@%s"
 msgstr "Туннель для %s@%s"
 
 #: src/modules/module-tunnel-sink-new.c:697
 #: src/modules/module-tunnel-source-new.c:668
+#: src/modules/module-tunnel-sink-new.c:564
+#: src/modules/module-tunnel-source-new.c:540
 #, c-format
 msgid "Tunnel to %s/%s"
 msgstr "Туннель к %s/%s"
@@ -2107,7 +2111,7 @@ msgstr ""
 "Скомпилировано с libpulse %s\n"
 "Скомпоновано с libpulse %s\n"
 
-#: src/utils/pacat.c:852 src/utils/pactl.c:2731
+#: src/utils/pacat.c:852 src/utils/pactl.c:2731 src/utils/pactl.c:2720
 #, c-format
 msgid "Invalid client name '%s'"
 msgstr "Недопустимое имя клиента «%s»"
@@ -2180,7 +2184,7 @@ msgstr ""
 "Предупреждение: указанная спецификация отсчётов будет заменена спецификацией "
 "из файла."
 
-#: src/utils/pacat.c:1091 src/utils/pactl.c:2806
+#: src/utils/pacat.c:1091 src/utils/pactl.c:2806 src/utils/pactl.c:2794
 msgid "Failed to determine sample specification from file."
 msgstr "Не удалось определить спецификацию отсчётов из файла."
 
@@ -2216,7 +2220,7 @@ msgstr "воспроизведения"
 msgid "Failed to set media name."
 msgstr "Не удалось установить имя потока."
 
-#: src/utils/pacat.c:1172 src/utils/pactl.c:3218
+#: src/utils/pacat.c:1172 src/utils/pactl.c:3218 src/utils/pactl.c:3206
 msgid "pa_mainloop_new() failed."
 msgstr "Произошла ошибка при выполнении pa_mainloop_new()."
 
@@ -2224,11 +2228,11 @@ msgstr "Произошла ошибка при выполнении pa_mainloop_
 msgid "io_new() failed."
 msgstr "Произошла ошибка при выполнении io_new()."
 
-#: src/utils/pacat.c:1202 src/utils/pactl.c:3230
+#: src/utils/pacat.c:1202 src/utils/pactl.c:3230 src/utils/pactl.c:3218
 msgid "pa_context_new() failed."
 msgstr "Произошла ошибка при выполнении pa_context_new()."
 
-#: src/utils/pacat.c:1210 src/utils/pactl.c:3236
+#: src/utils/pacat.c:1210 src/utils/pactl.c:3236 src/utils/pactl.c:3224
 #, c-format
 msgid "pa_context_connect() failed: %s"
 msgstr "Произошла ошибка при выполнении pa_context_connect(): %s"
@@ -2237,21 +2241,22 @@ msgstr "Произошла ошибка при выполнении pa_context_c
 msgid "pa_context_rttime_new() failed."
 msgstr "Произошла ошибка при выполнении pa_context_rttime_new()."
 
-#: src/utils/pacat.c:1223 src/utils/pactl.c:3241
+#: src/utils/pacat.c:1223 src/utils/pactl.c:3241 src/utils/pactl.c:3229
 msgid "pa_mainloop_run() failed."
 msgstr "Произошла ошибка при выполнении pa_mainloop_run()."
 
-#: src/utils/pacmd.c:51 src/utils/pactl.c:2643
+#: src/utils/pacmd.c:51 src/utils/pactl.c:2643 src/utils/pactl.c:2632
 msgid "NAME [ARGS ...]"
 msgstr "ИМЯ [АРГУМЕНТЫ ...]"
 
 #: src/utils/pacmd.c:52 src/utils/pacmd.c:60 src/utils/pactl.c:2644
-#: src/utils/pactl.c:2651 src/utils/pactl.c:2652
+#: src/utils/pactl.c:2651 src/utils/pactl.c:2652 src/utils/pactl.c:2633
+#: src/utils/pactl.c:2640 src/utils/pactl.c:2641
 msgid "NAME|#N"
 msgstr "ИМЯ|№"
 
 #: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:2642
-#: src/utils/pactl.c:2649
+#: src/utils/pactl.c:2649 src/utils/pactl.c:2631 src/utils/pactl.c:2638
 msgid "NAME"
 msgstr "ИМЯ"
 
@@ -2264,6 +2269,7 @@ msgid "#N VOLUME"
 msgstr "№ ГРОМКОСТЬ"
 
 #: src/utils/pacmd.c:56 src/utils/pacmd.c:70 src/utils/pactl.c:2646
+#: src/utils/pactl.c:2635
 msgid "NAME|#N 1|0"
 msgstr "ИМЯ|№ 1|0"
 
@@ -2299,7 +2305,7 @@ msgstr "ПУТЬ"
 msgid "FILENAME SINK|#N"
 msgstr "ИМЯ_ФАЙЛА АУДИОПРИЁМНИК|№"
 
-#: src/utils/pacmd.c:69 src/utils/pactl.c:2645
+#: src/utils/pacmd.c:69 src/utils/pactl.c:2645 src/utils/pactl.c:2634
 msgid "#N SINK|SOURCE"
 msgstr "№ АУДИОПРИЁМНИК|ИСТОЧНИК"
 
@@ -2307,15 +2313,15 @@ msgstr "№ АУДИОПРИЁМНИК|ИСТОЧНИК"
 msgid "1|0"
 msgstr "1|0"
 
-#: src/utils/pacmd.c:72 src/utils/pactl.c:2647
+#: src/utils/pacmd.c:72 src/utils/pactl.c:2647 src/utils/pactl.c:2636
 msgid "CARD PROFILE"
 msgstr "ПЛАТА ПРОФИЛЬ"
 
-#: src/utils/pacmd.c:73 src/utils/pactl.c:2650
+#: src/utils/pacmd.c:73 src/utils/pactl.c:2650 src/utils/pactl.c:2639
 msgid "NAME|#N PORT"
 msgstr "ИМЯ|№ ПОРТ"
 
-#: src/utils/pacmd.c:74 src/utils/pactl.c:2658
+#: src/utils/pacmd.c:74 src/utils/pactl.c:2658 src/utils/pactl.c:2647
 msgid "CARD-NAME|CARD-#N PORT OFFSET"
 msgstr "ИМЯ_ПЛАТЫ|№_ПЛАТЫ ПОРТ ЗАДЕРЖКА"
 
@@ -2331,7 +2337,7 @@ msgstr "ЧИСЛОВОЙ-УРОВЕНЬ"
 msgid "FRAMES"
 msgstr "КАДРОВ"
 
-#: src/utils/pacmd.c:80 src/utils/pactl.c:2659
+#: src/utils/pacmd.c:80 src/utils/pactl.c:2659 src/utils/pactl.c:2648
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
 msgstr "СООБЩЕНИЕ ПОЛУЧАТЕЛЯ [ПАРАМЕТРЫ_СООБЩЕНИЯ]"
 
@@ -2491,7 +2497,7 @@ msgstr "доступен"
 
 #: src/utils/pactl.c:322
 msgid "not available"
-msgstr "не доступен"
+msgstr "недоступен"
 
 #: src/utils/pactl.c:331 src/utils/pactl.c:355
 msgid "Unknown"
@@ -2753,6 +2759,8 @@ msgstr "\tАктивный профиль: %s\n"
 msgid ""
 "\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s, %s)\n"
 msgstr ""
+"\t\t%s: %s (тип: %s, приоритет: %u, смещение задержки: %<PRId64> мкс%s%s, "
+"%s)\n"
 
 #: src/utils/pactl.c:1261
 #, c-format
@@ -2903,11 +2911,11 @@ msgstr "Ошибка при отправлении сообщения: %s"
 #: src/utils/pactl.c:1695
 #, c-format
 msgid "list-handlers message failed: %s"
-msgstr ""
+msgstr "ошибка обработки сообщения list-handlers: %s"
 
 #: src/utils/pactl.c:1711 src/utils/pactl.c:1760
 msgid "list-handlers message response could not be parsed correctly"
-msgstr "не удалось правильно обработать ответ list-handlers"
+msgstr "не удалось правильно разобрать ответ list-handlers"
 
 #: src/utils/pactl.c:1718
 msgid "list-handlers message response is not a JSON array"
@@ -2917,6 +2925,8 @@ msgstr "ответ list-handlers не является массивом JSON"
 #, c-format
 msgid "list-handlers message response array element %d is not a JSON object"
 msgstr ""
+"элемент массива ответов на сообщения list-handlers %d не является объектом "
+"JSON"
 
 #: src/utils/pactl.c:1800
 #, c-format
@@ -3025,15 +3035,15 @@ msgstr "Получен сигнал для остановки (SIGINT), выхо
 msgid "Invalid volume specification"
 msgstr "Недопустимое значение громкости"
 
-#: src/utils/pactl.c:2581
+#: src/utils/pactl.c:2581 src/utils/pactl.c:2570
 msgid "Volume outside permissible range.\n"
 msgstr "Указанная громкость выходит за границы разрешённого диапазона.\n"
 
-#: src/utils/pactl.c:2594
+#: src/utils/pactl.c:2594 src/utils/pactl.c:2583
 msgid "Invalid number of volume specifications.\n"
 msgstr "Недопустимое количество значений громкости.\n"
 
-#: src/utils/pactl.c:2606
+#: src/utils/pactl.c:2606 src/utils/pactl.c:2595
 msgid "Inconsistent volume specification.\n"
 msgstr "Несогласованные способы указания значений громкости.\n"
 
@@ -3045,43 +3055,46 @@ msgstr "Несогласованные способы указания знач�
 #: src/utils/pactl.c:2651 src/utils/pactl.c:2652 src/utils/pactl.c:2653
 #: src/utils/pactl.c:2654 src/utils/pactl.c:2655 src/utils/pactl.c:2656
 #: src/utils/pactl.c:2657 src/utils/pactl.c:2658 src/utils/pactl.c:2659
-#: src/utils/pactl.c:2660
+#: src/utils/pactl.c:2660 src/utils/pactl.c:2625 src/utils/pactl.c:2626
+#: src/utils/pactl.c:2627 src/utils/pactl.c:2628 src/utils/pactl.c:2629
+#: src/utils/pactl.c:2630 src/utils/pactl.c:2631 src/utils/pactl.c:2632
+#: src/utils/pactl.c:2633 src/utils/pactl.c:2634 src/utils/pactl.c:2635
 msgid "[options]"
 msgstr "[параметры]"
 
-#: src/utils/pactl.c:2638
+#: src/utils/pactl.c:2638 src/utils/pactl.c:2627
 msgid "[TYPE]"
 msgstr "[ТИП]"
 
-#: src/utils/pactl.c:2640
+#: src/utils/pactl.c:2640 src/utils/pactl.c:2629
 msgid "FILENAME [NAME]"
 msgstr "ИМЯ_ФАЙЛА [ИМЯ]"
 
-#: src/utils/pactl.c:2641
+#: src/utils/pactl.c:2641 src/utils/pactl.c:2630
 msgid "NAME [SINK]"
 msgstr "ИМЯ [АУДИОПРИЁМНИК]"
 
-#: src/utils/pactl.c:2653
+#: src/utils/pactl.c:2653 src/utils/pactl.c:2642
 msgid "NAME|#N VOLUME [VOLUME ...]"
 msgstr "ИМЯ|№ ГРОМКОСТЬ [ГРОМКОСТЬ ...]"
 
-#: src/utils/pactl.c:2654
+#: src/utils/pactl.c:2654 src/utils/pactl.c:2643
 msgid "#N VOLUME [VOLUME ...]"
 msgstr "№ ГРОМКОСТЬ [ГРОМКОСТЬ ...]"
 
-#: src/utils/pactl.c:2655
+#: src/utils/pactl.c:2655 src/utils/pactl.c:2644
 msgid "NAME|#N 1|0|toggle"
 msgstr "ИМЯ|№ 1|0|toggle"
 
-#: src/utils/pactl.c:2656
+#: src/utils/pactl.c:2656 src/utils/pactl.c:2645
 msgid "#N 1|0|toggle"
 msgstr "№ 1|0|toggle"
 
-#: src/utils/pactl.c:2657
+#: src/utils/pactl.c:2657 src/utils/pactl.c:2646
 msgid "#N FORMATS"
 msgstr "№ ФОРМАТЫ"
 
-#: src/utils/pactl.c:2661
+#: src/utils/pactl.c:2661 src/utils/pactl.c:2650
 #, c-format
 msgid ""
 "\n"
@@ -3093,7 +3106,7 @@ msgstr ""
 "можно использовать для указания аудиоприёмника, источника и монитора, "
 "используемых по умолчанию.\n"
 
-#: src/utils/pactl.c:2664
+#: src/utils/pactl.c:2664 src/utils/pactl.c:2653
 #, c-format
 msgid ""
 "\n"
@@ -3117,7 +3130,7 @@ msgstr ""
 "подключиться\n"
 "  -n, --client-name=ИМЯ                 Имя этого клиента на сервере\n"
 
-#: src/utils/pactl.c:2707
+#: src/utils/pactl.c:2707 src/utils/pactl.c:2696
 #, c-format
 msgid ""
 "pactl %s\n"
@@ -3128,65 +3141,66 @@ msgstr ""
 "Скомпилировано с libpulse %s\n"
 "Скомпоновано с libpulse %s\n"
 
-#: src/utils/pactl.c:2751
+#: src/utils/pactl.c:2751 src/utils/pactl.c:2739
 #, c-format
 msgid "Invalid format value '%s'"
 msgstr "Недопустимое значение формата «%s»"
 
-#: src/utils/pactl.c:2778
+#: src/utils/pactl.c:2778 src/utils/pactl.c:2766
 #, c-format
 msgid "Specify nothing, or one of: %s"
 msgstr "Не указывайте ничего либо укажите одно из: %s"
 
-#: src/utils/pactl.c:2788
+#: src/utils/pactl.c:2788 src/utils/pactl.c:2776
 msgid "Please specify a sample file to load"
 msgstr "Необходимо указать файл, из которого будет загружен сэмпл"
 
-#: src/utils/pactl.c:2801
+#: src/utils/pactl.c:2801 src/utils/pactl.c:2789
 msgid "Failed to open sound file."
 msgstr "Не удалось открыть аудиофайл."
 
-#: src/utils/pactl.c:2813
+#: src/utils/pactl.c:2813 src/utils/pactl.c:2801
 msgid "Warning: Failed to determine sample specification from file."
 msgstr "Предупреждение: не удалось определить спецификацию отсчётов из файла."
 
-#: src/utils/pactl.c:2823
+#: src/utils/pactl.c:2823 src/utils/pactl.c:2811
 msgid "You have to specify a sample name to play"
 msgstr "Необходимо указать имя сэмпла для воспроизведения"
 
-#: src/utils/pactl.c:2835
+#: src/utils/pactl.c:2835 src/utils/pactl.c:2823
 msgid "You have to specify a sample name to remove"
 msgstr "Необходимо указать имя сэмпла для удаления"
 
-#: src/utils/pactl.c:2844
+#: src/utils/pactl.c:2844 src/utils/pactl.c:2832
 msgid "You have to specify a sink input index and a sink"
 msgstr "Необходимо указать номер входа аудиоприёмника и аудиоприёмник"
 
-#: src/utils/pactl.c:2854
+#: src/utils/pactl.c:2854 src/utils/pactl.c:2842
 msgid "You have to specify a source output index and a source"
 msgstr "Необходимо указать номер выхода источника и источник"
 
-#: src/utils/pactl.c:2869
+#: src/utils/pactl.c:2869 src/utils/pactl.c:2857
 msgid "You have to specify a module name and arguments."
 msgstr "Необходимо указать имя модуля и аргументы."
 
-#: src/utils/pactl.c:2889
+#: src/utils/pactl.c:2889 src/utils/pactl.c:2877
 msgid "You have to specify a module index or name"
 msgstr "Необходимо указать номер или имя модуля"
 
-#: src/utils/pactl.c:2902
+#: src/utils/pactl.c:2902 src/utils/pactl.c:2890
 msgid ""
 "You may not specify more than one sink. You have to specify a boolean value."
 msgstr ""
 "Нельзя указывать больше одного аудиоприёмника. Необходимо указать логическое "
 "значение."
 
-#: src/utils/pactl.c:2907 src/utils/pactl.c:2927
+#: src/utils/pactl.c:2907 src/utils/pactl.c:2927 src/utils/pactl.c:2895
+#: src/utils/pactl.c:2915
 msgid "Invalid suspend specification."
 msgstr ""
 "Недопустимое значение операции приостановки, ожидалось логическое значение."
 
-#: src/utils/pactl.c:2922
+#: src/utils/pactl.c:2922 src/utils/pactl.c:2910
 msgid ""
 "You may not specify more than one source. You have to specify a boolean "
 "value."
@@ -3194,59 +3208,61 @@ msgstr ""
 "Нельзя указывать больше одного источника. Необходимо указать логическое "
 "значение."
 
-#: src/utils/pactl.c:2939
+#: src/utils/pactl.c:2939 src/utils/pactl.c:2927
 msgid "You have to specify a card name/index and a profile name"
 msgstr "Необходимо указать имя или номер звуковой платы и имя профиля"
 
-#: src/utils/pactl.c:2950
+#: src/utils/pactl.c:2950 src/utils/pactl.c:2938
 msgid "You have to specify a sink name/index and a port name"
 msgstr "Необходимо указать имя или номер аудиоприёмника и имя порта"
 
-#: src/utils/pactl.c:2961
+#: src/utils/pactl.c:2961 src/utils/pactl.c:2949
 msgid "You have to specify a sink name"
 msgstr "Необходимо указать имя аудиоприёмника"
 
-#: src/utils/pactl.c:2974
+#: src/utils/pactl.c:2974 src/utils/pactl.c:2962
 msgid "You have to specify a source name/index and a port name"
 msgstr "Необходимо указать имя или номер источника и имя порта"
 
-#: src/utils/pactl.c:2985
+#: src/utils/pactl.c:2985 src/utils/pactl.c:2973
 msgid "You have to specify a source name"
 msgstr "Необходимо указать имя источника"
 
-#: src/utils/pactl.c:2998 src/utils/pactl.c:3076
+#: src/utils/pactl.c:2998 src/utils/pactl.c:3076 src/utils/pactl.c:2986
+#: src/utils/pactl.c:3064
 msgid "You have to specify a sink name/index"
 msgstr "Необходимо указать имя или номер аудиоприёмника"
 
-#: src/utils/pactl.c:3008
+#: src/utils/pactl.c:3008 src/utils/pactl.c:2996
 msgid "You have to specify a sink name/index and a volume"
 msgstr "Необходимо указать имя или номер аудиоприёмника и громкость"
 
-#: src/utils/pactl.c:3021 src/utils/pactl.c:3101
+#: src/utils/pactl.c:3021 src/utils/pactl.c:3101 src/utils/pactl.c:3009
+#: src/utils/pactl.c:3089
 msgid "You have to specify a source name/index"
 msgstr "Необходимо указать имя или номер источника"
 
-#: src/utils/pactl.c:3031
+#: src/utils/pactl.c:3031 src/utils/pactl.c:3019
 msgid "You have to specify a source name/index and a volume"
 msgstr "Необходимо указать имя или номер источника и громкость"
 
-#: src/utils/pactl.c:3044
+#: src/utils/pactl.c:3044 src/utils/pactl.c:3032
 msgid "You have to specify a sink input index and a volume"
 msgstr "Необходимо указать номер входа аудиоприёмника и громкость"
 
-#: src/utils/pactl.c:3049
+#: src/utils/pactl.c:3049 src/utils/pactl.c:3037
 msgid "Invalid sink input index"
 msgstr "Недопустимый номер входа аудиоприёмника"
 
-#: src/utils/pactl.c:3060
+#: src/utils/pactl.c:3060 src/utils/pactl.c:3048
 msgid "You have to specify a source output index and a volume"
 msgstr "Необходимо указать номер выхода источника и громкость"
 
-#: src/utils/pactl.c:3065
+#: src/utils/pactl.c:3065 src/utils/pactl.c:3053
 msgid "Invalid source output index"
 msgstr "Недопустимый номер выхода источника"
 
-#: src/utils/pactl.c:3086
+#: src/utils/pactl.c:3086 src/utils/pactl.c:3074
 msgid ""
 "You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"
 msgstr ""
@@ -3254,29 +3270,30 @@ msgstr ""
 "выключения звука (0, 1 или «toggle»)"
 
 #: src/utils/pactl.c:3091 src/utils/pactl.c:3116 src/utils/pactl.c:3136
-#: src/utils/pactl.c:3154
+#: src/utils/pactl.c:3154 src/utils/pactl.c:3079 src/utils/pactl.c:3104
+#: src/utils/pactl.c:3124 src/utils/pactl.c:3142
 msgid "Invalid mute specification"
 msgstr "Недопустимое логическое значение выключения звука"
 
-#: src/utils/pactl.c:3111
+#: src/utils/pactl.c:3111 src/utils/pactl.c:3099
 msgid ""
 "You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
 msgstr ""
 "Необходимо указать имя или номер источника и логическое значение выключения "
 "звука (0, 1 или «toggle»)"
 
-#: src/utils/pactl.c:3126
+#: src/utils/pactl.c:3126 src/utils/pactl.c:3114
 msgid ""
 "You have to specify a sink input index and a mute action (0, 1, or 'toggle')"
 msgstr ""
 "Необходимо указать номер входа аудиоприёмника и логическое значение "
 "выключения звука (0, 1 или «toggle»)"
 
-#: src/utils/pactl.c:3131
+#: src/utils/pactl.c:3131 src/utils/pactl.c:3119
 msgid "Invalid sink input index specification"
 msgstr "Недопустимый номер входа аудиоприёмника"
 
-#: src/utils/pactl.c:3144
+#: src/utils/pactl.c:3144 src/utils/pactl.c:3132
 msgid ""
 "You have to specify a source output index and a mute action (0, 1, or "
 "'toggle')"
@@ -3284,21 +3301,23 @@ msgstr ""
 "Необходимо указать номер выхода источника и логическое значение выключения "
 "звука (0, 1 или «toggle»)"
 
-#: src/utils/pactl.c:3149
+#: src/utils/pactl.c:3149 src/utils/pactl.c:3137
 msgid "Invalid source output index specification"
 msgstr "Недопустимый номер выхода источника"
 
-#: src/utils/pactl.c:3162
+#: src/utils/pactl.c:3162 src/utils/pactl.c:3150
 msgid "You have to specify at least an object path and a message name"
 msgstr "Вы должны указать как минимум путь к объекту и имя сообщения"
 
-#: src/utils/pactl.c:3172
+#: src/utils/pactl.c:3160
 msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
 msgstr ""
+"Даны лишние аргументы, они будут проигнорированы. Обратите внимание, что все "
+"параметры сообщения должны быть предоставлены в виде одной строки."
 
-#: src/utils/pactl.c:3182
+#: src/utils/pactl.c:3182 src/utils/pactl.c:3170
 msgid ""
 "You have to specify a sink index and a semicolon-separated list of supported "
 "formats"
@@ -3306,15 +3325,15 @@ msgstr ""
 "Необходимо указать номер аудиоприёмника и разделённый запятыми список "
 "поддерживаемых форматов"
 
-#: src/utils/pactl.c:3194
+#: src/utils/pactl.c:3194 src/utils/pactl.c:3182
 msgid "You have to specify a card name/index, a port name and a latency offset"
 msgstr "Необходимо указать имя или номер звуковой платы, имя порта и задержку"
 
-#: src/utils/pactl.c:3201
+#: src/utils/pactl.c:3201 src/utils/pactl.c:3189
 msgid "Could not parse latency offset"
 msgstr "Недопустимое значение задержки"
 
-#: src/utils/pactl.c:3213
+#: src/utils/pactl.c:3213 src/utils/pactl.c:3201
 msgid "No valid command specified."
 msgstr "Имя команды не указано или не распознано."
 
@@ -3478,6 +3497,151 @@ msgstr "Не удалось загрузить данные cookie.\n"
 #, c-format
 msgid "Not yet implemented.\n"
 msgstr "Не реализовано.\n"
+
+#: src/utils/pacat.c:676
+#, fuzzy, c-format
+msgid ""
+"%s [options]\n"
+"%s\n"
+"\n"
+"  -h, --help                            Show this help\n"
+"      --version                         Show version\n"
+"\n"
+"  -r, --record                          Create a connection for recording\n"
+"  -p, --playback                        Create a connection for playback\n"
+"\n"
+"  -v, --verbose                         Enable verbose operations\n"
+"\n"
+"  -s, --server=SERVER                   The name of the server to connect "
+"to\n"
+"  -d, --device=DEVICE                   The name of the sink/source to "
+"connect to\n"
+"  -n, --client-name=NAME                How to call this client on the "
+"server\n"
+"      --stream-name=NAME                How to call this stream on the "
+"server\n"
+"      --volume=VOLUME                   Specify the initial (linear) volume "
+"in range 0...65536\n"
+"      --rate=SAMPLERATE                 The sample rate in Hz (defaults to "
+"44100)\n"
+"      --format=SAMPLEFORMAT             The sample format, see\n"
+"                                        https://www.freedesktop.org/wiki/"
+"Software/PulseAudio/Documentation/User/SupportedAudioFormats/\n"
+"                                        for possible values (defaults to "
+"s16ne)\n"
+"      --channels=CHANNELS               The number of channels, 1 for mono, "
+"2 for stereo\n"
+"                                        (defaults to 2)\n"
+"      --channel-map=CHANNELMAP          Channel map to use instead of the "
+"default\n"
+"      --fix-format                      Take the sample format from the sink/"
+"source the stream is\n"
+"                                        being connected to.\n"
+"      --fix-rate                        Take the sampling rate from the sink/"
+"source the stream is\n"
+"                                        being connected to.\n"
+"      --fix-channels                    Take the number of channels and the "
+"channel map\n"
+"                                        from the sink/source the stream is "
+"being connected to.\n"
+"      --no-remix                        Don't upmix or downmix channels.\n"
+"      --no-remap                        Map channels by index instead of "
+"name.\n"
+"      --latency=BYTES                   Request the specified latency in "
+"bytes.\n"
+"      --process-time=BYTES              Request the specified process time "
+"per request in bytes.\n"
+"      --latency-msec=MSEC               Request the specified latency in "
+"msec.\n"
+"      --process-time-msec=MSEC          Request the specified process time "
+"per request in msec.\n"
+"      --property=PROPERTY=VALUE         Set the specified property to the "
+"specified value.\n"
+"      --raw                             Record/play raw PCM data.\n"
+"      --passthrough                     Passthrough data.\n"
+"      --file-format[=FFORMAT]           Record/play formatted PCM data.\n"
+"      --list-file-formats               List available file formats.\n"
+"      --monitor-stream=INDEX            Record from the sink input with "
+"index INDEX.\n"
+msgstr ""
+"%s [параметры]\n"
+"%s\n"
+"\n"
+"  -h, --help                            Показать эту справку о параметрах\n"
+"      --version                         Показать сведения о версии\n"
+"\n"
+"  -r, --record                          Создать соединение для записи\n"
+"  -p, --playback                        Создать соединение для "
+"воспроизведения\n"
+"\n"
+"  -v, --verbose                         Увеличить подробность "
+"информационных\n"
+"                                        сообщений.\n"
+"\n"
+"  -s, --server=СЕРВЕР                   Имя сервера, к которому нужно\n"
+"                                        подключиться.\n"
+"  -d, --device=УСТРОЙСТВО               Имя аудиоприёмника или источника, к\n"
+"                                        которому нужно подключиться.\n"
+"  -n, --client-name=ИМЯ                 Имя этого клиента, которое будет\n"
+"                                        представлено серверу.\n"
+"      --stream-name=ИМЯ                 Имя этого потока, которое будет\n"
+"                                        представлено серверу.\n"
+"      --volume=ГРОМКОСТЬ                Указать исходную (линейную) "
+"громкость\n"
+"                                        в диапазоне от 0 до 65536.\n"
+"      --rate=ЧАСТОТА                    Частота дискретизации в Гц\n"
+"                                        (по умолчанию 44100).\n"
+"      --format=ФОРМАТ_ОТСЧЁТОВ          Формат отсчётов, одно из значений\n"
+"                                        s16le, s16be, u8, float32le,\n"
+"                                        float32be, ulaw, alaw, s32le, "
+"s32be,\n"
+"                                        s24le, s24be, s24-32le, s24-32be\n"
+"                                        (по умолчанию s16ne).\n"
+"      --channels=КАНАЛОВ                Число каналов, 1 для моно, 2 для "
+"стерео\n"
+"                                        (по умолчанию 2).\n"
+"      --channel-map=СХЕМА_КАНАЛОВ       Схема каналов для использования "
+"вместо\n"
+"                                        стандартной.\n"
+"      --fix-format                      Использовать формат отсчётов как у\n"
+"                                        аудиоприёмника/источника, к которому "
+"подключён\n"
+"                                        поток.\n"
+"      --fix-rate                        Использовать частоту дискретизации\n"
+"                                        как у аудиоприёмника/источника, к "
+"которому\n"
+"                                        подключён поток.\n"
+"      --fix-channels                    Использовать число каналов и схему\n"
+"                                        каналов как у аудиоприёмника/"
+"источника,\n"
+"                                        к которому подключён поток.\n"
+"      --no-remix                        Не менять число каналов.\n"
+"      --no-remap                        Сопоставлять каналы по их номерам,\n"
+"                                        а не по именам.\n"
+"      --latency=БАЙТЫ                   Запросить указанную задержку в "
+"байтах.\n"
+"      --process-time=БАЙТЫ              Запросить указанное время обработки\n"
+"                                        в расчёте на запрос в байтах.\n"
+"      --latency-msec=МИЛЛИСЕКУНДЫ       Запросить указанную задержку\n"
+"                                        в миллисекундах.\n"
+"      --process-time-msec=МИЛЛИСЕКУНДЫ  Запросить указанное время обработки\n"
+"                                        в расчёте на запрос в "
+"миллисекундах.\n"
+"      --property=СВОЙСТВО=ЗНАЧЕНИЕ      Установить указанное значение\n"
+"                                        для указанного свойства.\n"
+"      --raw                             Записывать или воспроизводить\n"
+"                                        необработанные данные импульсно-"
+"кодовой\n"
+"                                        модуляции (PCM).\n"
+"      --passthrough                     Передавать данные насквозь\n"
+"                                        без изменений.\n"
+"      --file-format[=ФОРМАТ_ФАЙЛА]      Записывать или воспроизводить\n"
+"                                        форматированные данные\n"
+"                                        импульсно-кодовой модуляции (PCM).\n"
+"      --list-file-formats               Показать список доступных форматов\n"
+"                                        файлов.\n"
+"      --monitor-stream=НОМЕР            Выполнять запись из входа\n"
+"                                        аудиоприёмника с указанным номером.\n"
 
 #~ msgid "Failed to initialize daemon."
 #~ msgstr "Не удалось инициализировать демон."
