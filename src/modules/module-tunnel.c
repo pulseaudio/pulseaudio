@@ -2349,6 +2349,7 @@ static int do_init(pa_module *m) {
         goto fail;
     }
 
+    automatic = false;
     if (pa_modargs_get_value_boolean(ma, "auto", &automatic) < 0) {
         pa_log("Failed to parse argument \"auto\".");
         goto fail;
