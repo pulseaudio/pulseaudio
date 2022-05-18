@@ -342,7 +342,7 @@ static void maybe_restart(struct userdata *u) {
         pa_restart_module_reinit(u->module, do_init, do_done, u->reconnect_interval_us);
     } else {
         /* exit the module */
-        pa_asyncmsgq_post(u->thread_mq->outq, PA_MSGOBJECT(u->module->core), PA_CORE_MESSAGE_UNLOAD_MODULE, u->module, 0, NULL, NULL);
+        pa_module_unload_request(u->module, true);
     }
 }
 

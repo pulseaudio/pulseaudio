@@ -147,7 +147,6 @@ enum {
     SINK_MESSAGE_UPDATE_LATENCY,
     SINK_MESSAGE_GET_LATENCY_SNAPSHOT,
     SINK_MESSAGE_POST,
-    SINK_MESSAGE_CREATED
 };
 
 #define DEFAULT_LATENCY_MSEC 100
@@ -159,7 +158,6 @@ enum {
     SOURCE_MESSAGE_REMOTE_SUSPEND,
     SOURCE_MESSAGE_UPDATE_LATENCY,
     SOURCE_MESSAGE_GET_LATENCY_SNAPSHOT,
-    SOURCE_MESSAGE_CREATED
 };
 
 #define DEFAULT_LATENCY_MSEC 25
@@ -174,11 +172,6 @@ typedef struct tunnel_msg tunnel_msg;
 PA_DEFINE_PRIVATE_CLASS(tunnel_msg, pa_msgobject);
 
 enum {
-#ifdef TUNNEL_SINK
-    TUNNEL_MESSAGE_CREATE_SINK_REQUEST,
-#else
-    TUNNEL_MESSAGE_CREATE_SOURCE_REQUEST,
-#endif
     TUNNEL_MESSAGE_MAYBE_RESTART,
 };
 
@@ -301,8 +294,10 @@ struct userdata {
 
 static void request_latency(struct userdata *u);
 #ifdef TUNNEL_SINK
+static void create_sink(struct userdata *u);
 static void on_sink_created(struct userdata *u);
 #else
+static void create_source(struct userdata *u);
 static void on_source_created(struct userdata *u);
 #endif
 
@@ -672,12 +667,6 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             u->receive_counter += chunk->length;
 
             return 0;
-
-        case SINK_MESSAGE_CREATED:
-
-            on_sink_created(u);
-
-            return 0;
     }
 
     return pa_sink_process_msg(o, code, data, offset, chunk);
@@ -805,12 +794,6 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 
             return 0;
         }
-
-        case SOURCE_MESSAGE_CREATED:
-
-            on_source_created(u);
-
-            return 0;
     }
 
     return pa_source_process_msg(o, code, data, offset, chunk);
@@ -1982,6 +1965,8 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
 static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata) {
     struct userdata *u = userdata;
 
+    pa_assert_ctl_context();
+
     pa_assert(sc);
     pa_assert(u);
     pa_assert(u->client == sc);
@@ -1998,11 +1983,19 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
     u->io = io;
 
 #ifdef TUNNEL_SINK
-    pa_log_debug("Asking ctl thread to create sink.");
-    pa_asyncmsgq_post(u->thread_mq.outq, PA_MSGOBJECT(u->msg), TUNNEL_MESSAGE_CREATE_SINK_REQUEST, u, 0, NULL, NULL);
+    create_sink(u);
+    if (!u->sink) {
+        unload_module(u);
+        return;
+    }
+    on_sink_created(u);
 #else
-    pa_log_debug("Asking ctl thread to create source.");
-    pa_asyncmsgq_post(u->thread_mq.outq, PA_MSGOBJECT(u->msg), TUNNEL_MESSAGE_CREATE_SOURCE_REQUEST, u, 0, NULL, NULL);
+    create_source(u);
+    if (!u->source) {
+        unload_module(u);
+        return;
+    }
+    on_source_created(u);
 #endif
 }
 
@@ -2141,8 +2134,6 @@ static void create_sink(struct userdata *u) {
 finish:
     pa_sink_new_data_done(&data);
     pa_xfree(data_name);
-
-    pa_asyncmsgq_post(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_CREATED, u, 0, NULL, NULL);
 }
 #else
 static void create_source(struct userdata *u) {
@@ -2190,8 +2181,6 @@ static void create_source(struct userdata *u) {
 finish:
     pa_source_new_data_done(&data);
     pa_xfree(data_name);
-
-    pa_asyncmsgq_post(u->source->asyncmsgq, PA_MSGOBJECT(u->source), SOURCE_MESSAGE_CREATED, u, 0, NULL, NULL);
 }
 #endif
 
@@ -2206,15 +2195,7 @@ static int tunnel_process_msg(pa_msgobject *o, int code, void *data, int64_t off
         return 0;
 
     switch (code) {
-#ifdef TUNNEL_SINK
-        case TUNNEL_MESSAGE_CREATE_SINK_REQUEST:
-            create_sink(u);
-            break;
-#else
-        case TUNNEL_MESSAGE_CREATE_SOURCE_REQUEST:
-            create_source(u);
-            break;
-#endif
+
         case TUNNEL_MESSAGE_MAYBE_RESTART:
             unload_module(u);
             break;
@@ -2258,7 +2239,10 @@ static int start_connect(struct userdata *u, char *server, bool automatic) {
         server_list = pa_strlist_pop(server_list, &u->server_name);
 
         if (!u->server_name) {
-            pa_log("Failed to connect to server '%s'", server);
+            if (server)
+                pa_log("Failed to connect to server '%s'", server);
+            else
+                pa_log("Failed to connect");
             rc = -1;
             goto done;
         }
