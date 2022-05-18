@@ -8,7 +8,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-05-16 23:56+0300\n"
-"PO-Revision-Date: 2022-01-10 01:16+0000\n"
+"PO-Revision-Date: 2022-05-18 22:27+0000\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/uk/>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 4.10.1\n"
+"X-Generator: Weblate 4.12.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -1921,7 +1921,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "Помилка pa_stream_update_timing_info(): %s"
 
 #: src/utils/pacat.c:676
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "%s\n"
