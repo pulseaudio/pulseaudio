@@ -116,6 +116,11 @@ struct userdata {
     pa_usec_t reconnect_interval_us;
 };
 
+struct module_restart_data {
+    struct userdata *userdata;
+    pa_restart_data *restart_data;
+};
+
 static const char* const valid_modargs[] = {
     "source_name",
     "source_properties",
@@ -320,12 +325,19 @@ static void stream_state_cb(pa_stream *stream, void *userdata) {
 }
 
 /* Do a reinit of the module.  Note that u will be freed as a result of this
- * call, while pu will live on to the next iteration.  It's up to do_done to
- * copy anything that we want to persist across iterations out of u and into pu
- */
-static void maybe_restart(struct userdata *u) {
+ * call. */
+static void maybe_restart(struct module_restart_data *rd) {
+    struct userdata *u = rd->userdata;
+
+    if (rd->restart_data) {
+        pa_log_debug("Restart already pending");
+        return;
+    }
+
     if (u->reconnect_interval_us > 0) {
-        pa_restart_module_reinit(u->module, do_init, do_done, u->reconnect_interval_us);
+        /* The handle returned here must be freed when do_init() finishes successfully
+         * and when the module exits. */
+        rd->restart_data = pa_restart_module_reinit(u->module, do_init, do_done, u->reconnect_interval_us);
     } else {
         /* exit the module */
         pa_module_unload_request(u->module, true);
@@ -594,7 +606,7 @@ static int tunnel_process_msg(pa_msgobject *o, int code, void *data, int64_t off
             create_source(u);
             break;
         case TUNNEL_MESSAGE_MAYBE_RESTART:
-            maybe_restart(u);
+            maybe_restart(u->module->userdata);
             break;
     }
 
@@ -603,12 +615,16 @@ static int tunnel_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 
 static int do_init(pa_module *m) {
     struct userdata *u = NULL;
+    struct module_restart_data *rd;
     pa_modargs *ma = NULL;
     const char *remote_server = NULL;
     char *default_source_name = NULL;
     uint32_t reconnect_interval_ms = 0;
 
     pa_assert(m);
+    pa_assert(m->userdata);
+
+    rd = m->userdata;
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments.");
@@ -617,7 +633,7 @@ static int do_init(pa_module *m) {
 
     u = pa_xnew0(struct userdata, 1);
     u->module = m;
-    m->userdata = u;
+    rd->userdata = u;
 
     u->sample_spec = m->core->default_sample_spec;
     u->channel_map = m->core->default_channel_map;
@@ -682,6 +698,16 @@ static int do_init(pa_module *m) {
         goto fail;
     }
 
+    /* If the module is restarting and do_init() finishes successfully, the
+     * restart data is no longer needed. If do_init() fails, don't touch the
+     * restart data, because following restart attempts will continue to use
+     * the same data. If restart_data is NULL, that means no restart is
+     * currently pending. */
+    if (rd->restart_data) {
+        pa_restart_free(rd->restart_data);
+        rd->restart_data = NULL;
+    }
+
     pa_modargs_free(ma);
     pa_xfree(default_source_name);
 
@@ -699,10 +725,13 @@ fail:
 
 static void do_done(pa_module *m) {
     struct userdata *u = NULL;
+    struct module_restart_data *rd;
 
     pa_assert(m);
 
-    if (!(u = m->userdata))
+    if (!(rd = m->userdata))
+        return;
+    if (!(u = rd->userdata))
         return;
 
     u->shutting_down = true;
@@ -748,13 +777,15 @@ static void do_done(pa_module *m) {
 
     pa_xfree(u);
 
-    m->userdata = NULL;
+    rd->userdata = NULL;
 }
 
 int pa__init(pa_module *m) {
     int ret;
 
     pa_assert(m);
+
+    m->userdata = pa_xnew0(struct module_restart_data, 1);
 
     ret = do_init(m);
 
@@ -768,4 +799,13 @@ void pa__done(pa_module *m) {
     pa_assert(m);
 
     do_done(m);
+
+    if (m->userdata) {
+        struct module_restart_data *rd = m->userdata;
+
+        if (rd->restart_data)
+            pa_restart_free(rd->restart_data);
+
+        pa_xfree(m->userdata);
+    }
 }

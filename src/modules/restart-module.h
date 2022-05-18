@@ -29,10 +29,20 @@ extern "C" {
 #include <pulsecore/core.h>
 #include <pulsecore/thread-mq.h>
 
+/* Init and exit callbacks of the module */
 typedef int (*init_cb)(pa_module *m);
 typedef void (*done_cb)(pa_module *m);
+/* Restart data structure */
+typedef struct pa_restart_data pa_restart_data;
 
-void pa_restart_module_reinit(pa_module *m, init_cb do_init, done_cb do_done, pa_usec_t restart_usec);
+/* Tears down the module using the done callback and schedules a restart after restart_usec.
+ * Returns a handle to the restart event. When the init callback finishes successfully during
+ * restart or when the restart should be cancelled, the restart event must be destroyed using
+ * pa_restart_free(). */
+pa_restart_data *pa_restart_module_reinit(pa_module *m, init_cb do_init, done_cb do_done, pa_usec_t restart_usec);
+
+/* Free the restart event */
+void pa_restart_free(pa_restart_data *data);
 
 #ifdef __cplusplus
 }

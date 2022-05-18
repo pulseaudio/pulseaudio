@@ -292,6 +292,11 @@ struct userdata {
     pa_usec_t reconnect_interval_us;
 };
 
+struct module_restart_data {
+    struct userdata *userdata;
+    pa_restart_data *restart_data;
+};
+
 static void request_latency(struct userdata *u);
 #ifdef TUNNEL_SINK
 static void create_sink(struct userdata *u);
@@ -302,15 +307,21 @@ static void on_source_created(struct userdata *u);
 #endif
 
 /* Do a reinit of the module.  Note that u will be freed as a result of this
- * call, while pu will live on to the next iteration.  It's up to do_done to
- * copy anything that we want to persist across iterations out of u and into pu
- */
-static void unload_module(struct userdata *u) {
-    if (u->reconnect_interval_us > 0) {
-        pa_restart_module_reinit(u->module, do_init, do_done, u->reconnect_interval_us);
-    } else {
-        pa_module_unload_request(u->module, true);
+ * call. */
+static void unload_module(struct module_restart_data *rd) {
+    struct userdata *u = rd->userdata;
+
+    if (rd->restart_data) {
+        pa_log_debug("Restart already pending");
+        return;
     }
+
+    if (u->reconnect_interval_us > 0) {
+        /* The handle returned here must be freed when do_init() was successful and when the
+         * module exits. */
+        rd->restart_data = pa_restart_module_reinit(u->module, do_init, do_done, u->reconnect_interval_us);
+    } else
+        pa_module_unload_request(u->module, true);
 }
 
 /* Called from main context */
@@ -328,7 +339,7 @@ static void command_stream_killed(pa_pdispatch *pd,  uint32_t command,  uint32_t
     pa_assert(u->pdispatch == pd);
 
     pa_log_warn("Stream killed");
-    unload_module(u);
+    unload_module(u->module->userdata);
 }
 
 /* Called from main context */
@@ -360,7 +371,7 @@ static void command_suspended(pa_pdispatch *pd,  uint32_t command,  uint32_t tag
         !pa_tagstruct_eof(t)) {
 
         pa_log("Invalid packet.");
-        unload_module(u);
+        unload_module(u->module->userdata);
         return;
     }
 
@@ -393,7 +404,7 @@ static void command_moved(pa_pdispatch *pd,  uint32_t command,  uint32_t tag, pa
         pa_tagstruct_get_boolean(t, &suspended) < 0) {
 
         pa_log_error("Invalid packet.");
-        unload_module(u);
+        unload_module(u->module->userdata);
         return;
     }
 
@@ -422,7 +433,7 @@ static void command_stream_buffer_attr_changed(pa_pdispatch *pd, uint32_t comman
         pa_tagstruct_getu32(t, &maxlength) < 0) {
 
         pa_log_error("Invalid packet.");
-        unload_module(u);
+        unload_module(u->module->userdata);
         return;
     }
 
@@ -431,7 +442,7 @@ static void command_stream_buffer_attr_changed(pa_pdispatch *pd, uint32_t comman
             pa_tagstruct_get_usec(t, &usec) < 0) {
 
             pa_log_error("Invalid packet.");
-            unload_module(u);
+            unload_module(u->module->userdata);
             return;
         }
     } else {
@@ -441,7 +452,7 @@ static void command_stream_buffer_attr_changed(pa_pdispatch *pd, uint32_t comman
             pa_tagstruct_get_usec(t, &usec) < 0) {
 
             pa_log_error("Invalid packet.");
-            unload_module(u);
+            unload_module(u->module->userdata);
             return;
         }
     }
@@ -895,7 +906,7 @@ static void command_request(pa_pdispatch *pd, uint32_t command,  uint32_t tag, p
     return;
 
 fail:
-    unload_module(u);
+    unload_module(u->module->userdata);
 }
 
 #endif
@@ -1010,7 +1021,7 @@ static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, uint
 
 fail:
 
-    unload_module(u);
+    unload_module(u->module->userdata);
 }
 
 /* Called from main context */
@@ -1145,7 +1156,7 @@ static void server_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa
     return;
 
 fail:
-    unload_module(u);
+    unload_module(u->module->userdata);
 }
 
 static int read_ports(struct userdata *u, pa_tagstruct *t) {
@@ -1300,7 +1311,7 @@ static void sink_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa_t
     return;
 
 fail:
-    unload_module(u);
+    unload_module(u->module->userdata);
 }
 
 /* Called from main context */
@@ -1409,7 +1420,7 @@ static void sink_input_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag
     return;
 
 fail:
-    unload_module(u);
+    unload_module(u->module->userdata);
 }
 
 #else
@@ -1499,7 +1510,7 @@ static void source_info_cb(pa_pdispatch *pd, uint32_t command,  uint32_t tag, pa
     return;
 
 fail:
-    unload_module(u);
+    unload_module(u->module->userdata);
 }
 
 #endif
@@ -1560,7 +1571,7 @@ static void command_subscribe_event(pa_pdispatch *pd,  uint32_t command,  uint32
     if (pa_tagstruct_getu32(t, &e) < 0 ||
         pa_tagstruct_getu32(t, &idx) < 0) {
         pa_log("Invalid protocol reply");
-        unload_module(u);
+        unload_module(u->module->userdata);
         return;
     }
 
@@ -1707,7 +1718,7 @@ parse_error:
     pa_log("Invalid reply. (Create stream)");
 
 fail:
-    unload_module(u);
+    unload_module(u->module->userdata);
 
 }
 
@@ -1911,7 +1922,7 @@ static void setup_complete_callback(pa_pdispatch *pd, uint32_t command, uint32_t
     return;
 
 fail:
-    unload_module(u);
+    unload_module(u->module->userdata);
 }
 
 /* Called from main context */
@@ -1922,7 +1933,7 @@ static void pstream_die_callback(pa_pstream *p, void *userdata) {
     pa_assert(u);
 
     pa_log_warn("Stream died.");
-    unload_module(u);
+    unload_module(u->module->userdata);
 }
 
 /* Called from main context */
@@ -1935,7 +1946,7 @@ static void pstream_packet_callback(pa_pstream *p, pa_packet *packet, pa_cmsg_an
 
     if (pa_pdispatch_run(u->pdispatch, packet, ancil_data, u) < 0) {
         pa_log("Invalid packet");
-        unload_module(u);
+        unload_module(u->module->userdata);
         return;
     }
 }
@@ -1951,7 +1962,7 @@ static void pstream_memblock_callback(pa_pstream *p, uint32_t channel, int64_t o
 
     if (channel != u->channel) {
         pa_log("Received memory block on bad channel.");
-        unload_module(u);
+        unload_module(u->module->userdata);
         return;
     }
 
@@ -1976,7 +1987,7 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
 
     if (!io) {
         pa_log("Connection failed: %s", pa_cstrerror(errno));
-        unload_module(u);
+        unload_module(u->module->userdata);
         return;
     }
 
@@ -1985,14 +1996,14 @@ static void on_connection(pa_socket_client *sc, pa_iochannel *io, void *userdata
 #ifdef TUNNEL_SINK
     create_sink(u);
     if (!u->sink) {
-        unload_module(u);
+        unload_module(u->module->userdata);
         return;
     }
     on_sink_created(u);
 #else
     create_source(u);
     if (!u->source) {
-        unload_module(u);
+        unload_module(u->module->userdata);
         return;
     }
     on_source_created(u);
@@ -2197,7 +2208,7 @@ static int tunnel_process_msg(pa_msgobject *o, int code, void *data, int64_t off
     switch (code) {
 
         case TUNNEL_MESSAGE_MAYBE_RESTART:
-            unload_module(u);
+            unload_module(u->module->userdata);
             break;
     }
 
@@ -2270,6 +2281,7 @@ done:
 static int do_init(pa_module *m) {
     pa_modargs *ma = NULL;
     struct userdata *u = NULL;
+    struct module_restart_data *rd;
     char *server = NULL;
     uint32_t latency_msec;
     bool automatic;
@@ -2280,13 +2292,16 @@ static int do_init(pa_module *m) {
     uint32_t reconnect_interval_ms = 0;
 
     pa_assert(m);
+    pa_assert(m->userdata);
+
+    rd = m->userdata;
 
     if (!(ma = pa_modargs_new(m->argument, valid_modargs))) {
         pa_log("Failed to parse module arguments");
         goto fail;
     }
 
-    m->userdata = u = pa_xnew0(struct userdata, 1);
+    rd->userdata = u = pa_xnew0(struct userdata, 1);
     u->core = m->core;
     u->module = m;
     u->client = NULL;
@@ -2492,6 +2507,16 @@ static int do_init(pa_module *m) {
         xcb_disconnect(xcb);
 #endif
 
+    /* If the module is restarting and do_init() finishes successfully, the
+     * restart data is no longer needed. If do_init() fails, don't touch the
+     * restart data, because following restart attempts will continue to use
+     * the same data. If restart_data is NULL, that means no restart is
+     * currently pending. */
+    if (rd->restart_data) {
+        pa_restart_free(rd->restart_data);
+        rd->restart_data = NULL;
+    }
+
     pa_modargs_free(ma);
 
     return 0;
@@ -2513,10 +2538,13 @@ fail:
 
 static void do_done(pa_module *m) {
     struct userdata *u = NULL;
+    struct module_restart_data *rd;
 
     pa_assert(m);
 
-    if (!(u = m->userdata))
+    if (!(rd = m->userdata))
+        return;
+    if (!(u = rd->userdata))
         return;
 
     u->shutting_down = true;
@@ -2595,13 +2623,15 @@ static void do_done(pa_module *m) {
 
     pa_xfree(u);
 
-    m->userdata = NULL;
+    rd->userdata = NULL;
 }
 
 int pa__init(pa_module *m) {
     int ret;
 
     pa_assert(m);
+
+    m->userdata = pa_xnew0(struct module_restart_data, 1);
 
     ret = do_init(m);
 
@@ -2615,4 +2645,13 @@ void pa__done(pa_module *m) {
     pa_assert(m);
 
     do_done(m);
+
+    if (m->userdata) {
+        struct module_restart_data *rd = m->userdata;
+
+        if (rd->restart_data)
+            pa_restart_free(rd->restart_data);
+
+        pa_xfree(m->userdata);
+    }
 }
