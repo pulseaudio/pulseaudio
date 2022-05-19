@@ -788,6 +788,7 @@ static void get_volume_reply(DBusPendingCall *pending, void *userdata) {
     pa_bluetooth_transport *t;
     uint16_t gain;
     pa_volume_t volume;
+    const char *error_name, *error_message;
 
     pa_assert(pending);
     pa_assert_se(p = userdata);
@@ -796,10 +797,18 @@ static void get_volume_reply(DBusPendingCall *pending, void *userdata) {
     pa_assert_se(r = dbus_pending_call_steal_reply(pending));
 
     if (dbus_message_get_type(r) == DBUS_MESSAGE_TYPE_ERROR) {
-        pa_log_error(DBUS_INTERFACE_PROPERTIES ".Get %s Volume failed: %s: %s",
-                     dbus_message_get_path(p->message),
-                     dbus_message_get_error_name(r),
-                     pa_dbus_get_error_message(r));
+        error_name = dbus_message_get_error_name(r);
+        error_message = pa_dbus_get_error_message(r);
+
+        if (pa_streq(error_name, DBUS_ERROR_INVALID_ARGS) && pa_streq(error_message, "No such property 'Volume'")) {
+            pa_log_warn(DBUS_INTERFACE_PROPERTIES ".Get %s Volume property not (yet) available",
+                        dbus_message_get_path(p->message));
+        } else {
+            pa_log_error(DBUS_INTERFACE_PROPERTIES ".Get %s Volume failed: %s: %s",
+                         dbus_message_get_path(p->message),
+                         error_name,
+                         error_message);
+        }
         goto finish;
     }
     dbus_message_iter_init(r, &iter);
