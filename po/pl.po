@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-05-16 23:56+0300\n"
-"PO-Revision-Date: 2022-01-08 16:04+0000\n"
+"PO-Revision-Date: 2022-05-21 10:06+0000\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/pl/>\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 4.10.1\n"
+"X-Generator: Weblate 4.12.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -1894,7 +1894,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() się nie powiodło: %s"
 
 #: src/utils/pacat.c:676
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "%s\n"
@@ -1975,7 +1975,9 @@ msgstr ""
 "\n"
 "  -s, --server=SERWER                   Nazwa serwera do połączenia się\n"
 "  -d, --device=URZĄDZENIE               Nazwa odpływu/źródła\n"
-"                                        do połączenia się\n"
+"                                        do połączenia się. Specjalne nazwy "
+"@DEFAULT_SINK@, @DEFAULT_SOURCE@ i @DEFAULT_MONITOR@ mogą być używane do "
+"podawania domyślnego odpływu, źródła i monitora.\n"
 "  -n, --client-name=NAZWA               Jak nazywać tego klienta\n"
 "                                        na serwerze\n"
 "      --stream-name=NAZWA               Jak nazwać ten potok na serwerze\n"
