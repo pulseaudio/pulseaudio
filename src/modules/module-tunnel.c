@@ -290,6 +290,7 @@ struct userdata {
     pa_iochannel *io;
 
     pa_usec_t reconnect_interval_us;
+    pa_usec_t snapshot_time;
 };
 
 struct module_restart_data {
@@ -646,7 +647,8 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             else
                 bytes = 0;
 
-             pa_smoother_2_put(u->smoother, pa_rtclock_now(), bytes);
+            /* We may use u->snapshot time because the main thread is waiting */
+             pa_smoother_2_put(u->smoother, u->snapshot_time, bytes);
 #else
             pa_usec_t y;
 
@@ -657,7 +659,8 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             else
                 y = 0;
 
-            pa_smoother_put(u->smoother, pa_rtclock_now(), y);
+            /* We may use u->snapshot time because the main thread is waiting */
+            pa_smoother_put(u->smoother, u->snapshot_time, y);
 #endif
 
             /* We can access this freely here, since the main thread is waiting for us */
@@ -790,14 +793,16 @@ static int source_process_msg(pa_msgobject *o, int code, void *data, int64_t off
 
             bytes += u->counter;
 
-            pa_smoother_2_put(u->smoother, pa_rtclock_now(), bytes);
+            /* We may use u->snapshot time because the main thread is waiting */
+            pa_smoother_2_put(u->smoother, u->snapshot_time, bytes);
 #else
             pa_usec_t y;
 
             y = pa_bytes_to_usec((uint64_t) u->counter, &u->source->sample_spec);
             y += offset;
 
-            pa_smoother_put(u->smoother, pa_rtclock_now(), y);
+            /* We may use u->snapshot time because the main thread is waiting */
+            pa_smoother_put(u->smoother, u->snapshot_time, y);
 #endif
 
             /* We can access this freely here, since the main thread is waiting for us */
@@ -1010,6 +1015,9 @@ static void stream_get_latency_callback(pa_pdispatch *pd, uint32_t command, uint
     pa_asyncmsgq_send(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_GET_LATENCY_SNAPSHOT, &send_counter, 0, NULL);
     delay += (int64_t) pa_bytes_to_usec(send_counter - u->receive_snapshot, ss);
 #endif
+
+    /* It may take some time before the async message is executed, so we take a timestamp here */
+    u->snapshot_time = pa_rtclock_now();
 
 #ifdef TUNNEL_SINK
     pa_asyncmsgq_send(u->sink->asyncmsgq, PA_MSGOBJECT(u->sink), SINK_MESSAGE_UPDATE_LATENCY, 0, delay, NULL);
