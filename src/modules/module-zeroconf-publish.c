@@ -645,7 +645,7 @@ static int avahi_process_msg(pa_msgobject *o, int code, void *data, int64_t offs
 
     pa_assert(u);
 
-    if (u->shutting_down)
+    if (u->shutting_down || u->module->unload_requested)
         return 0;
 
     switch (code) {
