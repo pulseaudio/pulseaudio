@@ -265,6 +265,9 @@ static int sink_process_msg_cb(pa_msgobject *o, int code, void *data, int64_t of
                 pa_bytes_to_usec(pa_memblockq_get_length(u->sink_input->thread_info.render_memblockq), &u->sink_input->sink->sample_spec);
             //    pa_bytes_to_usec(u->samples_gathered * fs, &u->sink->sample_spec);
             //+ pa_bytes_to_usec(u->latency * fs, ss)
+
+            /* Add resampler latency */
+            *((int64_t*) data) += pa_resampler_get_delay_usec(u->sink_input->thread_info.resampler);
             return 0;
         }
     }

@@ -93,6 +93,9 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
                 /* Add the latency internal to our sink input on top */
                 pa_bytes_to_usec(pa_memblockq_get_length(u->sink_input->thread_info.render_memblockq), &u->sink_input->sink->sample_spec);
 
+            /* Add resampler latency */
+            *((int64_t*) data) += pa_resampler_get_delay_usec(u->sink_input->thread_info.resampler);
+
             return 0;
     }
 
