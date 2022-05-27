@@ -1072,7 +1072,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
             size_t latency;
 
             latency = pa_usec_to_bytes((pa_usec_t)offset,  &u->sink->sample_spec);
-            pa_smoother_2_put(u->thread_info.smoother, pa_rtclock_now(), (int64_t)u->thread_info.counter - latency);
+            pa_smoother_2_put(u->thread_info.smoother, u->thread_info.snapshot_time, (int64_t)u->thread_info.snapshot_counter - latency);
 #else
             pa_usec_t x, y, latency = (pa_usec_t) offset;
 
