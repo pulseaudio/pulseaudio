@@ -213,7 +213,9 @@ int pa_sap_recv(pa_sap_context *c, bool *goodbye) {
     if ((unsigned) size >= sizeof(MIME_TYPE) && pa_streq(e, MIME_TYPE)) {
         e += sizeof(MIME_TYPE);
         size -= (int) sizeof(MIME_TYPE);
-    } else if ((unsigned) size < sizeof(PA_SDP_HEADER)-1 || strncmp(e, PA_SDP_HEADER, sizeof(PA_SDP_HEADER)-1)) {
+    } else if ((unsigned) size < sizeof(PA_SDP_HEADER)-1 || strncmp(e, PA_SDP_HEADER, sizeof(PA_SDP_HEADER)-1)
+            || strcspn(e, "\r\n") != sizeof(PA_SDP_HEADER)-1) {
+        /* SDP header does not start with v=0[\r]\n */
         pa_log_warn("Invalid SDP header.");
         goto fail;
     }

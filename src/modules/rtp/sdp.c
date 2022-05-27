@@ -73,7 +73,7 @@ char *pa_sdp_build(int af, const void *src, const void *dst, const char *name, u
     pa_assert_se(inet_ntop(af, dst, buf_dst, sizeof(buf_dst)));
 
     return pa_sprintf_malloc(
-            PA_SDP_HEADER
+            PA_SDP_HEADER "\n"
             "o=%s %lu 0 IN %s %s\n"
             "s=%s\n"
             "c=IN %s %s\n"
@@ -130,17 +130,29 @@ pa_sdp_info *pa_sdp_parse(const char *t, pa_sdp_info *i, int is_goodbye) {
     i->salen = 0;
     i->payload = 255;
 
-    if (!pa_startswith(t, PA_SDP_HEADER)) {
+    if (pa_startswith(t, PA_SDP_HEADER)) {
+        t += sizeof(PA_SDP_HEADER) - 1;
+
+        /* CR delimiter is optional */
+        if (*t == '\r')
+            t++;
+
+        /* LF delimiter is mandatory */
+        if (*t == '\n')
+            t++;
+        else {
+            pa_log("Failed to parse SDP data: missing header record terminator LF.");
+            goto fail;
+        }
+    } else {
         pa_log("Failed to parse SDP data: invalid header.");
         goto fail;
     }
 
-    t += sizeof(PA_SDP_HEADER)-1;
-
     while (*t) {
         size_t l;
 
-        l = strcspn(t, "\n");
+        l = strcspn(t, "\r\n");
 
         if (l <= 2) {
             pa_log("Failed to parse SDP data: line too short: >%s<.", t);
@@ -240,8 +252,17 @@ pa_sdp_info *pa_sdp_parse(const char *t, pa_sdp_info *i, int is_goodbye) {
 
         t += l;
 
+        /* CR delimiter is optional */
+        if (*t == '\r')
+            t++;
+
+        /* LF delimiter is mandatory */
         if (*t == '\n')
             t++;
+        else {
+            pa_log("Failed to parse SDP data: missing record terminator LF.");
+            goto fail;
+        }
     }
 
     if (!i->origin || (!is_goodbye && (!i->salen || i->payload > 127 || !ss_valid || port == 0))) {

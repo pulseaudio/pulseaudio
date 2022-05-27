@@ -26,7 +26,7 @@
 
 #include <pulse/sample.h>
 
-#define PA_SDP_HEADER "v=0\n"
+#define PA_SDP_HEADER "v=0"
 
 typedef struct pa_sdp_info {
     char *origin;
