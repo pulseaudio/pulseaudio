@@ -15,6 +15,7 @@ Changes at a glance:
    * Channel remixing can be disabled for module-combine-sink
    * A lot of fixes to ALSA, bluetooth, and other components.
  * Notes for application developers
+   * Stream latency reports now include resampler delay
    * Module installation location changed, remember to upgrade paprefs to the latest version!
  * Notes for packagers
    * Opus support in the RTP modules requires enabling GStreamer
@@ -23,6 +24,73 @@ Changes at a glance:
    * Change Meson option 'daemon-only' to 'client'
    * glib and fftw are now common dependencies, not only for the client.
    * Enable GStreamer-based RTP by default when available
+
+Detailed change log:
+
+  https://www.freedesktop.org/wiki/Software/PulseAudio/Notes/16.0/
+
+Contributors
+
+Alexey Rubtsov
+Anders Jonsson
+Andika Triwidada
+Arun Raghavan
+Biswapriyo Nath
+BtbN
+Chengyi Zhao
+Chupligin Sergey
+Craig Howard
+Daniel Dantur
+Daniel Hernandez
+Diederik de Haas
+Dylan Van Assche
+Emilio Herrera
+Ettore Atalan
+Fran Diéguez
+Georg Chini
+Gogo Gogsi
+Göran Uddeborg
+Hela Basa
+Hui Wang
+Igor V. Kovalenko
+Jan Kuparinen
+Jaroslav Kysela
+Josef Haider
+João Paulo Rechi Vita
+Juho Hämäläinen
+Karl Ove Hufthammer
+Laurent Bigonville
+Luna Jernberg
+Lv Genggeng
+Marijn Suijten
+Mart Raudsepp
+Mathy Vanvoorden
+Olivier Gayot
+Ovari
+Oğuz Ersen
+Piotr Drąg
+Rafael Fontenelle
+Rico Tzschichholz
+Sanchayan Maity
+Sebastian Reichel
+Sergey A
+Sibo Dong
+Sungjoon Moon
+Takashi Sakamoto
+Takuro Onoue
+Tanu Kaskinen
+Temuri Doghonadze
+Will Thompson
+Yuri Chornoivan
+acheronfail
+baek inchan
+guest271314
+liaohanqin
+simmon
+simple
+tensorknower69
+김인수
+
 
 PulseAudio 15.0
 
