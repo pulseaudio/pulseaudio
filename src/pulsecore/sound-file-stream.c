@@ -185,7 +185,7 @@ static int sink_input_pop_cb(pa_sink_input *i, size_t length, pa_memchunk *chunk
 
         tchunk.length = (size_t) n * fs;
 
-        pa_memblockq_push(u->memblockq, &tchunk);
+        pa_memblockq_push_align(u->memblockq, &tchunk);
         pa_memblock_unref(tchunk.memblock);
     }
 
