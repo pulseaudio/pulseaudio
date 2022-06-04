@@ -2527,16 +2527,16 @@ static int parse_volume(const char *vol_spec, pa_volume_t *vol, enum volume_flag
     vs = pa_xstrdup(vol_spec);
 
     *vol_flags = (pa_startswith(vs, "+") || pa_startswith(vs, "-")) ? VOL_RELATIVE : VOL_ABSOLUTE;
-    if (strchr(vs, '.'))
-        *vol_flags |= VOL_LINEAR;
     if (pa_endswith(vs, "%")) {
         *vol_flags |= VOL_PERCENT;
         vs[strlen(vs)-1] = 0;
     }
-    if (pa_endswith(vs, "db") || pa_endswith(vs, "dB")) {
+    else if (pa_endswith(vs, "db") || pa_endswith(vs, "dB")) {
         *vol_flags |= VOL_DECIBEL;
         vs[strlen(vs)-2] = 0;
     }
+    else if (strchr(vs, '.'))
+        *vol_flags |= VOL_LINEAR;
 
     atod_input = vs;
 
@@ -2597,7 +2597,7 @@ static int parse_volumes(char *args[], unsigned n) {
 
     volume.channels = n;
     for (i = 0; i < volume.channels; i++) {
-        enum volume_flags flags;
+        enum volume_flags flags = 0;
 
         if (parse_volume(args[i], &volume.values[i], &flags) < 0)
             return -1;
