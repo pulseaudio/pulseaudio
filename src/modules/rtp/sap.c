@@ -146,15 +146,25 @@ int pa_sap_recv(pa_sap_context *c, bool *goodbye) {
     char *buf = NULL, *e;
     uint32_t header;
     unsigned six, ac, k;
-    ssize_t r;
-
+ 
     pa_assert(c);
     pa_assert(goodbye);
+
+    /* FIONREAD works on both BSD and Linux, but they do something different:
+     * - on Linux it returns the amount of bytes in the next datagram
+     * - on BSDs it returns the total amount of bytes in the output buffer; this can be
+     *   more than one datagram and includes headers
+     *
+     * So the result will be a lower bound of how many bytes are needed, but might not be
+     * the exact size of the buffer size needed.
+     */
 
     if (ioctl(c->fd, FIONREAD, &size) < 0) {
         pa_log_warn("FIONREAD failed: %s", pa_cstrerror(errno));
         goto fail;
     }
+    /* Since size is a lower bound, also constrain it to an upper bound */
+    size = PA_MIN(size, 1<<16);
 
     buf = pa_xnew(char, (unsigned) size+1);
     buf[size] = 0;
@@ -170,8 +180,8 @@ int pa_sap_recv(pa_sap_context *c, bool *goodbye) {
     m.msg_controllen = 0;
     m.msg_flags = 0;
 
-    if ((r = recvmsg(c->fd, &m, 0)) != size) {
-        pa_log_warn("recvmsg() failed: %s", r < 0 ? pa_cstrerror(errno) : "size mismatch");
+    if ((size = recvmsg(c->fd, &m, 0)) < 0) {
+        pa_log_warn("recvmsg() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 

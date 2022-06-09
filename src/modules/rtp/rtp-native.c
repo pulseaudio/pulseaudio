@@ -200,7 +200,6 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool, uint32_
     uint32_t ssrc;
     uint8_t payload;
     unsigned cc;
-    ssize_t r;
     uint8_t aux[1024];
     bool found_tstamp = false;
 
@@ -208,6 +207,15 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool, uint32_
     pa_assert(chunk);
 
     pa_memchunk_reset(chunk);
+
+    /* FIONREAD works on both BSD and Linux, but they do something different:
+     * - on Linux it returns the amount of bytes in the next datagram
+     * - on BSDs it returns the total amount of bytes in the output buffer; this can be
+     *   more than one datagram and includes headers
+     *
+     * So the result will be a lower bound of how many bytes are needed, but might not be
+     * the exact size of the buffer size needed.
+     */
 
     if (ioctl(c->fd, FIONREAD, &size) < 0) {
         pa_log_warn("FIONREAD failed: %s", pa_cstrerror(errno));
@@ -238,6 +246,9 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool, uint32_
         size = 1;
     }
 
+    /* Since size is a lower bound, also constrain it to an upper bound */
+    size = PA_MIN(size, 1<<16);
+
     if (c->recv_buf_size < (size_t) size) {
         do
             c->recv_buf_size *= 2;
@@ -259,12 +270,11 @@ int pa_rtp_recv(pa_rtp_context *c, pa_memchunk *chunk, pa_mempool *pool, uint32_
     m.msg_controllen = sizeof(aux);
     m.msg_flags = 0;
 
-    r = recvmsg(c->fd, &m, 0);
+    size = recvmsg(c->fd, &m, 0);
 
-    if (r != size) {
-        if (r < 0 && errno != EAGAIN && errno != EINTR)
-            pa_log_warn("recvmsg() failed: %s", r < 0 ? pa_cstrerror(errno) : "size mismatch");
-
+    if (size < 0) {
+        if (errno != EAGAIN && errno != EINTR)
+            pa_log_warn("recvmsg() failed: %s", pa_cstrerror(errno));
         goto fail;
     }
 
