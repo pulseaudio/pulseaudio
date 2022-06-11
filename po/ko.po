@@ -7,8 +7,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-05-16 23:56+0300\n"
-"PO-Revision-Date: 2022-05-20 18:18+0000\n"
-"Last-Translator: 김인수 <simmon@nplob.com>\n"
+"PO-Revision-Date: 2022-06-12 14:19+0000\n"
+"Last-Translator: Seong-ho Cho <darkcircle.0426@gmail.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ko/>\n"
 "Language: ko\n"
@@ -94,14 +94,14 @@ msgstr ""
 "명령:\n"
 "  -h, --help                            도움말을 표시\n"
 "      --version                         버전을 표시\n"
-"      --dump-conf                       기본 구성을 덤프\n"
-"      --dump-modules                    사용 가능한 모듈의 목록을 덤프\n"
+"      --dump-conf                       기본 구성 덤프\n"
+"      --dump-modules                    사용 가능한 모듈의 목록 덤프\n"
 "      --dump-resample-methods           사용 가능한 재표본 방식으로 덤프\n"
 "      --cleanup-shm                      오래된 공유 메모리 세그멘트 정리\n"
 "      --start                           만약 실행되지 않았으면 데몬을 시작\n"
 "  -k  --kill                            실행 중인 데몬을 제거\n"
-"      --check                           동작 중인 데몬을 위한 점검 (종료 "
-"코드만 반환)\n"
+"      --check                           동작 중인 데몬 점검 (종료 코드만 "
+"반환)\n"
 "\n"
 "OPTIONS:\n"
 "      --system[=BOOL]                   시스템-전반의 인스턴스로 실행\n"
@@ -110,7 +110,7 @@ msgstr ""
 "      --high-priority[=BOOL]            높은 수준으로 설정을 시도\n"
 "                                        (root로만 사용 가능, SUID 또는\n"
 "                                        높은 RLIMIT_NICE일 때에)\n"
-"      --realtime[=BOOL]                 Try to enable realtime scheduling\n"
+"      --realtime[=BOOL]                 실시간 스케쥴링 활성 시도\n"
 "                                        (root로만 사용 가능, SUID 또는\n"
 "                                        높은 RLIMIT_RTPRIO일 때에)\n"
 "      --disallow-module-loading[=BOOL]  시작 후 사용자가 요청 모듈을\n"
@@ -121,7 +121,7 @@ msgstr ""
 "      --exit-idle-time=SECS             유휴 상태이고 시간이 경과하면\n"
 "                                        데몬을 종료함\n"
 "      --scache-idle-time=SECS           유휴 상태이고 시간이 경과하면\n"
-"                                        자동 적재된 표뵨을 내려 놓음\n"
+"                                        자동 적재된 표본을 내려 놓음\n"
 "      --log-level[=LEVEL]               자세한 표시 수준을 높이거나 설정\n"
 "  -v  --verbose                         자세한 표시 수준을 높임\n"
 "      --log-target={auto,syslog,stderr,file:PATH,newfile:PATH}\n"
@@ -132,11 +132,11 @@ msgstr ""
 "  -p, --dl-search-path=PATH             동적 공유 객체(플러그인)을 위한\n"
 "                                        검색 경로를 설정\n"
 "      --resample-method=METHOD          지정한 재표본 방식을 사용\n"
-"                                        (사용 가능한 값을 위해 --dump-"
-"resample-methods을\n"
+"                                        (사용 가능한 값은 --dump-resample-"
+"methods 옵션을\n"
 "                                        참조)\n"
 "      --use-pid-file[=BOOL]             PID 파일을 생성\n"
-"      --no-cpu-limit[=BOOL]             이를 지원하는 CPU 적재 제한기를\n"
+"      --no-cpu-limit[=BOOL]             이를 지원하는 CPU 부하 제한기를\n"
 "                                        설치하지 않음.\n"
 "      --disable-shm[=BOOL]              공유 메모리 지원을 비활성화.\n"
 "      --enable-memfd[=BOOL]             memfd 공유 메모리 지원을 활성화.\n"
@@ -145,7 +145,7 @@ msgstr ""
 "  -L, --load=\"MODULE ARGUMENTS\"         지정된 인수와 함께 지정된 "
 "플러그인\n"
 "                                        모듈을 적재\n"
-"  -F, --file=FILENAME                   지정된 스크립트를 실행\n"
+"  -F, --file=FILENAME                   지정 스크립트 실행\n"
 "  -C                                    시작 후에 동작 중인 TTY에서\n"
 "                                        명령 줄을 엽니다\n"
 "\n"
@@ -153,39 +153,39 @@ msgstr ""
 
 #: src/daemon/cmdline.c:246
 msgid "--daemonize expects boolean argument"
-msgstr "--daemonize 에는 부울 인수가 필요합니다"
+msgstr "--daemonize 에는 부울 인자 값이 필요합니다"
 
 #: src/daemon/cmdline.c:254
 msgid "--fail expects boolean argument"
-msgstr "--fail 에는 부울 인수가 필요합니다"
+msgstr "--fail 에는 부울 인자 값이 필요합니다"
 
 #: src/daemon/cmdline.c:265
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of error, warn, notice, info, debug)."
 msgstr ""
-"--log-level 에는 로그 수준 인수가 필요합니다 (0~4 숫자 범위 또는 오류, 경고, "
-"알림, 정보, 디버그 중 하나 )."
+"--log-level 에는 로그 수준 인자 값이 필요합니다 (0~4 숫자 범위 또는 오류, "
+"경고, 알림, 정보, 디버그 중 하나)."
 
 #: src/daemon/cmdline.c:277
 msgid "--high-priority expects boolean argument"
-msgstr "--high-priority 에는 부울 인수가 필요합니다"
+msgstr "--high-priority 에는 부울 인자 값이 필요합니다"
 
 #: src/daemon/cmdline.c:285
 msgid "--realtime expects boolean argument"
-msgstr "--realtime 에는 부울 인수가 필요합니다"
+msgstr "--realtime 에는 부울 인자 값이 필요합니다"
 
 #: src/daemon/cmdline.c:293
 msgid "--disallow-module-loading expects boolean argument"
-msgstr "--disallow-module-loading 에는 부울 인수가 필요합니다"
+msgstr "--disallow-module-loading 에는 부울 인자 값이 필요합니다"
 
 #: src/daemon/cmdline.c:301
 msgid "--disallow-exit expects boolean argument"
-msgstr "--disallow-exit 에는 부울 인수가 필요합니다"
+msgstr "--disallow-exit 에는 부울 인자 값이 필요합니다"
 
 #: src/daemon/cmdline.c:309
 msgid "--use-pid-file expects boolean argument"
-msgstr "--use-pid-file 부울 인수가 필요합니다"
+msgstr "--use-pid-file 부울 인자 값이 필요합니다"
 
 #: src/daemon/cmdline.c:328
 msgid ""
@@ -205,32 +205,32 @@ msgstr ""
 
 #: src/daemon/cmdline.c:338
 msgid "--log-time expects boolean argument"
-msgstr "--log-time 에는 부울 인수가 필요합니다"
+msgstr "--log-time 에는 부울 인자 값이 필요합니다"
 
 #: src/daemon/cmdline.c:346
 msgid "--log-meta expects boolean argument"
-msgstr "--log-meta 에는 부울 인수가 필요합니다"
+msgstr "--log-meta 에는 부울 인자 값이 필요합니다"
 
 #: src/daemon/cmdline.c:366
 #, c-format
 msgid "Invalid resample method '%s'."
-msgstr "잘못된 리샘플링 방법 '%s'."
+msgstr "잘못된 리샘플링 방식 '%s'."
 
 #: src/daemon/cmdline.c:373
 msgid "--system expects boolean argument"
-msgstr "--system 에는 부울 인수가 필요합니다"
+msgstr "--system 에는 부울 인자 값이 필요합니다"
 
 #: src/daemon/cmdline.c:381
 msgid "--no-cpu-limit expects boolean argument"
-msgstr "--no-cpu-limit 에는 부울 인수가 필요합니다"
+msgstr "--no-cpu-limit 에는 부울 인자 값이 필요합니다"
 
 #: src/daemon/cmdline.c:389
 msgid "--disable-shm expects boolean argument"
-msgstr "--disable-shm 에는 부울 인수가 필요합니다"
+msgstr "--disable-shm 에는 부울 인자 값이 필요합니다"
 
 #: src/daemon/cmdline.c:397
 msgid "--enable-memfd expects boolean argument"
-msgstr "--enable-memfd는 부울 인수가 예상됩니다"
+msgstr "--enable-memfd는 부울 인자 값이 필요합니다"
 
 #: src/daemon/daemon-conf.c:270
 #, c-format
@@ -301,8 +301,7 @@ msgstr "설정 파일 열기 실패: %s"
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
-msgstr ""
-"지정된 기본 채널 맵은 지정된 기본 채널 수와는 다른 채널 수를 가지고 있습니다."
+msgstr "지정 기본 채널 맵은 지정 기본 채널 수와는 다른 채널 수를 가지고 있습니다."
 
 #: src/daemon/daemon-conf.c:788
 #, c-format
@@ -365,7 +364,7 @@ msgstr "기존 lt_dlopen 로더를 찾는데 실패했습니다."
 
 #: src/daemon/ltdl-bind-now.c:131
 msgid "Failed to allocate new dl loader."
-msgstr "새 dl 로더를 할당하는데 실패했습니다."
+msgstr "새 dl 로더 할당에 실패했습니다."
 
 #: src/daemon/ltdl-bind-now.c:144
 msgid "Failed to add bind-now-loader."
@@ -374,22 +373,22 @@ msgstr "bind-now-loader를 추가하는데 실패했습니다."
 #: src/daemon/main.c:265
 #, c-format
 msgid "Failed to find user '%s'."
-msgstr "사용자 '%s'를 찾을 수 없습니다."
+msgstr "'%s' 사용자를 찾을 수 없습니다."
 
 #: src/daemon/main.c:270
 #, c-format
 msgid "Failed to find group '%s'."
-msgstr "그룹 '%s'를 찾을 수 없습니다."
+msgstr "'%s' 그룹을 찾을 수 없습니다."
 
 #: src/daemon/main.c:279
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
-msgstr "사용자 '%s'의 GID와 그룹 '%s'가 일치하지 않습니다."
+msgstr "'%s' 사용자의 GID와 '%s' 그룹 정보가 일치하지 않습니다."
 
 #: src/daemon/main.c:284
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
-msgstr "사용자 '%s'의 홈 디렉토리가 '%s'가 아닙니다, 무시됨."
+msgstr "'%s' 사용자의 홈 디렉터리가 '%s' 경로가 아닙니다, 무시함."
 
 #: src/daemon/main.c:287 src/daemon/main.c:292
 #, c-format
@@ -413,7 +412,7 @@ msgstr "UID 변경 실패: %s"
 
 #: src/daemon/main.c:360
 msgid "System wide mode unsupported on this platform."
-msgstr "시스템 전역 모드는 이 플랫폼에서 지원되지 않습니다."
+msgstr "시스템 전역 모드는 이 플랫폼에서 지원하지 않습니다."
 
 #: src/daemon/main.c:650
 msgid "Failed to parse command line."
@@ -423,8 +422,7 @@ msgstr "명령어 행 분석 실패."
 msgid ""
 "System mode refused for non-root user. Only starting the D-Bus server lookup "
 "service."
-msgstr ""
-"비 root 사용자에 대해 시스템 모드는 거부되었습니다. D-Bus 서버 검색 서비스만 "
+msgstr "비 루트 사용자의 시스템 모드 전환을 거부했습니다. D-Bus 서버 검색 서비스만 "
 "시작합니다."
 
 #: src/daemon/main.c:788
@@ -436,12 +434,12 @@ msgstr "데몬 종료 실패: %s"
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
-msgstr ""
-"프로그램이 root로 실행되지 않습니다. (실행하려면 --system을 명기하십시오)."
+msgstr "이 프로그램은 루트 계정으로 실행하도록 만들지 않았습니다. (실행하려면 --"
+"system을 명기하십시오)."
 
 #: src/daemon/main.c:820
 msgid "Root privileges required."
-msgstr "Root 권한이 필요합니다."
+msgstr "루트 권한이 필요합니다."
 
 #: src/daemon/main.c:827
 msgid "--start not supported for system instances."
@@ -460,14 +458,12 @@ msgstr "%s에 사용자가 설정한 서버, 이는 로컬에 있습니다. 상�
 
 #: src/daemon/main.c:878
 msgid "Running in system mode, but --disallow-exit not set."
-msgstr ""
-"시스템 모드에서 실행중입니다. 하지만 --disallow-exit가 설정되지 않았습니다."
+msgstr "시스템 모드에서 실행 중입니다. 하지만 --disallow-exit을 설정하지 않았습니다."
 
 #: src/daemon/main.c:881
 msgid "Running in system mode, but --disallow-module-loading not set."
-msgstr ""
-"시스템 모드에서 실행 중입니다. 하지만 --disallow-module-loading이 설정되어 있"
-"지 않습니다."
+msgstr "시스템 모드에서 실행 중입니다. 하지만 --disallow-module-loading을 설정하지 "
+"않았습니다."
 
 #: src/daemon/main.c:884
 msgid "Running in system mode, forcibly disabling SHM mode."
@@ -863,7 +859,7 @@ msgstr "스테레오 듀플렉스"
 
 #: src/modules/alsa/alsa-mixer.c:4739
 msgid "Mono Chat + 7.1 Surround"
-msgstr "모노 Chat + 7.1 Surround"
+msgstr "모노 대화 + 7.1 서라운드"
 
 #: src/modules/alsa/alsa-mixer.c:4740 src/modules/alsa/module-alsa-card.c:197
 #: src/modules/bluetooth/module-bluez5-device.c:2263
@@ -1478,9 +1474,9 @@ msgid ""
 "e.g. happen if you try to connect to a non-root PulseAudio as a root user, "
 "over the native protocol. Don't do that.)"
 msgstr ""
-"XDG_RUNTIME_DIR (%s)는 우리(uid %d)가 아니라 uid %d가 소유합니다! (기본적인 "
-"통신규약을 통해 비-root가 PluseAudio에 root 사용자로 연결을 시도할 때에 예를 "
-"들어 발생 할 수 있습니다. 그렇게 하지 않습니다.)"
+"XDG_RUNTIME_DIR (%s)은 우리(uid %d)가 아니라 uid %d가 소유합니다! (자체 "
+"프로토콜로 비 루트 펄스오디오 사용자가 루트 사용자 권한으로 연결할 때 이 "
+"문제가 일어납니다. 그렇게 하지 마십시오.)"
 
 #: src/pulsecore/core-util.h:97
 msgid "yes"
@@ -1589,7 +1585,7 @@ msgstr "자료 없음"
 
 #: src/pulse/error.c:55
 msgid "Incompatible protocol version"
-msgstr "호환되지 않는 통신규약 버전"
+msgstr "호환되지 않는 프로토콜 버전"
 
 #: src/pulse/error.c:56
 msgid "Too large"
@@ -3135,9 +3131,8 @@ msgstr "최소한 객체 경로와 메시지 이름을 지정해야만 합니다
 msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
-msgstr ""
-"초과 인수가 주어지면, 이들은 무시될 것입니다. 모든 메시지 변수는 단일 문자열"
-"로 주어져야 합니다."
+msgstr "초과 인자 값을 부여하면 무시합니다. 모든 메시지 변수는 단일 문자열로 "
+"주어져야 합니다."
 
 #: src/utils/pactl.c:3182
 msgid ""
@@ -3211,7 +3206,7 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
-"%s [옵션] -- 프로그램 -[ 인수 ...]\n"
+"%s [옵션] -- 프로그램 -[ 인자 ...]\n"
 "\n"
 "프로그램이 동작 할 때에 일시적으로 PulseAudio를 중지합니다.\n"
 "\n"
