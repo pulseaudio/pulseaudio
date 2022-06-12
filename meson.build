@@ -732,6 +732,10 @@ if get_option('daemon')
     cdata.set('HAVE_SYSTEMD_LOGIN', 1)
   endif
 
+  if get_option('consolekit').enabled()
+    assert(dbus_dep.found(), 'ConsoleKit requires D-Bus support')
+  endif
+
   tcpwrap_dep = cc.find_library('wrap', required: get_option('tcpwrap'))
   if cc.has_header('tcpd.h') and cc.has_function('hosts_access', dependencies : tcpwrap_dep)
     cdata.set('HAVE_LIBWRAP', 1)
@@ -1001,6 +1005,7 @@ summary += [
   '  Enable HAL->udev compat:     @0@'.format(get_option('hal-compat')),
   'Enable systemd units:          @0@'.format(systemd_dep.found()),
   'Enable elogind:                @0@'.format(libelogind_dep.found()),
+  'Enable ConsoleKit:             @0@'.format(not get_option('consolekit').disabled() and dbus_dep.found()),
   'Enable TCP Wrappers:           @0@'.format(tcpwrap_dep.found()),
   'Enable OpenSSL (for Airtunes): @0@'.format(openssl_dep.found()),
   'Database:                      @0@'.format(get_option('database')),

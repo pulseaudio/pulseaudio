@@ -130,7 +130,6 @@ endif
 
 if dbus_dep.found()
   all_modules += [
-    [ 'module-console-kit', 'module-console-kit.c', [], [], [dbus_dep] ],
     [ 'module-dbus-protocol',
       [ 'dbus/iface-card.c', 'dbus/iface-card.h',
 	'dbus/iface-card-profile.c', 'dbus/iface-card-profile.h',
@@ -147,6 +146,12 @@ if dbus_dep.found()
       [], [], [dbus_dep] ],
     [ 'module-rygel-media-server', 'module-rygel-media-server.c', [], [], [dbus_dep], libprotocol_http ],
   ]
+
+  if not get_option('consolekit').disabled()
+    all_modules += [
+      [ 'module-console-kit', 'module-console-kit.c', [], [], [dbus_dep] ],
+    ]
+  endif
 endif
 
 if fftw_dep.found()
