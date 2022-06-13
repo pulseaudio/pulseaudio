@@ -480,7 +480,7 @@ static ssize_t send_udp_audio_packet(pa_raop_client *c, pa_memchunk *block, size
     }
 
     pa_memblock_release(packet->memblock);
-    /* It is meaningless to preseve the partial data */
+    /* It is meaningless to preserve the partial data */
     block->index += block->length;
     block->length = 0;
 
