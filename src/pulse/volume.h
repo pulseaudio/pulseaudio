@@ -49,7 +49,7 @@
  * sink input. In fact, it depends on the server configuration. With flat
  * volumes enabled, it means the maximum volume that the sound hardware is
  * capable of, which is usually so high that you absolutely must not set sink
- * input volume to 100% unless the the user explicitly requests that (note that
+ * input volume to 100% unless the user explicitly requests that (note that
  * usually you shouldn't set the volume anyway if the user doesn't explicitly
  * request it, instead, let PulseAudio decide the volume for the sink input).
  * With flat volumes disabled the sink input volume is relative to the sink
