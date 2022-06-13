@@ -179,7 +179,7 @@ struct userdata {
 #ifdef USE_SMOOTHER_2
         pa_smoother_2 *smoother;
 #else
-         pa_smoother *smoother;
+        pa_smoother *smoother;
 #endif
         uint64_t counter;
 
