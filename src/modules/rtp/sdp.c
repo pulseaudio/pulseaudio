@@ -129,6 +129,7 @@ pa_sdp_info *pa_sdp_parse(const char *t, pa_sdp_info *i, int is_goodbye) {
     i->origin = i->session_name = NULL;
     i->salen = 0;
     i->payload = 255;
+    i->enable_opus = false;
 
     if (pa_startswith(t, PA_SDP_HEADER)) {
         t += sizeof(PA_SDP_HEADER) - 1;
