@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 #include <errno.h>
+#include <math.h>
 
 #include <pulse/rtclock.h>
 #include <pulse/timeval.h>
@@ -239,7 +240,7 @@ static uint32_t rate_controller(
 
     /* Choose the rate that is nearer to base_rate */
     new_rate = new_rate_2;
-    if (abs(new_rate_1 - base_rate) < abs(new_rate_2 - base_rate))
+    if (fabs(new_rate_1 - base_rate) < fabs(new_rate_2 - base_rate))
         new_rate = new_rate_1;
 
     return (uint32_t)(new_rate + 0.5);
