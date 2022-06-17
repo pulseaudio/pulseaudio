@@ -22,6 +22,7 @@
 #endif
 
 #include <arpa/inet.h>
+#include <stdint.h>
 
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
@@ -82,7 +83,7 @@ fail:
 static GstCaps *gst_create_caps_from_sample_spec(const pa_sample_spec *ss) {
     gchar *sample_format;
     GstCaps *caps;
-    int channel_mask;
+    uint64_t channel_mask;
 
     switch (ss->format) {
         case PA_SAMPLE_S16LE:
