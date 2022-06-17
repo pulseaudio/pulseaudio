@@ -1162,6 +1162,8 @@ msgstr ""
 
 #: src/modules/module-equalizer-sink.c:1097
 #: src/modules/module-equalizer-sink.c:1220
+#: src/modules/module-equalizer-sink.c:1094
+#: src/modules/module-equalizer-sink.c:1217
 #, c-format
 msgid "FFT based equalizer on %s"
 msgstr "FFT temeljen ekvalizator na %s"
@@ -1229,12 +1231,16 @@ msgstr "Zvuk na @NAZIVRAČUNALA@"
 #. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
 #: src/modules/module-tunnel-sink-new.c:370
 #: src/modules/module-tunnel-source-new.c:354
+#: src/modules/module-tunnel-sink-new.c:356
+#: src/modules/module-tunnel-source-new.c:342
 #, c-format
 msgid "Tunnel for %s@%s"
 msgstr "Tunel za %s@%s"
 
 #: src/modules/module-tunnel-sink-new.c:715
 #: src/modules/module-tunnel-source-new.c:684
+#: src/modules/module-tunnel-sink-new.c:697
+#: src/modules/module-tunnel-source-new.c:668
 #, c-format
 msgid "Tunnel to %s/%s"
 msgstr "Tunel do %s/%s"
@@ -1583,11 +1589,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "Neispravno odredište zapisa."
 
-#: src/pulsecore/sink.c:3609
+#: src/pulsecore/sink.c:3609 src/pulsecore/sink.c:3600
 msgid "Built-in Audio"
 msgstr "Ugrađeni zvuk"
 
-#: src/pulsecore/sink.c:3614
+#: src/pulsecore/sink.c:3614 src/pulsecore/sink.c:3605
 msgid "Modem"
 msgstr "Modem"
 
@@ -1904,7 +1910,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() neuspjelo: %s"
 
 #: src/utils/pacat.c:676
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "%s\n"
@@ -1985,7 +1991,9 @@ msgstr ""
 "  -s, --server=POSLUŽITELJ                   Naziv poslužitelja za "
 "povezivanje\n"
 "  -d, --device=UREĐAJ                   Naziv slivnika/izvora za "
-"povezivanje\n"
+"povezivanje. Posebni nazivi @DEFAULT_SINK@, @DEFAULT_SOURCE@ i "
+"@DEFAULT_MONITOR@ mogu se koristiti za određivanje zadanog slivnika, izvora "
+"i nadgledanja.\n"
 "  -n, --client-name=NAZIV                Naziv klijenta na poslužitelju\n"
 "      --stream-name=NAZIV                Naziv strujanja na poslužitelju\n"
 "      --volume=GLASNOĆA ZVUKA                   Određuje početnu (linearnu) "
@@ -1994,7 +2002,7 @@ msgstr ""
 "      --format=FORMAT UZORKA             Vrsta uzorka, pogledajte\n"
 "                                        https://www.freedesktop.org/wiki/"
 "Software/PulseAudio/Documentation/User/SupportedAudioFormats/\n"
-"                                        za moguće vrijenosti (zadano je "
+"                                        za moguće vrijednosti (zadano je "
 "s16ne)\n"
 "      --channels=KANALI               Broj kanala, 1 za mono, 2 za stereo\n"
 "                                        (zadano 2)\n"
@@ -2002,14 +2010,14 @@ msgstr ""
 "umjesto zadanog\n"
 "      --fix-format                      Uzima uzorak formata iz slivnika/"
 "izvora s kojim\n"
-"                                        je tok povezan.\n"
+"                                        je strujanje povezano.\n"
 "      --fix-rate                        Uzima frekvenciju iz slivnika/izvora "
 "s kojim\n"
-"                                        je tok povezan.\n"
+"                                        je strujanje povezano.\n"
 "      --fix-channels                    Uzima broj kanala i mapiranje "
 "kanala\n"
-"                                        iz slivnika/izvora s kojim je tok "
-"povezan.\n"
+"                                        iz slivnika/izvora s kojim je "
+"strujanje povezano.\n"
 "      --no-remix                        Ne smanjuj ili pojačavaj kanale.\n"
 "      --no-remap                        Mapiraj kanale prema sadržaju "
 "umjesto nazivu.\n"
@@ -2021,8 +2029,8 @@ msgstr ""
 "msek.\n"
 "      --process-time-msec=MSEK          Zahtijevaj određeno vrijeme procesa "
 "po zahtjevu u msek.\n"
-"      --property=VLASNIŠTVO=VRIJEDNOST         Postavi određeno vlasništvo "
-"za određenu vrijednost.\n"
+"      --property=SVOJSTVO=VRIJEDNOST         Postavi određeno svojstvo za "
+"određenu vrijednost.\n"
 "      --raw                             Snimaj/Reproduciraj osnovne PCM "
 "podatke.\n"
 "      --passthrough                     Prolaz podataka.\n"
