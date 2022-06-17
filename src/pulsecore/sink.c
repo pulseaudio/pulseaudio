@@ -1016,20 +1016,29 @@ size_t pa_sink_process_input_underruns(pa_sink *s, size_t left_to_play) {
         if (i->origin_sink) {
             size_t filter_result, left_to_play_origin;
 
-            /* The recursive call works in the origin sink domain ... */
-            left_to_play_origin = pa_convert_size(left_to_play, &i->sink->sample_spec, &i->origin_sink->sample_spec);
+            /* The combine sink sets i->origin sink but has a different threading model
+             * than the filter sinks. Therefore the recursion below may not be executed
+             * because pa_sink_process_input_underruns() was not called in the thread
+             * context of the origin sink.
+             * FIXME: It is unclear if some other kind of recursion would be necessary
+             * for the combine sink. */
+            if (!i->module || !pa_safe_streq(i->module->name, "module-combine-sink")) {
 
-            /* .. and returns the time to sleep before waking up. We need the
-             * underrun duration for comparisons, so we undo the subtraction on
-             * the return value... */
-            filter_result = left_to_play_origin - pa_sink_process_input_underruns(i->origin_sink, left_to_play_origin);
+                /* The recursive call works in the origin sink domain ... */
+                left_to_play_origin = pa_convert_size(left_to_play, &i->sink->sample_spec, &i->origin_sink->sample_spec);
 
-            /* ... and convert it back to the master sink domain */
-            filter_result = pa_convert_size(filter_result, &i->origin_sink->sample_spec, &i->sink->sample_spec);
+                /* .. and returns the time to sleep before waking up. We need the
+                 * underrun duration for comparisons, so we undo the subtraction on
+                 * the return value... */
+                filter_result = left_to_play_origin - pa_sink_process_input_underruns(i->origin_sink, left_to_play_origin);
 
-            /* Remember the longest underrun so far */
-            if (filter_result > result)
-                result = filter_result;
+                /* ... and convert it back to the master sink domain */
+                filter_result = pa_convert_size(filter_result, &i->origin_sink->sample_spec, &i->sink->sample_spec);
+
+                /* Remember the longest underrun so far */
+                if (filter_result > result)
+                    result = filter_result;
+            }
         }
 
         if (uf == 0) {
