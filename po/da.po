@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: PulseAudio master\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2022-05-16 23:56+0300\n"
+"POT-Creation-Date: 2022-06-18 09:49+0300\n"
 "PO-Revision-Date: 2021-05-21 23:01+0000\n"
 "Last-Translator: scootergrisen <scootergrisen@gmail.com>\n"
 "Language-Team: Danish <https://translate.fedoraproject.org/projects/"
@@ -1133,8 +1133,8 @@ msgstr ""
 "channel_map=<kanalkort> autoloaded=<indstil hvis modulet indlæses "
 "automatisk> use_volume_sharing=<yes eller no> "
 
-#: src/modules/module-equalizer-sink.c:1094
-#: src/modules/module-equalizer-sink.c:1217
+#: src/modules/module-equalizer-sink.c:1097
+#: src/modules/module-equalizer-sink.c:1220
 #, c-format
 msgid "FFT based equalizer on %s"
 msgstr "FFT-baseret equalizer på %s"
@@ -1200,14 +1200,14 @@ msgstr "Lyd på @HOSTNAME@"
 
 #. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
 #. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
-#: src/modules/module-tunnel-sink-new.c:356
-#: src/modules/module-tunnel-source-new.c:342
+#: src/modules/module-tunnel-sink-new.c:370
+#: src/modules/module-tunnel-source-new.c:354
 #, c-format
 msgid "Tunnel for %s@%s"
 msgstr "Tunnel for %s@%s"
 
-#: src/modules/module-tunnel-sink-new.c:697
-#: src/modules/module-tunnel-source-new.c:668
+#: src/modules/module-tunnel-sink-new.c:715
+#: src/modules/module-tunnel-source-new.c:684
 #, c-format
 msgid "Tunnel to %s/%s"
 msgstr "Tunnel til %s/%s"
@@ -1556,11 +1556,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "Ugyldigt logmål."
 
-#: src/pulsecore/sink.c:3600
+#: src/pulsecore/sink.c:3609
 msgid "Built-in Audio"
 msgstr "Indbygget lyd"
 
-#: src/pulsecore/sink.c:3605
+#: src/pulsecore/sink.c:3614
 msgid "Modem"
 msgstr "Modem"
 

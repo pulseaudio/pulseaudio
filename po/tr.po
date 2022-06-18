@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: PulseAudio master\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2022-05-16 23:56+0300\n"
+"POT-Creation-Date: 2022-06-18 09:49+0300\n"
 "PO-Revision-Date: 2022-05-18 22:27+0000\n"
 "Last-Translator: Oğuz Ersen <oguz@ersen.moe>\n"
 "Language-Team: Turkish <https://translate.fedoraproject.org/projects/"
@@ -1131,8 +1131,8 @@ msgstr ""
 "otomatikyüklenmiş=<set if this module is being loaded automatically> "
 "ses_paylaşım_kullan=<yes or no> "
 
-#: src/modules/module-equalizer-sink.c:1094
-#: src/modules/module-equalizer-sink.c:1217
+#: src/modules/module-equalizer-sink.c:1097
+#: src/modules/module-equalizer-sink.c:1220
 #, c-format
 msgid "FFT based equalizer on %s"
 msgstr "%s üzerinde FFT tabanlı dengeleyici"
@@ -1199,14 +1199,14 @@ msgstr "@HOSTNAME@ üzerindeki SES"
 
 #. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
 #. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
-#: src/modules/module-tunnel-sink-new.c:356
-#: src/modules/module-tunnel-source-new.c:342
+#: src/modules/module-tunnel-sink-new.c:370
+#: src/modules/module-tunnel-source-new.c:354
 #, c-format
 msgid "Tunnel for %s@%s"
 msgstr "%s@%s için tünel"
 
-#: src/modules/module-tunnel-sink-new.c:697
-#: src/modules/module-tunnel-source-new.c:668
+#: src/modules/module-tunnel-sink-new.c:715
+#: src/modules/module-tunnel-source-new.c:684
 #, c-format
 msgid "Tunnel to %s/%s"
 msgstr "%s/%s tünel"
@@ -1556,11 +1556,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "Geçersiz günlük hedefi."
 
-#: src/pulsecore/sink.c:3600
+#: src/pulsecore/sink.c:3609
 msgid "Built-in Audio"
 msgstr "Dahili Ses"
 
-#: src/pulsecore/sink.c:3605
+#: src/pulsecore/sink.c:3614
 msgid "Modem"
 msgstr "Modem"
 
@@ -1967,8 +1967,8 @@ msgstr ""
 "      --format=ÖRNEKLEMEBİÇİMİ        Örnekleme biçimi, olası değerler için\n"
 "                                      https://www.freedesktop.org/wiki/"
 "Software/PulseAudio/Documentation/User/SupportedAudioFormats/\n"
-"                                      adresine bakın (öntanımlı değer: s16ne)"
-"\n"
+"                                      adresine bakın (öntanımlı değer: "
+"s16ne)\n"
 "      --channels=KANALLAR             Kanal sayısı, mono için 1, stereo için "
 "2\n"
 "                                      (öntanımlı değer: 2)\n"
@@ -1981,8 +1981,8 @@ msgstr ""
 "      --fix-channels                  Kanal eşlemesini ve kanal sayısını "
 "akışın bağlı olduğu\n"
 "                                      alıcı/kaynaktan alır.\n"
-"      --no-remix                      Kanalları indirgemez ya da çoğaltamaz."
-"\n"
+"      --no-remix                      Kanalları indirgemez ya da "
+"çoğaltamaz.\n"
 "      --no-remap                      Ad yerine dizin ile kanalları eşler.\n"
 "      --latency=BAYT                  Bayt cinsinden belirtilen gecikmeyi "
 "ister.\n"

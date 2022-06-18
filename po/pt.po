@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2022-05-16 23:56+0300\n"
+"POT-Creation-Date: 2022-06-18 09:49+0300\n"
 "PO-Revision-Date: 2020-09-19 04:27+0100\n"
 "Last-Translator: Juliano de Souza Camargo <julianosc@pm.me>\n"
 "Language-Team: Portuguese <>\n"
@@ -1172,8 +1172,8 @@ msgstr ""
 "cargado automaticamente> use_volume_sharing=<sim ou nao> "
 "force_flat_volume=<sim ou nao> "
 
-#: src/modules/module-equalizer-sink.c:1094
-#: src/modules/module-equalizer-sink.c:1217
+#: src/modules/module-equalizer-sink.c:1097
+#: src/modules/module-equalizer-sink.c:1220
 #, c-format
 msgid "FFT based equalizer on %s"
 msgstr ""
@@ -1237,14 +1237,14 @@ msgstr "Áudio no @HOSTNAME@"
 
 #. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
 #. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
-#: src/modules/module-tunnel-sink-new.c:356
-#: src/modules/module-tunnel-source-new.c:342
+#: src/modules/module-tunnel-sink-new.c:370
+#: src/modules/module-tunnel-source-new.c:354
 #, c-format
 msgid "Tunnel for %s@%s"
 msgstr ""
 
-#: src/modules/module-tunnel-sink-new.c:697
-#: src/modules/module-tunnel-source-new.c:668
+#: src/modules/module-tunnel-sink-new.c:715
+#: src/modules/module-tunnel-source-new.c:684
 #, c-format
 msgid "Tunnel to %s/%s"
 msgstr ""
@@ -1595,11 +1595,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "[%s:%u] ficheiro registo de destino inválido '%s'."
 
-#: src/pulsecore/sink.c:3600
+#: src/pulsecore/sink.c:3609
 msgid "Built-in Audio"
 msgstr "Áudio Interno"
 
-#: src/pulsecore/sink.c:3605
+#: src/pulsecore/sink.c:3614
 msgid "Modem"
 msgstr "Modem"
 

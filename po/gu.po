@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PulseAudio\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2022-05-16 23:56+0300\n"
+"POT-Creation-Date: 2022-06-18 09:49+0300\n"
 "PO-Revision-Date: 2012-01-30 09:53+0000\n"
 "Last-Translator: Sweta Kothari <swkothar@redhat.com>\n"
 "Language-Team: Gujarati\n"
@@ -1147,8 +1147,8 @@ msgstr ""
 "plugin name> label=<ladspa plugin label> control=<comma separated list of "
 "input control values>"
 
-#: src/modules/module-equalizer-sink.c:1094
-#: src/modules/module-equalizer-sink.c:1217
+#: src/modules/module-equalizer-sink.c:1097
+#: src/modules/module-equalizer-sink.c:1220
 #, c-format
 msgid "FFT based equalizer on %s"
 msgstr ""
@@ -1211,14 +1211,14 @@ msgstr "@HOSTNAME@ પર ઓડિયો"
 
 #. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
 #. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
-#: src/modules/module-tunnel-sink-new.c:356
-#: src/modules/module-tunnel-source-new.c:342
+#: src/modules/module-tunnel-sink-new.c:370
+#: src/modules/module-tunnel-source-new.c:354
 #, c-format
 msgid "Tunnel for %s@%s"
 msgstr ""
 
-#: src/modules/module-tunnel-sink-new.c:697
-#: src/modules/module-tunnel-source-new.c:668
+#: src/modules/module-tunnel-sink-new.c:715
+#: src/modules/module-tunnel-source-new.c:684
 #, c-format
 msgid "Tunnel to %s/%s"
 msgstr ""
@@ -1569,11 +1569,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "[%s:%u] અયોગ્ય લોગ લક્ષ્ય '%s'."
 
-#: src/pulsecore/sink.c:3600
+#: src/pulsecore/sink.c:3609
 msgid "Built-in Audio"
 msgstr "આંતરિક ઓડિયો"
 
-#: src/pulsecore/sink.c:3605
+#: src/pulsecore/sink.c:3614
 msgid "Modem"
 msgstr "મોડેમ"
 

@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: PulseAudio master\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2022-05-16 23:56+0300\n"
+"POT-Creation-Date: 2022-06-18 09:49+0300\n"
 "PO-Revision-Date: 2021-11-21 13:16+0000\n"
 "Last-Translator: . Ovari <ovari123@zoho.com>\n"
 "Language-Team: Hungarian <https://translate.fedoraproject.org/projects/"
@@ -1163,8 +1163,8 @@ msgstr ""
 "channel_map=<csatornaleképzés> autoloaded=<beállítva, ha ez a modul "
 "automatikusan betöltődik> use_volume_sharing=<igen vagy nem> "
 
-#: src/modules/module-equalizer-sink.c:1094
-#: src/modules/module-equalizer-sink.c:1217
+#: src/modules/module-equalizer-sink.c:1097
+#: src/modules/module-equalizer-sink.c:1220
 #, c-format
 msgid "FFT based equalizer on %s"
 msgstr "FFT alapú hangszínszabályzó ezen: %s"
@@ -1230,14 +1230,14 @@ msgstr "Hangok ezen a számítógépen: @HOSTNAME@"
 
 #. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
 #. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
-#: src/modules/module-tunnel-sink-new.c:356
-#: src/modules/module-tunnel-source-new.c:342
+#: src/modules/module-tunnel-sink-new.c:370
+#: src/modules/module-tunnel-source-new.c:354
 #, c-format
 msgid "Tunnel for %s@%s"
 msgstr "Alagút ennek: %s@%s"
 
-#: src/modules/module-tunnel-sink-new.c:697
-#: src/modules/module-tunnel-source-new.c:668
+#: src/modules/module-tunnel-sink-new.c:715
+#: src/modules/module-tunnel-source-new.c:684
 #, c-format
 msgid "Tunnel to %s/%s"
 msgstr "Alagút ehhez: %s/%s"
@@ -1586,11 +1586,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "Érvénytelen naplózási cél."
 
-#: src/pulsecore/sink.c:3600
+#: src/pulsecore/sink.c:3609
 msgid "Built-in Audio"
 msgstr "Belső hangforrás"
 
-#: src/pulsecore/sink.c:3605
+#: src/pulsecore/sink.c:3614
 msgid "Modem"
 msgstr "Modem"
 

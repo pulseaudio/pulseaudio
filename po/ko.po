@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: pulseaudio\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2022-05-16 23:56+0300\n"
+"POT-Creation-Date: 2022-06-18 09:49+0300\n"
 "PO-Revision-Date: 2022-06-12 14:19+0000\n"
 "Last-Translator: Seong-ho Cho <darkcircle.0426@gmail.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/"
@@ -100,8 +100,8 @@ msgstr ""
 "      --cleanup-shm                      오래된 공유 메모리 세그멘트 정리\n"
 "      --start                           만약 실행되지 않았으면 데몬을 시작\n"
 "  -k  --kill                            실행 중인 데몬을 제거\n"
-"      --check                           동작 중인 데몬 점검 (종료 코드만 "
-"반환)\n"
+"      --check                           동작 중인 데몬 점검 (종료 코드만 반"
+"환)\n"
 "\n"
 "OPTIONS:\n"
 "      --system[=BOOL]                   시스템-전반의 인스턴스로 실행\n"
@@ -114,10 +114,10 @@ msgstr ""
 "                                        (root로만 사용 가능, SUID 또는\n"
 "                                        높은 RLIMIT_RTPRIO일 때에)\n"
 "      --disallow-module-loading[=BOOL]  시작 후 사용자가 요청 모듈을\n"
-"                                        적재/적재하지 않는 부분을 허용하지 "
-"않음\n"
-"      --disallow-exit[=BOOL]            사용자가 요청한 종료를 허용하지 "
-"않음\n"
+"                                        적재/적재하지 않는 부분을 허용하지 않"
+"음\n"
+"      --disallow-exit[=BOOL]            사용자가 요청한 종료를 허용하지 않"
+"음\n"
 "      --exit-idle-time=SECS             유휴 상태이고 시간이 경과하면\n"
 "                                        데몬을 종료함\n"
 "      --scache-idle-time=SECS           유휴 상태이고 시간이 경과하면\n"
@@ -142,8 +142,8 @@ msgstr ""
 "      --enable-memfd[=BOOL]             memfd 공유 메모리 지원을 활성화.\n"
 "\n"
 "스크립트 시작:\n"
-"  -L, --load=\"MODULE ARGUMENTS\"         지정된 인수와 함께 지정된 "
-"플러그인\n"
+"  -L, --load=\"MODULE ARGUMENTS\"         지정된 인수와 함께 지정된 플러그"
+"인\n"
 "                                        모듈을 적재\n"
 "  -F, --file=FILENAME                   지정 스크립트 실행\n"
 "  -C                                    시작 후에 동작 중인 TTY에서\n"
@@ -164,8 +164,8 @@ msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of error, warn, notice, info, debug)."
 msgstr ""
-"--log-level 에는 로그 수준 인자 값이 필요합니다 (0~4 숫자 범위 또는 오류, "
-"경고, 알림, 정보, 디버그 중 하나)."
+"--log-level 에는 로그 수준 인자 값이 필요합니다 (0~4 숫자 범위 또는 오류, 경"
+"고, 알림, 정보, 디버그 중 하나)."
 
 #: src/daemon/cmdline.c:277
 msgid "--high-priority expects boolean argument"
@@ -301,7 +301,8 @@ msgstr "설정 파일 열기 실패: %s"
 msgid ""
 "The specified default channel map has a different number of channels than "
 "the specified default number of channels."
-msgstr "지정 기본 채널 맵은 지정 기본 채널 수와는 다른 채널 수를 가지고 있습니다."
+msgstr ""
+"지정 기본 채널 맵은 지정 기본 채널 수와는 다른 채널 수를 가지고 있습니다."
 
 #: src/daemon/daemon-conf.c:788
 #, c-format
@@ -422,8 +423,9 @@ msgstr "명령어 행 분석 실패."
 msgid ""
 "System mode refused for non-root user. Only starting the D-Bus server lookup "
 "service."
-msgstr "비 루트 사용자의 시스템 모드 전환을 거부했습니다. D-Bus 서버 검색 서비스만 "
-"시작합니다."
+msgstr ""
+"비 루트 사용자의 시스템 모드 전환을 거부했습니다. D-Bus 서버 검색 서비스만 시"
+"작합니다."
 
 #: src/daemon/main.c:788
 #, c-format
@@ -434,7 +436,8 @@ msgstr "데몬 종료 실패: %s"
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
-msgstr "이 프로그램은 루트 계정으로 실행하도록 만들지 않았습니다. (실행하려면 --"
+msgstr ""
+"이 프로그램은 루트 계정으로 실행하도록 만들지 않았습니다. (실행하려면 --"
 "system을 명기하십시오)."
 
 #: src/daemon/main.c:820
@@ -458,12 +461,14 @@ msgstr "%s에 사용자가 설정한 서버, 이는 로컬에 있습니다. 상�
 
 #: src/daemon/main.c:878
 msgid "Running in system mode, but --disallow-exit not set."
-msgstr "시스템 모드에서 실행 중입니다. 하지만 --disallow-exit을 설정하지 않았습니다."
+msgstr ""
+"시스템 모드에서 실행 중입니다. 하지만 --disallow-exit을 설정하지 않았습니다."
 
 #: src/daemon/main.c:881
 msgid "Running in system mode, but --disallow-module-loading not set."
-msgstr "시스템 모드에서 실행 중입니다. 하지만 --disallow-module-loading을 설정하지 "
-"않았습니다."
+msgstr ""
+"시스템 모드에서 실행 중입니다. 하지만 --disallow-module-loading을 설정하지 않"
+"았습니다."
 
 #: src/daemon/main.c:884
 msgid "Running in system mode, forcibly disabling SHM mode."
@@ -1088,8 +1093,8 @@ msgstr ""
 "channel_map=<채널 맵> autoloaded=<이 모듈이 자동으로 로드된다면 설정하십시오"
 "> use_volume_sharing=<yes 또는 no> "
 
-#: src/modules/module-equalizer-sink.c:1094
-#: src/modules/module-equalizer-sink.c:1217
+#: src/modules/module-equalizer-sink.c:1097
+#: src/modules/module-equalizer-sink.c:1220
 #, c-format
 msgid "FFT based equalizer on %s"
 msgstr "고속퓨리에변환 기반 이퀄라이저 동작 %s"
@@ -1153,14 +1158,14 @@ msgstr "호스트 @HOSTNAME@의 오디오"
 
 #. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
 #. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
-#: src/modules/module-tunnel-sink-new.c:356
-#: src/modules/module-tunnel-source-new.c:342
+#: src/modules/module-tunnel-sink-new.c:370
+#: src/modules/module-tunnel-source-new.c:354
 #, c-format
 msgid "Tunnel for %s@%s"
 msgstr "%s@%s 위한 터널"
 
-#: src/modules/module-tunnel-sink-new.c:697
-#: src/modules/module-tunnel-source-new.c:668
+#: src/modules/module-tunnel-sink-new.c:715
+#: src/modules/module-tunnel-source-new.c:684
 #, c-format
 msgid "Tunnel to %s/%s"
 msgstr "%s/%s가는 터널"
@@ -1474,9 +1479,9 @@ msgid ""
 "e.g. happen if you try to connect to a non-root PulseAudio as a root user, "
 "over the native protocol. Don't do that.)"
 msgstr ""
-"XDG_RUNTIME_DIR (%s)은 우리(uid %d)가 아니라 uid %d가 소유합니다! (자체 "
-"프로토콜로 비 루트 펄스오디오 사용자가 루트 사용자 권한으로 연결할 때 이 "
-"문제가 일어납니다. 그렇게 하지 마십시오.)"
+"XDG_RUNTIME_DIR (%s)은 우리(uid %d)가 아니라 uid %d가 소유합니다! (자체 프로"
+"토콜로 비 루트 펄스오디오 사용자가 루트 사용자 권한으로 연결할 때 이 문제가 "
+"일어납니다. 그렇게 하지 마십시오.)"
 
 #: src/pulsecore/core-util.h:97
 msgid "yes"
@@ -1507,11 +1512,11 @@ msgstr ""
 msgid "Invalid log target."
 msgstr "잘못된 기록 대상."
 
-#: src/pulsecore/sink.c:3600
+#: src/pulsecore/sink.c:3609
 msgid "Built-in Audio"
 msgstr "내장 오디오"
 
-#: src/pulsecore/sink.c:3605
+#: src/pulsecore/sink.c:3614
 msgid "Modem"
 msgstr "모뎀"
 
@@ -1904,11 +1909,11 @@ msgstr ""
 "  -v, --verbose                         자세한 작업 활성화합니다\n"
 "\n"
 "  -s, --server=SERVER                   연결하고자 하는 서버의 이름\n"
-"  -d, --device=DEVICE                   연결하고자 하는 싱크/원천의 이름. "
-"특별한 이름 @DEFAULT_SINK@, @DEFAULT_SOURCE@과 @DEFAULT_MONITOR@는 각기 기본 "
-"싱크, 원천과 관리를 지정하는데 사용 될 수 있습니다.\n"
-"  -n, --client-name=NAME                서버에서 이와 같은 클라이언트를 "
-"호출하는 방법\n"
+"  -d, --device=DEVICE                   연결하고자 하는 싱크/원천의 이름. 특"
+"별한 이름 @DEFAULT_SINK@, @DEFAULT_SOURCE@과 @DEFAULT_MONITOR@는 각기 기본 싱"
+"크, 원천과 관리를 지정하는데 사용 될 수 있습니다.\n"
+"  -n, --client-name=NAME                서버에서 이와 같은 클라이언트를 호출"
+"하는 방법\n"
 "      --stream-name=NAME                서버에서 이와 같은 스트림을 호출하는 "
 "방법\n"
 "      --volume=VOLUME                   범위 0...65536에서 초기(선형) 소리를 "
@@ -1921,29 +1926,29 @@ msgstr ""
 "      --channels=CHANNELS               채널의 수, 모노 1, 스테레오 2\n"
 "                                        (기본값 2)\n"
 "      --channel-map=CHANNELMAP          기본값 대신에 사용하려는 채널맵\n"
-"      --fix-format                      스트림이 연결되고 있는 싱크/"
-"원천에서\n"
+"      --fix-format                      스트림이 연결되고 있는 싱크/원천에"
+"서\n"
 "                                        샘플 형식을 가져옵니다.\n"
-"      --fix-rate                        스트림이 연결되고 있는 싱크/"
-"원천에서\n"
+"      --fix-rate                        스트림이 연결되고 있는 싱크/원천에"
+"서\n"
 "                                        샘플 비율을 가져옵니다.\n"
-"      --fix-channels                    스트림이 연결되고 있는 싱크/"
-"원천에서\n"
+"      --fix-channels                    스트림이 연결되고 있는 싱크/원천에"
+"서\n"
 "                                        채널 수와 채널맵을 가져옵니다.\n"
-"      --no-remix                        채널을 언믹스하거나 다운믹스 하지 "
-"않습니다.\n"
-"      --no-remap                        이름 대신에 색인으로 채널을 "
-"맵핑합니다.\n"
-"      --latency=BYTES                   바이트 단위로 지정된 지연시간을 "
-"요청합니다.\n"
-"      --process-time=BYTES              바이트 단위로 요청당 지정된 "
-"처리시간을 요청합니다.\n"
-"      --latency-msec=MSEC               msec 단위로 지정된 지연시간을 "
-"요청합니다.\n"
+"      --no-remix                        채널을 언믹스하거나 다운믹스 하지 않"
+"습니다.\n"
+"      --no-remap                        이름 대신에 색인으로 채널을 맵핑합니"
+"다.\n"
+"      --latency=BYTES                   바이트 단위로 지정된 지연시간을 요청"
+"합니다.\n"
+"      --process-time=BYTES              바이트 단위로 요청당 지정된 처리시간"
+"을 요청합니다.\n"
+"      --latency-msec=MSEC               msec 단위로 지정된 지연시간을 요청합"
+"니다.\n"
 "      --process-time-msec=MSEC          msec 단위로 요청당 지정된 처리시간을 "
 "요청합니다.\n"
-"      --property=PROPERTY=VALUE         지정된 속성을 지정된 값으로 "
-"설정합니다.\n"
+"      --property=PROPERTY=VALUE         지정된 속성을 지정된 값으로 설정합니"
+"다.\n"
 "      --raw                             raw PCM 자료를 기록하거나/재생.\n"
 "      --passthrough                     통과 자료.\n"
 "      --file-format[=FFORMAT]           형식화된 PCM 자료 기록/재생.\n"
@@ -3131,8 +3136,9 @@ msgstr "최소한 객체 경로와 메시지 이름을 지정해야만 합니다
 msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
-msgstr "초과 인자 값을 부여하면 무시합니다. 모든 메시지 변수는 단일 문자열로 "
-"주어져야 합니다."
+msgstr ""
+"초과 인자 값을 부여하면 무시합니다. 모든 메시지 변수는 단일 문자열로 주어져"
+"야 합니다."
 
 #: src/utils/pactl.c:3182
 msgid ""

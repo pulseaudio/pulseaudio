@@ -12,7 +12,7 @@ msgstr ""
 "Project-Id-Version: pulseaudio.master-tx\n"
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
-"POT-Creation-Date: 2022-05-16 23:56+0300\n"
+"POT-Creation-Date: 2022-06-18 09:49+0300\n"
 "PO-Revision-Date: 2021-12-04 09:16+0000\n"
 "Last-Translator: Lv Genggeng <lvgenggeng@uniontech.com>\n"
 "Language-Team: Chinese (Simplified) <https://translate.fedoraproject.org/"
@@ -1083,8 +1083,8 @@ msgstr ""
 "format=<采样格式> rate=<采样率> channels=<声道数> channel_map=<声道映射> "
 "autoloaded=<若为自动加载则会设置> use_volume_sharing=<yes 或 no> "
 
-#: src/modules/module-equalizer-sink.c:1094
-#: src/modules/module-equalizer-sink.c:1217
+#: src/modules/module-equalizer-sink.c:1097
+#: src/modules/module-equalizer-sink.c:1220
 #, c-format
 msgid "FFT based equalizer on %s"
 msgstr "基于快速傅里叶变换的均衡器%s"
@@ -1147,14 +1147,14 @@ msgstr "@HOSTNAME@ 中的音频"
 
 #. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
 #. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
-#: src/modules/module-tunnel-sink-new.c:356
-#: src/modules/module-tunnel-source-new.c:342
+#: src/modules/module-tunnel-sink-new.c:370
+#: src/modules/module-tunnel-source-new.c:354
 #, c-format
 msgid "Tunnel for %s@%s"
 msgstr "%s@%s 的通道"
 
-#: src/modules/module-tunnel-sink-new.c:697
-#: src/modules/module-tunnel-source-new.c:668
+#: src/modules/module-tunnel-sink-new.c:715
+#: src/modules/module-tunnel-source-new.c:684
 #, c-format
 msgid "Tunnel to %s/%s"
 msgstr "到远程信宿 %s/%s 的通道"
@@ -1498,11 +1498,11 @@ msgstr "尝试打开目标文件 '%s'，'%s.1'，'%s.2'…'%s.%d'，但均失败
 msgid "Invalid log target."
 msgstr "无效的日志目标。"
 
-#: src/pulsecore/sink.c:3600
+#: src/pulsecore/sink.c:3609
 msgid "Built-in Audio"
 msgstr "内置音频"
 
-#: src/pulsecore/sink.c:3605
+#: src/pulsecore/sink.c:3614
 msgid "Modem"
 msgstr "调制解调器"
 
