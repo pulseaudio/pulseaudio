@@ -9,14 +9,16 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2022-06-19 18:52+0000\n"
+"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
+"Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
+"pulseaudio/pulseaudio/ka/>\n"
 "Language: ka\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.13\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -244,32 +246,32 @@ msgstr ""
 #: src/daemon/dumpmodules.c:57
 #, c-format
 msgid "Name: %s\n"
-msgstr ""
+msgstr "სახელი: %s\n"
 
 #: src/daemon/dumpmodules.c:60
 #, c-format
 msgid "No module information available\n"
-msgstr ""
+msgstr "ინფორმაცია მოდულზე ხელმიუწვდომელია.\n"
 
 #: src/daemon/dumpmodules.c:63
 #, c-format
 msgid "Version: %s\n"
-msgstr ""
+msgstr "ვერსია: %s\n"
 
 #: src/daemon/dumpmodules.c:65
 #, c-format
 msgid "Description: %s\n"
-msgstr ""
+msgstr "აღწერა: %s\n"
 
 #: src/daemon/dumpmodules.c:67
 #, c-format
 msgid "Author: %s\n"
-msgstr ""
+msgstr "ავტორი: %s\n"
 
 #: src/daemon/dumpmodules.c:69
 #, c-format
 msgid "Usage: %s\n"
-msgstr ""
+msgstr "გამოყენება: %s\n"
 
 #: src/daemon/dumpmodules.c:70
 #, c-format
@@ -284,7 +286,7 @@ msgstr ""
 #: src/daemon/dumpmodules.c:76
 #, c-format
 msgid "Path: %s\n"
-msgstr ""
+msgstr "ბილიკი: %s\n"
 
 #: src/daemon/ltdl-bind-now.c:75
 #, c-format
@@ -326,7 +328,7 @@ msgstr ""
 #: src/daemon/main.c:287 src/daemon/main.c:292
 #, c-format
 msgid "Failed to create '%s': %s"
-msgstr ""
+msgstr "შეცდომა %s-ის გახსნისას: %s"
 
 #: src/daemon/main.c:299
 #, c-format
@@ -410,17 +412,17 @@ msgstr ""
 #: src/daemon/main.c:928 src/daemon/main.c:999
 #, c-format
 msgid "pipe() failed: %s"
-msgstr ""
+msgstr "pipe() -ის შეცდომა: %s"
 
 #: src/daemon/main.c:933 src/daemon/main.c:1004
 #, c-format
 msgid "fork() failed: %s"
-msgstr ""
+msgstr "fork() -ის შეცდომა: %s"
 
 #: src/daemon/main.c:948 src/daemon/main.c:1019 src/utils/pacat.c:562
 #, c-format
 msgid "read() failed: %s"
-msgstr ""
+msgstr "read() -ის შეცდომა: %s"
 
 #: src/daemon/main.c:954
 msgid "Daemon startup failed."
@@ -429,7 +431,7 @@ msgstr ""
 #: src/daemon/main.c:987
 #, c-format
 msgid "setsid() failed: %s"
-msgstr ""
+msgstr "setsid() -ის შეცდომა: %s"
 
 #: src/daemon/main.c:1119
 msgid "Failed to get machine ID"
@@ -446,11 +448,11 @@ msgstr ""
 
 #: src/daemon/main.c:1161
 msgid "pa_pid_file_create() failed."
-msgstr ""
+msgstr "pa_pid_file_create() -ის შეცდომა."
 
 #: src/daemon/main.c:1193
 msgid "pa_core_new() failed."
-msgstr ""
+msgstr "pa_core_new() -ის შეცდომა."
 
 #: src/daemon/main.c:1268
 msgid "command line arguments"
@@ -477,7 +479,7 @@ msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:2708
 msgid "Input"
-msgstr ""
+msgstr "შეყვანა"
 
 #: src/modules/alsa/alsa-mixer.c:2709
 msgid "Docking Station Input"
@@ -498,7 +500,7 @@ msgstr ""
 #: src/modules/alsa/alsa-mixer.c:2713 src/modules/alsa/alsa-mixer.c:2797
 #: src/modules/bluetooth/module-bluez5-device.c:1956
 msgid "Microphone"
-msgstr ""
+msgstr "მიკროფონი"
 
 #: src/modules/alsa/alsa-mixer.c:2714 src/modules/alsa/alsa-mixer.c:2798
 msgid "Front Microphone"
@@ -519,12 +521,12 @@ msgstr ""
 #: src/modules/alsa/alsa-mixer.c:2718 src/modules/alsa/alsa-mixer.c:2804
 #: src/utils/pactl.c:343
 msgid "Radio"
-msgstr ""
+msgstr "რადიო"
 
 #: src/modules/alsa/alsa-mixer.c:2719 src/modules/alsa/alsa-mixer.c:2805
 #: src/utils/pactl.c:344
 msgid "Video"
-msgstr ""
+msgstr "ვიდეო"
 
 #: src/modules/alsa/alsa-mixer.c:2720
 msgid "Automatic Gain Control"
@@ -552,7 +554,7 @@ msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:2726
 msgid "Bass Boost"
-msgstr ""
+msgstr "Bass-ის გაძლიერება"
 
 #: src/modules/alsa/alsa-mixer.c:2727
 msgid "No Bass Boost"
@@ -561,12 +563,12 @@ msgstr ""
 #: src/modules/alsa/alsa-mixer.c:2728
 #: src/modules/bluetooth/module-bluez5-device.c:1964 src/utils/pactl.c:333
 msgid "Speaker"
-msgstr ""
+msgstr "დინამიკი"
 
 #: src/modules/alsa/alsa-mixer.c:2729 src/modules/alsa/alsa-mixer.c:2807
 #: src/utils/pactl.c:334
 msgid "Headphones"
-msgstr ""
+msgstr "ყურსაცვამები"
 
 #: src/modules/alsa/alsa-mixer.c:2796
 msgid "Analog Input"
@@ -602,7 +604,7 @@ msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:2812
 msgid "Speakers"
-msgstr ""
+msgstr "დინამიკები"
 
 #: src/modules/alsa/alsa-mixer.c:2813
 msgid "HDMI / DisplayPort"
@@ -665,16 +667,16 @@ msgstr ""
 #: src/modules/alsa/alsa-mixer.c:4567 src/pulse/channelmap.c:103
 #: src/pulse/channelmap.c:770
 msgid "Mono"
-msgstr ""
+msgstr "მონო"
 
 #: src/modules/alsa/alsa-mixer.c:4568 src/pulse/channelmap.c:774
 msgid "Stereo"
-msgstr ""
+msgstr "სტერეო"
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
 #: src/modules/bluetooth/module-bluez5-device.c:1944 src/utils/pactl.c:337
 msgid "Headset"
-msgstr ""
+msgstr "ყურსაცვამები & მიკროფონი"
 
 #: src/modules/alsa/alsa-mixer.c:4577 src/modules/alsa/alsa-mixer.c:4735
 msgid "Speakerphone"
@@ -754,11 +756,11 @@ msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:4597
 msgid "Chat"
-msgstr ""
+msgstr "ჩატი"
 
 #: src/modules/alsa/alsa-mixer.c:4598
 msgid "Game"
-msgstr ""
+msgstr "თამაში"
 
 #: src/modules/alsa/alsa-mixer.c:4732
 msgid "Analog Mono Duplex"
@@ -787,7 +789,7 @@ msgstr ""
 #: src/modules/alsa/alsa-mixer.c:4740 src/modules/alsa/module-alsa-card.c:197
 #: src/modules/bluetooth/module-bluez5-device.c:2263
 msgid "Off"
-msgstr ""
+msgstr "გამორთული"
 
 #: src/modules/alsa/alsa-mixer.c:4840
 #, c-format
@@ -896,7 +898,7 @@ msgstr ""
 
 #: src/modules/bluetooth/module-bluez5-device.c:1977 src/utils/pactl.c:347
 msgid "Portable"
-msgstr ""
+msgstr "გადატანადი"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1983 src/utils/pactl.c:349
 msgid "Car"
@@ -904,11 +906,11 @@ msgstr ""
 
 #: src/modules/bluetooth/module-bluez5-device.c:1989 src/utils/pactl.c:350
 msgid "HiFi"
-msgstr ""
+msgstr "HiFi"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1995 src/utils/pactl.c:351
 msgid "Phone"
-msgstr ""
+msgstr "ტელეფონი"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2042
 msgid "High Fidelity Playback (A2DP Sink)"
@@ -951,7 +953,7 @@ msgstr ""
 #. add on profile
 #: src/modules/macosx/module-coreaudio-device.c:825
 msgid "On"
-msgstr ""
+msgstr "ჩართული"
 
 #: src/modules/module-allow-passthrough.c:71
 #: src/modules/module-always-sink.c:80
@@ -1028,7 +1030,7 @@ msgstr ""
 #: src/modules/module-rygel-media-server.c:545
 #: src/modules/module-rygel-media-server.c:904
 msgid "Input Devices"
-msgstr ""
+msgstr "შემომტანი მოწყობილობები"
 
 #: src/modules/module-rygel-media-server.c:1061
 msgid "Audio on @HOSTNAME@"
@@ -1073,214 +1075,214 @@ msgstr ""
 
 #: src/modules/reserve-wrap.c:149
 msgid "PulseAudio Sound Server"
-msgstr ""
+msgstr "PulseAudio Sound Server"
 
 #: src/pulse/channelmap.c:105
 msgid "Front Center"
-msgstr ""
+msgstr "წინა ცენტრი"
 
 #: src/pulse/channelmap.c:106
 msgid "Front Left"
-msgstr ""
+msgstr "წინა მარცხენა"
 
 #: src/pulse/channelmap.c:107
 msgid "Front Right"
-msgstr ""
+msgstr "წინა მარჯვენა"
 
 #: src/pulse/channelmap.c:109
 msgid "Rear Center"
-msgstr ""
+msgstr "უკანა ცენტრი"
 
 #: src/pulse/channelmap.c:110
 msgid "Rear Left"
-msgstr ""
+msgstr "უკანა მარცხენა"
 
 #: src/pulse/channelmap.c:111
 msgid "Rear Right"
-msgstr ""
+msgstr "უკანა მარკვენა"
 
 #: src/pulse/channelmap.c:113
 msgid "Subwoofer"
-msgstr ""
+msgstr "საბვუფერი"
 
 #: src/pulse/channelmap.c:115
 msgid "Front Left-of-center"
-msgstr ""
+msgstr "წინა ცენტრის მარცხენა"
 
 #: src/pulse/channelmap.c:116
 msgid "Front Right-of-center"
-msgstr ""
+msgstr "წინა ცენტრის მარჯვენა"
 
 #: src/pulse/channelmap.c:118
 msgid "Side Left"
-msgstr ""
+msgstr "მარცხენა მხარეს"
 
 #: src/pulse/channelmap.c:119
 msgid "Side Right"
-msgstr ""
+msgstr "მარჯვენა მხარეს"
 
 #: src/pulse/channelmap.c:121
 msgid "Auxiliary 0"
-msgstr ""
+msgstr "დამატებითი 0"
 
 #: src/pulse/channelmap.c:122
 msgid "Auxiliary 1"
-msgstr ""
+msgstr "დამატებითი 1"
 
 #: src/pulse/channelmap.c:123
 msgid "Auxiliary 2"
-msgstr ""
+msgstr "დამატებითი 2"
 
 #: src/pulse/channelmap.c:124
 msgid "Auxiliary 3"
-msgstr ""
+msgstr "დამატებითი 3"
 
 #: src/pulse/channelmap.c:125
 msgid "Auxiliary 4"
-msgstr ""
+msgstr "დამატებითი 4"
 
 #: src/pulse/channelmap.c:126
 msgid "Auxiliary 5"
-msgstr ""
+msgstr "დამატებითი 5"
 
 #: src/pulse/channelmap.c:127
 msgid "Auxiliary 6"
-msgstr ""
+msgstr "დამატებითი 6"
 
 #: src/pulse/channelmap.c:128
 msgid "Auxiliary 7"
-msgstr ""
+msgstr "დამატებითი 7"
 
 #: src/pulse/channelmap.c:129
 msgid "Auxiliary 8"
-msgstr ""
+msgstr "დამატებითი 8"
 
 #: src/pulse/channelmap.c:130
 msgid "Auxiliary 9"
-msgstr ""
+msgstr "დამატებითი 9"
 
 #: src/pulse/channelmap.c:131
 msgid "Auxiliary 10"
-msgstr ""
+msgstr "დამატებითი 10"
 
 #: src/pulse/channelmap.c:132
 msgid "Auxiliary 11"
-msgstr ""
+msgstr "დამატებითი 11"
 
 #: src/pulse/channelmap.c:133
 msgid "Auxiliary 12"
-msgstr ""
+msgstr "დამატებითი 12"
 
 #: src/pulse/channelmap.c:134
 msgid "Auxiliary 13"
-msgstr ""
+msgstr "დამატებითი 13"
 
 #: src/pulse/channelmap.c:135
 msgid "Auxiliary 14"
-msgstr ""
+msgstr "დამატებითი 14"
 
 #: src/pulse/channelmap.c:136
 msgid "Auxiliary 15"
-msgstr ""
+msgstr "დამატებითი 15"
 
 #: src/pulse/channelmap.c:137
 msgid "Auxiliary 16"
-msgstr ""
+msgstr "დამატებითი 16"
 
 #: src/pulse/channelmap.c:138
 msgid "Auxiliary 17"
-msgstr ""
+msgstr "დამატებითი 17"
 
 #: src/pulse/channelmap.c:139
 msgid "Auxiliary 18"
-msgstr ""
+msgstr "დამატებითი 18"
 
 #: src/pulse/channelmap.c:140
 msgid "Auxiliary 19"
-msgstr ""
+msgstr "დამატებითი 19"
 
 #: src/pulse/channelmap.c:141
 msgid "Auxiliary 20"
-msgstr ""
+msgstr "დამატებითი 20"
 
 #: src/pulse/channelmap.c:142
 msgid "Auxiliary 21"
-msgstr ""
+msgstr "დამატებითი 21"
 
 #: src/pulse/channelmap.c:143
 msgid "Auxiliary 22"
-msgstr ""
+msgstr "დამატებითი 22"
 
 #: src/pulse/channelmap.c:144
 msgid "Auxiliary 23"
-msgstr ""
+msgstr "დამატებითი 23"
 
 #: src/pulse/channelmap.c:145
 msgid "Auxiliary 24"
-msgstr ""
+msgstr "დამატებითი 24"
 
 #: src/pulse/channelmap.c:146
 msgid "Auxiliary 25"
-msgstr ""
+msgstr "დამატებითი 25"
 
 #: src/pulse/channelmap.c:147
 msgid "Auxiliary 26"
-msgstr ""
+msgstr "დამატებითი 26"
 
 #: src/pulse/channelmap.c:148
 msgid "Auxiliary 27"
-msgstr ""
+msgstr "დამატებითი 27"
 
 #: src/pulse/channelmap.c:149
 msgid "Auxiliary 28"
-msgstr ""
+msgstr "დამატებითი 28"
 
 #: src/pulse/channelmap.c:150
 msgid "Auxiliary 29"
-msgstr ""
+msgstr "დამატებითი 29"
 
 #: src/pulse/channelmap.c:151
 msgid "Auxiliary 30"
-msgstr ""
+msgstr "დამატებითი 30"
 
 #: src/pulse/channelmap.c:152
 msgid "Auxiliary 31"
-msgstr ""
+msgstr "დამატებითი 31"
 
 #: src/pulse/channelmap.c:154
 msgid "Top Center"
-msgstr ""
+msgstr "ზედა ცენტრი"
 
 #: src/pulse/channelmap.c:156
 msgid "Top Front Center"
-msgstr ""
+msgstr "ზედა წინა ცენტრი"
 
 #: src/pulse/channelmap.c:157
 msgid "Top Front Left"
-msgstr ""
+msgstr "ზედა წინა მარცხენა"
 
 #: src/pulse/channelmap.c:158
 msgid "Top Front Right"
-msgstr ""
+msgstr "ზედა წინა მარჯვენა"
 
 #: src/pulse/channelmap.c:160
 msgid "Top Rear Center"
-msgstr ""
+msgstr "ზედა უკანა ცენტრი"
 
 #: src/pulse/channelmap.c:161
 msgid "Top Rear Left"
-msgstr ""
+msgstr "ზედა უკანა მარცხენა"
 
 #: src/pulse/channelmap.c:162
 msgid "Top Rear Right"
-msgstr ""
+msgstr "ზედა უკანა მარჯვენა"
 
 #: src/pulse/channelmap.c:478 src/pulse/format.c:123 src/pulse/sample.c:177
 #: src/pulse/volume.c:306 src/pulse/volume.c:332 src/pulse/volume.c:352
 #: src/pulse/volume.c:384 src/pulse/volume.c:424 src/pulse/volume.c:443
 #: src/utils/pactl.c:483 src/utils/pactl.c:504
 msgid "(invalid)"
-msgstr ""
+msgstr "(არასწორი)"
 
 #: src/pulse/channelmap.c:779
 msgid "Surround 4.0"
@@ -1304,7 +1306,7 @@ msgstr ""
 
 #: src/pulse/client-conf-x11.c:61 src/utils/pax11publish.c:97
 msgid "xcb_connect() failed"
-msgstr ""
+msgstr "xcb_connect() -ის შეცდომა"
 
 #: src/pulse/client-conf-x11.c:66 src/utils/pax11publish.c:102
 msgid "xcb_connection_has_error() returned true"
@@ -1317,12 +1319,12 @@ msgstr ""
 #: src/pulse/context.c:717
 #, c-format
 msgid "fork(): %s"
-msgstr ""
+msgstr "fork(): %s"
 
 #: src/pulse/context.c:772
 #, c-format
 msgid "waitpid(): %s"
-msgstr ""
+msgstr "waitpid(): %s"
 
 #: src/pulse/context.c:1488
 #, c-format
@@ -1331,11 +1333,11 @@ msgstr ""
 
 #: src/pulse/direction.c:37
 msgid "input"
-msgstr ""
+msgstr "შეყვანა"
 
 #: src/pulse/direction.c:39
 msgid "output"
-msgstr ""
+msgstr "გამოტანა"
 
 #: src/pulse/direction.c:41
 msgid "bidirectional"
@@ -1343,7 +1345,7 @@ msgstr ""
 
 #: src/pulse/direction.c:43
 msgid "invalid"
-msgstr ""
+msgstr "არასწორი"
 
 #: src/pulsecore/core-util.c:1790
 #, c-format
@@ -1355,11 +1357,11 @@ msgstr ""
 
 #: src/pulsecore/core-util.h:97
 msgid "yes"
-msgstr ""
+msgstr "დიახ"
 
 #: src/pulsecore/core-util.h:97
 msgid "no"
-msgstr ""
+msgstr "არა"
 
 #: src/pulsecore/lock-autospawn.c:141 src/pulsecore/lock-autospawn.c:227
 msgid "Cannot access autospawn lock."
@@ -1386,23 +1388,23 @@ msgstr ""
 
 #: src/pulsecore/sink.c:3614
 msgid "Modem"
-msgstr ""
+msgstr "მოდემი"
 
 #: src/pulse/error.c:38
 msgid "OK"
-msgstr ""
+msgstr "დიახ"
 
 #: src/pulse/error.c:39
 msgid "Access denied"
-msgstr ""
+msgstr "წვდომა აკრძალულია"
 
 #: src/pulse/error.c:40
 msgid "Unknown command"
-msgstr ""
+msgstr "უცნობი ბრძანება"
 
 #: src/pulse/error.c:41
 msgid "Invalid argument"
-msgstr ""
+msgstr "არასწორი არგუმენტი"
 
 #: src/pulse/error.c:42
 msgid "Entity exists"
@@ -1414,11 +1416,11 @@ msgstr ""
 
 #: src/pulse/error.c:44
 msgid "Connection refused"
-msgstr ""
+msgstr "დაკავშირება უარყოფილია"
 
 #: src/pulse/error.c:45
 msgid "Protocol error"
-msgstr ""
+msgstr "პროტოკოლის შეცდომა"
 
 #: src/pulse/error.c:46
 msgid "Timeout"
@@ -1430,7 +1432,7 @@ msgstr ""
 
 #: src/pulse/error.c:48
 msgid "Internal error"
-msgstr ""
+msgstr "შიდა შეცდომა"
 
 #: src/pulse/error.c:49
 msgid "Connection terminated"
@@ -1454,7 +1456,7 @@ msgstr ""
 
 #: src/pulse/error.c:54
 msgid "No data"
-msgstr ""
+msgstr "მონაცემების გარეშე"
 
 #: src/pulse/error.c:55
 msgid "Incompatible protocol version"
@@ -1466,7 +1468,7 @@ msgstr ""
 
 #: src/pulse/error.c:57
 msgid "Not supported"
-msgstr ""
+msgstr "მხარდაუჭერელია"
 
 #: src/pulse/error.c:58
 msgid "Unknown error code"
@@ -1499,27 +1501,27 @@ msgstr ""
 #: src/pulse/sample.c:179
 #, c-format
 msgid "%s %uch %uHz"
-msgstr ""
+msgstr "%s %uარხ %uჰც"
 
 #: src/pulse/sample.c:191
 #, c-format
 msgid "%0.1f GiB"
-msgstr ""
+msgstr "%0.1f გიბ"
 
 #: src/pulse/sample.c:193
 #, c-format
 msgid "%0.1f MiB"
-msgstr ""
+msgstr "%0.1f მიბ"
 
 #: src/pulse/sample.c:195
 #, c-format
 msgid "%0.1f KiB"
-msgstr ""
+msgstr "%0.1f კიბ"
 
 #: src/pulse/sample.c:197
 #, c-format
 msgid "%u B"
-msgstr ""
+msgstr "%u ბ"
 
 #: src/utils/pacat.c:134
 #, c-format
@@ -1537,17 +1539,17 @@ msgstr ""
 #: src/utils/pacat.c:163
 #, c-format
 msgid "pa_stream_drain(): %s"
-msgstr ""
+msgstr "pa_stream_drain(): %s"
 
 #: src/utils/pacat.c:194 src/utils/pacat.c:543
 #, c-format
 msgid "pa_stream_begin_write() failed: %s"
-msgstr ""
+msgstr "pa_stream_begin_write() -ის შეცდომა: %s"
 
 #: src/utils/pacat.c:244 src/utils/pacat.c:274
 #, c-format
 msgid "pa_stream_peek() failed: %s"
-msgstr ""
+msgstr "pa_stream_peek() -ის შეცდომა: %s"
 
 #: src/utils/pacat.c:324
 msgid "Stream successfully created."
@@ -1556,7 +1558,7 @@ msgstr ""
 #: src/utils/pacat.c:327
 #, c-format
 msgid "pa_stream_get_buffer_attr() failed: %s"
-msgstr ""
+msgstr "pa_stream_get_buffer_attr() -ის შეცდომა: %s"
 
 #: src/utils/pacat.c:331
 #, c-format
@@ -1642,12 +1644,12 @@ msgstr ""
 #: src/utils/pacat.c:453
 #, c-format
 msgid "pa_stream_new() failed: %s"
-msgstr ""
+msgstr "pa_stream_new() -ის შეცდომა: %s"
 
 #: src/utils/pacat.c:491
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s"
-msgstr ""
+msgstr "pa_stream_connect_playback() -ის შეცდომა: %s"
 
 #: src/utils/pacat.c:497
 #, c-format
@@ -1657,7 +1659,7 @@ msgstr ""
 #: src/utils/pacat.c:501
 #, c-format
 msgid "pa_stream_connect_record() failed: %s"
-msgstr ""
+msgstr "pa_stream_connect_record() -ის შეცდომა: %s"
 
 #: src/utils/pacat.c:514 src/utils/pactl.c:2508
 #, c-format
@@ -1676,7 +1678,7 @@ msgstr ""
 #: src/utils/pacat.c:605
 #, c-format
 msgid "write() failed: %s"
-msgstr ""
+msgstr "write() -ის შეცდომა: %s"
 
 #: src/utils/pacat.c:626
 msgid "Got signal, exiting."
@@ -1841,16 +1843,16 @@ msgstr ""
 #: src/utils/pacat.c:1021
 #, c-format
 msgid "open(): %s"
-msgstr ""
+msgstr "open(): %s"
 
 #: src/utils/pacat.c:1026
 #, c-format
 msgid "dup2(): %s"
-msgstr ""
+msgstr "dup2(): %s"
 
 #: src/utils/pacat.c:1033
 msgid "Too many arguments."
-msgstr ""
+msgstr "მეტისმეტად ბევრი არგუმენტი."
 
 #: src/utils/pacat.c:1044
 msgid "Failed to generate sample specification for file."
@@ -1890,11 +1892,11 @@ msgstr ""
 
 #: src/utils/pacat.c:1138
 msgid "recording"
-msgstr ""
+msgstr "ჩაწერა"
 
 #: src/utils/pacat.c:1138
 msgid "playback"
-msgstr ""
+msgstr "დაკვრა"
 
 #: src/utils/pacat.c:1162
 msgid "Failed to set media name."
@@ -1902,28 +1904,28 @@ msgstr ""
 
 #: src/utils/pacat.c:1172 src/utils/pactl.c:3218
 msgid "pa_mainloop_new() failed."
-msgstr ""
+msgstr "pa_mainloop_new() -ის შეცდომა."
 
 #: src/utils/pacat.c:1195
 msgid "io_new() failed."
-msgstr ""
+msgstr "io_new() -ის შეცდომა."
 
 #: src/utils/pacat.c:1202 src/utils/pactl.c:3230
 msgid "pa_context_new() failed."
-msgstr ""
+msgstr "pa_context_new() -ის შეცდომა."
 
 #: src/utils/pacat.c:1210 src/utils/pactl.c:3236
 #, c-format
 msgid "pa_context_connect() failed: %s"
-msgstr ""
+msgstr "pa_context_connect() -ის შეცდომა: %s"
 
 #: src/utils/pacat.c:1216
 msgid "pa_context_rttime_new() failed."
-msgstr ""
+msgstr "pa_context_rttime_new() -ის შეცდომა."
 
 #: src/utils/pacat.c:1223 src/utils/pactl.c:3241
 msgid "pa_mainloop_run() failed."
-msgstr ""
+msgstr "pa_mainloop_run() -ის შეცდომა."
 
 #: src/utils/pacmd.c:51 src/utils/pactl.c:2643
 msgid "NAME [ARGS ...]"
@@ -1937,7 +1939,7 @@ msgstr ""
 #: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:2642
 #: src/utils/pactl.c:2649
 msgid "NAME"
-msgstr ""
+msgstr "სახელი"
 
 #: src/utils/pacmd.c:54
 msgid "NAME|#N VOLUME"
@@ -1953,7 +1955,7 @@ msgstr ""
 
 #: src/utils/pacmd.c:57
 msgid "#N 1|0"
-msgstr ""
+msgstr "#N 1|0"
 
 #: src/utils/pacmd.c:58
 msgid "NAME|#N KEY=VALUE"
@@ -1965,7 +1967,7 @@ msgstr ""
 
 #: src/utils/pacmd.c:61
 msgid "#N"
-msgstr ""
+msgstr "#N"
 
 #: src/utils/pacmd.c:62
 msgid "NAME SINK|#N"
@@ -1977,7 +1979,7 @@ msgstr ""
 
 #: src/utils/pacmd.c:66
 msgid "PATHNAME"
-msgstr ""
+msgstr "ბილიკის სახელი"
 
 #: src/utils/pacmd.c:67
 msgid "FILENAME SINK|#N"
@@ -1989,7 +1991,7 @@ msgstr ""
 
 #: src/utils/pacmd.c:71 src/utils/pacmd.c:77 src/utils/pacmd.c:78
 msgid "1|0"
-msgstr ""
+msgstr "1|0"
 
 #: src/utils/pacmd.c:72 src/utils/pactl.c:2647
 msgid "CARD PROFILE"
@@ -2005,7 +2007,7 @@ msgstr ""
 
 #: src/utils/pacmd.c:75
 msgid "TARGET"
-msgstr ""
+msgstr "სამიზნე"
 
 #: src/utils/pacmd.c:76
 msgid "NUMERIC-LEVEL"
@@ -2048,7 +2050,7 @@ msgstr ""
 #: src/utils/pacmd.c:165
 #, c-format
 msgid "connect(): %s"
-msgstr ""
+msgstr "connect(): %s"
 
 #: src/utils/pacmd.c:173
 msgid "Failed to kill PulseAudio daemon."
@@ -2061,17 +2063,17 @@ msgstr ""
 #: src/utils/pacmd.c:213 src/utils/pacmd.c:322 src/utils/pacmd.c:340
 #, c-format
 msgid "write(): %s"
-msgstr ""
+msgstr "write(): %s"
 
 #: src/utils/pacmd.c:269
 #, c-format
 msgid "poll(): %s"
-msgstr ""
+msgstr "poll(): %s"
 
 #: src/utils/pacmd.c:280 src/utils/pacmd.c:300
 #, c-format
 msgid "read(): %s"
-msgstr ""
+msgstr "read(): %s"
 
 #: src/utils/pactl.c:183
 #, c-format
@@ -2106,7 +2108,7 @@ msgstr ""
 #: src/utils/pactl.c:224 src/utils/pactl.c:236
 #, c-format
 msgid "%s\n"
-msgstr ""
+msgstr "%s\n"
 
 #: src/utils/pactl.c:281
 #, c-format
@@ -2139,15 +2141,15 @@ msgstr ""
 
 #: src/utils/pactl.c:321
 msgid "available"
-msgstr ""
+msgstr "ხელმისაწვდომია"
 
 #: src/utils/pactl.c:322
 msgid "not available"
-msgstr ""
+msgstr "მიუწვდომელია"
 
 #: src/utils/pactl.c:331 src/utils/pactl.c:355
 msgid "Unknown"
-msgstr ""
+msgstr "უცნობი"
 
 #: src/utils/pactl.c:332
 msgid "Aux"
@@ -2155,7 +2157,7 @@ msgstr ""
 
 #: src/utils/pactl.c:335
 msgid "Line"
-msgstr ""
+msgstr "ხაზი"
 
 #: src/utils/pactl.c:336
 msgid "Mic"
@@ -2171,31 +2173,31 @@ msgstr ""
 
 #: src/utils/pactl.c:340
 msgid "SPDIF"
-msgstr ""
+msgstr "SPDIF"
 
 #: src/utils/pactl.c:341
 msgid "HDMI"
-msgstr ""
+msgstr "HDMI"
 
 #: src/utils/pactl.c:342
 msgid "TV"
-msgstr ""
+msgstr "TV"
 
 #: src/utils/pactl.c:345
 msgid "USB"
-msgstr ""
+msgstr "USB"
 
 #: src/utils/pactl.c:346
 msgid "Bluetooth"
-msgstr ""
+msgstr "Bluetooth"
 
 #: src/utils/pactl.c:352
 msgid "Network"
-msgstr ""
+msgstr "ქსელი"
 
 #: src/utils/pactl.c:353
 msgid "Analog"
-msgstr ""
+msgstr "ანალოგური"
 
 #: src/utils/pactl.c:567 src/utils/pactl.c:1834 src/utils/pactl.c:1852
 #: src/utils/pactl.c:1875 src/utils/pactl.c:1992
@@ -2228,7 +2230,7 @@ msgstr ""
 #: src/utils/pactl.c:706 src/utils/pactl.c:890 src/utils/pactl.c:1251
 #, c-format
 msgid "\tPorts:\n"
-msgstr ""
+msgstr "\tპორტები:\n"
 
 #: src/utils/pactl.c:708 src/utils/pactl.c:892
 #, c-format
@@ -2247,7 +2249,7 @@ msgstr ""
 #: src/utils/pactl.c:721 src/utils/pactl.c:905
 #, c-format
 msgid "\tFormats:\n"
-msgstr ""
+msgstr "\tფორმატები:\n"
 
 #: src/utils/pactl.c:753 src/utils/pactl.c:1893 src/utils/pactl.c:1911
 #: src/utils/pactl.c:1934 src/utils/pactl.c:2007
@@ -2283,7 +2285,7 @@ msgstr ""
 #: src/utils/pactl.c:1519 src/utils/pactl.c:1557 src/utils/pactl.c:1582
 #: src/utils/pactl.c:1624
 msgid "n/a"
-msgstr ""
+msgstr "ა/მ"
 
 #: src/utils/pactl.c:924 src/utils/pactl.c:1793
 #, c-format
@@ -2335,7 +2337,7 @@ msgstr ""
 #: src/utils/pactl.c:1238
 #, c-format
 msgid "\tProfiles:\n"
-msgstr ""
+msgstr "\tპროფილები:\n"
 
 #: src/utils/pactl.c:1240
 #, c-format
@@ -2345,7 +2347,7 @@ msgstr ""
 #: src/utils/pactl.c:1245
 #, c-format
 msgid "\tActive Profile: %s\n"
-msgstr ""
+msgstr "\tაქტიური პროფილი: %s\n"
 
 #: src/utils/pactl.c:1254
 #, c-format
@@ -2496,19 +2498,19 @@ msgstr ""
 
 #: src/utils/pactl.c:2144
 msgid "new"
-msgstr ""
+msgstr "ახალი"
 
 #: src/utils/pactl.c:2147
 msgid "change"
-msgstr ""
+msgstr "შეცვლა"
 
 #: src/utils/pactl.c:2150
 msgid "remove"
-msgstr ""
+msgstr "წაშლა"
 
 #: src/utils/pactl.c:2153 src/utils/pactl.c:2188
 msgid "unknown"
-msgstr ""
+msgstr "უცნობი"
 
 #: src/utils/pactl.c:2161
 msgid "sink"
@@ -2516,7 +2518,7 @@ msgstr ""
 
 #: src/utils/pactl.c:2164
 msgid "source"
-msgstr ""
+msgstr "წყარო"
 
 #: src/utils/pactl.c:2167
 msgid "sink-input"
@@ -2528,11 +2530,11 @@ msgstr ""
 
 #: src/utils/pactl.c:2173
 msgid "module"
-msgstr ""
+msgstr "მოდული"
 
 #: src/utils/pactl.c:2176
 msgid "client"
-msgstr ""
+msgstr "კლიენტი"
 
 #: src/utils/pactl.c:2179
 msgid "sample-cache"
@@ -2540,11 +2542,11 @@ msgstr ""
 
 #: src/utils/pactl.c:2182
 msgid "server"
-msgstr ""
+msgstr "სერვერი"
 
 #: src/utils/pactl.c:2185
 msgid "card"
-msgstr ""
+msgstr "კარტი"
 
 #: src/utils/pactl.c:2206
 #, c-format
@@ -2581,7 +2583,7 @@ msgstr ""
 #: src/utils/pactl.c:2657 src/utils/pactl.c:2658 src/utils/pactl.c:2659
 #: src/utils/pactl.c:2660
 msgid "[options]"
-msgstr ""
+msgstr "[პარამეტრები]"
 
 #: src/utils/pactl.c:2638
 msgid "[TYPE]"
@@ -2824,12 +2826,12 @@ msgstr ""
 #: src/utils/pasuspender.c:79
 #, c-format
 msgid "fork(): %s\n"
-msgstr ""
+msgstr "fork(): %s\n"
 
 #: src/utils/pasuspender.c:92
 #, c-format
 msgid "execvp(): %s\n"
-msgstr ""
+msgstr "execvp(): %s\n"
 
 #: src/utils/pasuspender.c:111
 #, c-format
@@ -2886,17 +2888,17 @@ msgstr ""
 #: src/utils/pasuspender.c:296
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
-msgstr ""
+msgstr "pa_mainloop_new()-ის შეცდომა.\n"
 
 #: src/utils/pasuspender.c:309
 #, c-format
 msgid "pa_context_new() failed.\n"
-msgstr ""
+msgstr "pa_context_new() -ის შეცდომა.\n"
 
 #: src/utils/pasuspender.c:321
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
-msgstr ""
+msgstr "pa_mainloop_run() -ის შეცდომა.\n"
 
 #: src/utils/pax11publish.c:58
 #, c-format
@@ -2918,12 +2920,12 @@ msgstr ""
 #: src/utils/pax11publish.c:110
 #, c-format
 msgid "Server: %s\n"
-msgstr ""
+msgstr "სერვერი: %s\n"
 
 #: src/utils/pax11publish.c:112
 #, c-format
 msgid "Source: %s\n"
-msgstr ""
+msgstr "წყარო: %s\n"
 
 #: src/utils/pax11publish.c:114
 #, c-format
