@@ -2838,7 +2838,7 @@ static int path_verify(pa_alsa_path *p) {
         if (p->device_port_type == PA_DEVICE_PORT_TYPE_UNKNOWN)
             p->device_port_type = map->type;
         if (!p->description)
-            p->description = pa_xstrdup(map->description);
+            p->description = pa_xstrdup(_(map->description));
     }
 
     if (!p->description) {
