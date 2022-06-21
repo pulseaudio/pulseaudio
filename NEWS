@@ -1,3 +1,22 @@
+PulseAudio 16.1
+
+A bug fix release.
+
+ * Fix parsing of percentage volumes with decimal points in pactl
+ * Fix crash with the "pacmd play-file" command when reads from the disk aren't frame-aligned
+ * Fix module-rtp-recv sometimes thinking it's receiving an Opus stream when it's not
+ * Fix frequent crashing in module-combine-sink, regression in 16.0
+ * Fix crashing on 32-bit architectures when using the GStreamer codecs for LDAC and AptX
+
+Contributors
+
+Georg Chini
+Igor V. Kovalenko
+Jaechul Lee
+Jan Palus
+Sean Greenslade
+
+
 PulseAudio 16.0
 
 Changes at a glance:
