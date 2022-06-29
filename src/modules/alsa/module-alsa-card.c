@@ -370,7 +370,7 @@ struct temp_port_avail {
 
 static int report_jack_state(snd_mixer_elem_t *melem, unsigned int mask) {
     struct userdata *u = snd_mixer_elem_get_callback_private(melem);
-    snd_hctl_elem_t *elem = snd_mixer_elem_get_private(melem);
+    snd_hctl_elem_t **_elem = snd_mixer_elem_get_private(melem), *elem;
     snd_ctl_elem_value_t *elem_value;
     bool plugged_in;
     void *state;
@@ -380,6 +380,8 @@ static int report_jack_state(snd_mixer_elem_t *melem, unsigned int mask) {
     pa_available_t active_available = PA_AVAILABLE_UNKNOWN;
 
     pa_assert(u);
+    pa_assert(_elem);
+    elem = *_elem;
 
     /* Changing the jack state may cause a port change, and a port change will
      * make the sink or source change the mixer settings. If there are multiple
@@ -562,12 +564,17 @@ static pa_device_port* find_port_with_eld_device(struct userdata *u, int device)
 
 static int hdmi_eld_changed(snd_mixer_elem_t *melem, unsigned int mask) {
     struct userdata *u = snd_mixer_elem_get_callback_private(melem);
-    snd_hctl_elem_t *elem = snd_mixer_elem_get_private(melem);
-    int device = snd_hctl_elem_get_device(elem);
+    snd_hctl_elem_t **_elem = snd_mixer_elem_get_private(melem), *elem;
+    int device;
     const char *old_monitor_name;
     pa_device_port *p;
     pa_hdmi_eld eld;
     bool changed = false;
+
+    pa_assert(u);
+    pa_assert(_elem);
+    elem = *_elem;
+    device = snd_hctl_elem_get_device(elem);
 
     if (mask == SND_CTL_EVENT_MASK_REMOVE)
         return 0;
