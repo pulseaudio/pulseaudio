@@ -498,22 +498,24 @@ endif
 
 need_libatomic_ops = false
 
-atomictest = '''void func() {
+atomictest = '''int main() {
   volatile int atomic = 2;
   __sync_bool_compare_and_swap (&atomic, 2, 3);
+  return 0;
 }
 '''
 
-if cc.compiles(atomictest)
+if cc.links(atomictest)
   cdata.set('HAVE_ATOMIC_BUILTINS', 1)
 
-  newatomictest = '''void func() {
+  newatomictest = '''int main() {
     int c = 0;
     __atomic_store_n(&c, 4, __ATOMIC_SEQ_CST);
+    return 0;
   }
   '''
 
-  if(cc.compiles(newatomictest))
+  if(cc.links(newatomictest))
     cdata.set('HAVE_ATOMIC_BUILTINS_MEMORY_MODEL', 1)
   endif
 
