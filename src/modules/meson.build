@@ -14,7 +14,7 @@ all_modules = [
   [ 'module-cli-protocol-tcp', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_CLI', '-DUSE_TCP_SOCKETS'], [], libprotocol_cli ],
   [ 'module-cli-protocol-unix', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_CLI', '-DUSE_UNIX_SOCKETS'], [], libprotocol_cli ],
   [ 'module-combine', 'module-combine.c' ],
-  [ 'module-combine-sink', 'module-combine-sink.c' ],
+  [ 'module-combine-sink', 'module-combine-sink.c', [], [], [libatomic_ops_dep] ],
 #  [ 'module-coreaudio-detect', 'macosx/module-coreaudio-detect.c' ],
 #  [ 'module-coreaudio-device', 'macosx/module-coreaudio-device.c' ],
   [ 'module-default-device-restore', 'module-default-device-restore.c', [], [], [], libprotocol_native ],
@@ -73,7 +73,7 @@ endif
 
 if host_machine.system() != 'windows'
   all_modules += [
-    [ 'module-rtp-recv', 'rtp/module-rtp-recv.c', [], [], [], librtp ],
+    [ 'module-rtp-recv', 'rtp/module-rtp-recv.c', [], [], [libatomic_ops_dep], librtp ],
     [ 'module-rtp-send', 'rtp/module-rtp-send.c' , [], [], [], librtp ],
   ]
 endif
@@ -243,7 +243,7 @@ module_echo_cancel_sources = [
 ]
 module_echo_cancel_orc_sources = []
 module_echo_cancel_flags = []
-module_echo_cancel_deps = []
+module_echo_cancel_deps = [libatomic_ops_dep]
 module_echo_cancel_libs = []
 
 if get_option('adrian-aec')

@@ -85,7 +85,7 @@ libpulse = shared_library('pulse',
   link_args : [nodelete_link_args, versioning_link_args],
   install : true,
   install_rpath : privlibdir,
-  dependencies : [libm_dep, thread_dep, libpulsecommon_dep, dbus_dep, dl_dep, iconv_dep, libintl_dep, platform_dep, platform_socket_dep],
+  dependencies : [libm_dep, thread_dep, libpulsecommon_dep, dbus_dep, dl_dep, iconv_dep, libintl_dep, platform_dep, platform_socket_dep, libatomic_ops_dep],
   implicit_include_directories : false)
 
 libpulse_dep = declare_dependency(link_with: libpulse)

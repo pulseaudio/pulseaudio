@@ -205,7 +205,7 @@ else
       libm_dep, thread_dep, dl_dep, shm_dep, iconv_dep, sndfile_dep, dbus_dep,
       x11_dep, libsystemd_dep, glib_dep.partial_dependency(compile_args: true),
       gtk_dep.partial_dependency(compile_args: true), asyncns_dep, libintl_dep,
-      platform_dep, platform_socket_dep, execinfo_dep,
+      platform_dep, platform_socket_dep, execinfo_dep, libatomic_ops_dep,
     ],
     implicit_include_directories : false)
 
