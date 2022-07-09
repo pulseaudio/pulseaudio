@@ -72,6 +72,10 @@ if get_option('daemon')
       c_args : pa_c_args,
     )
   endif
+
+  if dbus_dep.found() and fftw_dep.found()
+    install_data('qpaeq', install_dir : bindir)
+  endif
 endif
 
 if get_option('client')
@@ -115,10 +119,6 @@ if get_option('client')
       install : true,
       install_dir : bindir,
     )
-  endif
-
-  if dbus_dep.found() and fftw_dep.found()
-    install_data('qpaeq', install_dir : bindir)
   endif
 
   install_data('pa-info', install_dir : bindir)
