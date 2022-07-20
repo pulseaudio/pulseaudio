@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2022-06-19 18:52+0000\n"
+"PO-Revision-Date: 2022-07-21 12:42+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ka/>\n"
@@ -483,19 +483,19 @@ msgstr "შეყვანა"
 
 #: src/modules/alsa/alsa-mixer.c:2709
 msgid "Docking Station Input"
-msgstr ""
+msgstr "Docking Station-ის შეყვანა"
 
 #: src/modules/alsa/alsa-mixer.c:2710
 msgid "Docking Station Microphone"
-msgstr ""
+msgstr "Docking Station-ის მიკროფონი"
 
 #: src/modules/alsa/alsa-mixer.c:2711
 msgid "Docking Station Line In"
-msgstr ""
+msgstr "Docking Station Line In"
 
 #: src/modules/alsa/alsa-mixer.c:2712 src/modules/alsa/alsa-mixer.c:2803
 msgid "Line In"
-msgstr ""
+msgstr "Line In"
 
 #: src/modules/alsa/alsa-mixer.c:2713 src/modules/alsa/alsa-mixer.c:2797
 #: src/modules/bluetooth/module-bluez5-device.c:1956
@@ -504,19 +504,19 @@ msgstr "მიკროფონი"
 
 #: src/modules/alsa/alsa-mixer.c:2714 src/modules/alsa/alsa-mixer.c:2798
 msgid "Front Microphone"
-msgstr ""
+msgstr "წინა მიკროფონი"
 
 #: src/modules/alsa/alsa-mixer.c:2715 src/modules/alsa/alsa-mixer.c:2799
 msgid "Rear Microphone"
-msgstr ""
+msgstr "უკანა მიკფოფონი"
 
 #: src/modules/alsa/alsa-mixer.c:2716
 msgid "External Microphone"
-msgstr ""
+msgstr "გარე მიკროფონი"
 
 #: src/modules/alsa/alsa-mixer.c:2717 src/modules/alsa/alsa-mixer.c:2801
 msgid "Internal Microphone"
-msgstr ""
+msgstr "შიდა მიკროფონი"
 
 #: src/modules/alsa/alsa-mixer.c:2718 src/modules/alsa/alsa-mixer.c:2804
 #: src/utils/pactl.c:343
@@ -530,27 +530,27 @@ msgstr "ვიდეო"
 
 #: src/modules/alsa/alsa-mixer.c:2720
 msgid "Automatic Gain Control"
-msgstr ""
+msgstr "ხმის მომატების ავტომატური კონტროლი"
 
 #: src/modules/alsa/alsa-mixer.c:2721
 msgid "No Automatic Gain Control"
-msgstr ""
+msgstr "ხმის მომატების ავტომატური კონტროლის გამორთვა"
 
 #: src/modules/alsa/alsa-mixer.c:2722
 msgid "Boost"
-msgstr ""
+msgstr "გაძლიერება"
 
 #: src/modules/alsa/alsa-mixer.c:2723
 msgid "No Boost"
-msgstr ""
+msgstr "გაძლიერების გარეშე"
 
 #: src/modules/alsa/alsa-mixer.c:2724
 msgid "Amplifier"
-msgstr ""
+msgstr "გამაძლიერებელი"
 
 #: src/modules/alsa/alsa-mixer.c:2725
 msgid "No Amplifier"
-msgstr ""
+msgstr "გამაძლიერებლის გარეშე"
 
 #: src/modules/alsa/alsa-mixer.c:2726
 msgid "Bass Boost"
@@ -558,7 +558,7 @@ msgstr "Bass-ის გაძლიერება"
 
 #: src/modules/alsa/alsa-mixer.c:2727
 msgid "No Bass Boost"
-msgstr ""
+msgstr "Bass-ის გაძლიერების გარეშე"
 
 #: src/modules/alsa/alsa-mixer.c:2728
 #: src/modules/bluetooth/module-bluez5-device.c:1964 src/utils/pactl.c:333
@@ -572,35 +572,35 @@ msgstr "ყურსაცვამები"
 
 #: src/modules/alsa/alsa-mixer.c:2796
 msgid "Analog Input"
-msgstr ""
+msgstr "ანალოგური შეყვანა"
 
 #: src/modules/alsa/alsa-mixer.c:2800
 msgid "Dock Microphone"
-msgstr ""
+msgstr "მისამაგრებელი მიკროფონი"
 
 #: src/modules/alsa/alsa-mixer.c:2802
 msgid "Headset Microphone"
-msgstr ""
+msgstr "ყურსაცვამის მიროფონი"
 
 #: src/modules/alsa/alsa-mixer.c:2806
 msgid "Analog Output"
-msgstr ""
+msgstr "ანალოგური გამოტანა"
 
 #: src/modules/alsa/alsa-mixer.c:2808
 msgid "Headphones 2"
-msgstr ""
+msgstr "ყურსაცვამები 2"
 
 #: src/modules/alsa/alsa-mixer.c:2809
 msgid "Headphones Mono Output"
-msgstr ""
+msgstr "ყურსაცვამები მონო"
 
 #: src/modules/alsa/alsa-mixer.c:2810
 msgid "Line Out"
-msgstr ""
+msgstr "ხაზოვანი გამოყვანა"
 
 #: src/modules/alsa/alsa-mixer.c:2811
 msgid "Analog Mono Output"
-msgstr ""
+msgstr "ანალოგური მონო გამოყვანა"
 
 #: src/modules/alsa/alsa-mixer.c:2812
 msgid "Speakers"
@@ -608,51 +608,51 @@ msgstr "დინამიკები"
 
 #: src/modules/alsa/alsa-mixer.c:2813
 msgid "HDMI / DisplayPort"
-msgstr ""
+msgstr "HDMI / DisplayPort"
 
 #: src/modules/alsa/alsa-mixer.c:2814
 msgid "Digital Output (S/PDIF)"
-msgstr ""
+msgstr "ციფრული გამოყვანა (S/PDIF)"
 
 #: src/modules/alsa/alsa-mixer.c:2815
 msgid "Digital Input (S/PDIF)"
-msgstr ""
+msgstr "ციფრული შეტანა (S/PDIF)"
 
 #: src/modules/alsa/alsa-mixer.c:2816
 msgid "Multichannel Input"
-msgstr ""
+msgstr "მრავალარხიანი შეყვანა"
 
 #: src/modules/alsa/alsa-mixer.c:2817
 msgid "Multichannel Output"
-msgstr ""
+msgstr "მრავალარხიანი გამოყვანა"
 
 #: src/modules/alsa/alsa-mixer.c:2818
 msgid "Game Output"
-msgstr ""
+msgstr "თამაშის გამოყვანა"
 
 #: src/modules/alsa/alsa-mixer.c:2819 src/modules/alsa/alsa-mixer.c:2820
 msgid "Chat Output"
-msgstr ""
+msgstr "ჩატის გამოყვანა"
 
 #: src/modules/alsa/alsa-mixer.c:2821
 msgid "Chat Input"
-msgstr ""
+msgstr "ჩატის შეყვანა"
 
 #: src/modules/alsa/alsa-mixer.c:2822
 msgid "Virtual Surround 7.1"
-msgstr ""
+msgstr "ვირტუალური სივრცითი ხმა 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4563
 msgid "Analog Mono"
-msgstr ""
+msgstr "ანალოგური მონო"
 
 #: src/modules/alsa/alsa-mixer.c:4564
 msgid "Analog Mono (Left)"
-msgstr ""
+msgstr "ანალოგური მონო (მარცხენა)"
 
 #: src/modules/alsa/alsa-mixer.c:4565
 msgid "Analog Mono (Right)"
-msgstr ""
+msgstr "ანალოგური მონო (მარჯვენა)"
 
 #. Note: Not translated to "Analog Stereo Input", because the source
 #. * name gets "Input" appended to it automatically, so adding "Input"
@@ -662,7 +662,7 @@ msgstr ""
 #: src/modules/alsa/alsa-mixer.c:4566 src/modules/alsa/alsa-mixer.c:4574
 #: src/modules/alsa/alsa-mixer.c:4575
 msgid "Analog Stereo"
-msgstr ""
+msgstr "ანალოგური სტერეო"
 
 #: src/modules/alsa/alsa-mixer.c:4567 src/pulse/channelmap.c:103
 #: src/pulse/channelmap.c:770
@@ -680,79 +680,79 @@ msgstr "ყურსაცვამები & მიკროფონი"
 
 #: src/modules/alsa/alsa-mixer.c:4577 src/modules/alsa/alsa-mixer.c:4735
 msgid "Speakerphone"
-msgstr ""
+msgstr "სამაგიდო დინამიკი"
 
 #: src/modules/alsa/alsa-mixer.c:4578 src/modules/alsa/alsa-mixer.c:4579
 msgid "Multichannel"
-msgstr ""
+msgstr "მრავალარხიანი"
 
 #: src/modules/alsa/alsa-mixer.c:4580
 msgid "Analog Surround 2.1"
-msgstr ""
+msgstr "ანალოგური სივრცითი 2.1"
 
 #: src/modules/alsa/alsa-mixer.c:4581
 msgid "Analog Surround 3.0"
-msgstr ""
+msgstr "ანალოგური სივრცითი 3.0"
 
 #: src/modules/alsa/alsa-mixer.c:4582
 msgid "Analog Surround 3.1"
-msgstr ""
+msgstr "ანალოგური სივრცითი 3.1"
 
 #: src/modules/alsa/alsa-mixer.c:4583
 msgid "Analog Surround 4.0"
-msgstr ""
+msgstr "ანალოგური სივრცითი 4.0"
 
 #: src/modules/alsa/alsa-mixer.c:4584
 msgid "Analog Surround 4.1"
-msgstr ""
+msgstr "ანალოგური სივრცითი 4.1"
 
 #: src/modules/alsa/alsa-mixer.c:4585
 msgid "Analog Surround 5.0"
-msgstr ""
+msgstr "ანალოგური სივრცითი 5.0"
 
 #: src/modules/alsa/alsa-mixer.c:4586
 msgid "Analog Surround 5.1"
-msgstr ""
+msgstr "ანალოგური სივრცითი 5.1"
 
 #: src/modules/alsa/alsa-mixer.c:4587
 msgid "Analog Surround 6.0"
-msgstr ""
+msgstr "ანალოგური სივრცითი 6.0"
 
 #: src/modules/alsa/alsa-mixer.c:4588
 msgid "Analog Surround 6.1"
-msgstr ""
+msgstr "ანალოგური სივრცითი 6.1"
 
 #: src/modules/alsa/alsa-mixer.c:4589
 msgid "Analog Surround 7.0"
-msgstr ""
+msgstr "ანალოგური სივრცითი 7.0"
 
 #: src/modules/alsa/alsa-mixer.c:4590
 msgid "Analog Surround 7.1"
-msgstr ""
+msgstr "ანალოგური სივრცითი 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4591
 msgid "Digital Stereo (IEC958)"
-msgstr ""
+msgstr "ციფრული სტერეო (IEC958)"
 
 #: src/modules/alsa/alsa-mixer.c:4592
 msgid "Digital Surround 4.0 (IEC958/AC3)"
-msgstr ""
+msgstr "ციფრული სივრცითი 4.0 (IEC958/AC3)"
 
 #: src/modules/alsa/alsa-mixer.c:4593
 msgid "Digital Surround 5.1 (IEC958/AC3)"
-msgstr ""
+msgstr "ციფრული სივრცითი 5.1 (IEC958/AC3)"
 
 #: src/modules/alsa/alsa-mixer.c:4594
 msgid "Digital Surround 5.1 (IEC958/DTS)"
-msgstr ""
+msgstr "ციფრული სივრცითი 5.1 (IEC958/DTS)"
 
 #: src/modules/alsa/alsa-mixer.c:4595
 msgid "Digital Stereo (HDMI)"
-msgstr ""
+msgstr "ციფრული სტერეო (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4596
 msgid "Digital Surround 5.1 (HDMI)"
-msgstr ""
+msgstr "ციფრული სივრცითი 5.1 (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4597
 msgid "Chat"
@@ -764,27 +764,27 @@ msgstr "თამაში"
 
 #: src/modules/alsa/alsa-mixer.c:4732
 msgid "Analog Mono Duplex"
-msgstr ""
+msgstr "ანალოგური მონო დუპლექსი"
 
 #: src/modules/alsa/alsa-mixer.c:4733
 msgid "Analog Stereo Duplex"
-msgstr ""
+msgstr "ანალოგური სტერეო დუპლექსი"
 
 #: src/modules/alsa/alsa-mixer.c:4736
 msgid "Digital Stereo Duplex (IEC958)"
-msgstr ""
+msgstr "ციფრული სტერეო დუპლექსი (IEC958)"
 
 #: src/modules/alsa/alsa-mixer.c:4737
 msgid "Multichannel Duplex"
-msgstr ""
+msgstr "მრავალარხიანი დუპლექსი"
 
 #: src/modules/alsa/alsa-mixer.c:4738
 msgid "Stereo Duplex"
-msgstr ""
+msgstr "სტერეო დუპლექსი"
 
 #: src/modules/alsa/alsa-mixer.c:4739
 msgid "Mono Chat + 7.1 Surround"
-msgstr ""
+msgstr "მონო ჩატი + 7.1 სივრცითი"
 
 #: src/modules/alsa/alsa-mixer.c:4740 src/modules/alsa/module-alsa-card.c:197
 #: src/modules/bluetooth/module-bluez5-device.c:2263
@@ -794,12 +794,12 @@ msgstr "გამორთული"
 #: src/modules/alsa/alsa-mixer.c:4840
 #, c-format
 msgid "%s Output"
-msgstr ""
+msgstr "%s გამოყვანა"
 
 #: src/modules/alsa/alsa-mixer.c:4848
 #, c-format
 msgid "%s Input"
-msgstr ""
+msgstr "%s შეყვანა"
 
 #: src/modules/alsa/alsa-sink.c:672 src/modules/alsa/alsa-sink.c:862
 #, c-format
@@ -836,7 +836,15 @@ msgid_plural ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr[0] ""
+"snd_pcm_avail()-ის მიერ დაბრუნებული მნიშვნელობა არაჩვეულებრივად დიდია: %lu "
+"ბაიტი (%lu მწმ).\n"
+"ყველაზე ხშირად ეს ALSA-ს დრაივერის (%s) შეცდომის გამო ხდება. დაუკავშირდით "
+"ALSA-ის პროგრამისტებს."
 msgstr[1] ""
+"snd_pcm_avail()-ის მიერ დაბრუნებული მნიშვნელობა არაჩვეულებრივად დიდია: %lu "
+"ბაიტი (%lu მწმ).\n"
+"ყველაზე ხშირად ეს ALSA-ს დრაივერის (%s) შეცდომის გამო ხდება. დაუკავშირდით "
+"ALSA-ის პროგრამისტებს."
 
 #: src/modules/alsa/alsa-util.c:1249
 #, c-format
@@ -851,7 +859,15 @@ msgid_plural ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr[0] ""
+"snd_pcm_delay()-ის მიერ დაბრუნებული მნიშვნელობა არაჩვეულებრივად დიდია: %li "
+"ბაიტი (%s%lu მწმ).\n"
+"ყველაზე ხშირად ეს ALSA-ს დრაივერის (%s) შეცდომის გამო ხდება. დაუკავშირდით "
+"ALSA-ის პროგრამისტებს."
 msgstr[1] ""
+"snd_pcm_delay()-ის მიერ დაბრუნებული მნიშვნელობა არაჩვეულებრივად დიდია: %li "
+"ბაიტი (%s%lu მწმ).\n"
+"ყველაზე ხშირად ეს ALSA-ს დრაივერის (%s) შეცდომის გამო ხდება. დაუკავშირდით "
+"ALSA-ის პროგრამისტებს."
 
 #: src/modules/alsa/alsa-util.c:1296
 #, c-format
@@ -861,6 +877,10 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr ""
+"snd_pcm_avail_delay()-ის მიერ დაბრუნებული მნიშვნელობები უცნაურია: დაყოვნება "
+"%lu უფრო მცირეა, ვიდრე ხელმისაწვდომი დრო %lu.\n"
+"ყველაზე ხშირად ეს ALSA-ს დრაივერის (%s) შეცდომის გამო ხდება. დაუკავშირდით "
+"ALSA-ის პროგრამისტებს."
 
 #: src/modules/alsa/alsa-util.c:1339
 #, c-format
@@ -875,7 +895,15 @@ msgid_plural ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr[0] ""
+"snd_pcm_mmap_begin()-ის მიერ დაბრუნებული მნიშვნელობა არაჩვეულებრივად დიდია: "
+"%lu ბაიტი (%lu მწმ).\n"
+"ყველაზე ხშირად ეს ALSA-ს დრაივერის (%s) შეცდომის გამო ხდება. დაუკავშირდით "
+"ALSA-ის პროგრამისტებს."
 msgstr[1] ""
+"snd_pcm_mmap_begin()-ის მიერ დაბრუნებული მნიშვნელობა არაჩვეულებრივად დიდია: "
+"%lu ბაიტი (%lu მწმ).\n"
+"ყველაზე ხშირად ეს ALSA-ს დრაივერის (%s) შეცდომის გამო ხდება. დაუკავშირდით "
+"ALSA-ის პროგრამისტებს."
 
 #: src/modules/bluetooth/module-bluez5-device.c:1937
 #: src/modules/bluetooth/module-bluez5-device.c:1963
@@ -890,11 +918,11 @@ msgstr ""
 
 #: src/modules/bluetooth/module-bluez5-device.c:1950 src/utils/pactl.c:348
 msgid "Handsfree"
-msgstr ""
+msgstr "ხელის გარეშე სამართავი"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1971
 msgid "Headphone"
-msgstr ""
+msgstr "ყურსაცვამი"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1977 src/utils/pactl.c:347
 msgid "Portable"
@@ -902,7 +930,7 @@ msgstr "გადატანადი"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1983 src/utils/pactl.c:349
 msgid "Car"
-msgstr ""
+msgstr "მანქანა"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1989 src/utils/pactl.c:350
 msgid "HiFi"
@@ -914,7 +942,7 @@ msgstr "ტელეფონი"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2042
 msgid "High Fidelity Playback (A2DP Sink)"
-msgstr ""
+msgstr "მაღალი ხარისხის ხმა (A2DP Sink)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2054
 msgid "High Fidelity Capture (A2DP Source)"
@@ -958,7 +986,7 @@ msgstr "ჩართული"
 #: src/modules/module-allow-passthrough.c:71
 #: src/modules/module-always-sink.c:80
 msgid "Dummy Output"
-msgstr ""
+msgstr "ნულოვანი გამოყვანა"
 
 #: src/modules/module-always-sink.c:34
 msgid "Always keeps at least one sink loaded even if it's a null one"
@@ -1042,13 +1070,13 @@ msgstr ""
 #: src/modules/module-tunnel-source-new.c:354
 #, c-format
 msgid "Tunnel for %s@%s"
-msgstr ""
+msgstr "გვირაბი %s@%s-სთვის"
 
 #: src/modules/module-tunnel-sink-new.c:715
 #: src/modules/module-tunnel-source-new.c:684
 #, c-format
 msgid "Tunnel to %s/%s"
-msgstr ""
+msgstr "გვირაბი %s/%s -მდე"
 
 #: src/modules/module-virtual-surround-sink.c:50
 msgid "Virtual surround sink"
@@ -1384,7 +1412,7 @@ msgstr ""
 
 #: src/pulsecore/sink.c:3609
 msgid "Built-in Audio"
-msgstr ""
+msgstr "ჩაშენებული აუდიო"
 
 #: src/pulsecore/sink.c:3614
 msgid "Modem"
@@ -1424,7 +1452,7 @@ msgstr "პროტოკოლის შეცდომა"
 
 #: src/pulse/error.c:46
 msgid "Timeout"
-msgstr ""
+msgstr "ვადა"
 
 #: src/pulse/error.c:47
 msgid "No authentication key"
@@ -1452,7 +1480,7 @@ msgstr ""
 
 #: src/pulse/error.c:53
 msgid "Bad state"
-msgstr ""
+msgstr "შეცდომის შემცველი მდგომარეობა"
 
 #: src/pulse/error.c:54
 msgid "No data"
@@ -2446,7 +2474,7 @@ msgstr ""
 #: src/utils/pactl.c:1633 src/utils/pactl.c:1643
 #, c-format
 msgid "Failure: %s"
-msgstr ""
+msgstr "შეცდომა: %s"
 
 #: src/utils/pactl.c:1667
 #, c-format
