@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2022-07-21 12:42+0000\n"
+"PO-Revision-Date: 2022-07-22 13:18+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ka/>\n"
@@ -491,7 +491,7 @@ msgstr "Docking Station-ის მიკროფონი"
 
 #: src/modules/alsa/alsa-mixer.c:2711
 msgid "Docking Station Line In"
-msgstr "Docking Station Line In"
+msgstr "Docking Station-ის Line In პორტი"
 
 #: src/modules/alsa/alsa-mixer.c:2712 src/modules/alsa/alsa-mixer.c:2803
 msgid "Line In"
