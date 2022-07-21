@@ -15,8 +15,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2021-12-05 21:16+0000\n"
-"Last-Translator: Ettore Atalan <atalanttore@googlemail.com>\n"
+"PO-Revision-Date: 2022-07-22 13:18+0000\n"
+"Last-Translator: Joachim Philipp <joachim.philipp@gmail.com>\n"
 "Language-Team: German <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/de/>\n"
 "Language: de\n"
@@ -24,7 +24,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.9.1\n"
+"X-Generator: Weblate 4.13\n"
 
 #: src/daemon/cmdline.c:113
 #, fuzzy, c-format
@@ -188,7 +188,6 @@ msgid "--fail expects boolean argument"
 msgstr "--fail erfordert boolesche Variable"
 
 #: src/daemon/cmdline.c:265
-#, fuzzy
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of error, warn, notice, info, debug)."
@@ -218,14 +217,12 @@ msgid "--use-pid-file expects boolean argument"
 msgstr "--use-pid-file erfordert boolesche Variable"
 
 #: src/daemon/cmdline.c:328
-#, fuzzy
 msgid ""
 "Invalid log target: use either 'syslog', 'journal', 'stderr' or 'auto' or a "
 "valid file name 'file:<path>', 'newfile:<path>'."
 msgstr ""
-"Ungültiges Protokollziel: Benutzen Sie entweder »syslog«, »journal«, "
-"»stderr« oder »auto« oder einen gültigen Dateinamen »file:<Pfad>«, »newfile:"
-"<Pfad>«."
+"Ungültiges Protokollziel: Benutzen Sie entweder »syslog«, »journal«, »stderr«"
+" oder »auto« oder einen gültigen Dateinamen »file:<Pfad>«, »newfile:<Pfad>«."
 
 #: src/daemon/cmdline.c:330
 msgid ""
