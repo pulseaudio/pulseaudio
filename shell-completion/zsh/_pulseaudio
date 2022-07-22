@@ -18,10 +18,12 @@ _devices() {
     if [[ $service == pactl  || $service == pacmd ]]; then
         case $words[$((CURRENT - 1))] in
             set-sink-input-*) cmd=('sink-inputs');;
+            get-sink-*) cmd=('sinks');;
             set-sink-*) cmd=('sinks');;
             set-default-sink) cmd=('sinks');;
             set-default-source) cmd=('sources');;
             set-source-output-*) cmd=('source-outputs');;
+            get-source-*) cmd=('sources');;
             set-source-*) cmd=('sources');;
             suspend-sink) cmd=('sinks');;
             suspend-source) cmd=('sources');;
@@ -257,16 +259,22 @@ _pactl_completion() {
             'suspend-sink: suspend or resume a sink'
             'suspend-source: suspend or resume a source'
             'set-card-profile: set a card profile'
+            'get-default-sink: get the default sink'
             'set-default-sink: set the default sink'
+            'get-default-source: get the default source'
             'set-default-source: set the default source'
             'set-sink-port: set the sink port of a sink'
             'set-source-port: set the source port of a source'
             'set-port-latency-offset: set a latency offset on a port'
+            'get-sink-volume: get the volume of a sink'
             'set-sink-volume: set the volume of a sink'
+            'get-source-volume: get the volume of a source'
             'set-source-volume: set the volume of a source'
             'set-sink-input-volume: set the volume of a stream'
             'set-source-output-volume: set the volume of a recording stream'
+            'get-sink-mute: get the mute status of a sink'
             'set-sink-mute: mute a sink'
+            'get-source-mute: get the mute status of a source'
             'set-source-mute: mute a source'
             'set-sink-input-mute: mute a stream'
             'set-source-output-mute: mute a recording stream'
@@ -492,11 +500,15 @@ _pactl_completion() {
             set-default-source)                    if ((CURRENT == 2)); then _devices; fi;;
             set-sink-port)                         _set_sink_port_parameter;;
             set-source-port)                       _set_source_port_parameter;;
+            get-sink-volume)                       if ((CURRENT == 2)); then _devices; fi;;
             set-sink-volume)                       if ((CURRENT == 2)); then _devices; fi;;
+            get-source-volume)                     if ((CURRENT == 2)); then _devices; fi;;
             set-source-volume)                     if ((CURRENT == 2)); then _devices; fi;;
             set-sink-input-volume)                 if ((CURRENT == 2)); then _devices; fi;;
             set-source-output-volume)              if ((CURRENT == 2)); then _devices; fi;;
+            get-sink-mute)                         if ((CURRENT == 2)); then _devices; fi;;
             set-sink-mute)                         _set_sink_mute_parameter;;
+            get-source-mute)                       if ((CURRENT == 2)); then _devices; fi;;
             set-source-mute)                       _set_source_mute_parameter;;
             set-sink-input-mute)                   _set_sink_input_mute_parameter;;
             set-source-output-mute)                _set_source_output_mute_parameter;;
