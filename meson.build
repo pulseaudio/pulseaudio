@@ -1,4 +1,4 @@
-project('pulseaudio', 'c', 'cpp',
+project('pulseaudio', 'c',
         version : run_command(find_program('git-version-gen'), join_paths(meson.current_source_dir(), '.tarball-version'), check : false).stdout().strip(),
         meson_version : '>= 0.50.0',
         default_options : [ 'c_std=gnu11', 'cpp_std=c++11' ]
@@ -435,6 +435,7 @@ endif
 # Code coverage
 
 if get_option('gcov')
+  add_languages('cpp')
   add_project_arguments('--coverage', language: ['c', 'cpp'])
   add_project_link_arguments('--coverage', language: ['c', 'cpp'])
 endif

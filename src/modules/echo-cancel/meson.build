@@ -6,6 +6,8 @@
 # '-Wl,--unresolved-symbols=ignore-in-object-files' otherwise it fails
 # at link time.
 
+add_languages('cpp')
+
 libwebrtc_util_sources = [
   'webrtc.cc'
 ]
