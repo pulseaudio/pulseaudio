@@ -1,10 +1,12 @@
 project('pulseaudio', 'c', 'cpp',
-        version : run_command(find_program('git-version-gen'), join_paths(meson.current_source_dir(), '.tarball-version')).stdout().strip(),
+        version : run_command(find_program('git-version-gen'), join_paths(meson.current_source_dir(), '.tarball-version'), check : false).stdout().strip(),
         meson_version : '>= 0.50.0',
         default_options : [ 'c_std=gnu11', 'cpp_std=c++11' ]
         )
 
-meson.add_dist_script('scripts/save-tarball-version.sh', meson.project_version())
+if not meson.is_subproject()
+  meson.add_dist_script('scripts/save-tarball-version.sh', meson.project_version())
+endif
 
 pa_version_str = meson.project_version()
 # For tarballs, the first split will do nothing, but for builds in git, we
