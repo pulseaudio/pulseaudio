@@ -67,6 +67,7 @@ struct transport_data {
     int sco_fd;
     pa_io_event *sco_io;
     pa_mainloop_api *mainloop;
+    pa_bluetooth_backend *backend;
 };
 
 struct hfp_config {
@@ -612,8 +613,9 @@ static pa_volume_t set_source_volume(pa_bluetooth_transport *t, pa_volume_t volu
 
 static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf)
 {
-    struct pa_bluetooth_discovery *discovery = t->device->discovery;
     struct hfp_config *c = t->config;
+    struct transport_data *trd = t->userdata;
+    pa_bluetooth_backend *b = trd->backend;
     int indicator, mode, val;
     char str[5];
     const char *r;
@@ -649,9 +651,9 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
                 continue;
 
             if (len == 1 && r[0] == '1')
-                discovery->native_backend->cind_enabled_indicators |= (1 << indicator);
+                b->cind_enabled_indicators |= (1 << indicator);
             else if (len == 1 && r[0] == '0')
-                discovery->native_backend->cind_enabled_indicators &= ~(1 << indicator);
+                b->cind_enabled_indicators &= ~(1 << indicator);
             else {
                 pa_log_error("Unable to parse indicator of AT+BIA command: %s", buf);
                 rfcomm_write_response(fd, "ERROR");
@@ -686,7 +688,7 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
         return true;
     } else if (c->state == 1 && pa_startswith(buf, "AT+CIND=?")) {
         /* UPower backend available, declare support for more indicators */
-        if (discovery->native_backend->upower) {
+        if (b->upower) {
             rfcomm_write_response(fd, "+CIND: "
                     MANDATORY_CALL_INDICATORS ","
                     "(\"service\",(0-1)),"
@@ -702,8 +704,8 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
 
         return true;
     } else if (c->state == 2 && pa_startswith(buf, "AT+CIND?")) {
-        if (discovery->native_backend->upower)
-            rfcomm_write_response(fd, "+CIND: 0,0,0,0,%u", pa_upower_get_battery_level(discovery->native_backend->upower));
+        if (b->upower)
+            rfcomm_write_response(fd, "+CIND: 0,0,0,0,%u", pa_upower_get_battery_level(b->upower));
         else
             rfcomm_write_response(fd, "+CIND: 0,0,0,0");
         c->state = 3;
@@ -716,7 +718,7 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
                 pa_log_warn("Unexpected mode for AT+CMER: %d", mode);
 
             /* Configure CMER event reporting */
-            discovery->native_backend->cmer_indicator_reporting_enabled = !!val;
+            b->cmer_indicator_reporting_enabled = !!val;
 
             pa_log_debug("Event indications enabled? %s", pa_yes_no(val));
 
@@ -820,7 +822,7 @@ static int get_rfcomm_fd(pa_bluetooth_discovery *discovery) {
     void *state = NULL;
 
     /* Find RFCOMM transport by checking if a HSP or HFP profile transport is available */
-    while ((t = pa_hashmap_iterate(discovery->transports, &state, NULL))) {
+    while ((t = pa_hashmap_iterate(pa_bluetooth_discovery_get_transports(discovery), &state, NULL))) {
         /* Skip non-connected transports */
         if (!t || t->state == PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED) {
             pa_log_debug("Profile disconnected or unavailable");
@@ -868,7 +870,8 @@ static pa_hook_result_t host_battery_level_changed_cb(pa_bluetooth_discovery *y,
 
 static void rfcomm_io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_io_event_flags_t events, void *userdata) {
     pa_bluetooth_transport *t = userdata;
-    pa_bluetooth_discovery *discovery = t->device->discovery;
+    struct transport_data *trd = t->userdata;
+    pa_bluetooth_backend *b = trd->backend;
     int i;
 
     pa_assert(io);
@@ -991,9 +994,9 @@ static void rfcomm_io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_i
 
 fail:
     /* Service Connection lost, reset indicators and event reporting to default values */
-    discovery->native_backend->cmer_indicator_reporting_enabled = false;
+    b->cmer_indicator_reporting_enabled = false;
     for (i = 1; i < CIND_INDICATOR_MAX; i++)
-        discovery->native_backend->cind_enabled_indicators |= (1 << i);
+        b->cind_enabled_indicators |= (1 << i);
 
     pa_bluetooth_transport_unlink(t);
     pa_bluetooth_transport_free(t);
@@ -1157,6 +1160,7 @@ static DBusMessage *profile_new_connection(DBusConnection *conn, DBusMessage *m,
     trd = pa_xnew0(struct transport_data, 1);
     trd->rfcomm_fd = fd;
     trd->mainloop = b->core->mainloop;
+    trd->backend = b;
     trd->rfcomm_io = trd->mainloop->io_new(b->core->mainloop, fd, PA_IO_EVENT_INPUT,
         rfcomm_io_callback, t);
     t->userdata =  trd;

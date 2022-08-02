@@ -1179,6 +1179,13 @@ bool pa_bluetooth_discovery_get_enable_msbc(pa_bluetooth_discovery *y)
     return y->enable_msbc;
 }
 
+pa_hashmap* pa_bluetooth_discovery_get_transports(pa_bluetooth_discovery *y) {
+    pa_assert(y);
+    pa_assert(PA_REFCNT_VALUE(y) > 0);
+
+    return y->transports;
+}
+
 pa_bluetooth_device* pa_bluetooth_discovery_get_device_by_address(pa_bluetooth_discovery *y, const char *remote, const char *local) {
     pa_bluetooth_device *d;
     void *state = NULL;

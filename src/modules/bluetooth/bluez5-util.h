@@ -271,4 +271,5 @@ void pa_bluetooth_discovery_set_ofono_running(pa_bluetooth_discovery *y, bool is
 bool pa_bluetooth_discovery_get_enable_native_hsp_hs(pa_bluetooth_discovery *y);
 bool pa_bluetooth_discovery_get_enable_native_hfp_hf(pa_bluetooth_discovery *y);
 bool pa_bluetooth_discovery_get_enable_msbc(pa_bluetooth_discovery *y);
+pa_hashmap* pa_bluetooth_discovery_get_transports(pa_bluetooth_discovery *y);
 #endif
