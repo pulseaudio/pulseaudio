@@ -638,10 +638,10 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
         indicator = 1;
 
         while ((r = pa_split_in_place(str, ",", &len, &state))) {
-            /* Ignore updates to mandantory indicators which are always ON */
-            if (indicator == CIND_CALL_INDICATOR 
+            /* Ignore updates to mandatory indicators which are always ON */
+            if (indicator == CIND_CALL_INDICATOR
                 || indicator == CIND_CALL_SETUP_INDICATOR
-                || indicator == CIND_CALL_HELD_INDICATOR) 
+                || indicator == CIND_CALL_HELD_INDICATOR)
                 continue;
 
             /* Indicators may have no value and should be skipped */
@@ -652,16 +652,16 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
                 discovery->native_backend->cind_enabled_indicators |= (1 << indicator);
             else if (len == 1 && r[0] == '0')
                 discovery->native_backend->cind_enabled_indicators &= ~(1 << indicator);
-	    else {
+            else {
                 pa_log_error("Unable to parse indicator of AT+BIA command: %s", buf);
                 rfcomm_write_response(fd, "ERROR");
-	        return false;
+                return false;
             }
 
             indicator++;
         }
 
-	return true;
+        return true;
     } else if (sscanf(buf, "AT+BAC=%3s", str) == 1) {
         c->support_msbc = false;
 
@@ -688,15 +688,15 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
         /* UPower backend available, declare support for more indicators */
         if (discovery->native_backend->upower) {
             rfcomm_write_response(fd, "+CIND: "
-                         MANDATORY_CALL_INDICATORS ","
-                         "(\"service\",(0-1)),"
-                         "(\"battchg\",(0-5))");
+                    MANDATORY_CALL_INDICATORS ","
+                    "(\"service\",(0-1)),"
+                    "(\"battchg\",(0-5))");
 
         /* Minimal indicators supported without any additional backend */
         } else {
             rfcomm_write_response(fd, "+CIND: "
-                         MANDATORY_CALL_INDICATORS ","
-			 "(\"service\",(0-1))");
+                    MANDATORY_CALL_INDICATORS ","
+                    "(\"service\",(0-1))");
         }
         c->state = 2;
 
@@ -710,14 +710,13 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
 
         return true;
     } else if ((c->state == 2 || c->state == 3) && pa_startswith(buf, "AT+CMER=")) {
-	if (sscanf(buf, "AT+CMER=%d,%*d,%*d,%d", &mode, &val) == 2) {
+        if (sscanf(buf, "AT+CMER=%d,%*d,%*d,%d", &mode, &val) == 2) {
             /* Bluetooth HFP spec only defines mode == 3 */
-            if (mode != 3) {
+            if (mode != 3)
                 pa_log_warn("Unexpected mode for AT+CMER: %d", mode);
-	    }
 
-	    /* Configure CMER event reporting */
-	    discovery->native_backend->cmer_indicator_reporting_enabled = !!val;
+            /* Configure CMER event reporting */
+            discovery->native_backend->cmer_indicator_reporting_enabled = !!val;
 
             pa_log_debug("Event indications enabled? %s", pa_yes_no(val));
 
@@ -726,7 +725,7 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
         else {
             pa_log_error("Unable to parse AT+CMER command: %s", buf);
             rfcomm_write_response(fd, "ERROR");
-	    return false;
+            return false;
         }
 
         if (c->support_codec_negotiation) {
@@ -815,7 +814,7 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
     return true;
 }
 
-static int get_rfcomm_fd (pa_bluetooth_discovery *discovery) {
+static int get_rfcomm_fd(pa_bluetooth_discovery *discovery) {
     struct pa_bluetooth_transport *t;
     struct transport_data *trd = NULL;
     void *state = NULL;
@@ -852,14 +851,14 @@ static pa_hook_result_t host_battery_level_changed_cb(pa_bluetooth_discovery *y,
     pa_assert(b);
 
     /* Get RFCOMM channel if available */
-    rfcomm_fd = get_rfcomm_fd (y);
+    rfcomm_fd = get_rfcomm_fd(y);
     if (rfcomm_fd < 0)
         return PA_HOOK_OK;
 
     /* Notify HF about AG battery level change over RFCOMM */
     if (b->cmer_indicator_reporting_enabled && (b->cind_enabled_indicators & (1 << CIND_BATT_CHG_INDICATOR))) {
-    	rfcomm_write_response(rfcomm_fd, "+CIEV: %d,%d", CIND_BATT_CHG_INDICATOR, u->battery_level);
-    	pa_log_debug("HG notified of AG's battery level change");
+        rfcomm_write_response(rfcomm_fd, "+CIEV: %d,%d", CIND_BATT_CHG_INDICATOR, u->battery_level);
+        pa_log_debug("HG notified of AG's battery level change");
     /* Skip notification if indicator is disabled or event reporting is completely disabled */
     } else
         pa_log_debug("Battery level change indicator disabled, skipping notification");
