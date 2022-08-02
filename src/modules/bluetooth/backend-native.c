@@ -637,9 +637,8 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
         return true;
     } else if (sscanf(buf, "AT+BIA=%s", str) == 1) {
         /* Indicators start with index 1 and follow the order of the AT+CIND=? response */
-        indicator = 1;
 
-        while ((r = pa_split_in_place(str, ",", &len, &state))) {
+        for (indicator = 1; (r = pa_split_in_place(str, ",", &len, &state)); indicator++) {
             /* Ignore updates to mandatory indicators which are always ON */
             if (indicator == CIND_CALL_INDICATOR
                 || indicator == CIND_CALL_SETUP_INDICATOR
@@ -659,8 +658,6 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
                 rfcomm_write_response(fd, "ERROR");
                 return false;
             }
-
-            indicator++;
         }
 
         return true;
