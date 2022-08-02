@@ -31,6 +31,7 @@
 #include <pulsecore/core.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
+#include <pulsecore/dbus-shared.h>
 #include <pulsecore/log.h>
 #include <pulsecore/macro.h>
 #include <pulsecore/refcnt.h>
@@ -126,6 +127,28 @@ static uint16_t volume_to_a2dp_gain(pa_volume_t volume) {
 
     return gain;
 }
+
+struct pa_bluetooth_discovery {
+    PA_REFCNT_DECLARE;
+
+    pa_core *core;
+    pa_dbus_connection *connection;
+    bool filter_added;
+    bool matches_added;
+    bool objects_listed;
+    pa_hook hooks[PA_BLUETOOTH_HOOK_MAX];
+    pa_hashmap *adapters;
+    pa_hashmap *devices;
+    pa_hashmap *transports;
+    pa_bluetooth_profile_status_t profiles_status[PA_BLUETOOTH_PROFILE_COUNT];
+
+    int headset_backend;
+    pa_bluetooth_backend *ofono_backend, *native_backend;
+    PA_LLIST_HEAD(pa_dbus_pending, pending);
+    bool enable_native_hsp_hs;
+    bool enable_native_hfp_hf;
+    bool enable_msbc;
+};
 
 static pa_dbus_pending* send_and_add_to_pending(pa_bluetooth_discovery *y, DBusMessage *m,
                                                                   DBusPendingCallNotifyFunction func, void *call_data) {
