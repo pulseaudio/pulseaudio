@@ -11,8 +11,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2021-11-21 13:16+0000\n"
-"Last-Translator: . Ovari <ovari123@zoho.com>\n"
+"PO-Revision-Date: 2022-08-09 21:19+0000\n"
+"Last-Translator: Balázs Meskó <meskobalazs@mailbox.org>\n"
 "Language-Team: Hungarian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/hu/>\n"
 "Language: hu\n"
@@ -20,13 +20,13 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.9\n"
+"X-Generator: Weblate 4.13\n"
 "X-Poedit-Language: Hungarian\n"
 "X-Poedit-Country: HUNGARY\n"
 "X-Poedit-SourceCharset: utf-8\n"
 
 #: src/daemon/cmdline.c:113
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -187,7 +187,6 @@ msgid "--fail expects boolean argument"
 msgstr "a --fail paraméter logikai értéket vár"
 
 #: src/daemon/cmdline.c:265
-#, fuzzy
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of error, warn, notice, info, debug)."
@@ -216,14 +215,13 @@ msgid "--use-pid-file expects boolean argument"
 msgstr "a --use-pid-file paraméter logikai értéket vár"
 
 #: src/daemon/cmdline.c:328
-#, fuzzy
 msgid ""
 "Invalid log target: use either 'syslog', 'journal', 'stderr' or 'auto' or a "
 "valid file name 'file:<path>', 'newfile:<path>'."
 msgstr ""
 "Érvénytelen naplózási cél: használja a „syslog”, „journal”, „stderr” vagy az "
-"„auto” egyikét, vagy egy érvényes fájlnevet: „file:<útvonal>”, „newfile:"
-"<útvonal>”."
+"„auto” egyikét, vagy egy érvényes fájlnevet: „file:<útvonal>”, "
+"„newfile:<útvonal>”."
 
 #: src/daemon/cmdline.c:330
 msgid ""
@@ -960,7 +958,7 @@ msgstr ""
 "más érték volt."
 
 #: src/modules/alsa/alsa-util.c:1183 src/modules/alsa/alsa-util.c:1277
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu byte (%lu "
 "ms).\n"
@@ -983,7 +981,7 @@ msgstr[1] ""
 "ezt a problémát az ALSA fejlesztői felé."
 
 #: src/modules/alsa/alsa-util.c:1249
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li byte (%s"
 "%lu ms).\n"
@@ -1019,7 +1017,7 @@ msgstr ""
 "ezt a problémát az ALSA fejlesztői felé."
 
 #: src/modules/alsa/alsa-util.c:1339
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu byte "
 "(%lu ms).\n"
@@ -1178,7 +1176,6 @@ msgid "Virtual LADSPA sink"
 msgstr "Látszólagos LADSPA nyelő"
 
 #: src/modules/module-ladspa-sink.c:54
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "sink_input_properties=<properties for the sink input> master=<name of sink "
@@ -1197,7 +1194,8 @@ msgstr ""
 "control=<bemenetszabályzó értékek vesszővel elválasztott listája> "
 "input_ladspaport_map=<bemeneti LADSPA portnevek vesszővel elválasztott "
 "listája> output_ladspaport_map=<kimeneti LADSPA portnevek vesszővel "
-"elválasztott listája> "
+"elválasztott listája> autoloaded=<állítsa be ha a modul automatikusan "
+"töltődik be> "
 
 #: src/modules/module-null-sink.c:46
 msgid "Clocked NULL sink"
@@ -1247,7 +1245,6 @@ msgid "Virtual surround sink"
 msgstr "Virtuális térhatású nyelő"
 
 #: src/modules/module-virtual-surround-sink.c:54
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "master=<name of sink to filter> sink_master=<name of sink to filter> "
@@ -1262,6 +1259,7 @@ msgstr ""
 "rate=<mintavételezési gyakoriság> channels=<csatornák száma> "
 "channel_map=<csatornaleképzés> use_volume_sharing=<igen vag nem> "
 "force_flat_volume=<igen vag nem> hrir=/útvonal/left_hrir.wav "
+"autoloaded=<állítsa be ha a modul automatikusan töltődik be> "
 
 #: src/modules/raop/module-raop-discover.c:295
 msgid "Unknown device model"
@@ -1546,7 +1544,7 @@ msgid "invalid"
 msgstr "érvénytelen"
 
 #: src/pulsecore/core-util.c:1790
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "XDG_RUNTIME_DIR (%s) is not owned by us (uid %d), but by uid %d! (This could "
 "e.g. happen if you try to connect to a non-root PulseAudio as a root user, "
@@ -1554,7 +1552,7 @@ msgid ""
 msgstr ""
 "Az XDG_RUNTIME_DIR (%s) tulajdonosa nem a PulseAudio (uid %d), hanem ez az "
 "uid: %d! (Ez például akkor fordulhat elő, ha egy nem rootként futó "
-"PulseAudio-hoz root felhasználóként próbál csatlakozni a natív protokollon. "
+"PulseAudióhoz root felhasználóként próbál csatlakozni a natív protokollon. "
 "Ne tegye.)"
 
 #: src/pulsecore/core-util.h:97
@@ -1910,7 +1908,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "A „pa_stream_update_timing_info()” függvényhívás meghiúsult: %s"
 
 #: src/utils/pacat.c:676
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "%s\n"
@@ -1977,7 +1975,7 @@ msgid ""
 "      --monitor-stream=INDEX            Record from the sink input with "
 "index INDEX.\n"
 msgstr ""
-"%s [KAPCSOLÓ]\n"
+"%s [KAPCSOLÓK]\n"
 "\n"
 "%s\n"
 "\n"
@@ -2020,8 +2018,8 @@ msgstr ""
 "      --fix-channels                    A csatornaszám és a csatornaleképzés "
 "átvétele a nyelőtől/forrástól,\n"
 "                                        amelyhez az adatfolyam csatlakozik.\n"
-"      --no-remix                        Ne keverjen fel vagy le "
-"csatornákat.\n"
+"      --no-remix                        Ne keverjen fel vagy le csatornákat."
+"\n"
 "      --no-remap                        Csatornák leképezése index és nem "
 "név szerint.\n"
 "      --latency=BÁJT                    A bájtokban megadott késleltetés "
@@ -2376,14 +2374,14 @@ msgid "Failed to get statistics: %s"
 msgstr "Nem sikerült a statisztika lekérdezése: %s"
 
 #: src/utils/pactl.c:199
-#, fuzzy, c-format
+#, c-format
 msgid "Currently in use: %u block containing %s bytes total.\n"
 msgid_plural "Currently in use: %u blocks containing %s bytes total.\n"
 msgstr[0] "Jelenleg használt: %u blokk, összesen %s bájt tartalommal.\n"
 msgstr[1] "Jelenleg használt: %u blokk, összesen %s bájt tartalommal.\n"
 
 #: src/utils/pactl.c:205
-#, fuzzy, c-format
+#, c-format
 msgid "Allocated during whole lifetime: %u block containing %s bytes total.\n"
 msgid_plural ""
 "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
@@ -2562,9 +2560,9 @@ msgid "\tPorts:\n"
 msgstr "\tPortok:\n"
 
 #: src/utils/pactl.c:708 src/utils/pactl.c:892
-#, fuzzy, c-format
+#, c-format
 msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
-msgstr "\t\t%s: %s (nyelők: %u, források: %u, prioritás: %u, elérhető: %s)\n"
+msgstr "\t\t%s: %s (típus: %s, prioritás: %u%s%s, %s)\n"
 
 #: src/utils/pactl.c:710 src/utils/pactl.c:894 src/utils/pactl.c:1256
 msgid ", availability group: "
@@ -2717,6 +2715,8 @@ msgstr "\tAktív profil: %s\n"
 msgid ""
 "\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s, %s)\n"
 msgstr ""
+"\t\t%s: %s (típus: %s, prioritás: %u, késleltetési eltolás: %<PRId64> "
+"usec%s%s, %s)\n"
 
 #: src/utils/pactl.c:1261
 #, c-format
@@ -2888,7 +2888,7 @@ msgid "Failed to unload module: Module %s not loaded"
 msgstr "Nem sikerült eltávolítani a modult: nincs betöltve %s nevű modul"
 
 #: src/utils/pactl.c:1818
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Failed to set volume: You tried to set volumes for %d channel, whereas "
 "channel(s) supported = %d\n"
@@ -3044,7 +3044,7 @@ msgstr ""
 "használhatók az alapértelmezett nyelő, forrás és megfigyelő megadására.\n"
 
 #: src/utils/pactl.c:2664
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "  -h, --help                            Show this help\n"
@@ -3061,6 +3061,8 @@ msgstr ""
 "  -h, --help                            Ezen súgó megjelenítése\n"
 "      --version                         Verziószám megjelenítése\n"
 "\n"
+"  -f, --format=FORMAT                   A kimenet formátuma. „normal” vagy "
+"„json”.\n"
 "  -s, --server=KISZOLGÁLÓ               Csatlakozás ehhez a kiszolgálóhoz\n"
 "  -n, --client-name=NÉV                 A kliens neve a kiszolgálón\n"
 
@@ -3159,18 +3161,16 @@ msgid "You have to specify a source name"
 msgstr "Meg kell adnia egy forrás nevét"
 
 #: src/utils/pactl.c:2998 src/utils/pactl.c:3076
-#, fuzzy
 msgid "You have to specify a sink name/index"
-msgstr "Meg kell adnia egy nyelő nevét"
+msgstr "Meg kell adnia egy nyelő nevét/indexét"
 
 #: src/utils/pactl.c:3008
 msgid "You have to specify a sink name/index and a volume"
 msgstr "Meg kell adnia egy nyelő nevét vagy indexét és egy hangerőt"
 
 #: src/utils/pactl.c:3021 src/utils/pactl.c:3101
-#, fuzzy
 msgid "You have to specify a source name/index"
-msgstr "Meg kell adnia egy forrás nevét"
+msgstr "Meg kell adnia egy forrás nevét/indexét"
 
 #: src/utils/pactl.c:3031
 msgid "You have to specify a source name/index and a volume"
@@ -3235,15 +3235,17 @@ msgid "Invalid source output index specification"
 msgstr "A forrás bemeneti indexének megadása érvénytelen"
 
 #: src/utils/pactl.c:3162
-#, fuzzy
 msgid "You have to specify at least an object path and a message name"
-msgstr "Meg kell adnia a nyelő nevét vagy indexét, és egy port nevét"
+msgstr "Meg kell adnia legalább egy objektumútvonalat és egy üzenetnevet"
 
 #: src/utils/pactl.c:3172
 msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
 msgstr ""
+"Túl sok argumentum lett megadva, figyelmen kívül lesznek hagyva. Vegye "
+"figyelembe, hogy az üzenetparamétereket egyetlen karakterláncban kell "
+"megadni."
 
 #: src/utils/pactl.c:3182
 msgid ""
@@ -3309,7 +3311,7 @@ msgstr ""
 "FIGYELMEZTETÉS: A gyermek folyamat a következő szignállal fejeződött be: %u\n"
 
 #: src/utils/pasuspender.c:228
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] -- PROGRAM [ARGUMENTS ...]\n"
 "\n"
@@ -3321,7 +3323,9 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
-"%s [KAPCSOLÓK] ... \n"
+"%s [KAPCSOLÓK] -- PROGRAM [ARGUMENTUMOK …]\n"
+"\n"
+"A PulseAudio ideiglenes felfüggesztése, amíg a PROGRAM fut.\n"
 "\n"
 "  -h, --help                            Ezen súgó megjelenítése\n"
 "      --version                         Verziószám megjelenítése\n"
