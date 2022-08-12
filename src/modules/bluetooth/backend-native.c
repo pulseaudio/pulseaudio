@@ -822,7 +822,6 @@ static int get_rfcomm_fd(pa_bluetooth_discovery *discovery) {
     while ((t = pa_hashmap_iterate(pa_bluetooth_discovery_get_transports(discovery), &state, NULL))) {
         /* Skip non-connected transports */
         if (!t || t->state == PA_BLUETOOTH_TRANSPORT_STATE_DISCONNECTED) {
-            pa_log_debug("Profile disconnected or unavailable");
             continue;
         }
 
