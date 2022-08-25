@@ -295,7 +295,7 @@ pa_usec_t pa_smoother_2_get(pa_smoother_2 *s, pa_usec_t time_stamp) {
 
     /* If the smoother has not started, just return system time since resume */
     if (!s->start_time) {
-        if (time_stamp >= s->resume_time)
+        if (time_stamp >= s->resume_time && !s->paused)
             current_time = time_stamp - s->resume_time;
         else
             current_time = 0;
