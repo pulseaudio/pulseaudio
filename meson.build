@@ -150,7 +150,13 @@ cdata.set_quoted('PA_MACHINE_ID', join_paths(sysconfdir, 'machine-id'))
 cdata.set_quoted('PA_MACHINE_ID_FALLBACK', join_paths(localstatedir, 'lib', 'dbus', 'machine-id'))
 cdata.set_quoted('PA_SRCDIR', join_paths(meson.current_source_dir(), 'src'))
 cdata.set_quoted('PA_BUILDDIR', meson.current_build_dir())
-cdata.set_quoted('PA_SOEXT', '.so')
+if host_machine.system() == 'windows'
+  cdata.set_quoted('PA_SOEXT', '.dll')
+elif host_machine.system() == 'darwin'
+  cdata.set_quoted('PA_SOEXT', '.dylib')
+else
+  cdata.set_quoted('PA_SOEXT', '.so')
+endif
 cdata.set_quoted('PA_DEFAULT_CONFIG_DIR', pulsesysconfdir)
 cdata.set('PA_DEFAULT_CONFIG_DIR_UNQUOTED', pulsesysconfdir)
 cdata.set_quoted('PA_BINARY', join_paths(bindir, 'pulseaudio'))
@@ -426,7 +432,7 @@ cdata.set('MESON_BUILD', 1)
 # so we request the nodelete flag to be enabled.
 # On other systems, we don't really know how to do that, but it's welcome if somebody can tell.
 # Windows doesn't support this flag.
-if host_machine.system() != 'windows'
+if host_machine.system() != 'windows' and host_machine.system() != 'darwin'
   nodelete_link_args = ['-Wl,-z,nodelete']
 else
   nodelete_link_args = []

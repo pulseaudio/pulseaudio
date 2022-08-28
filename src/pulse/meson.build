@@ -70,11 +70,15 @@ if glib_dep.found()
   libpulse_headers += 'glib-mainloop.h'
 endif
 
-run_target('update-map-file',
-  command : [ join_paths(meson.source_root(), 'scripts/generate-map-file.sh'), 'map-file',
-              [ libpulse_headers, 'simple.h', join_paths(meson.build_root(), 'src', 'pulse', 'version.h') ] ])
+if host_machine.system() != 'windows' and host_machine.system() != 'darwin'
+  run_target('update-map-file',
+    command : [ join_paths(meson.source_root(), 'scripts/generate-map-file.sh'), 'map-file',
+                [ libpulse_headers, 'simple.h', join_paths(meson.build_root(), 'src', 'pulse', 'version.h') ] ])
 
-versioning_link_args = '-Wl,-version-script=' + join_paths(meson.source_root(), 'src', 'pulse', 'map-file')
+  versioning_link_args = ['-Wl,-version-script=' + join_paths(meson.source_root(), 'src', 'pulse', 'map-file')]
+else
+  versioning_link_args = []
+endif
 
 libpulse = shared_library('pulse',
   libpulse_sources,

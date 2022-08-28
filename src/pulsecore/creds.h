@@ -34,7 +34,7 @@
 typedef struct pa_creds pa_creds;
 typedef struct pa_cmsg_ancil_data pa_cmsg_ancil_data;
 
-#if defined(SCM_CREDENTIALS) || defined(SCM_CREDS)
+#if (defined(SCM_CREDENTIALS) || defined(SCM_CREDS)) && !defined(OS_IS_DARWIN)
 
 #define HAVE_CREDS 1
 

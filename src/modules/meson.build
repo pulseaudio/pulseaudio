@@ -8,15 +8,12 @@ all_modules = [
   [ 'module-always-sink', 'module-always-sink.c' ],
   [ 'module-always-source', 'module-always-source.c' ],
   [ 'module-augment-properties', 'module-augment-properties.c' ],
-#  [ 'module-bonjour-publish', 'macosx/module-bonjour-publish.c' ],
   [ 'module-card-restore', 'module-card-restore.c' ],
   [ 'module-cli', 'module-cli.c', [], [], [], libcli ],
   [ 'module-cli-protocol-tcp', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_CLI', '-DUSE_TCP_SOCKETS'], [], libprotocol_cli ],
   [ 'module-cli-protocol-unix', 'module-protocol-stub.c', [], ['-DUSE_PROTOCOL_CLI', '-DUSE_UNIX_SOCKETS'], [], libprotocol_cli ],
   [ 'module-combine', 'module-combine.c' ],
   [ 'module-combine-sink', 'module-combine-sink.c', [], [], [libatomic_ops_dep] ],
-#  [ 'module-coreaudio-detect', 'macosx/module-coreaudio-detect.c' ],
-#  [ 'module-coreaudio-device', 'macosx/module-coreaudio-device.c' ],
   [ 'module-default-device-restore', 'module-default-device-restore.c', [], [], [], libprotocol_native ],
   [ 'module-detect', 'module-detect.c' ],
   [ 'module-device-manager', 'module-device-manager.c', [], [], [], libprotocol_native ],
@@ -75,6 +72,16 @@ if host_machine.system() != 'windows'
   all_modules += [
     [ 'module-rtp-recv', 'rtp/module-rtp-recv.c', [], [], [libatomic_ops_dep], librtp ],
     [ 'module-rtp-send', 'rtp/module-rtp-send.c' , [], [], [], librtp ],
+  ]
+endif
+
+if host_machine.system() == 'darwin'
+  bonjour_dep = dependency('appleframeworks', modules : ['CoreFoundation'])
+  coreaudio_dep = dependency('appleframeworks', modules : ['CoreAudio'])
+  all_modules += [
+    [ 'module-bonjour-publish', 'macosx/module-bonjour-publish.c', [], [], [bonjour_dep] ],
+    [ 'module-coreaudio-detect', 'macosx/module-coreaudio-detect.c', [], [], [coreaudio_dep] ],
+    [ 'module-coreaudio-device', 'macosx/module-coreaudio-device.c', [], [], [coreaudio_dep] ],
   ]
 endif
 
@@ -298,6 +305,12 @@ all_modules += [
 # FIXME: meson doesn't support multiple RPATH arguments currently
 rpath_dirs = join_paths(privlibdir) + ':' + join_paths(modlibexecdir)
 
+if host_machine.system() != 'windows' and host_machine.system() != 'darwin'
+  no_undefined_args = ['-Wl,--no-undefined']
+else
+  no_undefined_args = []
+endif
+
 foreach m : all_modules
   name = m[0]
   sources = m[1]
@@ -315,7 +328,7 @@ foreach m : all_modules
     install_rpath : rpath_dirs,
     install_dir : modlibexecdir,
     dependencies : [thread_dep, libpulse_dep, libpulsecommon_dep, libpulsecore_dep, libintl_dep, platform_dep, platform_socket_dep] + extra_deps,
-    link_args : [nodelete_link_args, '-Wl,--no-undefined' ],
+    link_args : [nodelete_link_args, no_undefined_args],
     link_with : extra_libs,
     name_prefix : '',
     implicit_include_directories : false)

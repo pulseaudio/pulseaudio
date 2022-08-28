@@ -182,9 +182,14 @@ if host_machine.system() == 'windows'
 else
   libpulsecommon_sources += [
     'pulsecore/mutex-posix.c',
-    'pulsecore/semaphore-posix.c',
-    'pulsecore/thread-posix.c'
+    'pulsecore/poll-posix.c',
+    'pulsecore/thread-posix.c',
   ]
+  if host_machine.system() == 'darwin'
+    libpulsecommon_sources += ['pulsecore/semaphore-osx.c']
+  else
+    libpulsecommon_sources += ['pulsecore/semaphore-posix.c']
+  endif
 endif
 # FIXME: Do SIMD things
 

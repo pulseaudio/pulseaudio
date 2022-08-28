@@ -65,19 +65,7 @@ pa_usec_t pa_rtclock_age(const struct timeval *tv) {
 
 struct timeval *pa_rtclock_get(struct timeval *tv) {
 
-#if defined(OS_IS_DARWIN)
-    uint64_t val, abs_time = mach_absolute_time();
-    Nanoseconds nanos;
-
-    nanos = AbsoluteToNanoseconds(*(AbsoluteTime *) &abs_time);
-    val = *(uint64_t *) &nanos;
-
-    tv->tv_sec = val / PA_NSEC_PER_SEC;
-    tv->tv_usec = (val % PA_NSEC_PER_SEC) / PA_NSEC_PER_USEC;
-
-    return tv;
-
-#elif defined(HAVE_CLOCK_GETTIME)
+#if defined(HAVE_CLOCK_GETTIME)
     struct timespec ts;
 
 #ifdef CLOCK_MONOTONIC
@@ -96,6 +84,17 @@ struct timeval *pa_rtclock_get(struct timeval *tv) {
 
     tv->tv_sec = ts.tv_sec;
     tv->tv_usec = ts.tv_nsec / PA_NSEC_PER_USEC;
+
+    return tv;
+#elif defined(OS_IS_DARWIN)
+    uint64_t val, abs_time = mach_absolute_time();
+    Nanoseconds nanos;
+
+    nanos = AbsoluteToNanoseconds(*(AbsoluteTime *) &abs_time);
+    val = *(uint64_t *) &nanos;
+
+    tv->tv_sec = val / PA_NSEC_PER_SEC;
+    tv->tv_usec = (val % PA_NSEC_PER_SEC) / PA_NSEC_PER_USEC;
 
     return tv;
 #elif defined(OS_IS_WIN32)
