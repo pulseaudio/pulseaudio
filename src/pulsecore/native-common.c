@@ -64,7 +64,8 @@ int pa_common_command_register_memfd_shmid(pa_pstream *p, pa_pdispatch *pd, uint
     if (version < 31 || pa_tagstruct_getu32(t, &shm_id) < 0 || !pa_tagstruct_eof(t))
         goto finish;
 
-    pa_pstream_attach_memfd_shmid(p, shm_id, ancil->fds[0]);
+    if (pa_pstream_attach_memfd_shmid(p, shm_id, ancil->fds[0]))
+        goto finish;
 
     ret = 0;
 finish:
