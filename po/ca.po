@@ -29,7 +29,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2022-09-01 07:22+0000\n"
+"PO-Revision-Date: 2022-09-02 08:19+0000\n"
 "Last-Translator: Jordi Mas <jmas@softcatala.org>\n"
 "Language-Team: Catalan <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ca/>\n"
@@ -880,7 +880,7 @@ msgstr "Envoltant digital 4.0 (IEC958/AC3)"
 
 #: src/modules/alsa/alsa-mixer.c:4593
 msgid "Digital Surround 5.1 (IEC958/AC3)"
-msgstr "Envolvent digital 5.1 (IEC958/AC3)"
+msgstr "Envoltant digital 5.1 (IEC958/AC3)"
 
 #: src/modules/alsa/alsa-mixer.c:4594
 msgid "Digital Surround 5.1 (IEC958/DTS)"
@@ -896,11 +896,11 @@ msgstr "So envoltant digital 5.1 (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4597
 msgid "Chat"
-msgstr ""
+msgstr "Xat"
 
 #: src/modules/alsa/alsa-mixer.c:4598
 msgid "Game"
-msgstr ""
+msgstr "Joc"
 
 #: src/modules/alsa/alsa-mixer.c:4732
 msgid "Analog Mono Duplex"
@@ -1448,7 +1448,7 @@ msgstr "Auxiliar 28"
 
 #: src/pulse/channelmap.c:150
 msgid "Auxiliary 29"
-msgstr "Auxiliar 31"
+msgstr "Auxiliar 29"
 
 #: src/pulse/channelmap.c:151
 msgid "Auxiliary 30"
