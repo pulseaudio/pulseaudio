@@ -29,13 +29,16 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2012-01-30 09:52+0000\n"
-"Last-Translator: Josep Torné Llavall <josep.torne@gmail.com>\n"
-"Language-Team: Catalan <fedora@softcatala.net>\n"
+"PO-Revision-Date: 2022-09-01 07:22+0000\n"
+"Last-Translator: Jordi Mas <jmas@softcatala.org>\n"
+"Language-Team: Catalan <https://translate.fedoraproject.org/projects/"
+"pulseaudio/pulseaudio/ca/>\n"
 "Language: ca\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.14\n"
 
 #: src/daemon/cmdline.c:113
 #, fuzzy, c-format
@@ -704,25 +707,23 @@ msgstr "Entrada analògica"
 
 #: src/modules/alsa/alsa-mixer.c:2800
 msgid "Dock Microphone"
-msgstr ""
+msgstr "Micròfon de l'acoblador"
 
 #: src/modules/alsa/alsa-mixer.c:2802
 msgid "Headset Microphone"
-msgstr ""
+msgstr "Micròfon de l'auricular"
 
 #: src/modules/alsa/alsa-mixer.c:2806
 msgid "Analog Output"
 msgstr "Sortida analògica"
 
 #: src/modules/alsa/alsa-mixer.c:2808
-#, fuzzy
 msgid "Headphones 2"
-msgstr "Auriculars"
+msgstr "Auriculars 2"
 
 #: src/modules/alsa/alsa-mixer.c:2809
-#, fuzzy
 msgid "Headphones Mono Output"
-msgstr "Sortida mono analògica"
+msgstr "Sortida mono analògica dels auriculars"
 
 #: src/modules/alsa/alsa-mixer.c:2810
 msgid "Line Out"
