@@ -2200,7 +2200,7 @@ static void context_subscribe_callback(pa_context *c, pa_subscription_event_type
         pa_json_encoder_end_object(encoder);
 
         char* json_str = pa_json_encoder_to_string_free(encoder);
-        printf("%s", json_str);
+        printf("%s\n", json_str);
         pa_xfree(json_str);
     } else {
         printf(_("Event '%s' on %s #%u\n"),
