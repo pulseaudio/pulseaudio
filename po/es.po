@@ -14,8 +14,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2022-01-11 06:16+0000\n"
-"Last-Translator: Daniel Hernandez <hernandez101900daniel@gmail.com>\n"
+"PO-Revision-Date: 2022-09-26 14:19+0000\n"
+"Last-Translator: Toni Estevez <toni.estevez@gmail.com>\n"
 "Language-Team: Spanish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/es/>\n"
 "Language: es\n"
@@ -23,7 +23,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.10.1\n"
+"X-Generator: Weblate 4.14.1\n"
 "X-Poedit-Language: Spanish\n"
 
 #: src/daemon/cmdline.c:113
@@ -720,7 +720,7 @@ msgstr "Altavoces"
 
 #: src/modules/alsa/alsa-mixer.c:2813
 msgid "HDMI / DisplayPort"
-msgstr "HDMI / DisplayPort"
+msgstr "HDMI/DisplayPort"
 
 #: src/modules/alsa/alsa-mixer.c:2814
 msgid "Digital Output (S/PDIF)"
@@ -2848,11 +2848,12 @@ msgstr "falló mensaje de list-handlers: %s"
 #: src/utils/pactl.c:1711 src/utils/pactl.c:1760
 msgid "list-handlers message response could not be parsed correctly"
 msgstr ""
-"el mensaje de respuesta de list-handlers no se pudo parsear correctamente"
+"no se ha podido analizar correctamente la respuesta del mensaje de list-"
+"handlers"
 
 #: src/utils/pactl.c:1718
 msgid "list-handlers message response is not a JSON array"
-msgstr "el mensaje de respuesta de list-handlers no es un array JSON"
+msgstr "la respuesta del mensaje de list-handlers no es una matriz de JSON"
 
 #: src/utils/pactl.c:1729
 #, c-format
