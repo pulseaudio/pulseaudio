@@ -29,8 +29,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2022-09-02 08:19+0000\n"
-"Last-Translator: Jordi Mas <jmas@softcatala.org>\n"
+"PO-Revision-Date: 2022-09-26 14:19+0000\n"
+"Last-Translator: Toni Estevez <toni.estevez@gmail.com>\n"
 "Language-Team: Catalan <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ca/>\n"
 "Language: ca\n"
@@ -38,7 +38,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.14\n"
+"X-Generator: Weblate 4.14.1\n"
 
 #: src/daemon/cmdline.c:113
 #, fuzzy, c-format
@@ -2775,10 +2775,12 @@ msgstr ""
 #: src/utils/pactl.c:1711 src/utils/pactl.c:1760
 msgid "list-handlers message response could not be parsed correctly"
 msgstr ""
+"no s'ha pogut analitzar correctament la resposta del missatge de list-"
+"handlers"
 
 #: src/utils/pactl.c:1718
 msgid "list-handlers message response is not a JSON array"
-msgstr ""
+msgstr "la resposta del missatge de list-handlers no és una matriu de JSON"
 
 #: src/utils/pactl.c:1729
 #, c-format
