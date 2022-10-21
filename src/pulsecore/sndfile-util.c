@@ -51,11 +51,11 @@ int pa_sndfile_read_sample_spec(SNDFILE *sf, pa_sample_spec *ss) {
             ss->format = PA_SAMPLE_S16NE;
             break;
 
-        case SF_FORMAT_PCM_24:
-            ss->format = PA_SAMPLE_S24NE;
-            break;
-
         case SF_FORMAT_PCM_32:
+        case SF_FORMAT_PCM_24:
+            /* note that libsndfile will convert 24 bits samples to 32 bits
+             * when using the sf_readf_int function, which will be selected
+             * by setting the format to s32. */
             ss->format = PA_SAMPLE_S32NE;
             break;
 
