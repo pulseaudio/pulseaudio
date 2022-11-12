@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2022-09-14 08:19+0000\n"
+"PO-Revision-Date: 2022-11-13 10:19+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ka/>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.14\n"
+"X-Generator: Weblate 4.14.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -471,7 +471,7 @@ msgstr ""
 
 #: src/daemon/pulseaudio.desktop.in:4
 msgid "PulseAudio Sound System"
-msgstr ""
+msgstr "ხმის სისტემა PulseAudio"
 
 #: src/daemon/pulseaudio.desktop.in:5
 msgid "Start the PulseAudio Sound System"
@@ -1052,7 +1052,7 @@ msgstr ""
 #: src/modules/module-rygel-media-server.c:544
 #: src/modules/module-rygel-media-server.c:903
 msgid "Output Devices"
-msgstr ""
+msgstr "გამოტანის მოწყობილობები"
 
 #: src/modules/module-rygel-media-server.c:507
 #: src/modules/module-rygel-media-server.c:545
@@ -1701,7 +1701,7 @@ msgstr ""
 #: src/utils/pacat.c:581
 #, c-format
 msgid "pa_stream_write() failed: %s"
-msgstr ""
+msgstr "pa_stream_new() -ის შეცდომა: %s"
 
 #: src/utils/pacat.c:605
 #, c-format
@@ -2679,7 +2679,7 @@ msgstr ""
 #: src/utils/pactl.c:2751
 #, c-format
 msgid "Invalid format value '%s'"
-msgstr ""
+msgstr "არასწორი ფორმატის მნიშვნელობა '%s'"
 
 #: src/utils/pactl.c:2778
 #, c-format
