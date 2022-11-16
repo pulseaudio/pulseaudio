@@ -10,8 +10,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2021-03-30 23:01+0000\n"
-"Last-Translator: Pjotr Vertaalt <pjotrvertaalt@gmail.com>\n"
+"PO-Revision-Date: 2022-11-17 18:19+0000\n"
+"Last-Translator: Philip Goto <philip.goto@gmail.com>\n"
 "Language-Team: Dutch <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/nl/>\n"
 "Language: nl\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.5.2\n"
+"X-Generator: Weblate 4.14.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -2237,11 +2237,11 @@ msgstr "NUMERIEK-NIVEAU"
 
 #: src/utils/pacmd.c:79
 msgid "FRAMES"
-msgstr ""
+msgstr "FRAMES"
 
 #: src/utils/pacmd.c:80 src/utils/pactl.c:2659
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
-msgstr ""
+msgstr "ONTVANGER BERICHT [PARAMETERS_BERICHT]"
 
 #: src/utils/pacmd.c:82
 #, c-format
@@ -2342,9 +2342,9 @@ msgid "Failed to get server information: %s"
 msgstr "Serverinformatie verkrijgen mislukte: %s"
 
 #: src/utils/pactl.c:224 src/utils/pactl.c:236
-#, fuzzy, c-format
+#, c-format
 msgid "%s\n"
-msgstr "%s %s"
+msgstr "%s\n"
 
 #: src/utils/pactl.c:281
 #, c-format
@@ -2416,7 +2416,7 @@ msgstr "Mic"
 
 #: src/utils/pactl.c:338
 msgid "Handset"
-msgstr ""
+msgstr "Telefoon"
 
 #: src/utils/pactl.c:339
 msgid "Earpiece"
@@ -2879,7 +2879,7 @@ msgstr "bron"
 
 #: src/utils/pactl.c:2167
 msgid "sink-input"
-msgstr ""
+msgstr "afvoerinvoer"
 
 #: src/utils/pactl.c:2170
 msgid "source-output"
@@ -2895,7 +2895,7 @@ msgstr "cliënt"
 
 #: src/utils/pactl.c:2179
 msgid "sample-cache"
-msgstr ""
+msgstr "voorbeeldcache"
 
 #: src/utils/pactl.c:2182
 msgid "server"
@@ -3017,9 +3017,9 @@ msgstr ""
 "Gelinkt met libpulse %s\n"
 
 #: src/utils/pactl.c:2751
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid format value '%s'"
-msgstr "Ongeldige stroomnaam ‘%s’"
+msgstr "Ongeldige formaatwaarde ‘%s’"
 
 #: src/utils/pactl.c:2778
 #, c-format
@@ -3103,18 +3103,16 @@ msgid "You have to specify a source name"
 msgstr "U dient een bronnaam op te geven"
 
 #: src/utils/pactl.c:2998 src/utils/pactl.c:3076
-#, fuzzy
 msgid "You have to specify a sink name/index"
-msgstr "U dient een afvoernaam op te geven"
+msgstr "U dient een afvoernaam/-index op te geven"
 
 #: src/utils/pactl.c:3008
 msgid "You have to specify a sink name/index and a volume"
 msgstr "U dient een afvoernaam/index en een volume op te geven"
 
 #: src/utils/pactl.c:3021 src/utils/pactl.c:3101
-#, fuzzy
 msgid "You have to specify a source name/index"
-msgstr "U dient een bronnaam op te geven"
+msgstr "U dient een bronnaam/-index op te geven"
 
 #: src/utils/pactl.c:3031
 msgid "You have to specify a source name/index and a volume"
