@@ -175,6 +175,9 @@ ATTRS{idVendor}=="1395", ATTRS{idProduct}=="0300", ENV{PULSE_PROFILE_SET}="usb-g
 # Sennheiser GSP 670 USB headset
 ATTRS{idVendor}=="1395", ATTRS{idProduct}=="008a", ENV{PULSE_PROFILE_SET}="usb-gaming-headset.conf"
 
+# Asus Xonar SE
+ATTRS{idVendor}=="0b05", ATTRS{idProduct}=="189d", ENV{PULSE_PROFILE_SET}="asus-xonar-se.conf"
+
 GOTO="pulseaudio_end"
 
 LABEL="pulseaudio_check_pci"
