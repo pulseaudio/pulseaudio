@@ -617,7 +617,7 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
     struct transport_data *trd = t->userdata;
     pa_bluetooth_backend *b = trd->backend;
     int indicator, mode, val;
-    char str[5];
+    char *str;
     const char *r;
     size_t len;
     const char *state = NULL;
@@ -635,9 +635,10 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
         c->state = 1;
 
         return true;
-    } else if (sscanf(buf, "AT+BIA=%s", str) == 1) {
+    } else if (pa_startswith(buf, "AT+BIA=")) {
         /* Indicators start with index 1 and follow the order of the AT+CIND=? response */
 
+        str = pa_xstrdup(buf + 7);
         for (indicator = 1; (r = pa_split_in_place(str, ",", &len, &state)); indicator++) {
             /* Ignore updates to mandatory indicators which are always ON */
             if (indicator == CIND_CALL_INDICATOR
@@ -656,21 +657,25 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
             else {
                 pa_log_error("Unable to parse indicator of AT+BIA command: %s", buf);
                 rfcomm_write_response(fd, "ERROR");
+                pa_xfree(str);
                 return false;
             }
         }
+        pa_xfree(str);
 
         return true;
-    } else if (sscanf(buf, "AT+BAC=%3s", str) == 1) {
+    } else if (pa_startswith(buf, "AT+BAC=")) {
         c->support_msbc = false;
 
         /* check if codec id 2 (mSBC) is in the list of supported codecs */
+        str = pa_xstrdup(buf + 7);
         while ((r = pa_split_in_place(str, ",", &len, &state))) {
             if (len == 1 && r[0] == '2') {
                 c->support_msbc = true;
                 break;
             }
         }
+        pa_xfree(str);
 
         c->support_codec_negotiation = true;
 
