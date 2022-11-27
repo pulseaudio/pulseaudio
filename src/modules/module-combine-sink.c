@@ -1711,9 +1711,6 @@ int pa__init(pa_module*m) {
     PA_IDXSET_FOREACH(o, u->outputs, idx)
         output_verify(o);
 
-    if (u->adjust_time > 0)
-        u->time_event = pa_core_rttime_new(m->core, pa_rtclock_now() + u->adjust_time, time_callback, u);
-
     pa_modargs_free(ma);
 
     return 0;
