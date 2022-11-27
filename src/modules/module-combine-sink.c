@@ -1733,6 +1733,9 @@ void pa__done(pa_module*m) {
     if (!(u = m->userdata))
         return;
 
+    if (u->sink && PA_SINK_IS_LINKED(u->sink->state))
+        pa_sink_suspend(u->sink, true, PA_SUSPEND_UNAVAILABLE);
+
     pa_strlist_free(u->unlinked_slaves);
 
     if (u->sink_put_slot)
