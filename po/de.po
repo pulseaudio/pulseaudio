@@ -15,8 +15,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2022-07-22 13:18+0000\n"
-"Last-Translator: Joachim Philipp <joachim.philipp@gmail.com>\n"
+"PO-Revision-Date: 2022-12-06 09:20+0000\n"
+"Last-Translator: Ettore Atalan <atalanttore@googlemail.com>\n"
 "Language-Team: German <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/de/>\n"
 "Language: de\n"
@@ -24,7 +24,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.13\n"
+"X-Generator: Weblate 4.14.2\n"
 
 #: src/daemon/cmdline.c:113
 #, fuzzy, c-format
@@ -3157,7 +3157,7 @@ msgstr "Sie müssen einen Ziel-Namen/-Indexwert und eine Lautstärke angeben."
 #: src/utils/pactl.c:3021 src/utils/pactl.c:3101
 #, fuzzy
 msgid "You have to specify a source name/index"
-msgstr "Sie müssen einen Quellennamen angeben."
+msgstr "Sie müssen einen Quellennamen/-index angeben"
 
 #: src/utils/pactl.c:3031
 msgid "You have to specify a source name/index and a volume"
