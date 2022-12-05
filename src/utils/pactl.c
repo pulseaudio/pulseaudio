@@ -1870,6 +1870,7 @@ static void get_sink_volume_callback(pa_context *c, const pa_sink_info *i, int i
 
 static void set_sink_volume_callback(pa_context *c, const pa_sink_info *i, int is_last, void *userdata) {
     pa_cvolume cv;
+    pa_operation *o;
 
     if (is_last < 0) {
         pa_log(_("Failed to get sink information: %s"), pa_strerror(pa_context_errno(c)));
@@ -1885,7 +1886,13 @@ static void set_sink_volume_callback(pa_context *c, const pa_sink_info *i, int i
     cv = i->volume;
     fill_volume(&cv, i->channel_map.channels);
 
-    pa_operation_unref(pa_context_set_sink_volume_by_name(c, sink_name, &cv, simple_callback, NULL));
+    o = pa_context_set_sink_volume_by_name(c, sink_name, &cv, simple_callback, NULL);
+    if (o)
+        pa_operation_unref(o);
+    else {
+        pa_log(_("Failed to set sink volume: %s"), pa_strerror(pa_context_errno(c)));
+        complete_action();
+    }
 }
 
 static void get_source_mute_callback(pa_context *c, const pa_source_info *i, int is_last, void *userdata) {
@@ -1929,6 +1936,7 @@ static void get_source_volume_callback(pa_context *c, const pa_source_info *i, i
 
 static void set_source_volume_callback(pa_context *c, const pa_source_info *i, int is_last, void *userdata) {
     pa_cvolume cv;
+    pa_operation *o;
 
     if (is_last < 0) {
         pa_log(_("Failed to get source information: %s"), pa_strerror(pa_context_errno(c)));
@@ -1944,7 +1952,13 @@ static void set_source_volume_callback(pa_context *c, const pa_source_info *i, i
     cv = i->volume;
     fill_volume(&cv, i->channel_map.channels);
 
-    pa_operation_unref(pa_context_set_source_volume_by_name(c, source_name, &cv, simple_callback, NULL));
+    o = pa_context_set_source_volume_by_name(c, source_name, &cv, simple_callback, NULL);
+    if (o)
+        pa_operation_unref(o);
+    else {
+        pa_log(_("Failed to set source volume: %s"), pa_strerror(pa_context_errno(c)));
+        complete_action();
+    }
 }
 
 static void get_sink_input_volume_callback(pa_context *c, const pa_sink_input_info *i, int is_last, void *userdata) {
