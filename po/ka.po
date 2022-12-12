@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2022-11-13 10:19+0000\n"
+"PO-Revision-Date: 2022-12-13 15:20+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ka/>\n"
@@ -308,12 +308,12 @@ msgstr ""
 #: src/daemon/main.c:265
 #, c-format
 msgid "Failed to find user '%s'."
-msgstr ""
+msgstr "მომხმარებლის '%s' აღმოჩენის შეცდომა."
 
 #: src/daemon/main.c:270
 #, c-format
 msgid "Failed to find group '%s'."
-msgstr ""
+msgstr "ჯგუფის '%s' აღმოჩენის შეცდომა."
 
 #: src/daemon/main.c:279
 #, c-format
@@ -426,7 +426,7 @@ msgstr "read() -ის შეცდომა: %s"
 
 #: src/daemon/main.c:954
 msgid "Daemon startup failed."
-msgstr ""
+msgstr "დემონის გაშვების შეცდომა."
 
 #: src/daemon/main.c:987
 #, c-format
@@ -435,7 +435,7 @@ msgstr "setsid() -ის შეცდომა: %s"
 
 #: src/daemon/main.c:1119
 msgid "Failed to get machine ID"
-msgstr ""
+msgstr "მანქანის ID-ის მიღების შეცდომა"
 
 #: src/daemon/main.c:1145
 msgid ""
@@ -456,7 +456,7 @@ msgstr "pa_core_new() -ის შეცდომა."
 
 #: src/daemon/main.c:1268
 msgid "command line arguments"
-msgstr ""
+msgstr "ბრძანების სტრიქონის არგუმენტები"
 
 #: src/daemon/main.c:1275
 #, c-format
@@ -1041,7 +1041,7 @@ msgstr ""
 
 #: src/modules/module-null-sink.c:356
 msgid "Null Output"
-msgstr ""
+msgstr "ნულოვანი გამოტანა"
 
 #: src/modules/module-null-sink.c:368 src/utils/pactl.c:2064
 #, c-format
@@ -1408,7 +1408,7 @@ msgstr ""
 
 #: src/pulsecore/log.c:651
 msgid "Invalid log target."
-msgstr ""
+msgstr "ჟურნალის არასწორი სამიზნე."
 
 #: src/pulsecore/sink.c:3609
 msgid "Built-in Audio"
@@ -1472,11 +1472,11 @@ msgstr ""
 
 #: src/pulse/error.c:51
 msgid "Invalid server"
-msgstr ""
+msgstr "არასწორი სერვერი"
 
 #: src/pulse/error.c:52
 msgid "Module initialization failed"
-msgstr ""
+msgstr "მოდულის ინიციალიზაციის შეცდომა"
 
 #: src/pulse/error.c:53
 msgid "Bad state"
@@ -1492,7 +1492,7 @@ msgstr ""
 
 #: src/pulse/error.c:56
 msgid "Too large"
-msgstr ""
+msgstr "ძალიან დიდია"
 
 #: src/pulse/error.c:57
 msgid "Not supported"
@@ -1500,19 +1500,19 @@ msgstr "მხარდაუჭერელია"
 
 #: src/pulse/error.c:58
 msgid "Unknown error code"
-msgstr ""
+msgstr "უცნობი შეცდომის კოდი"
 
 #: src/pulse/error.c:59
 msgid "No such extension"
-msgstr ""
+msgstr "გაფართოება არ არსებობს"
 
 #: src/pulse/error.c:60
 msgid "Obsolete functionality"
-msgstr ""
+msgstr "მოძველებული ფუნქციონალი"
 
 #: src/pulse/error.c:61
 msgid "Missing implementation"
-msgstr ""
+msgstr "იმპლემენტაცია არ არსებობს"
 
 #: src/pulse/error.c:62
 msgid "Client forked"
@@ -1520,11 +1520,11 @@ msgstr ""
 
 #: src/pulse/error.c:63
 msgid "Input/Output error"
-msgstr ""
+msgstr "შეტანა/გამოტანის შეცდომა"
 
 #: src/pulse/error.c:64
 msgid "Device or resource busy"
-msgstr ""
+msgstr "მოწყობილობა ან რესურსი დაკავებულია"
 
 #: src/pulse/sample.c:179
 #, c-format
@@ -2189,7 +2189,7 @@ msgstr "ხაზი"
 
 #: src/utils/pactl.c:336
 msgid "Mic"
-msgstr ""
+msgstr "მიკროფონის"
 
 #: src/utils/pactl.c:338
 msgid "Handset"
