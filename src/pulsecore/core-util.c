@@ -407,6 +407,7 @@ finish:
  * by the caller. */
 ssize_t pa_read(int fd, void *buf, size_t count, int *type) {
 
+    errno = 0;
 #ifdef OS_IS_WIN32
 
     if (!type || *type == 0) {
