@@ -14,7 +14,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2022-12-11 19:19+0000\n"
+"PO-Revision-Date: 2022-12-18 11:19+0000\n"
 "Last-Translator: Toni Estevez <toni.estevez@gmail.com>\n"
 "Language-Team: Spanish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/es/>\n"
@@ -23,7 +23,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.14.2\n"
+"X-Generator: Weblate 4.15\n"
 "X-Poedit-Language: Spanish\n"
 
 #: src/daemon/cmdline.c:113
@@ -457,8 +457,8 @@ msgid ""
 "System mode refused for non-root user. Only starting the D-Bus server lookup "
 "service."
 msgstr ""
-"Denegado el modo de sistema para usuario que no es administrador. Sólo se "
-"inicia el servicio de búsqueda de servidor D-Bus."
+"Modo de sistema rechazado para un usuario sin permisos. Se inicia solo el "
+"servicio de búsqueda del servidor D-Bus."
 
 #: src/daemon/main.c:788
 #, c-format
@@ -698,7 +698,7 @@ msgstr "Micrófono de la estación de acoplamiento"
 
 #: src/modules/alsa/alsa-mixer.c:2802
 msgid "Headset Microphone"
-msgstr "Micrófono con auriculares"
+msgstr "Micrófono de los auriculares"
 
 #: src/modules/alsa/alsa-mixer.c:2806
 msgid "Analog Output"
@@ -1236,7 +1236,7 @@ msgstr "Túnel a %s/%s"
 
 #: src/modules/module-virtual-surround-sink.c:50
 msgid "Virtual surround sink"
-msgstr "Destino de sonido envolvente virtual"
+msgstr "Destino envolvente virtual"
 
 #: src/modules/module-virtual-surround-sink.c:54
 msgid ""
@@ -1283,15 +1283,15 @@ msgstr "Frontal derecho"
 
 #: src/pulse/channelmap.c:109
 msgid "Rear Center"
-msgstr "Posterior central"
+msgstr "Trasero central"
 
 #: src/pulse/channelmap.c:110
 msgid "Rear Left"
-msgstr "Posterior izquierdo"
+msgstr "Trasero izquierdo"
 
 #: src/pulse/channelmap.c:111
 msgid "Rear Right"
-msgstr "Posterior derecho"
+msgstr "Trasero derecho"
 
 #: src/pulse/channelmap.c:113
 msgid "Subwoofer"
@@ -1299,11 +1299,11 @@ msgstr "Altavoz de subgraves"
 
 #: src/pulse/channelmap.c:115
 msgid "Front Left-of-center"
-msgstr "Frontal a la izquierda del central"
+msgstr "Frontal izquierdo del centro"
 
 #: src/pulse/channelmap.c:116
 msgid "Front Right-of-center"
-msgstr "Frontal a la derecha del central"
+msgstr "Frontal derecho del centro"
 
 #: src/pulse/channelmap.c:118
 msgid "Side Left"
@@ -1443,31 +1443,31 @@ msgstr "Auxiliar 31"
 
 #: src/pulse/channelmap.c:154
 msgid "Top Center"
-msgstr "Central superior"
+msgstr "Superior central"
 
 #: src/pulse/channelmap.c:156
 msgid "Top Front Center"
-msgstr "Frontal superior central"
+msgstr "Superior frontal central"
 
 #: src/pulse/channelmap.c:157
 msgid "Top Front Left"
-msgstr "Frontal superior izquierdo"
+msgstr "Superior frontal izquierdo"
 
 #: src/pulse/channelmap.c:158
 msgid "Top Front Right"
-msgstr "Frontal superior derecho"
+msgstr "Superior frontal derecho"
 
 #: src/pulse/channelmap.c:160
 msgid "Top Rear Center"
-msgstr "Posterior central superior"
+msgstr "Superior trasero central"
 
 #: src/pulse/channelmap.c:161
 msgid "Top Rear Left"
-msgstr "Posterior izquierdo superior"
+msgstr "Superior trasero izquierdo"
 
 #: src/pulse/channelmap.c:162
 msgid "Top Rear Right"
-msgstr "Posterior derecho superior"
+msgstr "Superior trasero derecho"
 
 #: src/pulse/channelmap.c:478 src/pulse/format.c:123 src/pulse/sample.c:177
 #: src/pulse/volume.c:306 src/pulse/volume.c:332 src/pulse/volume.c:352
@@ -1478,23 +1478,23 @@ msgstr "(no válido)"
 
 #: src/pulse/channelmap.c:779
 msgid "Surround 4.0"
-msgstr "Sonido envolvente 4.0"
+msgstr "Envolvente 4.0"
 
 #: src/pulse/channelmap.c:785
 msgid "Surround 4.1"
-msgstr "Sonido envolvente 4.1"
+msgstr "Envolvente 4.1"
 
 #: src/pulse/channelmap.c:791
 msgid "Surround 5.0"
-msgstr "Sonido envolvente 5.0"
+msgstr "Envolvente 5.0"
 
 #: src/pulse/channelmap.c:797
 msgid "Surround 5.1"
-msgstr "Sonido envolvente 5.1"
+msgstr "Envolvente 5.1"
 
 #: src/pulse/channelmap.c:804
 msgid "Surround 7.1"
-msgstr "Sonido envolvente 7.1"
+msgstr "Envolvente 7.1"
 
 #: src/pulse/client-conf-x11.c:61 src/utils/pax11publish.c:97
 msgid "xcb_connect() failed"
@@ -2857,7 +2857,7 @@ msgstr ""
 #: src/utils/pactl.c:1633 src/utils/pactl.c:1643
 #, c-format
 msgid "Failure: %s"
-msgstr "Falla: %s"
+msgstr "Fallo: %s"
 
 #: src/utils/pactl.c:1667
 #, c-format
@@ -2872,19 +2872,19 @@ msgstr "Ha fallado el mensaje de list-handlers: %s"
 #: src/utils/pactl.c:1711 src/utils/pactl.c:1760
 msgid "list-handlers message response could not be parsed correctly"
 msgstr ""
-"no se ha podido analizar correctamente la respuesta del mensaje de list-"
+"No se ha podido analizar correctamente la respuesta del mensaje de list-"
 "handlers"
 
 #: src/utils/pactl.c:1718
 msgid "list-handlers message response is not a JSON array"
-msgstr "la respuesta del mensaje de list-handlers no es una matriz de JSON"
+msgstr "La respuesta del mensaje de list-handlers no es una matriz de JSON"
 
 #: src/utils/pactl.c:1729
 #, c-format
 msgid "list-handlers message response array element %d is not a JSON object"
 msgstr ""
-"el elemento %d del array proveniente del mensaje de respuesta de list-"
-"handlers no es un objeto JSON"
+"El elemento %d de la matriz de respuesta del mensaje de list-handlers no es "
+"un objeto JSON"
 
 #: src/utils/pactl.c:1800
 #, c-format
@@ -3290,12 +3290,12 @@ msgstr "execvp(): %s\n"
 #: src/utils/pasuspender.c:111
 #, c-format
 msgid "Failure to resume: %s\n"
-msgstr "Error al continuar: %s\n"
+msgstr "Fallo al reanudar: %s\n"
 
 #: src/utils/pasuspender.c:145
 #, c-format
 msgid "Failure to suspend: %s\n"
-msgstr "Error al suspender: %s\n"
+msgstr "Fallo al suspender: %s\n"
 
 #: src/utils/pasuspender.c:170
 #, c-format
