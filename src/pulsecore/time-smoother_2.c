@@ -307,7 +307,8 @@ pa_usec_t pa_smoother_2_get(pa_smoother_2 *s, pa_usec_t time_stamp) {
     /* If we are initializing, add the time since resume to the card time at pause_time */
     else if (s->init) {
         current_time += (s->pause_time - s->start_time - s->time_offset - s->fixup_time) * s->time_factor;
-        current_time += (time_stamp - s->resume_time) * s->time_factor;
+        if (time_stamp > s->resume_time)
+            current_time += (time_stamp - s->resume_time) * s->time_factor;
 
     /* Smoother is running, calculate current sound card time */
     } else
