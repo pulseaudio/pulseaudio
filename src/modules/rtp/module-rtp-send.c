@@ -26,6 +26,9 @@
 #include <netinet/in.h>
 #include <errno.h>
 #include <unistd.h>
+#ifdef HAVE_NETDB_H
+#include <netdb.h>
+#endif
 
 #include <pulse/rtclock.h>
 #include <pulse/timeval.h>
@@ -338,6 +341,44 @@ int pa__init(pa_module*m) {
     if (dst_addr == NULL)
         dst_addr = pa_modargs_get_value(ma, "destination_ip", DEFAULT_DESTINATION_IP);
 
+#if defined(HAVE_GETADDRINFO)
+    {
+        struct addrinfo *dst_addrinfo = NULL;
+        struct addrinfo hints;
+
+        pa_zero(hints);
+
+        hints.ai_flags = AI_NUMERICHOST;
+        if (getaddrinfo(dst_addr, NULL, &hints, &dst_addrinfo) != 0) {
+            pa_log("Invalid destination '%s'", dst_addr);
+            goto fail;
+        }
+
+        af = dst_addrinfo->ai_family;
+        if (af == AF_INET) {
+            memcpy(&dst_sa4, dst_addrinfo->ai_addr, dst_addrinfo->ai_addrlen);
+            dst_sa4.sin_port = htons((uint16_t) port);
+            dst_sap_sa4 = dst_sa4;
+            dst_sap_sa4.sin_port = htons(SAP_PORT);
+        }
+#ifdef HAVE_IPV6
+        else if (af == AF_INET6) {
+            memcpy(&dst_sa6, dst_addrinfo->ai_addr, dst_addrinfo->ai_addrlen);
+            dst_sa6.sin6_port = htons((uint16_t) port);
+            dst_sap_sa6 = dst_sa6;
+            dst_sap_sa6.sin6_port = htons(SAP_PORT);
+        }
+#endif
+        else
+        {
+            freeaddrinfo(dst_addrinfo);
+            pa_log("Invalid destination '%s'", dst_addr);
+            goto fail;
+        }
+
+        freeaddrinfo(dst_addrinfo);
+    }
+#else
     if (inet_pton(AF_INET, dst_addr, &dst_sa4.sin_addr) > 0) {
         dst_sa4.sin_family = af = AF_INET;
         dst_sa4.sin_port = htons((uint16_t) port);
@@ -357,6 +398,7 @@ int pa__init(pa_module*m) {
         pa_log("Invalid destination '%s'", dst_addr);
         goto fail;
     }
+#endif /* HAVE_GETADDRINFO */
 
     if ((fd = pa_socket_cloexec(af, SOCK_DGRAM, 0)) < 0) {
         pa_log("socket() failed: %s", pa_cstrerror(errno));
