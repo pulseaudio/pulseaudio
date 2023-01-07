@@ -423,6 +423,9 @@ int pa_stream_interaction_init(pa_module *m, const char* const v_modargs[]) {
     bool global = false;
     bool source_trigger = false;
     uint32_t i = 0;
+    uint32_t group_count_tr = 0;
+    uint32_t group_count_du = 0;
+    uint32_t group_count_vol = 0;
 
     pa_assert(m);
 
@@ -441,30 +444,28 @@ int pa_stream_interaction_init(pa_module *m, const char* const v_modargs[]) {
 
     u->n_groups = 1;
 
+    roles = pa_modargs_get_value(ma, "trigger_roles", NULL);
+    if (roles) {
+        const char *split_state = NULL;
+        char *n = NULL;
+        while ((n = pa_split(roles, "/", &split_state))) {
+            group_count_tr++;
+            pa_xfree(n);
+        }
+    }
+    roles = pa_modargs_get_value(ma, u->duck ? "ducking_roles" : "cork_roles", NULL);
+    if (roles) {
+        const char *split_state = NULL;
+        char *n = NULL;
+        while ((n = pa_split(roles, "/", &split_state))) {
+            group_count_du++;
+            pa_xfree(n);
+        }
+    }
+
     if (u->duck) {
         const char *volumes;
-        uint32_t group_count_tr = 0;
-        uint32_t group_count_du = 0;
-        uint32_t group_count_vol = 0;
 
-        roles = pa_modargs_get_value(ma, "trigger_roles", NULL);
-        if (roles) {
-            const char *split_state = NULL;
-            char *n = NULL;
-            while ((n = pa_split(roles, "/", &split_state))) {
-                group_count_tr++;
-                pa_xfree(n);
-            }
-        }
-        roles = pa_modargs_get_value(ma, "ducking_roles", NULL);
-        if (roles) {
-            const char *split_state = NULL;
-            char *n = NULL;
-            while ((n = pa_split(roles, "/", &split_state))) {
-                group_count_du++;
-                pa_xfree(n);
-            }
-        }
         volumes = pa_modargs_get_value(ma, "volume", NULL);
         if (volumes) {
             const char *split_state = NULL;
@@ -480,10 +481,15 @@ int pa_stream_interaction_init(pa_module *m, const char* const v_modargs[]) {
             pa_log("Invalid number of groups");
             goto fail;
         }
-
-        if (group_count_tr > 0)
-            u->n_groups = group_count_tr;
+    } else {
+        if ((group_count_tr > 1 || group_count_du > 1) && (group_count_tr != group_count_du)) {
+            pa_log("Invalid number of groups");
+            goto fail;
+        }
     }
+
+    if (group_count_tr > 0)
+        u->n_groups = group_count_tr;
 
     u->groups = pa_xnew0(struct group*, u->n_groups);
     for (i = 0; i < u->n_groups; i++) {
