@@ -639,7 +639,7 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
         /* Indicators start with index 1 and follow the order of the AT+CIND=? response */
 
         str = pa_xstrdup(buf + 7);
-        for (indicator = 1; (r = pa_split_in_place(str, ",", &len, &state)); indicator++) {
+        for (indicator = 1; (r = pa_split_in_place(str, ",\r\n", &len, &state)); indicator++) {
             /* Ignore updates to mandatory indicators which are always ON */
             if (indicator == CIND_CALL_INDICATOR
                 || indicator == CIND_CALL_SETUP_INDICATOR
@@ -669,7 +669,7 @@ static bool hfp_rfcomm_handle(int fd, pa_bluetooth_transport *t, const char *buf
 
         /* check if codec id 2 (mSBC) is in the list of supported codecs */
         str = pa_xstrdup(buf + 7);
-        while ((r = pa_split_in_place(str, ",", &len, &state))) {
+        while ((r = pa_split_in_place(str, ",\r\n", &len, &state))) {
             if (len == 1 && r[0] == '2') {
                 c->support_msbc = true;
                 break;
