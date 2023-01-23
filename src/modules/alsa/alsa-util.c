@@ -40,6 +40,7 @@
 #include <pulsecore/thread.h>
 #include <pulsecore/conf-parser.h>
 #include <pulsecore/core-rtclock.h>
+#include <pulsecore/strbuf.h>
 
 #include "alsa-util.h"
 #include "alsa-mixer.h"
@@ -1406,6 +1407,23 @@ char *pa_alsa_get_reserve_name(const char *device) {
     return pa_sprintf_malloc("Audio%i", i);
 }
 
+static void dump_supported_rates(unsigned int* values)
+{
+    pa_strbuf *buf;
+    char *str;
+    int i;
+
+    buf = pa_strbuf_new();
+
+    for (i = 0; values[i]; i++) {
+        pa_strbuf_printf(buf, " %u", values[i]);
+    }
+
+    str = pa_strbuf_to_string_free(buf);
+    pa_log_debug("Supported rates:%s", str);
+    pa_xfree(str);
+}
+
 unsigned int *pa_alsa_get_supported_rates(snd_pcm_t *pcm, unsigned int fallback_rate) {
     static unsigned int all_rates[] = { 8000, 11025, 12000,
                                         16000, 22050, 24000,
@@ -1454,6 +1472,7 @@ unsigned int *pa_alsa_get_supported_rates(snd_pcm_t *pcm, unsigned int fallback_
         rates[1] = 0;
     }
 
+    dump_supported_rates(rates);
     return rates;
 }
 
