@@ -319,6 +319,42 @@ int pa__init(pa_module*m) {
 
     src_addr = pa_modargs_get_value(ma, "source_ip", DEFAULT_SOURCE_IP);
 
+#if defined(HAVE_GETADDRINFO)
+    {
+        struct addrinfo *src_addrinfo = NULL;
+        struct addrinfo hints;
+
+        pa_zero(hints);
+
+        hints.ai_flags = AI_NUMERICHOST;
+        if (getaddrinfo(src_addr, NULL, &hints, &src_addrinfo) != 0) {
+            pa_log("Invalid source '%s'", src_addr);
+            goto fail;
+        }
+
+        af = src_addrinfo->ai_family;
+        if (af == AF_INET) {
+            memcpy(&src_sa4, src_addrinfo->ai_addr, src_addrinfo->ai_addrlen);
+            src_sa4.sin_port = htons(0);
+            src_sap_sa4 = src_sa4;
+        }
+#ifdef HAVE_IPV6
+        else if (af == AF_INET6) {
+            memcpy(&src_sa6, src_addrinfo->ai_addr, src_addrinfo->ai_addrlen);
+            src_sa6.sin6_port = htons(0);
+            src_sap_sa6 = src_sa6;
+        }
+#endif
+        else
+        {
+            freeaddrinfo(src_addrinfo);
+            pa_log("Invalid source '%s'", src_addr);
+            goto fail;
+        }
+
+        freeaddrinfo(src_addrinfo);
+    }
+#else
     if (inet_pton(AF_INET, src_addr, &src_sa4.sin_addr) > 0) {
         src_sa4.sin_family = af = AF_INET;
         src_sa4.sin_port = htons(0);
@@ -336,6 +372,7 @@ int pa__init(pa_module*m) {
         pa_log("Invalid source address '%s'", src_addr);
         goto fail;
     }
+#endif /* HAVE_GETADDRINFO */
 
     dst_addr = pa_modargs_get_value(ma, "destination", NULL);
     if (dst_addr == NULL)
