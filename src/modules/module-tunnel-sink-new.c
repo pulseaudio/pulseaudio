@@ -253,9 +253,14 @@ static void thread_func(void *userdata) {
                     pa_log_error("Could not write data into the stream ... ret = %i", ret);
                     u->thread_mainloop_api->quit(u->thread_mainloop_api, TUNNEL_THREAD_FAILED_MAINLOOP);
                 }
-
             }
         }
+
+        /* Run the rtpoll to process messages that other modules (module-combine-sink,
+         * module-loopback and module-rtp-recv) may have placed in the queue. */
+        pa_rtpoll_set_timer_relative(u->rtpoll, 0);
+        if (pa_rtpoll_run(u->rtpoll) < 0)
+            goto fail;
     }
 fail:
     /* send a message to the ctl thread to ask it to either terminate us, or
@@ -696,13 +701,13 @@ static int do_init(pa_module *m) {
     u->msg = pa_msgobject_new(tunnel_msg);
     u->msg->parent.process_msg = tunnel_process_msg;
 
-    /* The rtpoll created here is never run. It is only necessary to avoid crashes
-     * when module-tunnel-sink-new is used together with module-loopback or
-     * module-combine-sink. Both modules base their asyncmsq on the rtpoll provided
-     * by the sink. module-loopback and combine-sink only work because they call
-     * pa_asyncmsq_process_one() themselves. module_rtp_recv also uses the rtpoll,
-     * but never calls pa_asyncmsq_process_one(), so it will not work in combination
-     * with module-tunnel-sink-new. */
+    /* The rtpoll created here is only run for the sake of module-combine-sink. It must
+     * exist to avoid crashes when module-tunnel-sink-new is used together with
+     * module-loopback or module-combine-sink. Both modules base their asyncmsgq on the
+     * rtpoll provided by the sink. module-loopback and combine-sink only work because
+     * they call pa_asyncmsq_process_one() themselves. module-combine-sink does this
+     * however only for the audio_inq, so without running the rtpoll, messages placed
+     * in control_inq would never be executed. */
     u->rtpoll = pa_rtpoll_new();
 
     default_sink_name = pa_sprintf_malloc("tunnel-sink-new.%s", remote_server);

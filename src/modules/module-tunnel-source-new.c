@@ -270,6 +270,11 @@ static void thread_func(void *userdata) {
 
         if (u->new_data)
             read_new_samples(u);
+
+        /* Run the rtpoll to process messages that other modules may have placed in the queue. */
+        pa_rtpoll_set_timer_relative(u->rtpoll, 0);
+        if (pa_rtpoll_run(u->rtpoll) < 0)
+            goto fail;
     }
 fail:
     /* send a message to the ctl thread to ask it to either terminate us, or
@@ -668,10 +673,12 @@ static int do_init(pa_module *m) {
     u->msg = pa_msgobject_new(tunnel_msg);
     u->msg->parent.process_msg = tunnel_process_msg;
 
-    /* The rtpoll created here is never run. It is only necessary to avoid crashes
-     * when module-tunnel-source-new is used together with module-loopback.
-     * module-loopback bases the asyncmsq on the rtpoll provided by the source and
-     * only works because it calls pa_asyncmsq_process_one(). */
+    /* The rtpoll created here must curently only exist to avoid crashes when
+     * the module is used together with module-loopback. Because module-loopback
+     * runs pa_asyncmsgq_process_one() from the pop callback, the rtpoll need not
+     * be run. We will do so anyway for potential modules similar to
+     * module-combine-sink that use the rtpoll of the underlying source for
+     * message exchange. */
     u->rtpoll = pa_rtpoll_new();
 
     default_source_name = pa_sprintf_malloc("tunnel-source-new.%s", remote_server);
