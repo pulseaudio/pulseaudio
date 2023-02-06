@@ -1549,8 +1549,8 @@ static void thread_func(void *userdata) {
                     writable = true;
 
                 /* If we have a source, we let the source determine the timing
-                 * for the sink */
-                if (have_source) {
+                 * for the sink unless peer has not sent any data yet */
+                if (have_source && u->read_index > 0) {
 
                     /* If the stream is writable, send some data if necessary */
                     if (writable) {
@@ -1663,6 +1663,12 @@ static void thread_func(void *userdata) {
                             goto fail;
 
                         if (result) {
+                            if (have_source && u->read_index <= 0) {
+                                /* We have a source but peer has not sent any data yet, log this */
+                                if (pa_log_ratelimit(PA_LOG_DEBUG))
+                                    pa_log_debug("Still no data received from source, sent one more block to sink");
+                            }
+
                             writable = false;
                             have_written = true;
                         }
