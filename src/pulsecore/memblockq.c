@@ -286,7 +286,6 @@ int pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *uchunk) {
     pa_assert(uchunk->index + uchunk->length <= pa_memblock_get_length(uchunk->memblock));
 
     pa_assert(uchunk->length % bq->base == 0);
-    pa_assert(uchunk->index % bq->base == 0);
 
     if (!can_push(bq, uchunk->length))
         return -1;
