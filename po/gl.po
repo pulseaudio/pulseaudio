@@ -12,7 +12,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2021-09-01 12:04+0000\n"
+"PO-Revision-Date: 2023-02-10 20:20+0000\n"
 "Last-Translator: Fran Diéguez <frandieguez@gnome.org>\n"
 "Language-Team: Galician <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/gl/>\n"
@@ -21,7 +21,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.8\n"
+"X-Generator: Weblate 4.15.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -189,13 +189,13 @@ msgid "--fail expects boolean argument"
 msgstr "--fail agarda un argumento booleano"
 
 #: src/daemon/cmdline.c:265
-#, fuzzy
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of error, warn, notice, info, debug)."
 msgstr ""
 "--log-level agarda un argumento no nivel do rexistro (xa sexa numérico, "
-"dentro do rango de 0..4; xa sexa un de debug, info, notice, warn, ou error)."
+"dentro do rango de 0-4 ou ben un destos valores: error, warn, notice, info, "
+"debug)."
 
 #: src/daemon/cmdline.c:277
 msgid "--high-priority expects boolean argument"
@@ -2392,7 +2392,7 @@ msgid "Failed to get server information: %s"
 msgstr "Produciuse un fallo ao tentar obter información do servidor: %s"
 
 #: src/utils/pactl.c:224 src/utils/pactl.c:236
-#, fuzzy, c-format
+#, c-format
 msgid "%s\n"
 msgstr "%s\n"
 
@@ -2473,22 +2473,18 @@ msgid "Earpiece"
 msgstr "Auricular"
 
 #: src/utils/pactl.c:340
-#, fuzzy
 msgid "SPDIF"
 msgstr "SPDIF"
 
 #: src/utils/pactl.c:341
-#, fuzzy
 msgid "HDMI"
 msgstr "HDMI"
 
 #: src/utils/pactl.c:342
-#, fuzzy
 msgid "TV"
 msgstr "TV"
 
 #: src/utils/pactl.c:345
-#, fuzzy
 msgid "USB"
 msgstr "USB"
 
@@ -2868,15 +2864,18 @@ msgstr "Produciuse un fallo no mensaxe list-handlers: %s"
 #: src/utils/pactl.c:1711 src/utils/pactl.c:1760
 msgid "list-handlers message response could not be parsed correctly"
 msgstr ""
+"Non foi posíbel analizar correctamente a resposta da mensaxe de list-handlers"
 
 #: src/utils/pactl.c:1718
 msgid "list-handlers message response is not a JSON array"
-msgstr ""
+msgstr "A respostaa da mensaxe de list-handlers non é unha matriz de JSON"
 
 #: src/utils/pactl.c:1729
 #, c-format
 msgid "list-handlers message response array element %d is not a JSON object"
 msgstr ""
+"O elemento %d da matriz de resposta da mensaxe de list-handlers non é un "
+"obxecto JSON"
 
 #: src/utils/pactl.c:1800
 #, c-format
@@ -3040,7 +3039,7 @@ msgstr ""
 "poden usarse para especificar o destino, orixe e monitor predeterminados.\n"
 
 #: src/utils/pactl.c:2664
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "  -h, --help                            Show this help\n"
@@ -3056,6 +3055,9 @@ msgstr ""
 "\n"
 "  -h, --help                            Mostra esta axuda\n"
 "      --version                         Mostra a versión\n"
+"\n"
+"  -f, --format=FORMAT                   O formato da saída. Puede ser "
+"«normal» o «json»\n"
 "  -s, --server=SERVIDOR                 O nome do servidor co que conectar\n"
 "  -n, --client-name=NOME                Como chamar a este cliente no "
 "servidor\n"
@@ -3072,9 +3074,9 @@ msgstr ""
 "Vinculado con libpulse %s\n"
 
 #: src/utils/pactl.c:2751
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid format value '%s'"
-msgstr "Nome do fluxo «%s» incorrecto"
+msgstr "Formato do valor «%s» incorrecto"
 
 #: src/utils/pactl.c:2778
 #, c-format
@@ -3159,18 +3161,16 @@ msgid "You have to specify a source name"
 msgstr "Ten que especificar un nome para a fonte"
 
 #: src/utils/pactl.c:2998 src/utils/pactl.c:3076
-#, fuzzy
 msgid "You have to specify a sink name/index"
-msgstr "Ten que especificar un nome de destino"
+msgstr "Ten que especificar un nome/índice de destino"
 
 #: src/utils/pactl.c:3008
 msgid "You have to specify a sink name/index and a volume"
 msgstr "Debe especificar un nome/índice de destino e un volume"
 
 #: src/utils/pactl.c:3021 src/utils/pactl.c:3101
-#, fuzzy
 msgid "You have to specify a source name/index"
-msgstr "Ten que especificar un nome para a fonte"
+msgstr "Ten que especificar un nome/índice de fonte"
 
 #: src/utils/pactl.c:3031
 msgid "You have to specify a source name/index and a volume"
@@ -3235,15 +3235,18 @@ msgid "Invalid source output index specification"
 msgstr "Especificación de índice de saída de orixe non válida"
 
 #: src/utils/pactl.c:3162
-#, fuzzy
 msgid "You have to specify at least an object path and a message name"
-msgstr "Debe especificar un nome/índice de destino e un nome de porto"
+msgstr ""
+"Debe especificar cando menos unha ruta de acceso ao obxecto e un nome de "
+"mensaxe"
 
 #: src/utils/pactl.c:3172
 msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
 msgstr ""
+"Fornecéronse argumentos de máis, serán ignorados. Teña en conta que todos os "
+"parámetros de mensaxe deben ingresarse como unha única cadea."
 
 #: src/utils/pactl.c:3182
 msgid ""
@@ -3308,7 +3311,7 @@ msgid "WARNING: Child process terminated by signal %u\n"
 msgstr "AVISO: o proceso fillo foi rematado polo sinal %u\n"
 
 #: src/utils/pasuspender.c:228
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] -- PROGRAM [ARGUMENTS ...]\n"
 "\n"
@@ -3320,7 +3323,9 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
-"%s [opcións] ... \n"
+"%s [opcións] --PROGRAMA [ARGUMENTOS ...]... \n"
+"\n"
+"Suspende temporalmente PulseAudio mentres se executa o PROGRAMA.\n"
 "\n"
 "  -h, --help                            Mostra esta axuda\n"
 "      --version                         Mostra a versión\n"
