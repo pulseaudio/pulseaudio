@@ -613,9 +613,13 @@ size_t pa_resampler_max_block_size(pa_resampler *r) {
      * conversion */
     max_ss.channels = (uint8_t) (PA_MAX(r->i_ss.channels, r->o_ss.channels));
 
-    /* We silently assume that the format enum is ordered by size */
-    max_ss.format = PA_MAX(r->i_ss.format, r->o_ss.format);
-    max_ss.format = PA_MAX(max_ss.format, r->work_format);
+    max_ss.format = r->i_ss.format;
+
+    if (pa_sample_size_of_format(max_ss.format) < pa_sample_size_of_format(r->o_ss.format))
+        max_ss.format = r->o_ss.format;
+
+    if (pa_sample_size_of_format(max_ss.format) < pa_sample_size_of_format(r->work_format))
+        max_ss.format = r->work_format;
 
     max_ss.rate = PA_MAX(r->i_ss.rate, r->o_ss.rate);
 
