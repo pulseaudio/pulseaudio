@@ -10,8 +10,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2022-09-08 20:19+0000\n"
-"Last-Translator: Jiri Grönroos <jiri.gronroos@iki.fi>\n"
+"PO-Revision-Date: 2023-02-10 20:20+0000\n"
+"Last-Translator: Jan Kuparinen <copper_fin@hotmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/fi/>\n"
 "Language: fi\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.14\n"
+"X-Generator: Weblate 4.15.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -1818,7 +1818,7 @@ msgstr "Korkkipyyntöpino on tyhjä: poistetaan korkkivirta"
 
 #: src/utils/pacat.c:425
 msgid "Warning: Received more uncork requests than cork requests."
-msgstr ""
+msgstr "Varoitus: Vastaanotettu enemmän cork-poistopyyntöjä kuin cork-pyyntöjä."
 
 #: src/utils/pacat.c:450
 #, c-format
@@ -2007,24 +2007,29 @@ msgstr ""
 
 #: src/utils/pacat.c:793
 msgid "Play back encoded audio files on a PulseAudio sound server."
-msgstr ""
+msgstr "Toista koodattuja äänitiedostoja PulseAudio-äänipalvelimella."
 
 #: src/utils/pacat.c:797
 msgid ""
 "Capture audio data from a PulseAudio sound server and write it to a file."
 msgstr ""
+"Kaappaa äänidataa PulseAudio-äänipalvelimelta ja kirjoita se tiedostoon."
 
 #: src/utils/pacat.c:801
 msgid ""
 "Capture audio data from a PulseAudio sound server and write it to STDOUT or "
 "the specified file."
 msgstr ""
+"Kaappaa äänidataa PulseAudio-äänipalvelimelta ja kirjoita se STDOUTiin tai "
+"määritettyyn tiedostoon."
 
 #: src/utils/pacat.c:805
 msgid ""
 "Play back audio data from STDIN or the specified file on a PulseAudio sound "
 "server."
 msgstr ""
+"Toista äänidataa STDINistä tai määritetystä tiedostosta PulseAudio-"
+"äänipalvelimella."
 
 #: src/utils/pacat.c:819
 #, c-format
@@ -2074,7 +2079,7 @@ msgstr "Tuntematon tiedostomuoto %s."
 
 #: src/utils/pacat.c:1000
 msgid "Failed to parse the argument for --monitor-stream"
-msgstr ""
+msgstr "Argumentin --monitor-stream jäsentäminen epäonnistui"
 
 #: src/utils/pacat.c:1011
 msgid "Invalid sample specification"
@@ -2204,7 +2209,7 @@ msgstr "NIMI|#N AVAIN=ARVO"
 
 #: src/utils/pacmd.c:59
 msgid "#N KEY=VALUE"
-msgstr ""
+msgstr "#N AVAIN=ARVO"
 
 #: src/utils/pacmd.c:61
 msgid "#N"
@@ -2228,7 +2233,7 @@ msgstr "TIEDOSTONIMI NIELU|#N"
 
 #: src/utils/pacmd.c:69 src/utils/pactl.c:2645
 msgid "#N SINK|SOURCE"
-msgstr ""
+msgstr "#N SINKKI|LÄHDE"
 
 #: src/utils/pacmd.c:71 src/utils/pacmd.c:77 src/utils/pacmd.c:78
 msgid "1|0"
@@ -2244,23 +2249,23 @@ msgstr "NIMI|#N PORT"
 
 #: src/utils/pacmd.c:74 src/utils/pactl.c:2658
 msgid "CARD-NAME|CARD-#N PORT OFFSET"
-msgstr ""
+msgstr "KORTIN NIMI|KORTIN-#N PORTTI OFFSET"
 
 #: src/utils/pacmd.c:75
 msgid "TARGET"
-msgstr ""
+msgstr "KOHDE"
 
 #: src/utils/pacmd.c:76
 msgid "NUMERIC-LEVEL"
-msgstr ""
+msgstr "NUMEROTASO"
 
 #: src/utils/pacmd.c:79
 msgid "FRAMES"
-msgstr ""
+msgstr "ÄÄNIRUUDUT"
 
 #: src/utils/pacmd.c:80 src/utils/pactl.c:2659
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
-msgstr ""
+msgstr "VASTAAJAN VIESTI [MESSAGE_PARAMETERS]"
 
 #: src/utils/pacmd.c:82
 #, c-format
@@ -2370,6 +2375,12 @@ msgid ""
 "Client Index: %u\n"
 "Tile Size: %zu\n"
 msgstr ""
+"Palvelinmerkkijono: %s\n"
+"Kirjastoprotokollan versio: %u\n"
+"Palvelinprotokollan versio: %u\n"
+"On paikallinen: %s\n"
+"Asiakasindeksi: %u\n"
+"Laattojen koko: %zu\n"
 
 #: src/utils/pactl.c:294
 #, c-format
@@ -2396,7 +2407,7 @@ msgstr ""
 
 #: src/utils/pactl.c:320
 msgid "availability unknown"
-msgstr ""
+msgstr "saatavuus tuntematon"
 
 #: src/utils/pactl.c:321
 msgid "available"
@@ -2412,7 +2423,7 @@ msgstr "Tuntematon"
 
 #: src/utils/pactl.c:332
 msgid "Aux"
-msgstr ""
+msgstr "Aux"
 
 #: src/utils/pactl.c:335
 msgid "Line"
@@ -2420,15 +2431,15 @@ msgstr "Linja"
 
 #: src/utils/pactl.c:336
 msgid "Mic"
-msgstr ""
+msgstr "Mikrofoni"
 
 #: src/utils/pactl.c:338
 msgid "Handset"
-msgstr ""
+msgstr "Luuri"
 
 #: src/utils/pactl.c:339
 msgid "Earpiece"
-msgstr ""
+msgstr "Kuuloke"
 
 #: src/utils/pactl.c:340
 msgid "SPDIF"
@@ -2511,11 +2522,11 @@ msgstr "\tPortit:\n"
 #: src/utils/pactl.c:708 src/utils/pactl.c:892
 #, c-format
 msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
-msgstr ""
+msgstr "\t\t%s: %s (tyyppi: %s, prioriteetti: %u%s%s, %s)\n"
 
 #: src/utils/pactl.c:710 src/utils/pactl.c:894 src/utils/pactl.c:1256
 msgid ", availability group: "
-msgstr ""
+msgstr ", saatavuusryhmä: "
 
 #: src/utils/pactl.c:715 src/utils/pactl.c:899
 #, c-format
@@ -2653,6 +2664,7 @@ msgstr "\tProfiilit:\n"
 #, c-format
 msgid "\t\t%s: %s (sinks: %u, sources: %u, priority: %u, available: %s)\n"
 msgstr ""
+"\t\t%s: %s (nielut: %u, lähteet: %u, prioriteetti: %u, käytettävissä: %s)\n"
 
 #: src/utils/pactl.c:1245
 #, c-format
@@ -2664,6 +2676,8 @@ msgstr "\tAktiivinen profiili: %s\n"
 msgid ""
 "\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s, %s)\n"
 msgstr ""
+"\t\t%s: %s (tyyppi: %s, prioriteetti: %u, latenssipoikkeama: %<PRId64> "
+"usec%s%s, %s)\n"
 
 #: src/utils/pactl.c:1261
 #, c-format
@@ -2671,11 +2685,13 @@ msgid ""
 "\t\t\tProperties:\n"
 "\t\t\t\t%s\n"
 msgstr ""
+"\t\t\tOminaisuudet:\n"
+"\t\t\t\t%s\n"
 
 #: src/utils/pactl.c:1265
 #, c-format
 msgid "\t\t\tPart of profile(s): %s"
-msgstr ""
+msgstr "\t\t\tOsa profiilista (profiileista): %s"
 
 #: src/utils/pactl.c:1290 src/utils/pactl.c:1954 src/utils/pactl.c:2022
 #, c-format
@@ -2812,7 +2828,7 @@ msgstr "Viestin lähetys epäonnistui: %s"
 #: src/utils/pactl.c:1695
 #, c-format
 msgid "list-handlers message failed: %s"
-msgstr ""
+msgstr "listakäsittelijöiden viesti epäonnistui: %s"
 
 #: src/utils/pactl.c:1711 src/utils/pactl.c:1760
 msgid "list-handlers message response could not be parsed correctly"
@@ -2826,6 +2842,7 @@ msgstr "list-handlers viestivastaus ei ole JSON-taulukko"
 #, c-format
 msgid "list-handlers message response array element %d is not a JSON object"
 msgstr ""
+"listakäsittelijöiden viestivastaustaulukon elementti %d ei ole JSON-objekti"
 
 #: src/utils/pactl.c:1800
 #, c-format
@@ -2841,7 +2858,11 @@ msgid_plural ""
 "Failed to set volume: You tried to set volumes for %d channels, whereas "
 "channel(s) supported = %d\n"
 msgstr[0] ""
+"Äänenvoimakkuuden asettaminen epäonnistui: Yritit asettaa äänenvoimakkuutta "
+"%d kanavalle, kun taas tuetut kanavat = %d\n"
 msgstr[1] ""
+"Äänenvoimakkuuden asettaminen epäonnistui: Yritit asettaa äänenvoimakkuutta "
+"%d kanaville, kun taas tuetut kanavat = %d\n"
 
 #: src/utils/pactl.c:2107
 #, c-format
@@ -2878,7 +2899,7 @@ msgstr "lähde"
 
 #: src/utils/pactl.c:2167
 msgid "sink-input"
-msgstr ""
+msgstr "nielun sisääntulo"
 
 #: src/utils/pactl.c:2170
 msgid "source-output"
@@ -2894,7 +2915,7 @@ msgstr "asiakas"
 
 #: src/utils/pactl.c:2179
 msgid "sample-cache"
-msgstr ""
+msgstr "näyte-välimuisti"
 
 #: src/utils/pactl.c:2182
 msgid "server"
@@ -2902,12 +2923,12 @@ msgstr "palvelin"
 
 #: src/utils/pactl.c:2185
 msgid "card"
-msgstr ""
+msgstr "kortti"
 
 #: src/utils/pactl.c:2206
 #, c-format
 msgid "Event '%s' on %s #%u\n"
-msgstr ""
+msgstr "Tapahtuma '%s' %s #%u\n"
 
 #: src/utils/pactl.c:2514
 msgid "Got SIGINT, exiting."
@@ -2919,7 +2940,7 @@ msgstr "Virheellinen äänenvoimakkuuden määritys"
 
 #: src/utils/pactl.c:2581
 msgid "Volume outside permissible range.\n"
-msgstr ""
+msgstr "Äänenvoimakkuus sallitun alueen ulkopuolella.\n"
 
 #: src/utils/pactl.c:2594
 msgid "Invalid number of volume specifications.\n"
@@ -2951,7 +2972,7 @@ msgstr "TIEDOSTONIMI [NIMI]"
 
 #: src/utils/pactl.c:2641
 msgid "NAME [SINK]"
-msgstr ""
+msgstr "NIMI [NIELU]"
 
 #: src/utils/pactl.c:2653
 msgid "NAME|#N VOLUME [VOLUME ...]"
@@ -2980,6 +3001,9 @@ msgid ""
 "The special names @DEFAULT_SINK@, @DEFAULT_SOURCE@ and @DEFAULT_MONITOR@\n"
 "can be used to specify the default sink, source and monitor.\n"
 msgstr ""
+"\n"
+"Erikoisnimiä @DEFAULT_SINK@, @DEFAULT_SOURCE@ ja @DEFAULT_MONITOR@\n"
+"voidaan käyttää oletusnielun, lähteen ja näytön määrittämiseen.\n"
 
 #: src/utils/pactl.c:2664
 #, c-format
@@ -3023,7 +3047,7 @@ msgstr "Virheellinen muotoarvo ”%s”"
 #: src/utils/pactl.c:2778
 #, c-format
 msgid "Specify nothing, or one of: %s"
-msgstr ""
+msgstr "Määritä tyhjäksi tai jokin seuraavista: %s"
 
 #: src/utils/pactl.c:2788
 msgid "Please specify a sample file to load"
@@ -3179,6 +3203,8 @@ msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
 msgstr ""
+"Ylimääräisiä argumentteja annettu, ne jätetään huomiotta. Huomaa, että "
+"kaikki viestiparametrit on annettava yhtenä merkkijonona."
 
 #: src/utils/pactl.c:3182
 msgid ""
@@ -3194,7 +3220,7 @@ msgstr "Kortin nimi/indeksi ja portin nimi ja viivästysasetus on annettava"
 
 #: src/utils/pactl.c:3201
 msgid "Could not parse latency offset"
-msgstr ""
+msgstr "Latenssipoikkeamaa ei voitu jäsentää"
 
 #: src/utils/pactl.c:3213
 msgid "No valid command specified."
