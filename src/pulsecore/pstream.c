@@ -82,6 +82,10 @@ typedef uint32_t pa_pstream_descriptor[PA_PSTREAM_DESCRIPTOR_MAX];
  */
 #define FRAME_SIZE_MAX_ALLOW (1024*1024*16)
 
+/* Default memblock alignment used with pa_pstream_send_memblock()
+ */
+#define DEFAULT_PSTREAM_MEMBLOCK_ALIGN (256)
+
 PA_STATIC_FLIST_DECLARE(items, 0, pa_xfree);
 
 struct item_info {
@@ -475,7 +479,7 @@ void pa_pstream_send_packet(pa_pstream*p, pa_packet *packet, pa_cmsg_ancil_data 
     p->mainloop->defer_enable(p->defer_event, 1);
 }
 
-void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa_seek_mode_t seek_mode, const pa_memchunk *chunk) {
+void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa_seek_mode_t seek_mode, const pa_memchunk *chunk, size_t align) {
     size_t length, idx;
     size_t bsm;
 
@@ -491,6 +495,11 @@ void pa_pstream_send_memblock(pa_pstream*p, uint32_t channel, int64_t offset, pa
     length = chunk->length;
 
     bsm = pa_mempool_block_size_max(p->mempool);
+
+    if (align == 0)
+        align = DEFAULT_PSTREAM_MEMBLOCK_ALIGN;
+
+    bsm = (bsm / align) * align;
 
     while (length > 0) {
         struct item_info *i;

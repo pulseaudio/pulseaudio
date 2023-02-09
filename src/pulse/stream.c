@@ -1535,7 +1535,7 @@ int pa_stream_write_ext_free(
         s->write_memblock = NULL;
         s->write_data = NULL;
 
-        pa_pstream_send_memblock(s->context->pstream, s->channel, offset, seek, &chunk);
+        pa_pstream_send_memblock(s->context->pstream, s->channel, offset, seek, &chunk, pa_frame_size(&s->sample_spec));
         pa_memblock_unref(chunk.memblock);
 
     } else {
@@ -1569,7 +1569,7 @@ int pa_stream_write_ext_free(
                 pa_memblock_release(chunk.memblock);
             }
 
-            pa_pstream_send_memblock(s->context->pstream, s->channel, t_offset, t_seek, &chunk);
+            pa_pstream_send_memblock(s->context->pstream, s->channel, t_offset, t_seek, &chunk, pa_frame_size(&s->sample_spec));
 
             t_offset = 0;
             t_seek = PA_SEEK_RELATIVE;

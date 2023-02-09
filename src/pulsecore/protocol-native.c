@@ -1260,7 +1260,7 @@ static void native_connection_send_memblock(pa_native_connection *c) {
             if (schunk.length > r->buffer_attr.fragsize)
                 schunk.length = r->buffer_attr.fragsize;
 
-            pa_pstream_send_memblock(c->pstream, r->index, 0, PA_SEEK_RELATIVE, &schunk);
+            pa_pstream_send_memblock(c->pstream, r->index, 0, PA_SEEK_RELATIVE, &schunk, pa_memblockq_get_base(r->memblockq));
 
             pa_memblockq_drop(r->memblockq, schunk.length);
             pa_memblock_unref(schunk.memblock);
@@ -2535,7 +2535,7 @@ static void setup_srbchannel(pa_native_connection *c, pa_mem_type_t shm_type) {
     mc.memblock = srbt.memblock;
     mc.index = 0;
     mc.length = pa_memblock_get_length(srbt.memblock);
-    pa_pstream_send_memblock(c->pstream, 0, 0, 0, &mc);
+    pa_pstream_send_memblock(c->pstream, 0, 0, 0, &mc, 0);
 
     c->srbpending = srb;
     return;

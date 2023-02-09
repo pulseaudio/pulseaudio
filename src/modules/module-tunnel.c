@@ -676,7 +676,7 @@ static int sink_process_msg(pa_msgobject *o, int code, void *data, int64_t offse
              * IO thread context where the rest of the messages are
              * dispatched. Yeah, ugly, but I am a lazy bastard. */
 
-            pa_pstream_send_memblock(u->pstream, u->channel, 0, PA_SEEK_RELATIVE, chunk);
+            pa_pstream_send_memblock(u->pstream, u->channel, 0, PA_SEEK_RELATIVE, chunk, pa_frame_size(&u->sink->sample_spec));
 
             u->receive_counter += chunk->length;
 
