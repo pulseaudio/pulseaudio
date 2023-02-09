@@ -1331,6 +1331,11 @@ static size_t decode_buffer_faststream(void *codec_info, const uint8_t *input_bu
             continue;
         }
 
+        if (to_decode < sbc_info->frame_length) {
+            pa_log_debug("FastStream SBC input %lu is too short (expected frame length %lu)", to_decode, sbc_info->frame_length);
+            break;
+        }
+
         decoded = sbc_decode(&sbc_info->sbc,
                              p, to_decode,
                              decode_buffer, sizeof(decode_buffer),
