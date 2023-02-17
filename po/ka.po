@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2022-12-13 15:20+0000\n"
+"PO-Revision-Date: 2023-02-18 05:20+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ka/>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.14.2\n"
+"X-Generator: Weblate 4.15.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -1369,7 +1369,7 @@ msgstr "გამოტანა"
 
 #: src/pulse/direction.c:41
 msgid "bidirectional"
-msgstr ""
+msgstr "ორმხრივი"
 
 #: src/pulse/direction.c:43
 msgid "invalid"
@@ -1645,7 +1645,7 @@ msgstr ""
 
 #: src/utils/pacat.c:393
 msgid "not "
-msgstr ""
+msgstr "არ "
 
 #: src/utils/pacat.c:400
 #, c-format
@@ -1962,7 +1962,7 @@ msgstr ""
 #: src/utils/pacmd.c:52 src/utils/pacmd.c:60 src/utils/pactl.c:2644
 #: src/utils/pactl.c:2651 src/utils/pactl.c:2652
 msgid "NAME|#N"
-msgstr ""
+msgstr "სახელი|#N"
 
 #: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:2642
 #: src/utils/pactl.c:2649
