@@ -2218,7 +2218,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
                       &ss, &map,
                       SND_PCM_STREAM_CAPTURE,
                       &period_frames, &buffer_frames, tsched_frames,
-                      &b, &d, mapping)))
+                      &b, &d, &u->supported_formats, &u->supported_rates, mapping)))
             goto fail;
 
     } else if ((dev_id = pa_modargs_get_value(ma, "device_id", NULL))) {
@@ -2232,7 +2232,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
                       &ss, &map,
                       SND_PCM_STREAM_CAPTURE,
                       &period_frames, &buffer_frames, tsched_frames,
-                      &b, &d, profile_set, &mapping)))
+                      &b, &d, &u->supported_formats, &u->supported_rates, profile_set, &mapping)))
             goto fail;
 
     } else {
@@ -2243,7 +2243,7 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
                       &ss, &map,
                       SND_PCM_STREAM_CAPTURE,
                       &period_frames, &buffer_frames, tsched_frames,
-                      &b, &d, false)))
+                      &b, &d, &u->supported_formats, &u->supported_rates, false)))
             goto fail;
     }
 
@@ -2279,13 +2279,11 @@ pa_source *pa_alsa_source_new(pa_module *m, pa_modargs *ma, const char*driver, p
 
     u->verified_sample_spec = ss;
 
-    u->supported_formats = pa_alsa_get_supported_formats(u->pcm_handle, ss.format);
     if (!u->supported_formats) {
         pa_log_error("Failed to find any supported sample formats.");
         goto fail;
     }
 
-    u->supported_rates = pa_alsa_get_supported_rates(u->pcm_handle, ss.rate);
     if (!u->supported_rates) {
         pa_log_error("Failed to find any supported sample rates.");
         goto fail;

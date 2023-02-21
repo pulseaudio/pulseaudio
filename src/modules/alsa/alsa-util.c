@@ -523,6 +523,8 @@ snd_pcm_t *pa_alsa_open_by_device_id_auto(
         snd_pcm_uframes_t tsched_size,
         bool *use_mmap,
         bool *use_tsched,
+        pa_sample_format_t **query_supported_formats,
+        unsigned int **query_supported_rates,
         pa_alsa_profile_set *ps,
         pa_alsa_mapping **mapping) {
 
@@ -561,6 +563,8 @@ snd_pcm_t *pa_alsa_open_by_device_id_auto(
                 tsched_size,
                 use_mmap,
                 use_tsched,
+                query_supported_formats,
+                query_supported_rates,
                 m);
 
         if (pcm_handle) {
@@ -588,6 +592,8 @@ snd_pcm_t *pa_alsa_open_by_device_id_auto(
                 tsched_size,
                 use_mmap,
                 use_tsched,
+                query_supported_formats,
+                query_supported_rates,
                 m);
 
         if (pcm_handle) {
@@ -612,6 +618,8 @@ snd_pcm_t *pa_alsa_open_by_device_id_auto(
             tsched_size,
             use_mmap,
             use_tsched,
+            query_supported_formats,
+            query_supported_rates,
             false);
     pa_xfree(d);
 
@@ -632,6 +640,8 @@ snd_pcm_t *pa_alsa_open_by_device_id_mapping(
         snd_pcm_uframes_t tsched_size,
         bool *use_mmap,
         bool *use_tsched,
+        pa_sample_format_t **query_supported_formats,
+        unsigned int **query_supported_rates,
         pa_alsa_mapping *m) {
 
     snd_pcm_t *pcm_handle;
@@ -661,6 +671,8 @@ snd_pcm_t *pa_alsa_open_by_device_id_mapping(
             tsched_size,
             use_mmap,
             use_tsched,
+            query_supported_formats,
+            query_supported_rates,
             pa_channel_map_valid(&m->channel_map) /* Query the channel count if we don't know what we want */);
 
     if (!pcm_handle)
@@ -684,6 +696,8 @@ snd_pcm_t *pa_alsa_open_by_device_string(
         snd_pcm_uframes_t tsched_size,
         bool *use_mmap,
         bool *use_tsched,
+        pa_sample_format_t **query_supported_formats,
+        unsigned int **query_supported_rates,
         bool require_exact_channel_number) {
 
     int err;
@@ -710,6 +724,12 @@ snd_pcm_t *pa_alsa_open_by_device_string(
         }
 
         pa_log_debug("Managed to open %s", d);
+
+        if (query_supported_formats)
+            *query_supported_formats = pa_alsa_get_supported_formats(pcm_handle, ss->format);
+
+        if (query_supported_rates)
+            *query_supported_rates = pa_alsa_get_supported_rates(pcm_handle, ss->rate);
 
         if ((err = pa_alsa_set_hw_params(
                      pcm_handle,
@@ -784,6 +804,8 @@ snd_pcm_t *pa_alsa_open_by_template(
         snd_pcm_uframes_t tsched_size,
         bool *use_mmap,
         bool *use_tsched,
+        pa_sample_format_t **query_supported_formats,
+        unsigned int **query_supported_rates,
         bool require_exact_channel_number) {
 
     snd_pcm_t *pcm_handle;
@@ -805,6 +827,8 @@ snd_pcm_t *pa_alsa_open_by_template(
                 tsched_size,
                 use_mmap,
                 use_tsched,
+                query_supported_formats,
+                query_supported_rates,
                 require_exact_channel_number);
 
         pa_xfree(d);

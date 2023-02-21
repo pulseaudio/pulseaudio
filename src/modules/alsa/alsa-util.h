@@ -67,6 +67,8 @@ snd_pcm_t *pa_alsa_open_by_device_id_auto(
         snd_pcm_uframes_t tsched_size,
         bool *use_mmap,                   /* modified at return */
         bool *use_tsched,                 /* modified at return */
+        pa_sample_format_t **query_supported_formats, /* modified at return */
+        unsigned int **query_supported_rates,         /* modified at return */
         pa_alsa_profile_set *ps,
         pa_alsa_mapping **mapping);       /* modified at return */
 
@@ -82,6 +84,8 @@ snd_pcm_t *pa_alsa_open_by_device_id_mapping(
         snd_pcm_uframes_t tsched_size,
         bool *use_mmap,                   /* modified at return */
         bool *use_tsched,                 /* modified at return */
+        pa_sample_format_t **query_supported_formats, /* modified at return */
+        unsigned int **query_supported_rates,         /* modified at return */
         pa_alsa_mapping *mapping);
 
 /* Opens the explicit ALSA device */
@@ -96,6 +100,8 @@ snd_pcm_t *pa_alsa_open_by_device_string(
         snd_pcm_uframes_t tsched_size,
         bool *use_mmap,                   /* modified at return */
         bool *use_tsched,                 /* modified at return */
+        pa_sample_format_t **query_supported_formats, /* modified at return */
+        unsigned int **query_supported_rates,         /* modified at return */
         bool require_exact_channel_number);
 
 /* Opens the explicit ALSA device with a fallback list */
@@ -111,6 +117,8 @@ snd_pcm_t *pa_alsa_open_by_template(
         snd_pcm_uframes_t tsched_size,
         bool *use_mmap,                   /* modified at return */
         bool *use_tsched,                 /* modified at return */
+        pa_sample_format_t **query_supported_formats, /* modified at return */
+        unsigned int **query_supported_rates,        /* modified at return */
         bool require_exact_channel_number);
 
 void pa_alsa_dump(pa_log_level_t level, snd_pcm_t *pcm);
