@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2023-02-18 05:20+0000\n"
+"PO-Revision-Date: 2023-02-26 08:20+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ka/>\n"
@@ -276,12 +276,12 @@ msgstr "გამოყენება: %s\n"
 #: src/daemon/dumpmodules.c:70
 #, c-format
 msgid "Load Once: %s\n"
-msgstr ""
+msgstr "ერთხელ ჩატვირთვა: %s\n"
 
 #: src/daemon/dumpmodules.c:72
 #, c-format
 msgid "DEPRECATION WARNING: %s\n"
-msgstr ""
+msgstr "მოძველების გაფრთხილება: %s\n"
 
 #: src/daemon/dumpmodules.c:76
 #, c-format
@@ -291,7 +291,7 @@ msgstr "ბილიკი: %s\n"
 #: src/daemon/ltdl-bind-now.c:75
 #, c-format
 msgid "Failed to open module %s: %s"
-msgstr ""
+msgstr "შეცდომა მოდულის გახსნისას %s: %s"
 
 #: src/daemon/ltdl-bind-now.c:126
 msgid "Failed to find original lt_dlopen loader."
@@ -909,12 +909,12 @@ msgstr[1] ""
 #: src/modules/bluetooth/module-bluez5-device.c:1963
 #: src/modules/bluetooth/module-bluez5-device.c:1970
 msgid "Bluetooth Input"
-msgstr ""
+msgstr "ბლუთუზის შეყვანა"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1938
 #: src/modules/bluetooth/module-bluez5-device.c:1957
 msgid "Bluetooth Output"
-msgstr ""
+msgstr "ბლუთუზის გამოტანა"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1950 src/utils/pactl.c:348
 msgid "Handsfree"
@@ -2073,7 +2073,7 @@ msgstr ""
 #: src/utils/pacmd.c:148
 #, c-format
 msgid "socket(PF_UNIX, SOCK_STREAM, 0): %s"
-msgstr ""
+msgstr "socket(PF_UNIX, SOCK_STREAM, 0): %s"
 
 #: src/utils/pacmd.c:165
 #, c-format
@@ -2086,7 +2086,7 @@ msgstr ""
 
 #: src/utils/pacmd.c:181
 msgid "Daemon not responding."
-msgstr ""
+msgstr "დემონი არ პასუხობს."
 
 #: src/utils/pacmd.c:213 src/utils/pacmd.c:322 src/utils/pacmd.c:340
 #, c-format
@@ -2165,7 +2165,7 @@ msgstr ""
 
 #: src/utils/pactl.c:320
 msgid "availability unknown"
-msgstr ""
+msgstr "ხელმისაწვდომობა უცნობია"
 
 #: src/utils/pactl.c:321
 msgid "available"
@@ -2181,7 +2181,7 @@ msgstr "უცნობი"
 
 #: src/utils/pactl.c:332
 msgid "Aux"
-msgstr ""
+msgstr "დამატებით"
 
 #: src/utils/pactl.c:335
 msgid "Line"
@@ -2272,7 +2272,7 @@ msgstr ""
 #: src/utils/pactl.c:715 src/utils/pactl.c:899
 #, c-format
 msgid "\tActive Port: %s\n"
-msgstr ""
+msgstr "\tაქტიური პორტი: %s\n"
 
 #: src/utils/pactl.c:721 src/utils/pactl.c:905
 #, c-format
@@ -2389,6 +2389,8 @@ msgid ""
 "\t\t\tProperties:\n"
 "\t\t\t\t%s\n"
 msgstr ""
+"\t\t\tთვისებები:\n"
+"\t\t\t\t%s\n"
 
 #: src/utils/pactl.c:1265
 #, c-format
@@ -2542,7 +2544,7 @@ msgstr "უცნობი"
 
 #: src/utils/pactl.c:2161
 msgid "sink"
-msgstr ""
+msgstr "ბაკანი"
 
 #: src/utils/pactl.c:2164
 msgid "source"
