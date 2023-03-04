@@ -141,7 +141,7 @@ custom_target('system.pa',
 
 if dbus_dep.found()
   install_data('pulseaudio-system.conf',
-    install_dir : join_paths(sysconfdir, 'dbus-1', 'system.d')
+    install_dir : join_paths(datadir, 'dbus-1', 'system.d')
   )
 endif
 
