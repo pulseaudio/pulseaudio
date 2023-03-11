@@ -176,6 +176,13 @@ struct pa_core {
     char *configured_default_sink;
     char *configured_default_source;
 
+    /* The default sink/source set by some policy module. This will override
+     * the user configured default sink/source, so that the default will
+     * return to the user configured sink/source once the sink/source set by
+     * the policy module is no longer available. */
+    char *policy_default_sink;
+    char *policy_default_source;
+
     /* The effective default sink/source. If no sink or source is explicitly
      * configured as the default, we pick the device that ranks highest
      * according to the compare_sinks() and compare_sources() functions in
@@ -249,6 +256,8 @@ pa_core* pa_core_new(pa_mainloop_api *m, bool shared, bool enable_memfd, size_t 
 
 void pa_core_set_configured_default_sink(pa_core *core, const char *sink);
 void pa_core_set_configured_default_source(pa_core *core, const char *source);
+void pa_core_set_policy_default_sink(pa_core *core, const char *sink);
+void pa_core_set_policy_default_source(pa_core *core, const char *source);
 
 /* These should be called whenever something changes that may affect the
  * default sink or source choice.
