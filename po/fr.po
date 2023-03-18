@@ -17,8 +17,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2020-12-13 17:35+0000\n"
-"Last-Translator: Julien Humbert <julroy67@gmail.com>\n"
+"PO-Revision-Date: 2023-03-19 17:20+0000\n"
+"Last-Translator: grimst <grimaitres@gmail.com>\n"
 "Language-Team: French <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/fr/>\n"
 "Language: fr\n"
@@ -26,10 +26,10 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 4.3.2\n"
+"X-Generator: Weblate 4.15.2\n"
 
 #: src/daemon/cmdline.c:113
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -114,8 +114,8 @@ msgstr ""
 "      --start                           Lancer le démon s’il n’est pas en "
 "cours d’exécution\n"
 "  -k  --kill                            Tuer un démon en cours d’exécution\n"
-"      --check                           Rechercher un démon en cours "
-"d’exécution (retourne uniquement un code de sortie)\n"
+"      --check                           Rechercher un démon en cours d’"
+"exécution (retourne uniquement un code de sortie)\n"
 "\n"
 "OPTIONS :\n"
 "      --system[=BOOL]                   Exécuter en tant qu’instance "
@@ -136,8 +136,8 @@ msgstr ""
 "déchargement de modules\n"
 "                                        requis par l’utilisateur de module "
 "après le lancement\n"
-"      --disallow-exit[=BOOL]            Interdire la sortie requise par "
-"l’utilisateur\n"
+"      --disallow-exit[=BOOL]            Interdire la sortie requise par l’"
+"utilisateur\n"
 "      --exit-idle-time=SECS             Quitter le démon lorsqu’inactif et "
 "que cette\n"
 "                                        période s’est écoulée\n"
@@ -169,6 +169,8 @@ msgstr ""
 "charge\n"
 "      --disable-shm[=BOOL]              Désactiver la prise en charge de "
 "mémoire partagée.\n"
+"      --enable-memfd[=BOOL]             Activer le support de mémoire "
+"partagée memfd.\n"
 "\n"
 "SCRIPT DE LANCEMENT :\n"
 "  -L, --load=\"MODULE ARGUMENTS\"         Charger le module du greffon "
@@ -501,29 +503,23 @@ msgstr ""
 "plus précise en cours."
 
 #: src/daemon/main.c:878
-#, fuzzy
 msgid "Running in system mode, but --disallow-exit not set."
-msgstr ""
-"Le démon s’exécute en mode système, mais --disallow-exit n’est pas défini !"
+msgstr "Exécution en mode système, mais --disallow-exit n’est pas défini."
 
 #: src/daemon/main.c:881
-#, fuzzy
 msgid "Running in system mode, but --disallow-module-loading not set."
 msgstr ""
-"Le démon s’exécute en mode système, mais --disallow-module-loading n’est pas "
-"défini !"
+"Exécution en mode système, mais --disallow-module-loading n’est pas défini."
 
 #: src/daemon/main.c:884
-#, fuzzy
 msgid "Running in system mode, forcibly disabling SHM mode."
-msgstr "Le démon s’exécute en mode système, désactivation forcée du mode SHM !"
+msgstr "Exécution en mode système, désactivation forcée du mode SHM."
 
 #: src/daemon/main.c:889
-#, fuzzy
 msgid "Running in system mode, forcibly disabling exit idle time."
 msgstr ""
-"Le démon s’exécute en mode système, désactivation forcée de la fermeture "
-"après délai d’inactivité !"
+"Exécution en mode système, désactivation forcée de la fermeture après délai "
+"d’inactivité."
 
 #: src/daemon/main.c:922
 msgid "Failed to acquire stdio."
@@ -558,7 +554,6 @@ msgid "Failed to get machine ID"
 msgstr "Échec lors de l’obtention de l’ID de la machine"
 
 #: src/daemon/main.c:1145
-#, fuzzy
 msgid ""
 "OK, so you are running PA in system mode. Please make sure that you actually "
 "do want to do that.\n"
@@ -566,13 +561,11 @@ msgid ""
 "Documentation/User/WhatIsWrongWithSystemWide/ for an explanation why system "
 "mode is usually a bad idea."
 msgstr ""
-"Vous exécutez PA dans un mode système. Sachez que vous ne devriez pas faire "
-"cela.\n"
-"Si vous choisissez malgré tout de le faire, vous êtes responsable de tout "
-"dysfonctionnement inattendu.\n"
+"Ok, vous êtes en train d'exécuter PA en mode système. Assurez-vous que vous "
+"voulez vraiment faire cela.\n"
 "Veuillez lire http://www.freedesktop.org/wiki/Software/PulseAudio/"
-"Documentation/User/WhatIsWrongWithSystemWide/ pour comprendre pourquoi le "
-"mode système est généralement une mauvaise idée."
+"Documentation/User/WhatIsWrongWithSystemWide/ pour savoir pourquoi le mode "
+"système est généralement une mauvaise idée."
 
 #: src/daemon/main.c:1161
 msgid "pa_pid_file_create() failed."
@@ -583,9 +576,8 @@ msgid "pa_core_new() failed."
 msgstr "Échec de pa_core_new()."
 
 #: src/daemon/main.c:1268
-#, fuzzy
 msgid "command line arguments"
-msgstr "Trop de paramètres."
+msgstr "paramètres de la ligne de commande"
 
 #: src/daemon/main.c:1275
 #, c-format
@@ -1858,11 +1850,10 @@ msgid "Cork request stack is empty: uncorking stream"
 msgstr "La pile de requêtes de bouchons est vide : débouchonnage du flux"
 
 #: src/utils/pacat.c:425
-#, fuzzy
 msgid "Warning: Received more uncork requests than cork requests."
 msgstr ""
-"Avertissement : il a été reçu davantage de requêtes de bouchonnage que de "
-"requêtes de débouchonnage !"
+"Avertissement : il a été reçu davantage de requêtes de débouchonnage que de "
+"requêtes de bouchonnage."
 
 #: src/utils/pacat.c:450
 #, c-format
