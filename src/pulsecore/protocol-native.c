@@ -4379,23 +4379,33 @@ static void command_set_default_sink_or_source(pa_pdispatch *pd, uint32_t comman
     }
 
     CHECK_VALIDITY(c->pstream, c->authorized, tag, PA_ERR_ACCESS);
-    CHECK_VALIDITY(c->pstream, !s || pa_namereg_is_valid_name(s), tag, PA_ERR_INVALID);
+    CHECK_VALIDITY(c->pstream, !s || pa_namereg_is_valid_name(s) || pa_safe_streq(s,"@NONE@"), tag, PA_ERR_INVALID);
 
     if (command == PA_COMMAND_SET_DEFAULT_SOURCE) {
-        pa_source *source;
+        char *source_name = NULL;
 
-        source = pa_namereg_get(c->protocol->core, s, PA_NAMEREG_SOURCE);
-        CHECK_VALIDITY(c->pstream, source, tag, PA_ERR_NOENTITY);
+        if (!pa_safe_streq(s,"@NONE@")) {
+            pa_source *source;
 
-        pa_core_set_configured_default_source(c->protocol->core, source->name);
+            source = pa_namereg_get(c->protocol->core, s, PA_NAMEREG_SOURCE);
+            CHECK_VALIDITY(c->pstream, source, tag, PA_ERR_NOENTITY);
+            source_name = source->name;
+        }
+
+        pa_core_set_configured_default_source(c->protocol->core, source_name);
     } else {
-        pa_sink *sink;
+        char *sink_name = NULL;
         pa_assert(command == PA_COMMAND_SET_DEFAULT_SINK);
 
-        sink = pa_namereg_get(c->protocol->core, s, PA_NAMEREG_SINK);
-        CHECK_VALIDITY(c->pstream, sink, tag, PA_ERR_NOENTITY);
+        if (!pa_safe_streq(s,"@NONE@")) {
+            pa_sink *sink;
 
-        pa_core_set_configured_default_sink(c->protocol->core, sink->name);
+            sink = pa_namereg_get(c->protocol->core, s, PA_NAMEREG_SINK);
+            CHECK_VALIDITY(c->pstream, sink, tag, PA_ERR_NOENTITY);
+            sink_name = sink->name;
+        }
+
+        pa_core_set_configured_default_sink(c->protocol->core, sink_name);
     }
 
     pa_pstream_send_simple_ack(c->pstream, tag);

@@ -143,8 +143,10 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
       <p><opt>set-default-sink|set-default-source</opt> <arg>index|name</arg></p>
       <optdesc><p>Make a sink (resp. source) the default. You may specify the
       sink (resp. source) by its index in the sink (resp. source) list or by its
-      name.</p><p>Note that defaults may be overridden by various policy modules
-      or by specific stream configurations.</p></optdesc>
+      name. Use the special name \@NONE@ to unset the user defined default sink or
+      source. In this case, pulseaudio will return to the default sink or source
+      selection based on priority.</p><p>Note that defaults may be overridden by
+      various policy modules or by specific stream configurations.</p></optdesc>
     </option>
 
     <option>

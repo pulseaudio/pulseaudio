@@ -174,7 +174,9 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
 
     <option>
       <p><opt>set-default-sink</opt> <arg>SINK</arg></p>
-      <optdesc><p>Make the specified sink (identified by its symbolic name or numerical index) the default sink.</p></optdesc>
+      <optdesc><p>Make the specified sink (identified by its symbolic name or numerical index) the default sink.
+         Use the special name \@NONE@ to unset the user defined default sink. This will make pulseaudio return to the default
+         sink selection based on sink priority.</p></optdesc>
     </option>
 
     <option>
@@ -189,7 +191,9 @@ License along with PulseAudio; if not, see <http://www.gnu.org/licenses/>.
 
     <option>
       <p><opt>set-default-source</opt> <arg>SOURCE</arg></p>
-      <optdesc><p>Make the specified source (identified by its symbolic name or numerical index) the default source.</p></optdesc>
+      <optdesc><p>Make the specified source (identified by its symbolic name or numerical index) the default source.
+         Use the special name \@NONE@ to unset the user defined default source. This will make pulseaudio return to the default
+         source selection based on source priority.</p></optdesc>
     </option>
 
     <option>

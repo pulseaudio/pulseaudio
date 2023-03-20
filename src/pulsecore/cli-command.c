@@ -1038,7 +1038,9 @@ static int pa_cli_command_sink_default(pa_core *c, pa_tokenizer *t, pa_strbuf *b
         return -1;
     }
 
-    if ((s = pa_namereg_get(c, n, PA_NAMEREG_SINK)))
+    if (pa_streq(n, "@NONE@"))
+        pa_core_set_configured_default_sink(c, NULL);
+    else if ((s = pa_namereg_get(c, n, PA_NAMEREG_SINK)))
         pa_core_set_configured_default_sink(c, s->name);
     else
         pa_strbuf_printf(buf, "Sink %s does not exist.\n", n);
@@ -1060,7 +1062,9 @@ static int pa_cli_command_source_default(pa_core *c, pa_tokenizer *t, pa_strbuf 
         return -1;
     }
 
-    if ((s = pa_namereg_get(c, n, PA_NAMEREG_SOURCE)))
+    if (pa_streq(n, "@NONE@"))
+        pa_core_set_configured_default_source(c, NULL);
+    else if ((s = pa_namereg_get(c, n, PA_NAMEREG_SOURCE)))
         pa_core_set_configured_default_source(c, s->name);
     else
         pa_strbuf_printf(buf, "Source %s does not exist.\n", n);
