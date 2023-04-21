@@ -22,7 +22,6 @@ variables:
   FDO_DISTRIBUTION_TAG: '2023-04-21-00'
   FDO_DISTRIBUTION_VERSION: '20.04'
   FDO_UPSTREAM_REPO: 'pulseaudio/pulseaudio'
-  UBUNTU_IMAGE: "$CI_REGISTRY_IMAGE/ubuntu/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG"
 
 include:
   # We pull templates from master to avoid the overhead of periodically
@@ -88,8 +87,8 @@ build-container:
       wget
 
 build-meson:
+  extends: .fdo.distribution-image@ubuntu
   stage: build
-  image: $UBUNTU_IMAGE
   script:
     # Install meson
     - wget -q https://github.com/mesonbuild/meson/releases/download/0.50.0/meson-0.50.0.tar.gz
