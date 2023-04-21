@@ -2,7 +2,7 @@
 # container and push it to the project's container registry on fd.o GitLab.
 # This step is only run when the tag for the container changes, else it is
 # effectively a no-op. All of this infrastructure is inherited from the
-# wayland/ci-templates repository which is the recommended way to set up CI
+# freedesktop/ci-templates repository which is the recommended way to set up CI
 # infrastructure on fd.o GitLab.
 #
 # Once the container stage is done, we move on to the 'build' stage where we
@@ -19,7 +19,7 @@ variables:
   # CI runs, for example when adding new packages to FDO_DISTRIBUTION_PACKAGES.
   # The tag is an arbitrary string that identifies the exact container
   # contents.
-  FDO_DISTRIBUTION_TAG: '2021-11-03-00'
+  FDO_DISTRIBUTION_TAG: '2023-04-21-00'
   FDO_DISTRIBUTION_VERSION: '20.04'
   FDO_UPSTREAM_REPO: 'pulseaudio/pulseaudio'
   UBUNTU_IMAGE: "$CI_REGISTRY_IMAGE/ubuntu/$FDO_DISTRIBUTION_VERSION:$FDO_DISTRIBUTION_TAG"
@@ -29,12 +29,12 @@ include:
   # scanning for changes upstream. This does means builds might occasionally
   # break due to upstream changing things, so if you see unexpected build
   # failures, this might be one cause.
-  - project: 'wayland/ci-templates'
+  - project: 'freedesktop/ci-templates'
     ref: 'master'
     file: '/templates/ubuntu.yml'
 
 build-container:
-  extends: .fdo.container-ifnot-exists@ubuntu
+  extends: .fdo.container-build@ubuntu
   stage: container
   variables:
     GIT_STRATEGY: none # no need to pull the whole tree for rebuilding the image
