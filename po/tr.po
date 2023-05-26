@@ -11,8 +11,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2022-05-18 22:27+0000\n"
-"Last-Translator: Oğuz Ersen <oguz@ersen.moe>\n"
+"PO-Revision-Date: 2023-05-27 21:20+0000\n"
+"Last-Translator: Sabri Ünal <libreajans@gmail.com>\n"
 "Language-Team: Turkish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/tr/>\n"
 "Language: tr\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.12.2\n"
+"X-Generator: Weblate 4.17\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -105,17 +105,17 @@ msgstr ""
 "yöntemlerini döker\n"
 "      --cleanup-shm                     Eski paylaşımlı bellek segmentlerini "
 "temizler\n"
-"      --start                           Eğer çalışmıyorsa arka plan "
-"programını başlatır\n"
-"  -k  --kill                             Çalışan bir arka plan progamını "
+"      --start                           Eğer çalışmıyorsa art alan hizmetini "
+"başlatır\n"
+"  -k  --kill                             Çalışan bir art alan hizmetini "
 "sonlandırır\n"
-"      --check                         Çalışan bir arka plan programını "
+"      --check                         Çalışan bir art alan hizmetini "
 "denetler (sadece çıkış kodu döner)\n"
 "\n"
 "SEÇENEKLER:\n"
 "      --system[=BOOL]                   Sistem çapında örnek olarak "
 "çalıştırır\n"
-"  -D, --daemonize[=BOOL]                Başladıktan sonra arka plan programı "
+"  -D, --daemonize[=BOOL]                Başladıktan sonra art alan hizmeti "
 "olarak çalıştırır\n"
 "      --fail[=BOOL]                     Başlangıç başarısız olduğunda çıkar\n"
 "      --high-priority[=BOOL]            Yüksek öncelik seviyesi ayarlamayı "
@@ -136,7 +136,7 @@ msgstr ""
 "      --disallow-exit[=BOOL]            Kullanıcının çıkış isteğine izin "
 "vermez\n"
 "      --exit-idle-time=SANİYE           Boştayken ve bu süre geçtiğinde\n"
-"                                        arka plan programını sonlandırır\n"
+"                                        art alan hizmetini sonlandırır\n"
 "      --scache-idle-time=SANİYE         Boştayken ve bu süre geçtiğinde "
 "otomatik\n"
 "                                        yüklenmiş örnekleri kaldırır\n"
@@ -459,7 +459,7 @@ msgstr ""
 #: src/daemon/main.c:788
 #, c-format
 msgid "Failed to kill daemon: %s"
-msgstr "Arka plan programı durdurulamadı: %s"
+msgstr "Art alan hizmeti durdurulamadı: %s"
 
 #: src/daemon/main.c:817
 msgid ""
@@ -532,7 +532,7 @@ msgstr "read() başarısız oldu: %s"
 
 #: src/daemon/main.c:954
 msgid "Daemon startup failed."
-msgstr "Arka plan programını başlatma başarısız oldu."
+msgstr "Art alan hizmetini başlatma başarısız oldu."
 
 #: src/daemon/main.c:987
 #, c-format
@@ -575,12 +575,14 @@ msgid ""
 "Failed to initialize daemon due to errors while executing startup commands. "
 "Source of commands: %s"
 msgstr ""
-"Başlatma komutlarını çalıştırırken oluşan hatalar nedeniyle arka plan "
-"programı başlatılamadı. Komutların kaynağı: %s"
+"Başlatma komutlarını çalıştırırken oluşan hatalar nedeniyle art alan hizmeti "
+"başlatılamadı. Komutların kaynağı: %s"
 
 #: src/daemon/main.c:1280
 msgid "Daemon startup without any loaded modules, refusing to work."
-msgstr "Hiç yüklü modül olmadan arka plan programının çalışması reddediliyor."
+msgstr ""
+"Hiç modül yüklenmeden çalışmaya başlamayan art alan hizmeti, çalışmayı "
+"reddediyor."
 
 #: src/daemon/pulseaudio.desktop.in:4
 msgid "PulseAudio Sound System"
@@ -2298,7 +2300,7 @@ msgstr ""
 #: src/utils/pacmd.c:143
 msgid "No PulseAudio daemon running, or not running as session daemon."
 msgstr ""
-"Çalışan PulseAudio arka plan programı yok veya bir oturum arka plan progamı "
+"Çalışan PulseAudio art alan hizmeti yok veya bir oturum art alan hizmeti "
 "olarak çalışmıyor."
 
 #: src/utils/pacmd.c:148
@@ -2313,11 +2315,11 @@ msgstr "connect(): %s"
 
 #: src/utils/pacmd.c:173
 msgid "Failed to kill PulseAudio daemon."
-msgstr "PulseAudio arka plan programı durdurulamadı."
+msgstr "PulseAudio art alan hizmeti durdurulamadı."
 
 #: src/utils/pacmd.c:181
 msgid "Daemon not responding."
-msgstr "Arka plan programı yanıt vermiyor."
+msgstr "Art alan hizmeti yanıt vermiyor."
 
 #: src/utils/pacmd.c:213 src/utils/pacmd.c:322 src/utils/pacmd.c:340
 #, c-format
