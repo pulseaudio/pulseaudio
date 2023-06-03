@@ -9,14 +9,16 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2023-06-04 21:20+0000\n"
+"Last-Translator: Asier Sarasua Garmendia <asier.sarasua@gmail.com>\n"
+"Language-Team: Basque <https://translate.fedoraproject.org/projects/"
+"pulseaudio/pulseaudio/eu/>\n"
 "Language: eu\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.17\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -234,52 +236,52 @@ msgstr ""
 #: src/daemon/dumpmodules.c:57
 #, c-format
 msgid "Name: %s\n"
-msgstr ""
+msgstr "Izena: %s\n"
 
 #: src/daemon/dumpmodules.c:60
 #, c-format
 msgid "No module information available\n"
-msgstr ""
+msgstr "Ez dago moduluaren informaziorik erabilgarri\n"
 
 #: src/daemon/dumpmodules.c:63
 #, c-format
 msgid "Version: %s\n"
-msgstr ""
+msgstr "Bertsioa: %s\n"
 
 #: src/daemon/dumpmodules.c:65
 #, c-format
 msgid "Description: %s\n"
-msgstr ""
+msgstr "Deskribapena: %s\n"
 
 #: src/daemon/dumpmodules.c:67
 #, c-format
 msgid "Author: %s\n"
-msgstr ""
+msgstr "Egilea: %s\n"
 
 #: src/daemon/dumpmodules.c:69
 #, c-format
 msgid "Usage: %s\n"
-msgstr ""
+msgstr "Erabilera: %s\n"
 
 #: src/daemon/dumpmodules.c:70
 #, c-format
 msgid "Load Once: %s\n"
-msgstr ""
+msgstr "Kargatu behin: %s\n"
 
 #: src/daemon/dumpmodules.c:72
 #, c-format
 msgid "DEPRECATION WARNING: %s\n"
-msgstr ""
+msgstr "ZAHARKITZE-ABISUA: %s\n"
 
 #: src/daemon/dumpmodules.c:76
 #, c-format
 msgid "Path: %s\n"
-msgstr ""
+msgstr "Bide-izena: %s\n"
 
 #: src/daemon/ltdl-bind-now.c:75
 #, c-format
 msgid "Failed to open module %s: %s"
-msgstr ""
+msgstr "Huts egin du %s modulua irekitzeak: %s"
 
 #: src/daemon/ltdl-bind-now.c:126
 msgid "Failed to find original lt_dlopen loader."
@@ -339,7 +341,7 @@ msgstr ""
 
 #: src/daemon/main.c:650
 msgid "Failed to parse command line."
-msgstr ""
+msgstr "Huts egin du komando-lerroa analizatzeak."
 
 #: src/daemon/main.c:689
 msgid ""
@@ -396,17 +398,17 @@ msgstr ""
 #: src/daemon/main.c:928 src/daemon/main.c:999
 #, c-format
 msgid "pipe() failed: %s"
-msgstr ""
+msgstr "pipe() funtzioak huts egin du: %s"
 
 #: src/daemon/main.c:933 src/daemon/main.c:1004
 #, c-format
 msgid "fork() failed: %s"
-msgstr ""
+msgstr "fork() funtzioak huts egin du: %s"
 
 #: src/daemon/main.c:948 src/daemon/main.c:1019 src/utils/pacat.c:562
 #, c-format
 msgid "read() failed: %s"
-msgstr ""
+msgstr "read() funtzioak huts egin du: %s"
 
 #: src/daemon/main.c:954
 msgid "Daemon startup failed."
