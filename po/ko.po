@@ -7,7 +7,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2023-06-20 05:20+0000\n"
+"PO-Revision-Date: 2023-07-04 17:21+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ko/>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.18.1\n"
+"X-Generator: Weblate 4.18.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -1522,7 +1522,7 @@ msgstr "모뎀"
 
 #: src/pulse/error.c:38
 msgid "OK"
-msgstr "OK"
+msgstr "확인"
 
 #: src/pulse/error.c:39
 msgid "Access denied"
