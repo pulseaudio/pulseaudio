@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2023-06-07 14:20+0000\n"
+"PO-Revision-Date: 2023-07-09 04:21+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ka/>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.17\n"
+"X-Generator: Weblate 4.18.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -372,7 +372,7 @@ msgstr ""
 
 #: src/daemon/main.c:820
 msgid "Root privileges required."
-msgstr ""
+msgstr "Root-ის პრივილეგიები აუცილებელია."
 
 #: src/daemon/main.c:827
 msgid "--start not supported for system instances."
@@ -998,7 +998,7 @@ msgstr ""
 
 #: src/modules/module-equalizer-sink.c:68
 msgid "General Purpose Equalizer"
-msgstr ""
+msgstr "საერთო მოხმარების ეკვალაიზერი"
 
 #: src/modules/module-equalizer-sink.c:72
 msgid ""
@@ -1020,7 +1020,7 @@ msgstr ""
 
 #: src/modules/module-ladspa-sink.c:50
 msgid "Virtual LADSPA sink"
-msgstr ""
+msgstr "LADSPA-ის ვირტუალური აუდიომიმღები"
 
 #: src/modules/module-ladspa-sink.c:54
 msgid ""
@@ -1062,7 +1062,7 @@ msgstr "შემომტანი მოწყობილობები"
 
 #: src/modules/module-rygel-media-server.c:1061
 msgid "Audio on @HOSTNAME@"
-msgstr ""
+msgstr "ხმა @HOSTNAME@-ზე"
 
 #. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
 #. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
@@ -1095,11 +1095,11 @@ msgstr ""
 
 #: src/modules/raop/module-raop-discover.c:295
 msgid "Unknown device model"
-msgstr ""
+msgstr "უცნობი მოწყობილობის მოდელი"
 
 #: src/modules/raop/raop-sink.c:689
 msgid "RAOP standard profile"
-msgstr ""
+msgstr "RAOP სტანდარტული პროფილი"
 
 #: src/modules/reserve-wrap.c:149
 msgid "PulseAudio Sound Server"
@@ -1338,7 +1338,7 @@ msgstr "xcb_connect() -ის შეცდომა"
 
 #: src/pulse/client-conf-x11.c:66 src/utils/pax11publish.c:102
 msgid "xcb_connection_has_error() returned true"
-msgstr ""
+msgstr "xcb_connection_has_error()-მა 1 დააბრუნა"
 
 #: src/pulse/client-conf-x11.c:102
 msgid "Failed to parse cookie data"
@@ -1436,11 +1436,11 @@ msgstr "არასწორი არგუმენტი"
 
 #: src/pulse/error.c:42
 msgid "Entity exists"
-msgstr ""
+msgstr "ობიექტი არსებობს"
 
 #: src/pulse/error.c:43
 msgid "No such entity"
-msgstr ""
+msgstr "ასეთი ობიექტი არ არსებობს"
 
 #: src/pulse/error.c:44
 msgid "Connection refused"
@@ -1456,7 +1456,7 @@ msgstr "ვადა"
 
 #: src/pulse/error.c:47
 msgid "No authentication key"
-msgstr ""
+msgstr "ავთენტიკაციის გასაღების გარეშე"
 
 #: src/pulse/error.c:48
 msgid "Internal error"
@@ -1464,11 +1464,11 @@ msgstr "შიდა შეცდომა"
 
 #: src/pulse/error.c:49
 msgid "Connection terminated"
-msgstr ""
+msgstr "შეერთება გაწყდა"
 
 #: src/pulse/error.c:50
 msgid "Entity killed"
-msgstr ""
+msgstr "ობიექტი განადგურდა"
 
 #: src/pulse/error.c:51
 msgid "Invalid server"
@@ -1488,7 +1488,7 @@ msgstr "მონაცემების გარეშე"
 
 #: src/pulse/error.c:55
 msgid "Incompatible protocol version"
-msgstr ""
+msgstr "შეუთავსებელი პროტოკოლის ვერსია"
 
 #: src/pulse/error.c:56
 msgid "Too large"
@@ -1516,7 +1516,7 @@ msgstr "იმპლემენტაცია არ არსებობს"
 
 #: src/pulse/error.c:62
 msgid "Client forked"
-msgstr ""
+msgstr "კლიენტი დაიფორკა"
 
 #: src/pulse/error.c:63
 msgid "Input/Output error"
@@ -1581,7 +1581,7 @@ msgstr "pa_stream_peek() -ის შეცდომა: %s"
 
 #: src/utils/pacat.c:324
 msgid "Stream successfully created."
-msgstr ""
+msgstr "ნაკადი წარმატებით შეიქმნა."
 
 #: src/utils/pacat.c:327
 #, c-format
@@ -1626,17 +1626,17 @@ msgstr ""
 #: src/utils/pacat.c:372
 #, c-format
 msgid "Stream underrun.%s"
-msgstr ""
+msgstr "ნაკადის არშევსება. %s"
 
 #: src/utils/pacat.c:379
 #, c-format
 msgid "Stream overrun.%s"
-msgstr ""
+msgstr "ნაკადის გადავსება. %s"
 
 #: src/utils/pacat.c:386
 #, c-format
 msgid "Stream started.%s"
-msgstr ""
+msgstr "ნაკადი გაეშვა. %s"
 
 #: src/utils/pacat.c:393
 #, c-format
@@ -1667,7 +1667,7 @@ msgstr ""
 #: src/utils/pacat.c:450
 #, c-format
 msgid "Connection established.%s"
-msgstr ""
+msgstr "მიერთება დამხარდა. %s"
 
 #: src/utils/pacat.c:453
 #, c-format
@@ -1696,7 +1696,7 @@ msgstr ""
 
 #: src/utils/pacat.c:557
 msgid "Got EOF."
-msgstr ""
+msgstr "მივიღე EOF."
 
 #: src/utils/pacat.c:581
 #, c-format
@@ -1971,15 +1971,15 @@ msgstr "სახელი"
 
 #: src/utils/pacmd.c:54
 msgid "NAME|#N VOLUME"
-msgstr ""
+msgstr "სახელი|#N სიმძლავრე"
 
 #: src/utils/pacmd.c:55
 msgid "#N VOLUME"
-msgstr ""
+msgstr "#N სიძლიერე"
 
 #: src/utils/pacmd.c:56 src/utils/pacmd.c:70 src/utils/pactl.c:2646
 msgid "NAME|#N 1|0"
-msgstr ""
+msgstr "სახელი|#N 1|0"
 
 #: src/utils/pacmd.c:57
 msgid "#N 1|0"
@@ -1987,11 +1987,11 @@ msgstr "#N 1|0"
 
 #: src/utils/pacmd.c:58
 msgid "NAME|#N KEY=VALUE"
-msgstr ""
+msgstr "სხელია|#N თვისება=მნიშვნელობა"
 
 #: src/utils/pacmd.c:59
 msgid "#N KEY=VALUE"
-msgstr ""
+msgstr "#N თვისება=მნიშვნელობა"
 
 #: src/utils/pacmd.c:61
 msgid "#N"
@@ -1999,11 +1999,11 @@ msgstr "#N"
 
 #: src/utils/pacmd.c:62
 msgid "NAME SINK|#N"
-msgstr ""
+msgstr "სახელი რადიომიმღები|#N"
 
 #: src/utils/pacmd.c:64 src/utils/pacmd.c:65
 msgid "NAME FILENAME"
-msgstr ""
+msgstr "სახელი ფაილისსახელი"
 
 #: src/utils/pacmd.c:66
 msgid "PATHNAME"
@@ -2011,11 +2011,11 @@ msgstr "ბილიკის სახელი"
 
 #: src/utils/pacmd.c:67
 msgid "FILENAME SINK|#N"
-msgstr ""
+msgstr "ფაილისსახელი რადიომიმღები|#N"
 
 #: src/utils/pacmd.c:69 src/utils/pactl.c:2645
 msgid "#N SINK|SOURCE"
-msgstr ""
+msgstr "#N რადიომიმღები|წყარო"
 
 #: src/utils/pacmd.c:71 src/utils/pacmd.c:77 src/utils/pacmd.c:78
 msgid "1|0"
@@ -2023,11 +2023,11 @@ msgstr "1|0"
 
 #: src/utils/pacmd.c:72 src/utils/pactl.c:2647
 msgid "CARD PROFILE"
-msgstr ""
+msgstr "ბარათი პროფილი"
 
 #: src/utils/pacmd.c:73 src/utils/pactl.c:2650
 msgid "NAME|#N PORT"
-msgstr ""
+msgstr "ს|ხელია#N პორტი"
 
 #: src/utils/pacmd.c:74 src/utils/pactl.c:2658
 msgid "CARD-NAME|CARD-#N PORT OFFSET"
@@ -2193,7 +2193,7 @@ msgstr "მიკროფონის"
 
 #: src/utils/pactl.c:338
 msgid "Handset"
-msgstr ""
+msgstr "გარნიტურა"
 
 #: src/utils/pactl.c:339
 msgid "Earpiece"
@@ -2568,7 +2568,7 @@ msgstr "კლიენტი"
 
 #: src/utils/pactl.c:2179
 msgid "sample-cache"
-msgstr ""
+msgstr "სემპლის-კეში"
 
 #: src/utils/pactl.c:2182
 msgid "server"
@@ -2617,15 +2617,15 @@ msgstr "[პარამეტრები]"
 
 #: src/utils/pactl.c:2638
 msgid "[TYPE]"
-msgstr ""
+msgstr "[ტიპი]"
 
 #: src/utils/pactl.c:2640
 msgid "FILENAME [NAME]"
-msgstr ""
+msgstr "ფალისსახელი [სახელი]"
 
 #: src/utils/pactl.c:2641
 msgid "NAME [SINK]"
-msgstr ""
+msgstr "სახელი [რადიომიმღები]"
 
 #: src/utils/pactl.c:2653
 msgid "NAME|#N VOLUME [VOLUME ...]"
@@ -2637,15 +2637,15 @@ msgstr ""
 
 #: src/utils/pactl.c:2655
 msgid "NAME|#N 1|0|toggle"
-msgstr ""
+msgstr "სახელი|#N 1|0|გადართვა"
 
 #: src/utils/pactl.c:2656
 msgid "#N 1|0|toggle"
-msgstr ""
+msgstr "#N 1|0|გადართვა"
 
 #: src/utils/pactl.c:2657
 msgid "#N FORMATS"
-msgstr ""
+msgstr "#N ფორმატი"
 
 #: src/utils/pactl.c:2661
 #, c-format
@@ -2960,12 +2960,12 @@ msgstr "წყარო: %s\n"
 #: src/utils/pax11publish.c:114
 #, c-format
 msgid "Sink: %s\n"
-msgstr ""
+msgstr "აუდიომიმღები: %s\n"
 
 #: src/utils/pax11publish.c:116
 #, c-format
 msgid "Cookie: %s\n"
-msgstr ""
+msgstr "ქუქი: %s\n"
 
 #: src/utils/pax11publish.c:134
 #, c-format
