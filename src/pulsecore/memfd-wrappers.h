@@ -66,4 +66,8 @@ static inline int memfd_create(const char *name, unsigned int flags) {
 
 #endif /* HAVE_MEMFD && !HAVE_MEMFD_CREATE */
 
+#ifndef MFD_NOEXEC_SEAL
+#define MFD_NOEXEC_SEAL   0x0008U
+#endif
+
 #endif
