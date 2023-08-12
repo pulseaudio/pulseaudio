@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2023-07-09 04:21+0000\n"
+"PO-Revision-Date: 2023-08-13 17:21+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ka/>\n"
@@ -94,11 +94,11 @@ msgstr ""
 
 #: src/daemon/cmdline.c:246
 msgid "--daemonize expects boolean argument"
-msgstr ""
+msgstr "--daemonize ლოგიკურ არგუმენტს მოელის"
 
 #: src/daemon/cmdline.c:254
 msgid "--fail expects boolean argument"
-msgstr ""
+msgstr "--fail ლოგიკურ არგუმენტს მოელის"
 
 #: src/daemon/cmdline.c:265
 msgid ""
@@ -108,23 +108,23 @@ msgstr ""
 
 #: src/daemon/cmdline.c:277
 msgid "--high-priority expects boolean argument"
-msgstr ""
+msgstr "--high-priority ლოგიკურ არგუმენტს მოელის"
 
 #: src/daemon/cmdline.c:285
 msgid "--realtime expects boolean argument"
-msgstr ""
+msgstr "--realtime ლოგიკურ არგუმენტს მოელის"
 
 #: src/daemon/cmdline.c:293
 msgid "--disallow-module-loading expects boolean argument"
-msgstr ""
+msgstr "--disallow-module-loading ლოგიკურ არგუმენტს მოელის"
 
 #: src/daemon/cmdline.c:301
 msgid "--disallow-exit expects boolean argument"
-msgstr ""
+msgstr "--disallow-exit ლოგიკურ არგუმენტს მოელის"
 
 #: src/daemon/cmdline.c:309
 msgid "--use-pid-file expects boolean argument"
-msgstr ""
+msgstr "--use-pid-file ლოგიკურ არგუმენტს მოელის"
 
 #: src/daemon/cmdline.c:328
 msgid ""
@@ -140,11 +140,11 @@ msgstr ""
 
 #: src/daemon/cmdline.c:338
 msgid "--log-time expects boolean argument"
-msgstr ""
+msgstr "--log-time ლოგიკურ არგუმენტს მოელის"
 
 #: src/daemon/cmdline.c:346
 msgid "--log-meta expects boolean argument"
-msgstr ""
+msgstr "--log-meta ლოგიკურ არგუმენტს მოელის"
 
 #: src/daemon/cmdline.c:366
 #, c-format
@@ -153,84 +153,84 @@ msgstr ""
 
 #: src/daemon/cmdline.c:373
 msgid "--system expects boolean argument"
-msgstr ""
+msgstr "--system ლოგიკურ არგუმენტს მოელის"
 
 #: src/daemon/cmdline.c:381
 msgid "--no-cpu-limit expects boolean argument"
-msgstr ""
+msgstr "--no-cpu-limit ლოგიკურ არგუმენტს მოელის"
 
 #: src/daemon/cmdline.c:389
 msgid "--disable-shm expects boolean argument"
-msgstr ""
+msgstr "--disable-shm ლოგიკურ არგუმენტს მოელის"
 
 #: src/daemon/cmdline.c:397
 msgid "--enable-memfd expects boolean argument"
-msgstr ""
+msgstr "--enable-memfd ლოგიკურ არგუმენტს მოელის"
 
 #: src/daemon/daemon-conf.c:270
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
-msgstr ""
+msgstr "[%s:%u] არასწორი ჟურნალის სამიზნე '%s'."
 
 #: src/daemon/daemon-conf.c:285
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
-msgstr ""
+msgstr "[%s:%u] არასწორი ჟურნალის დონე '%s'."
 
 #: src/daemon/daemon-conf.c:300
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
-msgstr ""
+msgstr "[%s:%u] არასწორი რესემპლის მეთოდი '%s'."
 
 #: src/daemon/daemon-conf.c:322
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
-msgstr ""
+msgstr "[%s:%u] არასწორი rlimit '%s'."
 
 #: src/daemon/daemon-conf.c:342
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
-msgstr ""
+msgstr "[%s:%u] არასწორი სემპლის ფორმატი '%s'."
 
 #: src/daemon/daemon-conf.c:359 src/daemon/daemon-conf.c:376
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
-msgstr ""
+msgstr "[%s:%u] არასწორი სემპლის სიხშირე '%s'."
 
 #: src/daemon/daemon-conf.c:399
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
-msgstr ""
+msgstr "[%s:%u] არასწორი სემპლის არხები '%s'."
 
 #: src/daemon/daemon-conf.c:416
 #, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
-msgstr ""
+msgstr "[%s:%u] არასწორი არხების რუკა '%s'."
 
 #: src/daemon/daemon-conf.c:433
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
-msgstr ""
+msgstr "[%s:%u] არასწორი ფრაგმენტების რაოდენობა '%s'."
 
 #: src/daemon/daemon-conf.c:450
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
-msgstr ""
+msgstr "[%s:%u] არასორი ფრაგმენტის ზომა '%s'."
 
 #: src/daemon/daemon-conf.c:467
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
-msgstr ""
+msgstr "[%s:%u] არასწორი პრიორიტეტის დონე '%s'."
 
 #: src/daemon/daemon-conf.c:552
 #, c-format
 msgid "[%s:%u] Invalid server type '%s'."
-msgstr ""
+msgstr "[%s:%u] არასწორი სერვერის ტიპი '%s'."
 
 #: src/daemon/daemon-conf.c:685
 #, c-format
 msgid "Failed to open configuration file: %s"
-msgstr ""
+msgstr "კონფიგურაციის ფაილის გახსნის შეცდომა: %s"
 
 #: src/daemon/daemon-conf.c:701
 msgid ""
@@ -333,17 +333,17 @@ msgstr "შეცდომა %s-ის გახსნისას: %s"
 #: src/daemon/main.c:299
 #, c-format
 msgid "Failed to change group list: %s"
-msgstr ""
+msgstr "ჯგუფების სიის შეცვლა შეუძლებელია: %s"
 
 #: src/daemon/main.c:315
 #, c-format
 msgid "Failed to change GID: %s"
-msgstr ""
+msgstr "GID-ის შეცვლის შეცდომა: %s"
 
 #: src/daemon/main.c:331
 #, c-format
 msgid "Failed to change UID: %s"
-msgstr ""
+msgstr "UID-ის შეცვლის შეცდომა: %s"
 
 #: src/daemon/main.c:360
 msgid "System wide mode unsupported on this platform."
@@ -351,7 +351,7 @@ msgstr ""
 
 #: src/daemon/main.c:650
 msgid "Failed to parse command line."
-msgstr ""
+msgstr "ბრძანებების სტრიქონის დამუშავების შეცდომა."
 
 #: src/daemon/main.c:689
 msgid ""
@@ -362,7 +362,7 @@ msgstr ""
 #: src/daemon/main.c:788
 #, c-format
 msgid "Failed to kill daemon: %s"
-msgstr ""
+msgstr "დემონის მოკვლის შეცდომა: %s"
 
 #: src/daemon/main.c:817
 msgid ""
@@ -412,17 +412,17 @@ msgstr ""
 #: src/daemon/main.c:928 src/daemon/main.c:999
 #, c-format
 msgid "pipe() failed: %s"
-msgstr "pipe() -ის შეცდომა: %s"
+msgstr "pipe() ჩავარდა: %s"
 
 #: src/daemon/main.c:933 src/daemon/main.c:1004
 #, c-format
 msgid "fork() failed: %s"
-msgstr "fork() -ის შეცდომა: %s"
+msgstr "fork() ჩავარდა: %s"
 
 #: src/daemon/main.c:948 src/daemon/main.c:1019 src/utils/pacat.c:562
 #, c-format
 msgid "read() failed: %s"
-msgstr "read() -ის შეცდომა: %s"
+msgstr "read() ჩავარდა: %s"
 
 #: src/daemon/main.c:954
 msgid "Daemon startup failed."
@@ -431,7 +431,7 @@ msgstr "დემონის გაშვების შეცდომა."
 #: src/daemon/main.c:987
 #, c-format
 msgid "setsid() failed: %s"
-msgstr "setsid() -ის შეცდომა: %s"
+msgstr "setsid() ჩავარდა: %s"
 
 #: src/daemon/main.c:1119
 msgid "Failed to get machine ID"
@@ -448,11 +448,11 @@ msgstr ""
 
 #: src/daemon/main.c:1161
 msgid "pa_pid_file_create() failed."
-msgstr "pa_pid_file_create() -ის შეცდომა."
+msgstr "pa_pid_file_create() ჩავარდა."
 
 #: src/daemon/main.c:1193
 msgid "pa_core_new() failed."
-msgstr "pa_core_new() -ის შეცდომა."
+msgstr "pa_core_new() ჩავარდა."
 
 #: src/daemon/main.c:1268
 msgid "command line arguments"
@@ -475,7 +475,7 @@ msgstr "ხმის სისტემა PulseAudio"
 
 #: src/daemon/pulseaudio.desktop.in:5
 msgid "Start the PulseAudio Sound System"
-msgstr ""
+msgstr "ხმის სისტემა PulseAudio-ის გაშვება"
 
 #: src/modules/alsa/alsa-mixer.c:2708
 msgid "Input"
@@ -1314,27 +1314,27 @@ msgstr "(არასწორი)"
 
 #: src/pulse/channelmap.c:779
 msgid "Surround 4.0"
-msgstr ""
+msgstr "სივრცითი 4.0"
 
 #: src/pulse/channelmap.c:785
 msgid "Surround 4.1"
-msgstr ""
+msgstr "სივრცითი 4.1"
 
 #: src/pulse/channelmap.c:791
 msgid "Surround 5.0"
-msgstr ""
+msgstr "სივრცითი 5.0"
 
 #: src/pulse/channelmap.c:797
 msgid "Surround 5.1"
-msgstr ""
+msgstr "სივრცითი 5.1"
 
 #: src/pulse/channelmap.c:804
 msgid "Surround 7.1"
-msgstr ""
+msgstr "სივრცითი 7.1"
 
 #: src/pulse/client-conf-x11.c:61 src/utils/pax11publish.c:97
 msgid "xcb_connect() failed"
-msgstr "xcb_connect() -ის შეცდომა"
+msgstr "xcb_connect() ჩავარდა"
 
 #: src/pulse/client-conf-x11.c:66 src/utils/pax11publish.c:102
 msgid "xcb_connection_has_error() returned true"
@@ -1398,7 +1398,7 @@ msgstr ""
 #: src/pulsecore/log.c:165
 #, c-format
 msgid "Failed to open target file '%s'."
-msgstr ""
+msgstr "სამიზნე ფაილის (%s) გახსნის შეცდომა."
 
 #: src/pulsecore/log.c:188
 #, c-format
@@ -1554,15 +1554,15 @@ msgstr "%u ბ"
 #: src/utils/pacat.c:134
 #, c-format
 msgid "Failed to drain stream: %s"
-msgstr ""
+msgstr "ნაკადის გაშრობა ჩავარდა: %s"
 
 #: src/utils/pacat.c:139
 msgid "Playback stream drained."
-msgstr ""
+msgstr "დაკვრის ნაკადი გაშრა."
 
 #: src/utils/pacat.c:150
 msgid "Draining connection to server."
-msgstr ""
+msgstr "სერვერთან მეირთების გამოშრობა."
 
 #: src/utils/pacat.c:163
 #, c-format
@@ -1572,12 +1572,12 @@ msgstr "pa_stream_drain(): %s"
 #: src/utils/pacat.c:194 src/utils/pacat.c:543
 #, c-format
 msgid "pa_stream_begin_write() failed: %s"
-msgstr "pa_stream_begin_write() -ის შეცდომა: %s"
+msgstr "pa_stream_begin_write() ჩავარდა: %s"
 
 #: src/utils/pacat.c:244 src/utils/pacat.c:274
 #, c-format
 msgid "pa_stream_peek() failed: %s"
-msgstr "pa_stream_peek() -ის შეცდომა: %s"
+msgstr "pa_stream_peek() ჩავარდა: %s"
 
 #: src/utils/pacat.c:324
 msgid "Stream successfully created."
@@ -1586,7 +1586,7 @@ msgstr "ნაკადი წარმატებით შეიქმნა.
 #: src/utils/pacat.c:327
 #, c-format
 msgid "pa_stream_get_buffer_attr() failed: %s"
-msgstr "pa_stream_get_buffer_attr() -ის შეცდომა: %s"
+msgstr "pa_stream_get_buffer_attr() ჩავარდა: %s"
 
 #: src/utils/pacat.c:331
 #, c-format
@@ -1611,7 +1611,7 @@ msgstr ""
 #: src/utils/pacat.c:352
 #, c-format
 msgid "Stream error: %s"
-msgstr ""
+msgstr "ნაკადის შეცდომა: %s"
 
 #: src/utils/pacat.c:362
 #, c-format
@@ -1672,12 +1672,12 @@ msgstr "მიერთება დამხარდა. %s"
 #: src/utils/pacat.c:453
 #, c-format
 msgid "pa_stream_new() failed: %s"
-msgstr "pa_stream_new() -ის შეცდომა: %s"
+msgstr "pa_stream_new() ჩავარდა: %s"
 
 #: src/utils/pacat.c:491
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s"
-msgstr "pa_stream_connect_playback() -ის შეცდომა: %s"
+msgstr "pa_stream_connect_playback() ჩავარდა: %s"
 
 #: src/utils/pacat.c:497
 #, c-format
@@ -1687,12 +1687,12 @@ msgstr ""
 #: src/utils/pacat.c:501
 #, c-format
 msgid "pa_stream_connect_record() failed: %s"
-msgstr "pa_stream_connect_record() -ის შეცდომა: %s"
+msgstr "pa_stream_connect_record() ჩავარდა: %s"
 
 #: src/utils/pacat.c:514 src/utils/pactl.c:2508
 #, c-format
 msgid "Connection failure: %s"
-msgstr ""
+msgstr "შეერთების შეცდომა: %s"
 
 #: src/utils/pacat.c:557
 msgid "Got EOF."
@@ -1701,31 +1701,31 @@ msgstr "მივიღე EOF."
 #: src/utils/pacat.c:581
 #, c-format
 msgid "pa_stream_write() failed: %s"
-msgstr "pa_stream_new() -ის შეცდომა: %s"
+msgstr "pa_stream_new() ჩავარდა: %s"
 
 #: src/utils/pacat.c:605
 #, c-format
 msgid "write() failed: %s"
-msgstr "write() -ის შეცდომა: %s"
+msgstr "write() ჩავარდა: %s"
 
 #: src/utils/pacat.c:626
 msgid "Got signal, exiting."
-msgstr ""
+msgstr "მივიღე სიგნალი. გასვლა."
 
 #: src/utils/pacat.c:640
 #, c-format
 msgid "Failed to get latency: %s"
-msgstr ""
+msgstr "დაყოვნებს მიღების შეცდომა: %s"
 
 #: src/utils/pacat.c:645
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec."
-msgstr ""
+msgstr "დრო: %0.3f წმ; დაყოვნება: %0.0f მწმ."
 
 #: src/utils/pacat.c:666
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s"
-msgstr ""
+msgstr "pa_stream_update_timing_info() ჩავარდა: %s"
 
 #: src/utils/pacat.c:676
 #, c-format
@@ -1828,37 +1828,37 @@ msgstr ""
 #: src/utils/pacat.c:852 src/utils/pactl.c:2731
 #, c-format
 msgid "Invalid client name '%s'"
-msgstr ""
+msgstr "არასწორი კლიენტის სახელი '%s'"
 
 #: src/utils/pacat.c:867
 #, c-format
 msgid "Invalid stream name '%s'"
-msgstr ""
+msgstr "არასწორი ნაკადის სახელი '%s'"
 
 #: src/utils/pacat.c:904
 #, c-format
 msgid "Invalid channel map '%s'"
-msgstr ""
+msgstr "არასწორი არხის ასახვა '%s'"
 
 #: src/utils/pacat.c:933 src/utils/pacat.c:947
 #, c-format
 msgid "Invalid latency specification '%s'"
-msgstr ""
+msgstr "არასწორი დაყოვნების სპეციფიკაცია '%s'"
 
 #: src/utils/pacat.c:940 src/utils/pacat.c:954
 #, c-format
 msgid "Invalid process time specification '%s'"
-msgstr ""
+msgstr "არასწორი პროცესის დროის სპეციფიკაცია '%s'"
 
 #: src/utils/pacat.c:966
 #, c-format
 msgid "Invalid property '%s'"
-msgstr ""
+msgstr "არასწორი თვისება '%s'"
 
 #: src/utils/pacat.c:985
 #, c-format
 msgid "Unknown file format %s."
-msgstr ""
+msgstr "უცნობი ფაილის ფორმატი %s."
 
 #: src/utils/pacat.c:1000
 msgid "Failed to parse the argument for --monitor-stream"
@@ -1866,7 +1866,7 @@ msgstr ""
 
 #: src/utils/pacat.c:1011
 msgid "Invalid sample specification"
-msgstr ""
+msgstr "არასწორი სემპლის სპეციფიკაცია"
 
 #: src/utils/pacat.c:1021
 #, c-format
@@ -1888,7 +1888,7 @@ msgstr ""
 
 #: src/utils/pacat.c:1082
 msgid "Failed to open audio file."
-msgstr ""
+msgstr "აუდიო ფაილის გახსნა ჩავარდა."
 
 #: src/utils/pacat.c:1088
 msgid ""
@@ -1928,36 +1928,36 @@ msgstr "დაკვრა"
 
 #: src/utils/pacat.c:1162
 msgid "Failed to set media name."
-msgstr ""
+msgstr "მედიის სახელის დაყენების შეცდომა."
 
 #: src/utils/pacat.c:1172 src/utils/pactl.c:3218
 msgid "pa_mainloop_new() failed."
-msgstr "pa_mainloop_new() -ის შეცდომა."
+msgstr "pa_mainloop_new() ჩავარდა."
 
 #: src/utils/pacat.c:1195
 msgid "io_new() failed."
-msgstr "io_new() -ის შეცდომა."
+msgstr "io_new() ჩავარდა."
 
 #: src/utils/pacat.c:1202 src/utils/pactl.c:3230
 msgid "pa_context_new() failed."
-msgstr "pa_context_new() -ის შეცდომა."
+msgstr "pa_context_new() ჩავარდა."
 
 #: src/utils/pacat.c:1210 src/utils/pactl.c:3236
 #, c-format
 msgid "pa_context_connect() failed: %s"
-msgstr "pa_context_connect() -ის შეცდომა: %s"
+msgstr "pa_context_connect() ჩავარდა: %s"
 
 #: src/utils/pacat.c:1216
 msgid "pa_context_rttime_new() failed."
-msgstr "pa_context_rttime_new() -ის შეცდომა."
+msgstr "pa_context_rttime_new() ჩავარდა."
 
 #: src/utils/pacat.c:1223 src/utils/pactl.c:3241
 msgid "pa_mainloop_run() failed."
-msgstr "pa_mainloop_run() -ის შეცდომა."
+msgstr "pa_mainloop_run() ჩავარდა."
 
 #: src/utils/pacmd.c:51 src/utils/pactl.c:2643
 msgid "NAME [ARGS ...]"
-msgstr ""
+msgstr "სახელი [არგუმენტები ...]"
 
 #: src/utils/pacmd.c:52 src/utils/pacmd.c:60 src/utils/pactl.c:2644
 #: src/utils/pactl.c:2651 src/utils/pactl.c:2652
@@ -2031,7 +2031,7 @@ msgstr "ს|ხელია#N პორტი"
 
 #: src/utils/pacmd.c:74 src/utils/pactl.c:2658
 msgid "CARD-NAME|CARD-#N PORT OFFSET"
-msgstr ""
+msgstr "ბარათის-სახელი|ბარათი-#N პორტი წანაცვლება"
 
 #: src/utils/pacmd.c:75
 msgid "TARGET"
@@ -2082,7 +2082,7 @@ msgstr "connect(): %s"
 
 #: src/utils/pacmd.c:173
 msgid "Failed to kill PulseAudio daemon."
-msgstr ""
+msgstr "PulseAudio დემონის მოკვლა ჩავარდა."
 
 #: src/utils/pacmd.c:181
 msgid "Daemon not responding."
@@ -2106,7 +2106,7 @@ msgstr "read(): %s"
 #: src/utils/pactl.c:183
 #, c-format
 msgid "Failed to get statistics: %s"
-msgstr ""
+msgstr "სტატისტიკის მიღების შეცდომა: %s"
 
 #: src/utils/pactl.c:199
 #, c-format
@@ -2126,12 +2126,12 @@ msgstr[1] ""
 #: src/utils/pactl.c:211
 #, c-format
 msgid "Sample cache size: %s\n"
-msgstr ""
+msgstr "სემპლის კეშის ზომა: %s\n"
 
 #: src/utils/pactl.c:219 src/utils/pactl.c:231 src/utils/pactl.c:245
 #, c-format
 msgid "Failed to get server information: %s"
-msgstr ""
+msgstr "სერვერის ინფორმაციის მიღების შეცდომა: %s"
 
 #: src/utils/pactl.c:224 src/utils/pactl.c:236
 #, c-format
@@ -2263,11 +2263,11 @@ msgstr "\tპორტები:\n"
 #: src/utils/pactl.c:708 src/utils/pactl.c:892
 #, c-format
 msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
-msgstr ""
+msgstr "\t\t%s: %s (ტიპი: %s, პრიორიტეტი: %u%s%s, %s)\n"
 
 #: src/utils/pactl.c:710 src/utils/pactl.c:894 src/utils/pactl.c:1256
 msgid ", availability group: "
-msgstr ""
+msgstr ", წვდომადობის ჯგუფი: "
 
 #: src/utils/pactl.c:715 src/utils/pactl.c:899
 #, c-format
@@ -2283,7 +2283,7 @@ msgstr "\tფორმატები:\n"
 #: src/utils/pactl.c:1934 src/utils/pactl.c:2007
 #, c-format
 msgid "Failed to get source information: %s"
-msgstr ""
+msgstr "წყაროს ინფორმაციის მიღება ჩავარდა: %s"
 
 #: src/utils/pactl.c:849
 #, c-format
@@ -2306,6 +2306,23 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"წყარო #%u\n"
+"\tმდგომარეობა: %s\n"
+"\tსახელი: %s\n"
+"\tაღწერა: %s\n"
+"\tდრაივერი: %s\n"
+"\tსემპლის სპეციფიკაცია: %s\n"
+"\tარხების რუკა: %s\n"
+"\tმფლობელი მოდული: %u\n"
+"\tდადუმება: %s\n"
+"\tხმა: %s\n"
+"\t        ბალანსი %0.2f\n"
+"\tბასის ბალანსი: %s\n"
+"\tMonitor of Sink: %s\n"
+"\tდაყოვნება: %0.0f მწმ, მორგებულია %0.0f მწმ\n"
+"\tალმები: %s%s%s%s%s%s\n"
+"\tProperties:\n"
+"\t\t%s\n"
 
 #: src/utils/pactl.c:877 src/utils/pactl.c:962 src/utils/pactl.c:1062
 #: src/utils/pactl.c:1232 src/utils/pactl.c:1384 src/utils/pactl.c:1385
@@ -2318,7 +2335,7 @@ msgstr "ა/მ"
 #: src/utils/pactl.c:924 src/utils/pactl.c:1793
 #, c-format
 msgid "Failed to get module information: %s"
-msgstr ""
+msgstr "მოდულის ინფორმაციის მიღება ჩავარდა: %s"
 
 #: src/utils/pactl.c:976
 #, c-format
@@ -2334,7 +2351,7 @@ msgstr ""
 #: src/utils/pactl.c:1002
 #, c-format
 msgid "Failed to get client information: %s"
-msgstr ""
+msgstr "კლიენტის ინფორმაციის მიღება ჩავარდა: %s"
 
 #: src/utils/pactl.c:1056
 #, c-format
@@ -2345,11 +2362,16 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"კლიენტი #%u\n"
+"\tდრაივერი: %s\n"
+"\tმფლობელი მოდული: %s\n"
+"\tთვისებები:\n"
+"\t\t%s\n"
 
 #: src/utils/pactl.c:1168
 #, c-format
 msgid "Failed to get card information: %s"
-msgstr ""
+msgstr "ბარათის ინფორმაციის მიღება ჩავარდა: %s"
 
 #: src/utils/pactl.c:1224
 #, c-format
@@ -2361,6 +2383,12 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"ბარათი #%u\n"
+"\tსახელი: %s\n"
+"\tდრაივერი: %s\n"
+"\tმფლობელი მოდული: %s\n"
+"\tთვისებები:\n"
+"\t\t%s\n"
 
 #: src/utils/pactl.c:1238
 #, c-format
@@ -2395,7 +2423,7 @@ msgstr ""
 #: src/utils/pactl.c:1265
 #, c-format
 msgid "\t\t\tPart of profile(s): %s"
-msgstr ""
+msgstr "\t\t\tპროფილების ნაწილი: %s"
 
 #: src/utils/pactl.c:1290 src/utils/pactl.c:1954 src/utils/pactl.c:2022
 #, c-format
@@ -2481,7 +2509,7 @@ msgstr "შეცდომა: %s"
 #: src/utils/pactl.c:1667
 #, c-format
 msgid "Send message failed: %s"
-msgstr ""
+msgstr "შეტყობინების გაგზავნის შეცდომა: %s"
 
 #: src/utils/pactl.c:1695
 #, c-format
@@ -2520,11 +2548,11 @@ msgstr[1] ""
 #: src/utils/pactl.c:2107
 #, c-format
 msgid "Failed to upload sample: %s"
-msgstr ""
+msgstr "სემპლის ატვირთვა ჩავარდა: %s"
 
 #: src/utils/pactl.c:2124
 msgid "Premature end of file"
-msgstr ""
+msgstr "ფაილის მოულოდნელი დასასრული"
 
 #: src/utils/pactl.c:2144
 msgid "new"
@@ -2552,11 +2580,11 @@ msgstr "წყარო"
 
 #: src/utils/pactl.c:2167
 msgid "sink-input"
-msgstr ""
+msgstr "sink-input"
 
 #: src/utils/pactl.c:2170
 msgid "source-output"
-msgstr ""
+msgstr "source-output"
 
 #: src/utils/pactl.c:2173
 msgid "module"
@@ -2581,19 +2609,19 @@ msgstr "კარტი"
 #: src/utils/pactl.c:2206
 #, c-format
 msgid "Event '%s' on %s #%u\n"
-msgstr ""
+msgstr "მოვლენა '%s' %s-ზე #%u\n"
 
 #: src/utils/pactl.c:2514
 msgid "Got SIGINT, exiting."
-msgstr ""
+msgstr "მივიღე SIGINT. გასვლა."
 
 #: src/utils/pactl.c:2547
 msgid "Invalid volume specification"
-msgstr ""
+msgstr "არასწორი ხმის სპეციფიკაცია"
 
 #: src/utils/pactl.c:2581
 msgid "Volume outside permissible range.\n"
-msgstr ""
+msgstr "ხმა დაშვებულ დიაპაზონს გარეთაა.\n"
 
 #: src/utils/pactl.c:2594
 msgid "Invalid number of volume specifications.\n"
@@ -2629,11 +2657,11 @@ msgstr "სახელი [რადიომიმღები]"
 
 #: src/utils/pactl.c:2653
 msgid "NAME|#N VOLUME [VOLUME ...]"
-msgstr ""
+msgstr "სახელი|#N ხმა[ხმა ...]"
 
 #: src/utils/pactl.c:2654
 msgid "#N VOLUME [VOLUME ...]"
-msgstr ""
+msgstr "#N ხმა [ხმა ...]"
 
 #: src/utils/pactl.c:2655
 msgid "NAME|#N 1|0|toggle"
@@ -2686,15 +2714,15 @@ msgstr "არასწორი ფორმატის მნიშვნე�
 #: src/utils/pactl.c:2778
 #, c-format
 msgid "Specify nothing, or one of: %s"
-msgstr ""
+msgstr "მიუთითეთ ან არაფერი, ან ერთ-ერთი სიიდან: %s"
 
 #: src/utils/pactl.c:2788
 msgid "Please specify a sample file to load"
-msgstr ""
+msgstr "მიუთითეთ სემპლის ფაილი"
 
 #: src/utils/pactl.c:2801
 msgid "Failed to open sound file."
-msgstr ""
+msgstr "ხმის ფაილის გახსნის შეცდომა."
 
 #: src/utils/pactl.c:2813
 msgid "Warning: Failed to determine sample specification from file."
@@ -2847,11 +2875,11 @@ msgstr ""
 
 #: src/utils/pactl.c:3201
 msgid "Could not parse latency offset"
-msgstr ""
+msgstr "დაყოვნების წანაცვლების დამუშავების შეცდომა"
 
 #: src/utils/pactl.c:3213
 msgid "No valid command specified."
-msgstr ""
+msgstr "სწორი ბრძანება მითითებული არაა."
 
 #: src/utils/pasuspender.c:79
 #, c-format
@@ -2866,32 +2894,32 @@ msgstr "execvp(): %s\n"
 #: src/utils/pasuspender.c:111
 #, c-format
 msgid "Failure to resume: %s\n"
-msgstr ""
+msgstr "გაგრძელების შეცდომა: %s\n"
 
 #: src/utils/pasuspender.c:145
 #, c-format
 msgid "Failure to suspend: %s\n"
-msgstr ""
+msgstr "შეჩერების შეცდომა: %s\n"
 
 #: src/utils/pasuspender.c:170
 #, c-format
 msgid "WARNING: Sound server is not local, not suspending.\n"
-msgstr ""
+msgstr "გაფრთხილება: ხმის სერვერი ლოკალური არაა. არ შევჩერდები.\n"
 
 #: src/utils/pasuspender.c:183
 #, c-format
 msgid "Connection failure: %s\n"
-msgstr ""
+msgstr "შეერთების შეცდომა: %s\n"
 
 #: src/utils/pasuspender.c:201
 #, c-format
 msgid "Got SIGINT, exiting.\n"
-msgstr ""
+msgstr "მივიღე SIGINT. გასვლა.\n"
 
 #: src/utils/pasuspender.c:219
 #, c-format
 msgid "WARNING: Child process terminated by signal %u\n"
-msgstr ""
+msgstr "გაფრთხილება: შვილი პროცესი დასრულდა სიგნალით %u\n"
 
 #: src/utils/pasuspender.c:228
 #, c-format
@@ -2918,17 +2946,17 @@ msgstr ""
 #: src/utils/pasuspender.c:296
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
-msgstr "pa_mainloop_new()-ის შეცდომა.\n"
+msgstr "pa_mainloop_new() ჩავარდა.\n"
 
 #: src/utils/pasuspender.c:309
 #, c-format
 msgid "pa_context_new() failed.\n"
-msgstr "pa_context_new() -ის შეცდომა.\n"
+msgstr "pa_context_new() ჩავარდა.\n"
 
 #: src/utils/pasuspender.c:321
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
-msgstr "pa_mainloop_run() -ის შეცდომა.\n"
+msgstr "pa_mainloop_run() ჩავარდა.\n"
 
 #: src/utils/pax11publish.c:58
 #, c-format
@@ -2980,14 +3008,14 @@ msgstr ""
 #: src/utils/pax11publish.c:168
 #, c-format
 msgid "Failed to get FQDN.\n"
-msgstr ""
+msgstr "FQDN-ის მიღება ჩავარდა.\n"
 
 #: src/utils/pax11publish.c:188
 #, c-format
 msgid "Failed to load cookie data\n"
-msgstr ""
+msgstr "ქუქის მონაცემების ჩატვირთვა ჩავარდა\n"
 
 #: src/utils/pax11publish.c:206
 #, c-format
 msgid "Not yet implemented.\n"
-msgstr ""
+msgstr "ჯერ განხორციელებული არაა.\n"
