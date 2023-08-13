@@ -90,14 +90,14 @@ build-meson:
   extends: .fdo.distribution-image@ubuntu
   stage: build
   script:
-    # Install meson
-    - wget -q https://github.com/mesonbuild/meson/releases/download/0.50.0/meson-0.50.0.tar.gz
-    - tar -xf meson-0.50.0.tar.gz
-    - cd meson-0.50.0
+    # Install meson (higher than our min version to support our wrap file)
+    - wget -q https://github.com/mesonbuild/meson/releases/download/0.63.2/meson-0.63.2.tar.gz
+    - tar -xf meson-0.63.2.tar.gz
+    - cd meson-0.63.2
     - python3 setup.py install
     - cd ..
     # Do the actual build
-    - meson build --werror
+    - meson build --werror -Dwebrtc-aec=enabled
     - cd build
     - ninja
     - ulimit -c 0 # don't dump core files on tests that are supposed to assert
