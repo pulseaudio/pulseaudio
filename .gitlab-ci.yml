@@ -47,6 +47,7 @@ build-container:
       check
       curl
       dbus-x11
+      doxygen
       g++
       gcc
       gettext
