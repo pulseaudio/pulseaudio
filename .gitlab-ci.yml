@@ -19,7 +19,7 @@ variables:
   # CI runs, for example when adding new packages to FDO_DISTRIBUTION_PACKAGES.
   # The tag is an arbitrary string that identifies the exact container
   # contents.
-  FDO_DISTRIBUTION_TAG: '2023-04-21-00'
+  FDO_DISTRIBUTION_TAG: '2023-08-13-00'
   FDO_DISTRIBUTION_VERSION: '20.04'
   FDO_UPSTREAM_REPO: 'pulseaudio/pulseaudio'
 
