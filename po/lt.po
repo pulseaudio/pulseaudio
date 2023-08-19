@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2023-02-21 23:21+0000\n"
+"PO-Revision-Date: 2023-08-20 14:21+0000\n"
 "Last-Translator: mooo <hazap@hotmail.com>\n"
 "Language-Team: Lithuanian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/lt/>\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && ("
 "n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Weblate 4.15.2\n"
+"X-Generator: Weblate 4.18.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -755,23 +755,20 @@ msgid "Chat Input"
 msgstr "Pokalbio įvestis"
 
 #: src/modules/alsa/alsa-mixer.c:2822
-#, fuzzy
 msgid "Virtual Surround 7.1"
-msgstr "Virtualus erdvinis rinktuvas"
+msgstr "Virtuali erdvinė 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4563
 msgid "Analog Mono"
 msgstr "Analoginė mono"
 
 #: src/modules/alsa/alsa-mixer.c:4564
-#, fuzzy
 msgid "Analog Mono (Left)"
-msgstr "Analoginė mono"
+msgstr "Analoginė mono (kairioji)"
 
 #: src/modules/alsa/alsa-mixer.c:4565
-#, fuzzy
 msgid "Analog Mono (Right)"
-msgstr "Analoginė mono"
+msgstr "Analoginė mono (dešinioji)"
 
 #. Note: Not translated to "Analog Stereo Input", because the source
 #. * name gets "Input" appended to it automatically, so adding "Input"
@@ -876,11 +873,11 @@ msgstr "Skaitmeninė erdvinė 5.1 (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4597
 msgid "Chat"
-msgstr ""
+msgstr "Pokalbis"
 
 #: src/modules/alsa/alsa-mixer.c:4598
 msgid "Game"
-msgstr ""
+msgstr "Žaidimas"
 
 #: src/modules/alsa/alsa-mixer.c:4732
 msgid "Analog Mono Duplex"
@@ -904,7 +901,7 @@ msgstr "Dvipusė stereo"
 
 #: src/modules/alsa/alsa-mixer.c:4739
 msgid "Mono Chat + 7.1 Surround"
-msgstr ""
+msgstr "Mono pokalbis + 7.1 erdvinė"
 
 #: src/modules/alsa/alsa-mixer.c:4740 src/modules/alsa/module-alsa-card.c:197
 #: src/modules/bluetooth/module-bluez5-device.c:2263
@@ -2415,9 +2412,9 @@ msgid "Failed to get server information: %s"
 msgstr "Nepavyko gauti serverio informacijos: %s"
 
 #: src/utils/pactl.c:224 src/utils/pactl.c:236
-#, fuzzy, c-format
+#, c-format
 msgid "%s\n"
-msgstr "%s %s\n"
+msgstr "%s\n"
 
 #: src/utils/pactl.c:281
 #, c-format
@@ -2461,20 +2458,19 @@ msgstr ""
 
 #: src/utils/pactl.c:320
 msgid "availability unknown"
-msgstr ""
+msgstr "prieinamumas nežinomas"
 
 #: src/utils/pactl.c:321
 msgid "available"
-msgstr ""
+msgstr "prieinama"
 
 #: src/utils/pactl.c:322
 msgid "not available"
-msgstr ""
+msgstr "neprieinama"
 
 #: src/utils/pactl.c:331 src/utils/pactl.c:355
-#, fuzzy
 msgid "Unknown"
-msgstr "nežinoma"
+msgstr "Nežinoma"
 
 #: src/utils/pactl.c:332
 msgid "Aux"
@@ -2487,12 +2483,11 @@ msgstr "Įvadinė linija"
 
 #: src/utils/pactl.c:336
 msgid "Mic"
-msgstr ""
+msgstr "Mikrofonas"
 
 #: src/utils/pactl.c:338
-#, fuzzy
 msgid "Handset"
-msgstr "Ausinės su mikrofonu"
+msgstr "Telefono ragelis"
 
 #: src/utils/pactl.c:339
 msgid "Earpiece"
@@ -2500,28 +2495,27 @@ msgstr ""
 
 #: src/utils/pactl.c:340
 msgid "SPDIF"
-msgstr ""
+msgstr "SPDIF"
 
 #: src/utils/pactl.c:341
 msgid "HDMI"
-msgstr ""
+msgstr "HDMI"
 
 #: src/utils/pactl.c:342
 msgid "TV"
-msgstr ""
+msgstr "Televizorius"
 
 #: src/utils/pactl.c:345
 msgid "USB"
-msgstr ""
+msgstr "USB"
 
 #: src/utils/pactl.c:346
-#, fuzzy
 msgid "Bluetooth"
-msgstr "Bluetooth įvestis"
+msgstr "Bluetooth"
 
 #: src/utils/pactl.c:352
 msgid "Network"
-msgstr ""
+msgstr "Tinklas"
 
 #: src/utils/pactl.c:353
 #, fuzzy
@@ -2579,14 +2573,13 @@ msgid "\tPorts:\n"
 msgstr "\tPrievadai:\n"
 
 #: src/utils/pactl.c:708 src/utils/pactl.c:892
-#, fuzzy, c-format
+#, c-format
 msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
-msgstr ""
-"\t\t%s: %s (rinktuvų: %u, šaltinių: %u, pirmenybė: %u, prieinama: %s)\n"
+msgstr "\t\t%s: %s (tipas: %s, pirmenybė: %u%s%s, %s)\n"
 
 #: src/utils/pactl.c:710 src/utils/pactl.c:894 src/utils/pactl.c:1256
 msgid ", availability group: "
-msgstr ""
+msgstr ", prieinamumo grupė: "
 
 #: src/utils/pactl.c:715 src/utils/pactl.c:899
 #, c-format
@@ -2879,9 +2872,9 @@ msgid "Failure: %s"
 msgstr "Triktis: %s"
 
 #: src/utils/pactl.c:1667
-#, fuzzy, c-format
+#, c-format
 msgid "Send message failed: %s"
-msgstr "read() nepavyko: %s"
+msgstr "Nepavyko išsiųsti pranešimo: %s"
 
 #: src/utils/pactl.c:1695
 #, c-format
@@ -2890,11 +2883,11 @@ msgstr ""
 
 #: src/utils/pactl.c:1711 src/utils/pactl.c:1760
 msgid "list-handlers message response could not be parsed correctly"
-msgstr ""
+msgstr "nepavyko teisingai išnagrinėti list-handlers pranešimo atsako"
 
 #: src/utils/pactl.c:1718
 msgid "list-handlers message response is not a JSON array"
-msgstr ""
+msgstr "list-handlers pranešimo atsakas nėra JSON masyvas"
 
 #: src/utils/pactl.c:1729
 #, c-format
