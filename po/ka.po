@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2023-08-13 17:21+0000\n"
+"PO-Revision-Date: 2023-09-06 06:44+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ka/>\n"
@@ -2231,7 +2231,7 @@ msgstr "ანალოგური"
 #: src/utils/pactl.c:1875 src/utils/pactl.c:1992
 #, c-format
 msgid "Failed to get sink information: %s"
-msgstr ""
+msgstr "ბარათის ინფორმაციის მიღება ჩავარდა: %s"
 
 #: src/utils/pactl.c:664
 #, c-format
@@ -2254,6 +2254,23 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"წყარო #%u\n"
+"\tმდგომარეობა: %s\n"
+"\tსახელი: %s\n"
+"\tაღწერა: %s\n"
+"\tდრაივერი: %s\n"
+"\tსემპლის სპეციფიკაცია: %s\n"
+"\tარხების რუკა: %s\n"
+"\tმფლობელი მოდული: %u\n"
+"\tდადუმება: %s\n"
+"\tხმა: %s\n"
+"\t        ბალანსი %0.2f\n"
+"\tბასის ხმა: %s\n"
+"\tწყაროს მონიტორინგი: %s\n"
+"\tდაყოვნება: %0.0f მწმ, მორგებულია %0.0f მწმ\n"
+"\tალმები: %s%s%s%s%s%s%s\n"
+"\tProperties:\n"
+"\t\t%s\n"
 
 #: src/utils/pactl.c:706 src/utils/pactl.c:890 src/utils/pactl.c:1251
 #, c-format
@@ -2428,7 +2445,7 @@ msgstr "\t\t\tპროფილების ნაწილი: %s"
 #: src/utils/pactl.c:1290 src/utils/pactl.c:1954 src/utils/pactl.c:2022
 #, c-format
 msgid "Failed to get sink input information: %s"
-msgstr ""
+msgstr "აუდიომიმღების ინფორმაციის მიღება ჩავარდა: %s"
 
 #: src/utils/pactl.c:1366
 #, c-format
@@ -2455,7 +2472,7 @@ msgstr ""
 #: src/utils/pactl.c:1413 src/utils/pactl.c:1974 src/utils/pactl.c:2037
 #, c-format
 msgid "Failed to get source output information: %s"
-msgstr ""
+msgstr "წყაროს გამოტანის ინფორმაციის მიღება ჩავარდა: %s"
 
 #: src/utils/pactl.c:1489
 #, c-format
@@ -2482,7 +2499,7 @@ msgstr ""
 #: src/utils/pactl.c:1536
 #, c-format
 msgid "Failed to get sample information: %s"
-msgstr ""
+msgstr "სემპლის ინფორმაციის მიღება ჩავარდა: %s"
 
 #: src/utils/pactl.c:1604
 #, c-format
@@ -2759,7 +2776,7 @@ msgstr ""
 
 #: src/utils/pactl.c:2907 src/utils/pactl.c:2927
 msgid "Invalid suspend specification."
-msgstr ""
+msgstr "არასწორ შეჩერების სპეციფიკაცია."
 
 #: src/utils/pactl.c:2922
 msgid ""
@@ -2827,7 +2844,7 @@ msgstr ""
 #: src/utils/pactl.c:3091 src/utils/pactl.c:3116 src/utils/pactl.c:3136
 #: src/utils/pactl.c:3154
 msgid "Invalid mute specification"
-msgstr ""
+msgstr "არასწორი დადუმების სპეციფიკაცია"
 
 #: src/utils/pactl.c:3111
 msgid ""
@@ -2973,7 +2990,7 @@ msgstr ""
 #: src/utils/pax11publish.c:91
 #, c-format
 msgid "Failed to parse command line.\n"
-msgstr ""
+msgstr "ბრძანების სტრიქონის დამუშავება ჩავარდა.\n"
 
 #: src/utils/pax11publish.c:110
 #, c-format
@@ -2998,12 +3015,12 @@ msgstr "ქუქი: %s\n"
 #: src/utils/pax11publish.c:134
 #, c-format
 msgid "Failed to parse cookie data\n"
-msgstr ""
+msgstr "ქუქის მონაცემების დამუშავება ჩავარდა\n"
 
 #: src/utils/pax11publish.c:139
 #, c-format
 msgid "Failed to save cookie data\n"
-msgstr ""
+msgstr "ქუქის მონაცემების შენახვა ჩავარდა\n"
 
 #: src/utils/pax11publish.c:168
 #, c-format
