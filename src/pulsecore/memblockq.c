@@ -353,6 +353,7 @@ int pa_memblockq_push(pa_memblockq* bq, const pa_memchunk *uchunk) {
 
                 /* Drop it from the new entry */
                 p->index = q->index + (int64_t) d;
+                p->chunk.index = d;
                 p->chunk.length -= d;
 
                 /* Add it to the list */

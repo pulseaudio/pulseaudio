@@ -632,6 +632,55 @@ START_TEST (memblockq_test_tlength_change) {
 }
 END_TEST
 
+START_TEST (memblockq_test_push_to_middle) {
+    const char *expected_contents = "123456FE90______";
+    pa_sample_spec ss = {
+        .format = PA_SAMPLE_S16BE,
+        .rate = 48000,
+        .channels = 1
+    };
+
+    pa_memchunk silence;
+    pa_mempool *p;
+    pa_memblockq *bq;
+    pa_memchunk chunk1, chunk2;
+    pa_memchunk out;
+
+    pa_strbuf *buf;
+    char *str;
+
+    p = pa_mempool_new(PA_MEM_TYPE_PRIVATE, 0, true);
+    ck_assert_ptr_ne(p, NULL);
+    silence = memchunk_from_str(p, "__");
+
+    bq = pa_memblockq_new("test memblockq", 0, 200, 10, &ss, 4, 4, 40, &silence);
+
+    chunk1 = memchunk_from_str(p, "1234567890");
+    pa_memblockq_push(bq, &chunk1);
+    chunk2 = memchunk_from_str(p, "FE");
+    pa_memblockq_seek(bq, -4, 0, true);
+    pa_memblockq_push(bq, &chunk2);
+
+    pa_memblockq_peek_fixed_size(bq, 16, &out);
+
+    buf = pa_strbuf_new();
+    fprintf(stderr, "EXPECTED >%s<\n", expected_contents);
+    fprintf(stderr, "ACTUAL   >");
+    dump_chunk(&out, buf);
+    fprintf(stderr, "<\n");
+    pa_memblock_unref(out.memblock);
+    str = pa_strbuf_to_string_free(buf);
+    fail_unless(pa_streq(str, expected_contents));
+    pa_xfree(str);
+
+    /* cleanup */
+    pa_memblockq_free(bq);
+    pa_memblock_unref(chunk1.memblock);
+    pa_memblock_unref(chunk2.memblock);
+    pa_memblock_unref(silence.memblock);
+    pa_mempool_unref(p);
+}
+END_TEST
 
 int main(int argc, char *argv[]) {
     int failed = 0;
@@ -650,6 +699,7 @@ int main(int argc, char *argv[]) {
     tcase_add_test(tc, memblockq_test_length_changes);
     tcase_add_test(tc, memblockq_test_pop_missing);
     tcase_add_test(tc, memblockq_test_tlength_change);
+    tcase_add_test(tc, memblockq_test_push_to_middle);
     suite_add_tcase(s, tc);
 
     sr = srunner_create(s);
