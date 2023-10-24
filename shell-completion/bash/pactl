@@ -503,7 +503,7 @@ _pulseaudio()
                 --start -k --kill --check --system= -D --daemonize= --fail= --high-priority=
                 --realtime= --disallow-module-loading= --disallow-exit= --exit-idle-time=
                 --scache-idle-time= --log-level= -v --log-target= --log-meta= --log-time=
-                --log-backtrace= -p --dl-search-path= --resample-method= --use-pit-file=
+                --log-backtrace= -p --dl-search-path= --resample-method= --use-pid-file=
                 --no-cpu-limit= --disable-shm= --enable-memfd= -L --load= -F --file= -C -n'
     _init_completion -n = || return
 
