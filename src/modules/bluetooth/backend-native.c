@@ -889,106 +889,120 @@ static void rfcomm_io_callback(pa_mainloop_api *io, pa_io_event *e, int fd, pa_i
     }
 
     if (events & PA_IO_EVENT_INPUT) {
-        char buf[512];
+        char rbuf[512];
         ssize_t len;
         int gain, dummy;
         bool do_reply = false;
         int vendor, product, version, features;
+        char *buf = rbuf;
         int num;
 
-        len = pa_read(fd, buf, 511, NULL);
+        len = pa_read(fd, rbuf, 511, NULL);
         if (len < 0) {
             pa_log_error("RFCOMM read error: %s", pa_cstrerror(errno));
             goto fail;
         }
-        buf[len] = 0;
-        pa_log_debug("RFCOMM << %s", buf);
+        rbuf[len] = 0;
+        pa_log_debug("RFCOMM << %s", rbuf);
 
-        /* There are only four HSP AT commands:
-         * AT+VGS=value: value between 0 and 15, sent by the HS to AG to set the speaker gain.
-         * +VGS=value is sent by AG to HS as a response to an AT+VGS command or when the gain
-         * is changed on the AG side.
-         * AT+VGM=value: value between 0 and 15, sent by the HS to AG to set the microphone gain.
-         * +VGM=value is sent by AG to HS as a response to an AT+VGM command or when the gain
-         * is changed on the AG side.
-         * AT+CKPD=200: Sent by HS when headset button is pressed.
-         * RING: Sent by AG to HS to notify of an incoming call. It can safely be ignored because
-         * it does not expect a reply. */
-        if (sscanf(buf, "AT+VGS=%d", &gain) == 1 || sscanf(buf, "\r\n+VGM%*[=:]%d\r\n", &gain) == 1) {
-            if (!t->set_sink_volume) {
-                pa_log_debug("HS/HF peer supports speaker gain control");
-                t->set_sink_volume = set_sink_volume;
-            }
-
-            t->sink_volume = hsp_gain_to_volume(gain);
-            pa_hook_fire(pa_bluetooth_discovery_hook(t->device->discovery, PA_BLUETOOTH_HOOK_TRANSPORT_SINK_VOLUME_CHANGED), t);
-            do_reply = true;
-
-        } else if (sscanf(buf, "AT+VGM=%d", &gain) == 1 || sscanf(buf, "\r\n+VGS%*[=:]%d\r\n", &gain) == 1) {
-            if (!t->set_source_volume) {
-                pa_log_debug("HS/HF peer supports microphone gain control");
-                t->set_source_volume = set_source_volume;
-            }
-
-            t->source_volume = hsp_gain_to_volume(gain);
-            pa_hook_fire(pa_bluetooth_discovery_hook(t->device->discovery, PA_BLUETOOTH_HOOK_TRANSPORT_SOURCE_VOLUME_CHANGED), t);
-            do_reply = true;
-        } else if (sscanf(buf, "AT+CKPD=%d", &dummy) == 1) {
-            do_reply = true;
-        } else if (sscanf(buf, "AT+XAPL=%04x-%04x-%04x,%d", &vendor, &product, &version, &features) == 4) {
-            if (features & 0x2)
-                /* claim, that we support battery status reports */
-                rfcomm_write_response(fd, "+XAPL=iPhone,6");
-            do_reply = true;
-        } else if (sscanf(buf, "AT+IPHONEACCEV=%d", &num) == 1) {
-            char *substr = buf, *keystr;
-            int key, val, i;
-
-            do_reply = true;
-
-            for (i = 0; i < num; ++i) {
-                keystr = strchr(substr, ',');
-                if (!keystr) {
-                    pa_log_warn("%s misses key for argument #%d", buf, i);
-                    do_reply = false;
-                    break;
+        while (buf[0]) {
+            /* There are only four HSP AT commands:
+             * AT+VGS=value: value between 0 and 15, sent by the HS to AG to set the speaker gain.
+             * +VGS=value is sent by AG to HS as a response to an AT+VGS command or when the gain
+             * is changed on the AG side.
+             * AT+VGM=value: value between 0 and 15, sent by the HS to AG to set the microphone gain.
+             * +VGM=value is sent by AG to HS as a response to an AT+VGM command or when the gain
+             * is changed on the AG side.
+             * AT+CKPD=200: Sent by HS when headset button is pressed.
+             * RING: Sent by AG to HS to notify of an incoming call. It can safely be ignored because
+             * it does not expect a reply. */
+            if (sscanf(buf, "AT+VGS=%d", &gain) == 1 || sscanf(buf, "\r\n+VGM%*[=:]%d\r\n", &gain) == 1) {
+                if (!t->set_sink_volume) {
+                    pa_log_debug("HS/HF peer supports speaker gain control");
+                    t->set_sink_volume = set_sink_volume;
                 }
-                keystr++;
-                substr = strchr(keystr, ',');
-                if (!substr) {
-                    pa_log_warn("%s misses value for argument #%d", buf, i);
-                    do_reply = false;
-                    break;
-                }
-                substr++;
 
-                key = atoi(keystr);
-                val = atoi(substr);
+                t->sink_volume = hsp_gain_to_volume(gain);
+                pa_hook_fire(pa_bluetooth_discovery_hook(t->device->discovery, PA_BLUETOOTH_HOOK_TRANSPORT_SINK_VOLUME_CHANGED), t);
+                do_reply = true;
 
-                switch (key) {
-                    case 1:
-                        pa_log_notice("Battery Level: %d0%%", val + 1);
-                        pa_bluetooth_device_report_battery_level(t->device, (val + 1) * 10, "Apple accessory indication");
-                        break;
-                    case 2:
-                        pa_log_notice("Dock Status: %s", val ? "docked" : "undocked");
-                        break;
-                    default:
-                        pa_log_debug("Unexpected IPHONEACCEV key %#x", key);
-                        break;
+            } else if (sscanf(buf, "AT+VGM=%d", &gain) == 1 || sscanf(buf, "\r\n+VGS%*[=:]%d\r\n", &gain) == 1) {
+                if (!t->set_source_volume) {
+                    pa_log_debug("HS/HF peer supports microphone gain control");
+                    t->set_source_volume = set_source_volume;
                 }
-            }
-            if (!do_reply)
+
+                t->source_volume = hsp_gain_to_volume(gain);
+                pa_hook_fire(pa_bluetooth_discovery_hook(t->device->discovery, PA_BLUETOOTH_HOOK_TRANSPORT_SOURCE_VOLUME_CHANGED), t);
+                do_reply = true;
+            } else if (sscanf(buf, "AT+CKPD=%d", &dummy) == 1) {
+                do_reply = true;
+            } else if (sscanf(buf, "AT+XAPL=%04x-%04x-%04x,%d", &vendor, &product, &version, &features) == 4) {
+                if (features & 0x2)
+                    /* claim, that we support battery status reports */
+                    rfcomm_write_response(fd, "+XAPL=iPhone,6");
+                do_reply = true;
+            } else if (sscanf(buf, "AT+IPHONEACCEV=%d", &num) == 1) {
+                char *substr = buf, *keystr;
+                int key, val, i;
+
+                do_reply = true;
+
+                for (i = 0; i < num; ++i) {
+                    keystr = strchr(substr, ',');
+                    if (!keystr) {
+                        pa_log_warn("%s misses key for argument #%d", buf, i);
+                        do_reply = false;
+                        break;
+                    }
+                    keystr++;
+                    substr = strchr(keystr, ',');
+                    if (!substr) {
+                        pa_log_warn("%s misses value for argument #%d", buf, i);
+                        do_reply = false;
+                        break;
+                    }
+                    substr++;
+
+                    key = atoi(keystr);
+                    val = atoi(substr);
+
+                    switch (key) {
+                        case 1:
+                            pa_log_notice("Battery Level: %d0%%", val + 1);
+                            pa_bluetooth_device_report_battery_level(t->device, (val + 1) * 10, "Apple accessory indication");
+                            break;
+                        case 2:
+                            pa_log_notice("Dock Status: %s", val ? "docked" : "undocked");
+                            break;
+                        default:
+                            pa_log_debug("Unexpected IPHONEACCEV key %#x", key);
+                            break;
+                    }
+                }
+                if (!do_reply)
+                    rfcomm_write_response(fd, "ERROR");
+            } else if (t->config) { /* t->config is only non-null for hfp profile */
+                do_reply = hfp_rfcomm_handle(fd, t, buf);
+            } else {
                 rfcomm_write_response(fd, "ERROR");
-        } else if (t->config) { /* t->config is only non-null for hfp profile */
-            do_reply = hfp_rfcomm_handle(fd, t, buf);
-        } else {
-            rfcomm_write_response(fd, "ERROR");
-            do_reply = false;
-        }
+                do_reply = false;
+            }
 
-        if (do_reply)
-            rfcomm_write_response(fd, "OK");
+            if (do_reply)
+                rfcomm_write_response(fd, "OK");
+
+            if (buf[0] == '\r') /* in case it is the command with format \r\nCOMMAND\r\n, skip the starting \r */
+                buf = buf + 1;
+
+            buf = strstr(buf, "\r"); /* try to find the next AT command in the buf */
+            if (!buf)
+                break;
+            else if (buf[1] == '\n')
+                buf = buf + 2; /* skip \r\n */
+            else
+                buf = buf + 1; /* skip \r */
+        }
     }
 
     return;
