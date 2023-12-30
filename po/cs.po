@@ -11,15 +11,16 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2018-09-30 17:34+0200\n"
-"Last-Translator: Marek Černocký <marek@manet.cz>\n"
-"Language-Team: čeština <gnome-cs-list@gnome.org>\n"
+"PO-Revision-Date: 2023-12-31 14:36+0000\n"
+"Last-Translator: Matěj Valášek <valmatej@seznam.cz>\n"
+"Language-Team: Czech <https://translate.fedoraproject.org/projects/"
+"pulseaudio/pulseaudio/cs/>\n"
 "Language: cs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Gtranslator 2.91.7\n"
+"X-Generator: Weblate 5.3.1\n"
 
 #: src/daemon/cmdline.c:113
 #, fuzzy, c-format
@@ -561,6 +562,8 @@ msgid ""
 "Failed to initialize daemon due to errors while executing startup commands. "
 "Source of commands: %s"
 msgstr ""
+"Nepodařilo se inicializovat démona kvůli chybám při provádění startup "
+"příkazů. Zdroj příkazů: %s"
 
 #: src/daemon/main.c:1280
 msgid "Daemon startup without any loaded modules, refusing to work."
@@ -859,11 +862,11 @@ msgstr "Digitální Surround 5.1 (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4597
 msgid "Chat"
-msgstr ""
+msgstr "Chat"
 
 #: src/modules/alsa/alsa-mixer.c:4598
 msgid "Game"
-msgstr ""
+msgstr "Hra"
 
 #: src/modules/alsa/alsa-mixer.c:4732
 msgid "Analog Mono Duplex"
@@ -887,7 +890,7 @@ msgstr "Duplexní stereo"
 
 #: src/modules/alsa/alsa-mixer.c:4739
 msgid "Mono Chat + 7.1 Surround"
-msgstr ""
+msgstr "Mono Chat + 7.1 Surround"
 
 #: src/modules/alsa/alsa-mixer.c:4740 src/modules/alsa/module-alsa-card.c:197
 #: src/modules/bluetooth/module-bluez5-device.c:2263
@@ -2435,15 +2438,15 @@ msgstr ""
 
 #: src/utils/pactl.c:320
 msgid "availability unknown"
-msgstr ""
+msgstr "dostupnost neznámá"
 
 #: src/utils/pactl.c:321
 msgid "available"
-msgstr ""
+msgstr "dostupné"
 
 #: src/utils/pactl.c:322
 msgid "not available"
-msgstr ""
+msgstr "není dostupné"
 
 #: src/utils/pactl.c:331 src/utils/pactl.c:355
 #, fuzzy
@@ -2452,7 +2455,7 @@ msgstr "neznámo"
 
 #: src/utils/pactl.c:332
 msgid "Aux"
-msgstr ""
+msgstr "Aux"
 
 #: src/utils/pactl.c:335
 #, fuzzy
@@ -2461,7 +2464,7 @@ msgstr "Linkový vstup"
 
 #: src/utils/pactl.c:336
 msgid "Mic"
-msgstr ""
+msgstr "Mic"
 
 #: src/utils/pactl.c:338
 #, fuzzy
@@ -2470,23 +2473,23 @@ msgstr "Náhlavní souprava"
 
 #: src/utils/pactl.c:339
 msgid "Earpiece"
-msgstr ""
+msgstr "Sluchátka do uší"
 
 #: src/utils/pactl.c:340
 msgid "SPDIF"
-msgstr ""
+msgstr "SPDIF"
 
 #: src/utils/pactl.c:341
 msgid "HDMI"
-msgstr ""
+msgstr "HDMI"
 
 #: src/utils/pactl.c:342
 msgid "TV"
-msgstr ""
+msgstr "TV"
 
 #: src/utils/pactl.c:345
 msgid "USB"
-msgstr ""
+msgstr "USB"
 
 #: src/utils/pactl.c:346
 #, fuzzy
@@ -2495,7 +2498,7 @@ msgstr "Vstup přes Bluetooth"
 
 #: src/utils/pactl.c:352
 msgid "Network"
-msgstr ""
+msgstr "Síť"
 
 #: src/utils/pactl.c:353
 #, fuzzy
@@ -2858,20 +2861,22 @@ msgstr "Selhalo volání read(): %s"
 #: src/utils/pactl.c:1695
 #, c-format
 msgid "list-handlers message failed: %s"
-msgstr ""
+msgstr "list-handlers zpráva selhala: %s"
 
 #: src/utils/pactl.c:1711 src/utils/pactl.c:1760
+#, fuzzy
 msgid "list-handlers message response could not be parsed correctly"
-msgstr ""
+msgstr "odpověď na zprávu list-handlers nelze správně analyzovat"
 
 #: src/utils/pactl.c:1718
+#, fuzzy
 msgid "list-handlers message response is not a JSON array"
-msgstr ""
+msgstr "odpověď zprávy list-handlers není pole JSON"
 
 #: src/utils/pactl.c:1729
 #, c-format
 msgid "list-handlers message response array element %d is not a JSON object"
-msgstr ""
+msgstr "prvek pole odpovědí list-handlers %d není objekt JSON"
 
 #: src/utils/pactl.c:1800
 #, c-format
@@ -3238,6 +3243,8 @@ msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
 msgstr ""
+"Nadbytečné argumenty budou ignorovány. Všimněte si, že všechny parametry "
+"zprávy musí být zadány jako jeden řetězec."
 
 #: src/utils/pactl.c:3182
 msgid ""
