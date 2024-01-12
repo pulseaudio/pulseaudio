@@ -1,3 +1,76 @@
+PulseAudio 17.0
+
+Changes at a glance:
+ * Notes for end users
+   *  Updates to ALSA UCM-based setups
+   *  Battery level indication to Bluetooth devices
+   *  Support for the Bluetooth FastStream codec
+   *  webrtc-audio-processing dependency updated
+   *  Trigger role groups added to module-role-cork
+   *  XDG base directory spec for profile-set loading
+ * Notes for application developers
+   * PA_RATE_MAX increased
+ * Notes for packagers
+   * webrtc-audio-processing dependency updated
+
+Contributors
+
+Alistair Leslie-Hughes
+Alper Nebi Yasak
+Arun Raghavan
+Asier Sarasua Garmendia
+Ataberk Özen
+Balázs Meskó
+Biswapriyo Nath
+Dylan Van Assche
+Eero Nurkkala
+Ettore Atalan
+Fabrice Fontaine
+Fran Diéguez
+Georg Chini
+Gioele Barabucci
+Gogo Gogsi
+Hector Martin
+Hugo Carvalho
+Hui Wang
+Igor V. Kovalenko
+Jaechul Lee
+Jan Kuparinen
+Jan Palus
+Jaroslav Kysela
+Jiri Grönroos
+Joachim Philipp
+Jordi Mas
+Marijn Suijten
+Mart Raudsepp
+Nicolas Cavallari
+Peter Meerwald-Stadler
+Philip Goto
+Rosen Penev
+Rudi Heitbaum
+Sabri Ünal
+Sean Greenslade
+Seong-ho Cho
+Shunsuke Shimizu
+SimonP
+Takashi Sakamoto
+Tanu Kaskinen
+Temuri Doghonadze
+Toni Estevez
+Weijia Wang
+Wim Taymans
+Yureka
+acheronfail
+flyingOwl
+grimst
+hashitaku
+mooo
+peijiankang
+redfast00
+wael
+김인수
+
+
 PulseAudio 16.1
 
 A bug fix release.
