@@ -184,7 +184,6 @@ int main(int argc, char *argv[]) {
     s = suite_create("lfe-filter");
     tc = tcase_create("lfe-filter");
     tcase_add_test(tc, lfe_filter_test);
-    tcase_set_timeout(tc, 10);
     suite_add_tcase(s, tc);
 
     sr = srunner_create(s);

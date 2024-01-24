@@ -91,10 +91,6 @@ int main(int argc, char *argv[]) {
     s = suite_create("RT Poll");
     tc = tcase_create("rtpoll");
     tcase_add_test(tc, rtpoll_test);
-    /* the default timeout is too small,
-     * set it to a reasonable large one.
-     */
-    tcase_set_timeout(tc, 60 * 60);
     suite_add_tcase(s, tc);
 
     sr = srunner_create(s);

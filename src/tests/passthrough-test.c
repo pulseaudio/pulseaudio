@@ -335,7 +335,6 @@ int main(int argc, char *argv[]) {
     tcase_add_test(tc, passthrough_playback_test);
     sink_num++;
     tcase_add_test(tc, passthrough_volume_test);
-    tcase_set_timeout(tc, 5);
     suite_add_tcase(s, tc);
 
     sr = srunner_create(s);

@@ -235,7 +235,6 @@ int main(int argc, char *argv[]) {
     tcase_add_test(tc, svolume_arm_test);
 #endif
     tcase_add_test(tc, svolume_orc_test);
-    tcase_set_timeout(tc, 120);
     suite_add_tcase(s, tc);
 
     sr = srunner_create(s);

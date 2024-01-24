@@ -107,7 +107,6 @@ int main(int argc, char *argv[]) {
     s = suite_create("Alsa-mixer-path");
     tc = tcase_create("alsa-mixer-path");
     tcase_add_test(tc, mixer_path_test);
-    tcase_set_timeout(tc, 30);
     suite_add_tcase(s, tc);
 
     sr = srunner_create(s);

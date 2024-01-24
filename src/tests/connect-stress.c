@@ -223,7 +223,6 @@ int main(int argc, char *argv[]) {
     s = suite_create("Connect Stress");
     tc = tcase_create("connectstress");
     tcase_add_test(tc, connect_stress_test);
-    tcase_set_timeout(tc, 20 * 60);
     suite_add_tcase(s, tc);
 
     sr = srunner_create(s);

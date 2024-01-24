@@ -161,7 +161,6 @@ int main(int argc, char *argv[]) {
     s = suite_create("Volume");
     tc = tcase_create("volume");
     tcase_add_test(tc, volume_test);
-    tcase_set_timeout(tc, 120);
     suite_add_tcase(s, tc);
 
     sr = srunner_create(s);

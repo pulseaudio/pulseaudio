@@ -208,6 +208,7 @@ endif
 
 test_env = environment()
 test_env.set('MAKE_CHECK', '1')
+test_env.set('CK_DEFAULT_TIMEOUT', '0')
 
 foreach t : default_tests + norun_tests
   name = t[0]

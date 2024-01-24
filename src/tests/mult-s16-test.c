@@ -102,7 +102,6 @@ int main(int argc, char *argv[]) {
     s = suite_create("Mult-s16");
     tc = tcase_create("mult-s16");
     tcase_add_test(tc, mult_s16_test);
-    tcase_set_timeout(tc, 120);
     suite_add_tcase(s, tc);
 
     sr = srunner_create(s);

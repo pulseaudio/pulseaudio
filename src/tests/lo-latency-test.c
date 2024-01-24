@@ -175,7 +175,6 @@ int main(int argc, char *argv[]) {
     s = suite_create("Loopback latency");
     tc = tcase_create("loopback latency");
     tcase_add_test(tc, loopback_test);
-    tcase_set_timeout(tc, 5 * 60);
     suite_add_tcase(s, tc);
 
     sr = srunner_create(s);

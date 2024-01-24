@@ -212,7 +212,6 @@ int main(int argc, char *argv[]) {
 #if defined (__arm__) && defined (__linux__) && defined (HAVE_NEON)
     tcase_add_test(tc, mix_neon_test);
 #endif
-    tcase_set_timeout(tc, 120);
     suite_add_tcase(s, tc);
 
     sr = srunner_create(s);
