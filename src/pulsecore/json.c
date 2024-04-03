@@ -148,9 +148,10 @@ static const char* parse_string(const char *str, pa_json_object *obj) {
 
     while (*str && *str != '"') {
         if (*str != '\\') {
-            /* We only accept ASCII printable characters. */
-            if (*str < 0x20 || *str > 0x7E) {
-                pa_log("Invalid non-ASCII character: 0x%x", (unsigned int) *str);
+            /* JSON specifies that ASCII control characters 0x00 through 0x1F
+             * must not appear in the string. */
+            if (*str < 0x20) {
+                pa_log("Invalid ASCII character: 0x%x", (unsigned int) *str);
                 goto error;
             }
 
