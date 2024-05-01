@@ -152,8 +152,6 @@ cdata.set_quoted('PA_SRCDIR', join_paths(meson.current_source_dir(), 'src'))
 cdata.set_quoted('PA_BUILDDIR', meson.current_build_dir())
 if host_machine.system() == 'windows'
   cdata.set_quoted('PA_SOEXT', '.dll')
-elif host_machine.system() == 'darwin'
-  cdata.set_quoted('PA_SOEXT', '.dylib')
 else
   cdata.set_quoted('PA_SOEXT', '.so')
 endif
@@ -192,6 +190,7 @@ endif
 # rather than ending up in the config.h file?
 if host_machine.system() == 'darwin'
   cdata.set('OS_IS_DARWIN', 1)
+  cdata.set('HAVE_COREAUDIO', 1)
   cdata.set('_DARWIN_C_SOURCE', '200112L') # Needed to get NSIG on Mac OS
 elif host_machine.system() == 'windows'
   cdata.set('OS_IS_WIN32', 1)

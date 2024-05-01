@@ -311,6 +311,12 @@ else
   no_undefined_args = []
 endif
 
+module_suffix = []
+if host_machine.system() == 'darwin'
+  # meson defaults to dylib but ltdl expects so
+  module_suffix = 'so'
+endif
+
 foreach m : all_modules
   name = m[0]
   sources = m[1]
@@ -331,5 +337,6 @@ foreach m : all_modules
     link_args : [nodelete_link_args, no_undefined_args],
     link_with : extra_libs,
     name_prefix : '',
+    name_suffix : module_suffix,
     implicit_include_directories : false)
 endforeach
