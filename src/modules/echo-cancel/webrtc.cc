@@ -242,6 +242,8 @@ bool pa_webrtc_ec_init(pa_core *c, pa_echo_canceller *ec,
         config.high_pass_filter.enabled = false;
 
     config.echo_canceller.enabled = true;
+    config.pipeline.multi_channel_capture = rec_ss->channels > 1;
+    config.pipeline.multi_channel_render = play_ss->channels > 1;
 
     if (!mobile)
         config.echo_canceller.mobile_mode = false;
