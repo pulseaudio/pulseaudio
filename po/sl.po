@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2024-04-30 20:36+0000\n"
+"PO-Revision-Date: 2024-07-26 13:38+0000\n"
 "Last-Translator: Martin Srebotnjak <miles@filmsi.net>\n"
 "Language-Team: Slovenian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/sl/>\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || "
 "n%100==4 ? 2 : 3;\n"
-"X-Generator: Weblate 5.5.2\n"
+"X-Generator: Weblate 5.6.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format, fuzzy
@@ -363,9 +363,8 @@ msgid "Failed to find original lt_dlopen loader."
 msgstr "Ni bilo mogoče najti originalnega nakladalnika lt_dlopen."
 
 #: src/daemon/ltdl-bind-now.c:131
-#, fuzzy
 msgid "Failed to allocate new dl loader."
-msgstr "Ni uspelo dodeliti novega nakladalnika dl."
+msgstr "Dodelitev novega nakladalnika dl je spodletela."
 
 #: src/daemon/ltdl-bind-now.c:144
 msgid "Failed to add bind-now-loader."
@@ -382,14 +381,14 @@ msgid "Failed to find group '%s'."
 msgstr "Skupine »%s« ni bilo mogoče najti."
 
 #: src/daemon/main.c:279
-#, c-format, fuzzy
+#, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
 msgstr "GID uporabnika '%s' in skupine '%s' se ne ujemata."
 
 #: src/daemon/main.c:284
-#, c-format, fuzzy
+#, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
-msgstr "Domači imenik uporabnika \"%s\" ni \"%s\", ignorira."
+msgstr "Domača mapa uporabnika \"%s\" ni \"%s\", prezrta bo."
 
 #: src/daemon/main.c:287 src/daemon/main.c:292
 #, c-format
@@ -397,17 +396,17 @@ msgid "Failed to create '%s': %s"
 msgstr "Ni bilo mogoče ustvariti »%s«: %s"
 
 #: src/daemon/main.c:299
-#, c-format, fuzzy
+#, c-format
 msgid "Failed to change group list: %s"
 msgstr "Seznama skupin ni bilo mogoče spremeniti: %s"
 
 #: src/daemon/main.c:315
-#, c-format, fuzzy
+#, c-format
 msgid "Failed to change GID: %s"
 msgstr "GID ni bilo mogoče spremeniti: %s"
 
 #: src/daemon/main.c:331
-#, c-format, fuzzy
+#, c-format
 msgid "Failed to change UID: %s"
 msgstr "Identifikacije UID ni bilo mogoče spremeniti: %s"
 
@@ -439,14 +438,12 @@ msgid "This program is not intended to be run as root (unless --system is specif
 msgstr "Ta program ni namenjen zagonu kot root (razen če je določen --sistem)."
 
 #: src/daemon/main.c:820
-#, fuzzy
 msgid "Root privileges required."
 msgstr "Potrebne so korenske pravice."
 
 #: src/daemon/main.c:827
-#, fuzzy
 msgid "--start not supported for system instances."
-msgstr "--Zagon ni podprt za sistemske primerke."
+msgstr "--start ni podprto za sistemske primerke."
 
 #: src/daemon/main.c:867
 #, c-format, fuzzy
@@ -463,7 +460,6 @@ msgstr ""
 "globlje."
 
 #: src/daemon/main.c:878
-#, fuzzy
 msgid "Running in system mode, but --disallow-exit not set."
 msgstr "Deluje v sistemskem načinu, vendar --disallow-exit ni nastavljen."
 
