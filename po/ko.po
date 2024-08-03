@@ -7,7 +7,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2024-02-18 14:36+0000\n"
+"PO-Revision-Date: 2024-08-04 19:41+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ko/>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.4\n"
+"X-Generator: Weblate 5.6.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -275,12 +275,12 @@ msgstr "[%s:%u] 잘못된 채널 맵 '%s'."
 #: src/daemon/daemon-conf.c:433
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
-msgstr "[%s:%u] 잘못된 fragment 수 '%s'."
+msgstr "[%s:%u] 잘못된 조각 수 '%s'."
 
 #: src/daemon/daemon-conf.c:450
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
-msgstr "[%s:%u] 잘못된 fragment 크기 '%s'."
+msgstr "[%s:%u] 잘못된 조각 크기 '%s'."
 
 #: src/daemon/daemon-conf.c:467
 #, c-format
