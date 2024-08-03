@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2024-07-30 20:41+0000\n"
+"PO-Revision-Date: 2024-08-03 07:49+0000\n"
 "Last-Translator: Giannis Antypas <gianni.antypas@gmail.com>\n"
 "Language-Team: Greek <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/el/>\n"
@@ -2402,7 +2402,7 @@ msgid "Failed to get server information: %s"
 msgstr "Αποτυχία λήψης πληροφοριών διακομιστή: %s"
 
 #: src/utils/pactl.c:224 src/utils/pactl.c:236
-#, fuzzy, c-format
+#, c-format
 msgid "%s\n"
 msgstr "%s\n"
 
@@ -2892,7 +2892,7 @@ msgid "Failed to unload module: Module %s not loaded"
 msgstr "Αποτυχία εκφόρτωσης ενότητας: η ενότητα %s δεν φορτώθηκε"
 
 #: src/utils/pactl.c:1818
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Failed to set volume: You tried to set volumes for %d channel, whereas "
 "channel(s) supported = %d\n"
@@ -2900,11 +2900,11 @@ msgid_plural ""
 "Failed to set volume: You tried to set volumes for %d channels, whereas "
 "channel(s) supported = %d\n"
 msgstr[0] ""
-"Αποτυχία ορισμού έντασης: Προσπαθήσατε να ορίσετε εντάσεις για %d κανάλια, "
-"ενώ τα υποστηριζόμενα κανάλια είναι %d\n"
+"Αποτυχία ορισμού έντασης: Προσπαθήσατε να ορίσετε εντάσεις για %d κανάλι, "
+"ενώ τo(α) υποστηριζόμενo(α) κανάλι(α) είναι %d\n"
 msgstr[1] ""
 "Αποτυχία ορισμού έντασης: Προσπαθήσατε να ορίσετε εντάσεις για %d κανάλια, "
-"ενώ τα υποστηριζόμενα κανάλια είναι %d\n"
+"ενώ τo(α) υποστηριζόμενo(α) κανάλι(α) είναι %d\n"
 
 #: src/utils/pactl.c:2107
 #, c-format
