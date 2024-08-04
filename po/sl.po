@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2024-07-26 13:38+0000\n"
+"PO-Revision-Date: 2024-08-04 19:41+0000\n"
 "Last-Translator: Martin Srebotnjak <miles@filmsi.net>\n"
 "Language-Team: Slovenian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/sl/>\n"
@@ -411,7 +411,6 @@ msgid "Failed to change UID: %s"
 msgstr "Identifikacije UID ni bilo mogoče spremeniti: %s"
 
 #: src/daemon/main.c:360
-#, fuzzy
 msgid "System wide mode unsupported on this platform."
 msgstr "Način za celoten sistem ni podprt na tej platformi."
 
@@ -420,22 +419,20 @@ msgid "Failed to parse command line."
 msgstr "Razčlenjevanje argumentov ukazne vrstice je spodletelo."
 
 #: src/daemon/main.c:689
-#, fuzzy
 msgid ""
 "System mode refused for non-root user. Only starting the D-Bus server lookup service."
 msgstr ""
-"Sistemski način je zavrnjen za uporabnika, ki ni korenski. Samo zagon "
+"Sistemski način je zavrnjen za uporabnika, ki ni korenski. Sledi samo zagon "
 "storitve iskanja strežnika D-Bus."
 
 #: src/daemon/main.c:788
-#, c-format, fuzzy
+#, c-format
 msgid "Failed to kill daemon: %s"
-msgstr "Ni uspelo ubiti demona: %s"
+msgstr "Ni uspelo ubiti zalednega procesa: %s"
 
 #: src/daemon/main.c:817
-#, fuzzy
 msgid "This program is not intended to be run as root (unless --system is specified)."
-msgstr "Ta program ni namenjen zagonu kot root (razen če je določen --sistem)."
+msgstr "Ta program ni namenjen zagonu kot root (razen če je določeno --sistem)."
 
 #: src/daemon/main.c:820
 msgid "Root privileges required."
@@ -449,56 +446,50 @@ msgstr "--start ni podprto za sistemske primerke."
 #, c-format, fuzzy
 msgid "User-configured server at %s, refusing to start/autospawn."
 msgstr ""
-"Uporabniško konfiguriran strežnik na %s, ki zavrača zagon / samodejno "
-"drstenje."
+"Uporabniško prilagojen strežnik na %s, ki zavrača zagon / samodejno drstenje."
 
 #: src/daemon/main.c:873
-#, c-format, fuzzy
+#, c-format
 msgid "User-configured server at %s, which appears to be local. Probing deeper."
 msgstr ""
-"Uporabniško konfiguriran strežnik na %s, ki je videti lokalen. Sondiranje "
-"globlje."
+"Uporabniško prilagojen strežnik na %s, ki je videti krajeven. Poteka globlje "
+"sondiranje."
 
 #: src/daemon/main.c:878
 msgid "Running in system mode, but --disallow-exit not set."
 msgstr "Deluje v sistemskem načinu, vendar --disallow-exit ni nastavljen."
 
 #: src/daemon/main.c:881
-#, fuzzy
 msgid "Running in system mode, but --disallow-module-loading not set."
 msgstr ""
-"Deluje v sistemskem načinu, vendar ---disallow-modul-nalaganje ni "
-"nastavljeno."
+"Deluje v sistemskem načinu, vendar ---disallow-module-loading ni nastavljeno."
 
 #: src/daemon/main.c:884
-#, fuzzy
 msgid "Running in system mode, forcibly disabling SHM mode."
 msgstr "Deluje v sistemskem načinu in prisilno onemogoča način SHM."
 
 #: src/daemon/main.c:889
-#, fuzzy
 msgid "Running in system mode, forcibly disabling exit idle time."
 msgstr "Deluje v sistemskem načinu in prisilno onemogoča čas mirovanja."
 
 #: src/daemon/main.c:922
-#, fuzzy
 msgid "Failed to acquire stdio."
 msgstr "Ni uspelo pridobiti stdio."
 
 #: src/daemon/main.c:928 src/daemon/main.c:999
-#, c-format, fuzzy
+#, c-format
 msgid "pipe() failed: %s"
-msgstr "cev(-i) ni uspela: %s"
+msgstr "pipe() ni uspel: %s"
 
 #: src/daemon/main.c:933 src/daemon/main.c:1004
-#, c-format, fuzzy
+#, c-format
 msgid "fork() failed: %s"
-msgstr "Vilice () niso uspele: %s"
+msgstr "fork() ni uspel: %s"
 
 #: src/daemon/main.c:948 src/daemon/main.c:1019 src/utils/pacat.c:562
-#, c-format, fuzzy
+#, c-format
 msgid "read() failed: %s"
-msgstr "Read() ni uspelo: %s"
+msgstr "read() ni uspel: %s"
 
 #: src/daemon/main.c:954
 #, fuzzy
@@ -631,19 +622,16 @@ msgid "No Automatic Gain Control"
 msgstr "Brez samodejnega nadzora ojačanja"
 
 #: src/modules/alsa/alsa-mixer.c:2722
-#, fuzzy
 msgid "Boost"
-msgstr "Ojačitev gostote"
+msgstr "Ojačaj"
 
 #: src/modules/alsa/alsa-mixer.c:2723
-#, fuzzy
 msgid "No Boost"
-msgstr "Ojačitev gostote"
+msgstr "Brez ojačitve"
 
 #: src/modules/alsa/alsa-mixer.c:2724
-#, fuzzy
 msgid "Amplifier"
-msgstr "Brez ojačevalnika"
+msgstr "Ojačevalnik"
 
 #: src/modules/alsa/alsa-mixer.c:2725
 msgid "No Amplifier"
@@ -654,9 +642,8 @@ msgid "Bass Boost"
 msgstr "Okrepi nizke tone"
 
 #: src/modules/alsa/alsa-mixer.c:2727
-#, fuzzy
 msgid "No Bass Boost"
-msgstr "Okrepi nizke tone"
+msgstr "Brez okrepitve nizkih tonov"
 
 #: src/modules/alsa/alsa-mixer.c:2728 src/modules/bluetooth/module-bluez5-device.c:1964
 #: src/utils/pactl.c:333
@@ -689,9 +676,8 @@ msgid "Headphones 2"
 msgstr "Slušalke 2"
 
 #: src/modules/alsa/alsa-mixer.c:2809
-#, fuzzy
 msgid "Headphones Mono Output"
-msgstr "Slušalke mono izhod"
+msgstr "Mono izhod slušalk"
 
 #: src/modules/alsa/alsa-mixer.c:2810
 msgid "Line Out"
