@@ -710,7 +710,7 @@ int pa__init(pa_module*m) {
 
         pa_zero(hints);
 
-        service = pa_sprintf_malloc("%d", htons(SAP_PORT));
+        service = pa_sprintf_malloc("%d", SAP_PORT);
 
         hints.ai_flags = AI_NUMERICHOST;
         if (getaddrinfo(sap_address, service, &hints, &sap_addrinfo) != 0) {
