@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2024-08-03 07:49+0000\n"
+"PO-Revision-Date: 2024-08-16 16:38+0000\n"
 "Last-Translator: Giannis Antypas <gianni.antypas@gmail.com>\n"
 "Language-Team: Greek <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/el/>\n"
@@ -508,11 +508,10 @@ msgstr ""
 "λειτουργία SHM!"
 
 #: src/daemon/main.c:889
-#, fuzzy
 msgid "Running in system mode, forcibly disabling exit idle time."
 msgstr ""
-"Εκτελείται σε λειτουργία συστήματος, απενεργοποιώντας αναγκαστικά τον αδρανή "
-"χρόνο εξόδου!"
+"Εκτελείται σε λειτουργία συστήματος, απενεργοποιώντας εξαναγκαστικά τον "
+"αδρανή χρόνο εξόδου."
 
 #: src/daemon/main.c:922
 msgid "Failed to acquire stdio."
