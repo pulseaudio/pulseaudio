@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2024-08-16 16:38+0000\n"
+"PO-Revision-Date: 2024-08-17 18:38+0000\n"
 "Last-Translator: Martin Srebotnjak <miles@filmsi.net>\n"
 "Language-Team: Slovenian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/sl/>\n"
@@ -22,7 +22,7 @@ msgstr ""
 "X-Generator: Weblate 5.6.2\n"
 
 #: src/daemon/cmdline.c:113
-#, c-format, fuzzy
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -85,68 +85,83 @@ msgstr ""
 "%s [možnosti]\n"
 "\n"
 "UKAZI:\n"
-"  -h, --pomoč Pokaži to pomoč\n"
-"      --različica Pokaži različico\n"
-"      ---privzeta konfiguracija izvoza dump-conf\n"
-"      --odlagalni moduli Izvozni seznam razpoložljivih modulov\n"
-"      --Metode odlaganja in ponovnega vzorčenja Odlaganje razpoložljivih "
-"metod ponovnega vzorčenja\n"
-"      --cleanup-shm Čiščenje zastarelih segmentov pomnilnika v skupni rabi\n"
-"      ---zaženite demon, če se ne izvaja\n"
-"  -k ---ubijte tekočega demona\n"
-"      --preverite, ali je prikazan demon, ki teče (vrne samo izhodno kodo)\n"
+"  -h, --help                            Pokaži to pomoč\n"
+"      --version                         Pokaži različico\n"
+"      --dump-conf                       Izvrzi privzeto prilagoditev\n"
+"      --dump-modules                    Izvrzi seznam razpoložljivih "
+"modulov\n"
+"      --dump-resample-methods          Izvrzi razpoložljive metode ponovnega "
+"vzorčenja\n"
+"      --cleanup-shm                     Čiščenje zastarelih segmentov "
+"pomnilnika v skupni rabi\n"
+"      --start                           Zaženite prikriti proces, če se ne "
+"izvaja\n"
+"  -k  --kill                            Ubijte tekoči prikriti proces\n"
+"      --check                           Preverite, ali je prikazan samo "
+"tekoči prikriti proces (vrne samo izhodno kodo)\n"
 "\n"
 "MOŽNOSTI:\n"
-"      --sistem[=BOOL] Zaženite kot sistemski primerek\n"
-"  -D, --daemonize[=BOOL] Daemonize po zagonu\n"
-"      --fail[=BOOL] Zaprite, ko zagon ne uspe\n"
-"      --visoka prioriteta[=BOOL] Poskusite nastaviti visoko raven\n"
+"      --system[=BOOL]                   Zaženite kot sistemski primerek\n"
+"  -D, --daemonize[=BOOL]                Preide v prikriti proces po zagonu\n"
+"      --fail[=BOOL]                     Zaprite, ko zagon ne uspe\n"
+"      --high-priority[=BOOL]            Poskusite nastaviti visoko raven\n"
 "                                        (na voljo samo kot root, kadar je "
 "SUID ali\n"
 "                                        z zvišanim RLIMIT_NICE)\n"
-"      --realtime[=BOOL] Poskusite omogočiti načrtovanje v realnem času\n"
+"      --realtime[=BOOL]                 Poskusite omogočiti načrtovanje v "
+"realnem času\n"
 "                                        (na voljo samo kot root, kadar je "
 "SUID ali\n"
 "                                        z zvišano RLIMIT_RTPRIO)\n"
-"      --disallow-module-loading[=BOOL] Onemogoči modul, ki ga zahteva "
-"uporabnik\n"
-"                                        Nalaganje/razkladanje po zagonu\n"
-"      --disallow-exit[=BOOL] Onemogoči uporabniku, ki je zahteval izhod\n"
-"      --exit-idle-time=SECS Končajte demon v prostem teku in to\n"
-"                                        Čas je minil\n"
-"      --scache-idle-time=SECS Raztovorite samodejno naložene vzorce, ko ste "
-"v prostem teku in\n"
-"                                        Ta čas je minil\n"
-"      --log-raven[=RAVEN] Povečanje ali nastavitev ravni besednosti\n"
-"  -v ---verboza Povečajte raven besednosti\n"
-"      --log-target={auto,syslog,stderr,file:PATH,newfile:PATH}\n"
+"      --disallow-module-loading[=BOOL]  Onemogoči modulu, ki ga zahteva "
+"uporabnik,\n"
+"                                        nalaganje/razkladanje po zagonu\n"
+"      --disallow-exit[=BOOL]            Onemogoči od uporabnika zahtevani "
+"izhod\n"
+"      --exit-idle-time=SECS             Končajte prikriti proces v prostem "
+"teku in po\n"
+"                                        preteku navedenega časa\n"
+"      --scache-idle-time=SECS           Raztovorite samodejno naložene "
+"vzorce, ko je v mirovanju\n"
+"                                        in po preteku navedenega časa\n"
+"      --log-level[=RAVEN]               Povečanje ali nastavitev ravni "
+"izrecnosti\n"
+"  -v  --verbose                         Povečajte raven izrecnosti sporočil\n"
+"      --log-target={auto,syslog,stderr,file:POT,newfile:POT}\n"
 "                                        Določanje cilja dnevnika\n"
-"      --log-meta[=BOOL] Vključitev lokacije kode v dnevniška sporočila\n"
-"      --log-time[=BOOL] Vključitev časovnih žigov v sporočila dnevnika\n"
-"      --log-backtrace=FRAMES Vključitev povratne sledi v dnevniška "
+"      --log-meta[=BOOL]                 Vključitev mesta kode v dnevniška "
 "sporočila\n"
-"  -p, --dl-search-path=PATH Nastavitev iskalne poti za dinamično skupno "
-"rabo\n"
-"                                        Predmeti (vtičniki)\n"
-"      --resample-method=METODA Uporabite določeno metodo ponovnega "
+"      --log-time[=BOOL]                 Vključitev časovnih žigov v "
+"sporočila dnevnika\n"
+"      --log-backtrace=SLIČICE            Vključitev povratne sledi v "
+"dnevniška sporočila\n"
+"  -p, --dl-search-path=PATH             Nastavitev iskalne poti za dinamično "
+"skupno\n"
+"                                        rabljenih predmetov (vstavki)\n"
+"      --resample-method=METODA          Uporabite določeno metodo ponovnega "
 "vzorčenja\n"
-"                                        (Glej ---dump-resample-methods za\n"
+"                                        (glejte ---dump-resample-methods za\n"
 "                                        možne vrednosti)\n"
-"      --use-pid-file[=BOOL] Ustvarjanje datoteke PID\n"
-"      --no-cpu-limit[=BOOL] Ne nameščajte omejevalnika obremenitve CPE-ja\n"
-"                                        platforme, ki ga podpirajo.\n"
-"      --disable-shm[=BOOL] Onemogoči podporo pomnilnika v skupni rabi.\n"
-"      --enable-memfd[=BOOL] Omogočite podporo za pomnilnik v skupni rabi "
-"memfd.\n"
+"      --use-pid-file[=BOOL]             Ustvarite datoteko PID\n"
+"      --no-cpu-limit[=BOOL]             Ne nameščaj omejevalnika obremenitve "
+"CPE-ja\n"
+"                                        na platformah, ki ga podpirajo.\n"
+"      --disable-shm[=BOOL]              Onemogočite podporo pomnilnika v "
+"skupni rabi.\n"
+"      --enable-memfd[=BOOL]             Omogočite podporo za pomnilnik v "
+"skupni rabi memfd.\n"
 "\n"
 "ZAGONSKI SKRIPT:\n"
-"  -L, --load=\"ARGUMENTI MODULOV\" Naložite navedeni modul vtičnika z\n"
-"                                        Navedeni argument\n"
-"  -F, --file=FILENAME Zaženite določen skript\n"
-"  -C Odprite ukazno vrstico na tekočem TTY\n"
-"                                        Po zagonu\n"
+"  -L, --load=\"ARGUMENTI MODULOV\"         Naložite navedeni modul vstavka "
+"z\n"
+"                                        navedenim argumentom\n"
+"  -F, --file=IMEDATOTEKE           Zaženite določen skript\n"
+"  -C                                    Odprite ukazno vrstico na tekočem "
+"TTY\n"
+"                                        po zagonu\n"
 "\n"
-"-n Ne naložite privzete skriptne datoteke\n"
+"  -n                                    Ne naložite privzete skriptne "
+"datoteke\n"
 
 #: src/daemon/cmdline.c:246
 msgid "--daemonize expects boolean argument"
@@ -443,10 +458,11 @@ msgid "--start not supported for system instances."
 msgstr "--start ni podprto za sistemske primerke."
 
 #: src/daemon/main.c:867
-#, c-format, fuzzy
+#, c-format
 msgid "User-configured server at %s, refusing to start/autospawn."
 msgstr ""
-"Uporabniško prilagojen strežnik na %s, ki zavrača zagon / samodejno drstenje."
+"Uporabniško prilagojen strežnik na %s, ki zavrača zagon / samodejno "
+"izvajanje."
 
 #: src/daemon/main.c:873
 #, c-format
@@ -1072,7 +1088,6 @@ msgid "Handsfree Audio Gateway (HFP)"
 msgstr "Zvočni prehod za prostororočno napravo (HFP)"
 
 #: src/modules/echo-cancel/module-echo-cancel.c:59
-#, fuzzy
 msgid ""
 "source_name=<name for the source> source_properties=<properties for the source> "
 "source_master=<name of source to filter> sink_name=<name for the sink> "
@@ -1084,18 +1099,15 @@ msgid ""
 "autoloaded=<set if this module is being loaded automatically> use_volume_sharing=<yes "
 "or no> use_master_format=<yes or no> "
 msgstr ""
-"source_name=<name for the source> source_properties= "
-"source_master=<properties for the source> <name of source to filter> "
-"sink_name=<name for the sink> sink_properties=<properties for the sink> "
-"sink_master=<name of sink to filter> adjust_time= adjust_threshold=<how "
-"often to readjust rates in s> <how much drift to readjust after in ms> "
-"format=<sample format> rate=<sample rate> channels= channel_map= "
-"aec_method=<number of channels> aec_args=<channel map> <implementation to "
-"use> <parameters for the AEC engine> save_aec=<save aec=\"\" data=\"\" in=\""
-"\" mp=\"\"> autoloaded= use_volume_sharing=<set if this module is being "
-"loaded automatically> <yes or no> use_master_format<yes or no></yes></yes></s"
-"et></save></parameters></implementation></channel></number></sample></sample>"
-"</how></how></name></properties></name></name></properties></name>= "
+"source_name=<ime izvora> source_properties= source_master=<lastnosti vira> "
+"source_master=<ime vira za filtriranje> sink_name=<ime ponora> "
+"sink_properties=<lastnosti ponora> sink_master=<ime ponora za filtriranje> "
+"adjust_time=<kako pogosto se hitrost spremeni v s> adjust_threshold=<koliko "
+"zaniha za ponovno nastavitev v ms> format=<oblika vzorcev> rate=<mera "
+"vzorčenja> channels=<število kanalov> channel_map=<preslikava kanalov> "
+"aec_method=<uporabljena implementacija> aec_args=<parametri za mehanizem "
+"AEC> save_aec=<shrani podatke AEC v /tmp> autoloaded=<nastavite - če se "
+"modul naloži samodejno> <da ali ne> use_master_format<da ali ne> "
 
 #. add on profile
 #: src/modules/macosx/module-coreaudio-device.c:825
@@ -1166,9 +1178,8 @@ msgstr ""
 "autoloaded=<ali naj se ta modul naloži samodejno> "
 
 #: src/modules/module-null-sink.c:46
-#, fuzzy
 msgid "Clocked NULL sink"
-msgstr "Ura NULL umivalnik"
+msgstr "Časovno spremljan ponor NULL"
 
 #: src/modules/module-null-sink.c:356
 msgid "Null Output"
@@ -1210,7 +1221,6 @@ msgid "Virtual surround sink"
 msgstr "Ponor navideznega prostorskega zvoka"
 
 #: src/modules/module-virtual-surround-sink.c:54
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> master=<name of "
 "sink to filter> sink_master=<name of sink to filter> format=<sample format> "
@@ -1219,14 +1229,13 @@ msgid ""
 "wav hrir_left=/path/to/left_hrir.wav hrir_right=/path/to/optional/right_hrir.wav "
 "autoloaded=<set if this module is being loaded automatically> "
 msgstr ""
-"sink_name=<name for the sink> sink_properties=<properties for the sink> "
-"master=<name of sink to filter> sink_master=<name of sink to filter> "
-"format=<sample format> rate=<sample rate> channels=<number of channels> "
-"channel_map=<channel map> use_volume_sharing= force_flat_volume=<yes or no> "
-"<yes or no> hrir=/path/to/left_hrir.wav hrir_left=/path/to/left_hrir.wav "
-"hrir_right=/path/to/optional/right_hrir.wav autoloaded=<set if this module "
-"is being loaded automatically> </set></yes></yes></channel></number></sample>"
-"</sample></name></name></properties></name> "
+"sink_name=<ime ponora> sink_properties=<lastnosti ponora> master=<ime ponora "
+"za filtriranje> sink_master=<ime ponora za filtriranje> format=<oblika "
+"vzorca> rate=<mera vzorčenja> channels=<število kanalov> "
+"channel_map=<preslikava vhodnih kanalov> use_volume_sharing=<da ali ne> "
+"force_flat_volume=<da ali ne> hrir=/pot/do/left_hrir.wav hrir_left=/pot/do/"
+"left_hrir.wav hrir_right=/pot/do/neobveznega/right_hrir.wav autoloaded=<ali "
+"naj se ta modul naloži samodejno> "
 
 #: src/modules/raop/module-raop-discover.c:295
 msgid "Unknown device model"
@@ -1530,9 +1539,8 @@ msgid "no"
 msgstr "ne"
 
 #: src/pulsecore/lock-autospawn.c:141 src/pulsecore/lock-autospawn.c:227
-#, fuzzy
 msgid "Cannot access autospawn lock."
-msgstr "Dostop do zaklepanja samodejnega drstenja ni mogoč."
+msgstr "Dostop do zaklepanja samodejnega izvajanja ni mogoč."
 
 #: src/pulsecore/log.c:165
 #, c-format
@@ -1692,9 +1700,9 @@ msgid "%u B"
 msgstr "%u B"
 
 #: src/utils/pacat.c:134
-#, c-format, fuzzy
+#, c-format
 msgid "Failed to drain stream: %s"
-msgstr "Odtok toka ni uspel: %s"
+msgstr "Odliv toka ni uspel: %s"
 
 #: src/utils/pacat.c:139
 msgid "Playback stream drained."
@@ -1764,12 +1772,12 @@ msgid "Stream device resumed.%s"
 msgstr "Pretočna naprava ponovno deluje. %s"
 
 #: src/utils/pacat.c:372
-#, c-format, fuzzy
+#, c-format
 msgid "Stream underrun.%s"
-msgstr "Pretok je podrun. %s"
+msgstr "Podkoračitev toka. %s"
 
 #: src/utils/pacat.c:379
-#, c-format, fuzzy
+#, c-format
 msgid "Stream overrun.%s"
 msgstr "Prekoračitev toka. %s"
 
@@ -1820,9 +1828,9 @@ msgid "pa_stream_connect_playback() failed: %s"
 msgstr "pa_stream_connect_playback() ni uspel: %s"
 
 #: src/utils/pacat.c:497
-#, c-format, fuzzy
+#, c-format
 msgid "Failed to set monitor stream: %s"
-msgstr "Pretoka monitorja ni bilo mogoče nastaviti: %s"
+msgstr "Toka monitorja ni bilo mogoče nastaviti: %s"
 
 #: src/utils/pacat.c:501
 #, c-format
@@ -1868,7 +1876,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() ni uspel: %s"
 
 #: src/utils/pacat.c:676
-#, c-format, fuzzy
+#, c-format
 msgid ""
 "%s [options]\n"
 "%s\n"
@@ -1927,58 +1935,65 @@ msgstr ""
 "%s [možnosti]\n"
 "%s\n"
 "\n"
-"-h, --pomoč Pokaži to pomoč\n"
-"      --različica Pokaži različico\n"
+"  -h, --help                            Pokaži to pomoč\n"
+"      --version                         Pokaži različico\n"
 "\n"
-"-r, --snemanje Ustvarite povezavo za snemanje\n"
-"  -p, --predvajanje Ustvarjanje povezave za predvajanje\n"
+"  -r, --record                          Ustvarite povezavo za snemanje\n"
+"  -p, --playback                        Ustvarite povezavo za predvajanje\n"
 "\n"
-"-v, --verbose Omogoči dobesedne operacije\n"
+"-v, --verbose                         Omogoči opisne operacije\n"
 "\n"
-"-s, --server=SERVER Ime strežnika za povezavo\n"
-"  -d, --device=NAPRAVA Ime umivalnika/vira za povezavo. Posebna imena "
-"@DEFAULT_SINK@, @DEFAULT_SOURCE@ in @DEFAULT_MONITOR@ se lahko uporabijo za "
-"določitev privzetega pomivalnega korita, vira in monitorja.\n"
-"  -n, --ime-odjemalca=IME Kako poklicati tega odjemalca na strežniku\n"
-"      --stream-name=NAME Kako poklicati ta tok na strežniku\n"
-"      --volume=VOLUMEN: Določite začetni (linearni) volumen v območju 0..."
-"65536\n"
-"      --rate=SAMPLERATE Frekvenca vzorčenja v Hz (privzeto 44100)\n"
-"      --format=SAMPLEFORMAT Vzorčna oblika, glej\n"
+"-s, --server=STREŽNIK                   Ime strežnika za povezavo\n"
+"  -d, --device=NAPRAVA                   Ime ponora/vira za povezavo. "
+"Posebna imena @DEFAULT_SINK@, @DEFAULT_SOURCE@ in @DEFAULT_MONITOR@ se lahko "
+"uporabijo za določitev privzetega ponora, vira in monitorja.\n"
+"  -n, --client-name=IME                Kako poklicati tega odjemalca na "
+"strežniku\n"
+"      --stream-name=IME                Kako poklicati ta tok na strežniku\n"
+"      --volume=GLASNOST                   Določite začetno (linearno) "
+"glasnost v območju 0...65536\n"
+"      --rate=MERAVZORČENJA            Frekvenca vzorčenja v Hz (privzeto "
+"44100)\n"
+"      --format=OBLIKAVZORCA             Vzorčna oblika, glej\n"
 "                                        https://www.freedesktop.org/wiki/"
 "Software/PulseAudio/Documentation/User/SupportedAudioFormats/\n"
 "                                        Za možne vrednosti (privzeto do "
-"S16NE)\n"
-"      --kanali=KANALI Število kanalov, 1 za mono, 2 za stereo\n"
+"s16ne)\n"
+"      --channels=KANALI               Število kanalov, 1 za mono, 2 za "
+"stereo\n"
 "                                        (privzeto nastavljeno na 2)\n"
-"      --kanal-map=CHANNELMAP Zemljevid kanala, ki ga želite uporabiti "
-"namesto privzetega\n"
-"      --fix-format Vzemite obliko vzorca iz umivalnika/vira, v katerem je "
-"tok\n"
-"                                        biti povezan z.\n"
-"      --fiksna hitrost: Hitrost vzorčenja vzemite iz umivalnika/vira, v "
-"katerem je tok\n"
-"                                        biti povezan z.\n"
-"      --fix-channels Vzemite število kanalov in zemljevid kanala\n"
-"                                        Iz umivalnika/vira je tok priključen."
-"\n"
-"      ---no-remix Ne mešajte ali zmešajte kanalov.\n"
-"      ---no-remapirajte kanale zemljevidov po indeksu namesto po imenu.\n"
-"      --latency=BYTES Zahtevajte določeno zakasnitev v bajtih.\n"
-"      --process-time=BYTES Zahtevajte določen čas postopka na zahtevo v "
+"      --channel-map=PRESLIKAVAKANALOV      Preslikava kanalov, ki jo želite "
+"uporabiti namesto privzete\n"
+"      --fix-format                      Vzemite obliko vzorca iz ponora/"
+"vira, s katerim je tok povezan.\n"
+"      —fix-rate                        Hitrost vzorčenja vzemite iz ponora/"
+"vira, s katerim je tok povezan.\n"
+"      --fix-channels                    Vzame število kanalov in preslikavo "
+"kanalov\n"
+"                                        iz ponora/vira, na katerega je tok "
+"priključen.\n"
+"      --no-remix                        Ne mešajte ali razmešajte kanalov.\n"
+"      --no-remap                        Preslikajte kanale po indeksu "
+"namesto po imenu.\n"
+"      --latency=BAJTI                   Zahtevajte določeno zakasnitev v "
 "bajtih.\n"
-"      --latency-msec=MSEC Zahtevajte določeno zakasnitev v msec.\n"
-"      --process-time-msec=MSEC Zahtevajte določen čas postopka na zahtevo v "
-"msec.\n"
-"      --property=PROPERTY=VALUE Nastavite navedeno lastnost na določeno "
+"      --process-time=BAJTI              Zahtevajte določen čas obdelave na "
+"zahtevo v bajtih.\n"
+"      --latency-msec=MS                  Zahtevajte določeno zakasnitev v ms."
+"\n"
+"      --process-time-msec=MS     Zahtevajte določen čas postopka na zahtevo "
+"v ms.\n"
+"      --property=LASTNOST=VREDNOST   Nastavite navedeno lastnost na določeno "
 "vrednost.\n"
-"      ---raw Snemanje / predvajanje neobdelanih podatkov PCM.\n"
-"      ---Passthrough Passthrough podatki.\n"
-"      --format-datoteka[=FFORMAT] Snemanje / predvajanje oblikovanih "
+"      --raw                             Snemanje / predvajanje neobdelanih "
 "podatkov PCM.\n"
-"      --seznam-formati datotek Navedite razpoložljive formate datotek.\n"
-"      --monitor-stream=INDEX Zapis iz vhoda pomivalnega korita z indeksom "
-"INDEX.\n"
+"      --passthrough                     Prehod podatkov brez spremembi.\n"
+"      --file-format[=FFORMAT]          Snemanje / predvajanje oblikovanih "
+"podatkov PCM.\n"
+"      --list-file-formats               Navede razpoložljive formate datotek."
+"\n"
+"      --monitor-stream=INDEKS            Snemanje iz vhoda ponora z indeksom "
+"INDEKS.\n"
 
 #: src/utils/pacat.c:793
 msgid "Play back encoded audio files on a PulseAudio sound server."
@@ -2222,9 +2237,8 @@ msgid "NAME|#N PORT"
 msgstr "IME|#N VRATA"
 
 #: src/utils/pacmd.c:74 src/utils/pactl.c:2658
-#, fuzzy
 msgid "CARD-NAME|CARD-#N PORT OFFSET"
-msgstr "IME KARTICE|ODMIK VRAT #N KARTICE"
+msgstr "IME-KARTICE|KARTICA-#N VRATA ODMIK"
 
 #: src/utils/pacmd.c:75
 msgid "TARGET"
@@ -2243,7 +2257,7 @@ msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
 msgstr "PREJEMNIK SPOROČILO [PARAMETRI_SPOROČILA]"
 
 #: src/utils/pacmd.c:82
-#, c-format, fuzzy
+#, c-format
 msgid ""
 "\n"
 "  -h, --help                            Show this help\n"
@@ -2251,20 +2265,20 @@ msgid ""
 "When no command is given pacmd starts in the interactive mode.\n"
 msgstr ""
 "\n"
-"  -h, --pomoč Pokaži to pomoč\n"
-"      --različica Pokaži različico\n"
+"  -h, --help                            Pokaži to pomoč\n"
+"      --version                         okaži različico\n"
 "Ko ni nobenega ukaza, se pacmd zažene v interaktivnem načinu.\n"
 
 #: src/utils/pacmd.c:129
-#, c-format, fuzzy
+#, c-format
 msgid ""
 "pacmd %s\n"
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
-"Pacmd %s\n"
-"Sestavljeno z libpulznim %s\n"
-"Povezano z libpulznim %s\n"
+"pacmd %s\n"
+"Prevedeno z libpulse %s\n"
+"Povezano z libpulse %s\n"
 
 #: src/utils/pacmd.c:143
 msgid "No PulseAudio daemon running, or not running as session daemon."
@@ -2336,14 +2350,14 @@ msgstr[3] ""
 "bajtov.\n"
 
 #: src/utils/pactl.c:211
-#, c-format, fuzzy
+#, c-format
 msgid "Sample cache size: %s\n"
 msgstr "Velikost vzorčnega predpomnilnika: %s\n"
 
 #: src/utils/pactl.c:219 src/utils/pactl.c:231 src/utils/pactl.c:245
-#, c-format, fuzzy
+#, c-format
 msgid "Failed to get server information: %s"
-msgstr "Informacij o strežniku ni bilo mogoče pridobiti: %s"
+msgstr "Podatkov o strežniku ni bilo mogoče pridobiti: %s"
 
 #: src/utils/pactl.c:224 src/utils/pactl.c:236
 #, c-format
@@ -2351,7 +2365,7 @@ msgid "%s\n"
 msgstr "%s\n"
 
 #: src/utils/pactl.c:281
-#, c-format, fuzzy
+#, c-format
 msgid ""
 "Server String: %s\n"
 "Library Protocol Version: %u\n"
@@ -2361,14 +2375,14 @@ msgid ""
 "Tile Size: %zu\n"
 msgstr ""
 "Niz strežnika: %s\n"
-"Različica knjižničnega protokola: %u\n"
+"Različica protokola knjižnice: %u\n"
 "Različica protokola strežnika: %u\n"
-"je lokalna: %s\n"
+"Je krajevno: %s\n"
 "Indeks odjemalca: %u\n"
 "Velikost ploščic: %zu\n"
 
 #: src/utils/pactl.c:294
-#, c-format, fuzzy
+#, c-format
 msgid ""
 "User Name: %s\n"
 "Host Name: %s\n"
@@ -2385,8 +2399,8 @@ msgstr ""
 "Ime strežnika: %s\n"
 "Različica strežnika: %s\n"
 "Privzete specifikacije vzorca: %s\n"
-"Privzeti zemljevid kanala: %s\n"
-"Privzeti umivalnik: %s\n"
+"Privzeta preslikava kanalov: %s\n"
+"Privzeti ponor: %s\n"
 "Privzeti vir: %s\n"
 "Piškotek: %04x:%04x\n"
 
@@ -2423,9 +2437,8 @@ msgid "Handset"
 msgstr "Slušalka"
 
 #: src/utils/pactl.c:339
-#, fuzzy
 msgid "Earpiece"
-msgstr "Slušalko"
+msgstr "Slušalka (ušesna)"
 
 #: src/utils/pactl.c:340
 msgid "SPDIF"
@@ -2531,7 +2544,7 @@ msgid "Failed to get source information: %s"
 msgstr "Podatkov o viru ni bilo mogoče pridobiti: %s"
 
 #: src/utils/pactl.c:849
-#, c-format, fuzzy
+#, c-format
 msgid ""
 "Source #%u\n"
 "\tState: %s\n"
@@ -2552,20 +2565,20 @@ msgid ""
 "\t\t%s\n"
 msgstr ""
 "Vir #%u\n"
-"\tDržava: %s\n"
+"\tStanje: %s\n"
 "\tIme: %s\n"
 "\tOpis: %s\n"
-"\tVoznik: %s\n"
+"\tGonilnik: %s\n"
 "\tSpecifikacija vzorca: %s\n"
-"\tZemljevid kanala: %s\n"
+"\tPreslikava kanalov: %s\n"
 "\tModul lastnika: %u\n"
 "\tIzklop zvoka: %s\n"
-"\tProstornina: %s\n"
-"\t        ravnotežje %0.2f\n"
-"\tOsnovna prostornina: %s\n"
-"\tMonitor umivalnika: %s\n"
-"\tZakasnitev: %0.0f usec, konfiguriran %0.0f usec\n"
-"\tZastave: %s%s%s%s%s%s\n"
+"\tGlasnost: %s\n"
+"\t        ravnovesje %0.2f\n"
+"\tOsnovna glasnost: %s\n"
+"\tMonitor ponora: %s\n"
+"\tZakasnitev: %0.0f usec, nastavljeno %0.0f usec\n"
+"\tZastavice: %s%s%s%s%s%s\n"
 "\tLastnosti:\n"
 "\t\t%s\n"
 
@@ -2683,7 +2696,7 @@ msgid "Failed to get sink input information: %s"
 msgstr "Podatkov o vhodu za ponor ni bilo mogoče pridobiti: %s"
 
 #: src/utils/pactl.c:1366
-#, c-format, fuzzy
+#, c-format
 msgid ""
 "Sink Input #%u\n"
 "\tDriver: %s\n"
@@ -2703,31 +2716,31 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Vhod za umivalnik #%u\n"
-"\tVoznik: %s\n"
+"Vhod ponora #%u\n"
+"\tGonilnik: %s\n"
 "\tModul lastnika: %s\n"
-"\tNaročnik: %s\n"
-"\tUmivalnik: %u\n"
+"\tOdjemalec: %s\n"
+"\tPonor: %u\n"
 "\tSpecifikacija vzorca: %s\n"
-"\tZemljevid kanala: %s\n"
+"\tPreslikava kanalov: %s\n"
 "\tOblika: %s\n"
 "\tZamašen: %s\n"
 "\tIzklop zvoka: %s\n"
-"\tProstornina: %s\n"
-"\t        ravnotežje %0.2f\n"
+"\tGlasnost: %s\n"
+"\t        ravnovesje %0.2f\n"
 "\tZakasnitev medpomnilnika: %0.0f usec\n"
-"\tZakasnitev pomivalnega korita: %0.0f usec\n"
+"\tZakasnitev ponora: %0.0f usec\n"
 "\tMetoda ponovnega vzorčenja: %s\n"
 "\tLastnosti:\n"
 "\t\t%s\n"
 
 #: src/utils/pactl.c:1413 src/utils/pactl.c:1974 src/utils/pactl.c:2037
-#, c-format, fuzzy
+#, c-format
 msgid "Failed to get source output information: %s"
-msgstr "Pridobivanje izvornih izhodnih informacij ni uspelo: %s"
+msgstr "Pridobivanje izhodnih informacij izvora ni uspelo: %s"
 
 #: src/utils/pactl.c:1489
-#, c-format, fuzzy
+#, c-format
 msgid ""
 "Source Output #%u\n"
 "\tDriver: %s\n"
@@ -2748,17 +2761,17 @@ msgid ""
 "\t\t%s\n"
 msgstr ""
 "Izhod vira #%u\n"
-"\tVoznik: %s\n"
+"\tGonilnik: %s\n"
 "\tModul lastnika: %s\n"
-"\tNaročnik: %s\n"
+"\tOdjemalec: %s\n"
 "\tVir: %u\n"
 "\tSpecifikacija vzorca: %s\n"
-"\tZemljevid kanala: %s\n"
+"\tPreslikava kanalov: %s\n"
 "\tOblika: %s\n"
-"\tZamašen: %s\n"
+"\tZamašeno: %s\n"
 "\tIzklop zvoka: %s\n"
-"\tProstornina: %s\n"
-"\t        ravnotežje %0.2f\n"
+"\tGlasnost: %s\n"
+"\t        ravnovesje %0.2f\n"
 "\tZakasnitev medpomnilnika: %0.0f usec\n"
 "\tZakasnitev vira: %0.0f usec\n"
 "\tMetoda ponovnega vzorčenja: %s\n"
@@ -2771,7 +2784,7 @@ msgid "Failed to get sample information: %s"
 msgstr "Informacij o vzorcu ni bilo mogoče pridobiti: %s"
 
 #: src/utils/pactl.c:1604
-#, c-format, fuzzy
+#, c-format
 msgid ""
 "Sample #%u\n"
 "\tName: %s\n"
@@ -2786,15 +2799,15 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
-"Primer #%u\n"
+"Vzorec #%u\n"
 "\tIme: %s\n"
 "\tSpecifikacija vzorca: %s\n"
-"\tZemljevid kanala: %s\n"
-"\tProstornina: %s\n"
-"\t        ravnotežje %0.2f\n"
+"\tPreslikava kanalov: %s\n"
+"\tGlasnnost: %s\n"
+"\t        ravnovesje %0.2f\n"
 "\tTrajanje: %0.1f\n"
 "\tVelikost: %s\n"
-"\tLeni: %s\n"
+"\tLenost: %s\n"
 "\tIme datoteke: %s\n"
 "\tLastnosti:\n"
 "\t\t%s\n"
@@ -2805,14 +2818,14 @@ msgid "Failure: %s"
 msgstr "Neuspeh: %s"
 
 #: src/utils/pactl.c:1667
-#, c-format, fuzzy
+#, c-format
 msgid "Send message failed: %s"
 msgstr "Pošiljanje sporočila ni uspelo: %s"
 
 #: src/utils/pactl.c:1695
-#, c-format, fuzzy
+#, c-format
 msgid "list-handlers message failed: %s"
-msgstr "Sporočilo rutine za obravnavo seznama ni uspelo: %s"
+msgstr "Sporočilo list-handlers ni uspelo: %s"
 
 #: src/utils/pactl.c:1711 src/utils/pactl.c:1760
 msgid "list-handlers message response could not be parsed correctly"
@@ -2823,11 +2836,9 @@ msgid "list-handlers message response is not a JSON array"
 msgstr "sporočilo odziva list-handlers ni polje JSON"
 
 #: src/utils/pactl.c:1729
-#, c-format, fuzzy
+#, c-format
 msgid "list-handlers message response array element %d is not a JSON object"
-msgstr ""
-"Rutina za obravnavo seznama Element polja odgovora na sporočilo %d ni "
-"predmet JSON"
+msgstr "Element polja %d odziva sporočila list-handlers ni predmet JSON"
 
 #: src/utils/pactl.c:1800
 #, c-format
@@ -2982,12 +2993,11 @@ msgid "#N 1|0|toggle"
 msgstr "#N 1|0|toggle"
 
 #: src/utils/pactl.c:2657
-#, fuzzy
 msgid "#N FORMATS"
 msgstr "#N FORMATI"
 
 #: src/utils/pactl.c:2661
-#, c-format, fuzzy
+#, c-format
 msgid ""
 "\n"
 "The special names @DEFAULT_SINK@, @DEFAULT_SOURCE@ and @DEFAULT_MONITOR@\n"
@@ -2995,11 +3005,10 @@ msgid ""
 msgstr ""
 "\n"
 "Posebna imena @DEFAULT_SINK@, @DEFAULT_SOURCE@ in @DEFAULT_MONITOR@\n"
-"Lahko se uporablja za določanje privzetega pomivalnega korita, vira in "
-"monitorja.\n"
+"Lahko se uporabljajo za določanje privzetega ponora, vira in monitorja.\n"
 
 #: src/utils/pactl.c:2664
-#, c-format, fuzzy
+#, c-format
 msgid ""
 "\n"
 "  -h, --help                            Show this help\n"
@@ -3011,12 +3020,14 @@ msgid ""
 "  -n, --client-name=NAME                How to call this client on the server\n"
 msgstr ""
 "\n"
-"  -h, --pomoč Pokaži to pomoč\n"
-"      --različica Pokaži različico\n"
+"  -h, --help                            Pokaži to pomoč\n"
+"      --version                         Pokaži različico\n"
 "\n"
-"-f, --format=FORMAT Format izhoda. Ali \"normalno\" ali \"json\"\n"
-"  -s, --server=SERVER Ime strežnika za povezavo\n"
-"  -n, --ime-odjemalca=IME Kako poklicati tega odjemalca na strežniku\n"
+"-f, --format=FORMAT                   Format izhoda. Ali \"normal\" ali "
+"\"json\"\n"
+"  -s, --server=SERVER                   Ime strežnika za povezavo\n"
+"  -n, --client-name=IME                Kako klicati tega odjemalca na "
+"strežniku\n"
 
 #: src/utils/pactl.c:2707
 #, c-format
@@ -3088,68 +3099,56 @@ msgid "You may not specify more than one source. You have to specify a boolean v
 msgstr "Določite lahko samo en vir. Določiti morate logično vrednost."
 
 #: src/utils/pactl.c:2939
-#, fuzzy
 msgid "You have to specify a card name/index and a profile name"
 msgstr "Določiti morate ime/indeks kartice in ime profila"
 
 #: src/utils/pactl.c:2950
-#, fuzzy
 msgid "You have to specify a sink name/index and a port name"
-msgstr "Določiti morate ime/kazalo ponora in ime vrat"
+msgstr "Določiti morate ime/indeks ponora in ime vrat"
 
 #: src/utils/pactl.c:2961
-#, fuzzy
 msgid "You have to specify a sink name"
-msgstr "Določiti morate ime pomivalnega korita"
+msgstr "Določiti morate ime ponora"
 
 #: src/utils/pactl.c:2974
-#, fuzzy
 msgid "You have to specify a source name/index and a port name"
-msgstr "Določiti morate izvorno ime/indeks in ime vrat"
+msgstr "Določiti morate ime/indeks vira in ime vrat"
 
 #: src/utils/pactl.c:2985
 msgid "You have to specify a source name"
 msgstr "Določiti morate ime vira"
 
 #: src/utils/pactl.c:2998 src/utils/pactl.c:3076
-#, fuzzy
 msgid "You have to specify a sink name/index"
-msgstr "Določiti morate ime/kazalo pomivalnega korita"
+msgstr "Določiti morate ime/kazalo ponora"
 
 #: src/utils/pactl.c:3008
-#, fuzzy
 msgid "You have to specify a sink name/index and a volume"
-msgstr "Določiti morate ime/kazalo pomivalnega korita in nosilec"
+msgstr "Določiti morate ime/kazalo ponora in glasnost"
 
 #: src/utils/pactl.c:3021 src/utils/pactl.c:3101
-#, fuzzy
 msgid "You have to specify a source name/index"
-msgstr "Določiti morate izvorno ime/indeks"
+msgstr "Določiti morate ime/indeks vira"
 
 #: src/utils/pactl.c:3031
-#, fuzzy
 msgid "You have to specify a source name/index and a volume"
-msgstr "Določiti morate izvorno ime/indeks in nosilec"
+msgstr "Določiti morate ime/indeks vira in glasnost"
 
 #: src/utils/pactl.c:3044
-#, fuzzy
 msgid "You have to specify a sink input index and a volume"
-msgstr "Določiti morate vhodni kazalec pomivalnega korita in glasnost"
+msgstr "Določiti morate indeks vhoda ponora in glasnost"
 
 #: src/utils/pactl.c:3049
-#, fuzzy
 msgid "Invalid sink input index"
-msgstr "Neveljaven vhodni indeks pomivalnega korita"
+msgstr "Neveljaven vhodni indeks ponora"
 
 #: src/utils/pactl.c:3060
-#, fuzzy
 msgid "You have to specify a source output index and a volume"
-msgstr "Določiti morate izvorni izhodni indeks in nosilec"
+msgstr "Določiti morate izhodni indeks vira in glasnost"
 
 #: src/utils/pactl.c:3065
-#, fuzzy
 msgid "Invalid source output index"
-msgstr "Neveljaven izvorni izhodni indeks"
+msgstr "Neveljaven izhodni indeks izvora"
 
 #: src/utils/pactl.c:3086
 msgid "You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"
@@ -3159,35 +3158,30 @@ msgstr ""
 
 #: src/utils/pactl.c:3091 src/utils/pactl.c:3116 src/utils/pactl.c:3136
 #: src/utils/pactl.c:3154
-#, fuzzy
 msgid "Invalid mute specification"
 msgstr "Neveljavna specifikacija izklopa zvoka"
 
 #: src/utils/pactl.c:3111
-#, fuzzy
 msgid "You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
 msgstr ""
-"Določiti morate izvorno ime/kazalo in izklopljeno dejanje (0, 1 ali "
-"»preklopi«)"
+"Določiti morate ime/kazalo izvora in dejanje izklopa zvoka (0, 1 ali "
+"»toggle«)"
 
 #: src/utils/pactl.c:3126
-#, fuzzy
 msgid "You have to specify a sink input index and a mute action (0, 1, or 'toggle')"
 msgstr ""
 "Določiti morate vhodni kazalec ponora in dejanje izklopa zvoka (0, 1 ali "
-"»preklopi«)"
+"»toggle«)"
 
 #: src/utils/pactl.c:3131
-#, fuzzy
 msgid "Invalid sink input index specification"
-msgstr "Specifikacija neveljavnega vhodnega indeksa pomivalnega korita"
+msgstr "Neveljavna specifikacija vhodnega indeksa ponora"
 
 #: src/utils/pactl.c:3144
-#, fuzzy
 msgid "You have to specify a source output index and a mute action (0, 1, or 'toggle')"
 msgstr ""
 "Določiti morate izvorni izhodni indeks in dejanje izklopa zvoka (0, 1 ali "
-"»preklopi«)"
+"»toggle«)"
 
 #: src/utils/pactl.c:3149
 msgid "Invalid source output index specification"
@@ -3198,7 +3192,6 @@ msgid "You have to specify at least an object path and a message name"
 msgstr "Določiti morate vsaj pot predmeta in ime sporočila"
 
 #: src/utils/pactl.c:3172
-#, fuzzy
 msgid ""
 "Excess arguments given, they will be ignored. Note that all message parameters must be "
 "given as a single string."
@@ -3265,7 +3258,7 @@ msgid "WARNING: Child process terminated by signal %u\n"
 msgstr "OPOZORILO: Podrejeni proces zaključen s signalom %u\n"
 
 #: src/utils/pasuspender.c:228
-#, c-format, fuzzy
+#, c-format
 msgid ""
 "%s [options] -- PROGRAM [ARGUMENTS ...]\n"
 "\n"
@@ -3280,9 +3273,9 @@ msgstr ""
 "\n"
 "Med izvajanjem programa začasno prekinite PulseAudio.\n"
 "\n"
-"-h, --pomoč Pokaži to pomoč\n"
-"      --različica Pokaži različico\n"
-"  -s, --server=SERVER Ime strežnika za povezavo\n"
+"  -h, --help                            Pokaži to pomoč\n"
+"      --version                         Pokaži različico\n"
+"  -s, --server=STREŽNIK                   Ime strežnika za povezavo\n"
 "\n"
 
 #: src/utils/pasuspender.c:267
@@ -3348,9 +3341,9 @@ msgid "Source: %s\n"
 msgstr "Vir: %s\n"
 
 #: src/utils/pax11publish.c:114
-#, c-format, fuzzy
+#, c-format
 msgid "Sink: %s\n"
-msgstr "Umivalnik: %s\n"
+msgstr "Ponor: %s\n"
 
 #: src/utils/pax11publish.c:116
 #, c-format
