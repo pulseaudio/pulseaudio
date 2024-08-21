@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2024-08-16 16:38+0000\n"
+"PO-Revision-Date: 2024-08-22 09:38+0000\n"
 "Last-Translator: Giannis Antypas <gianni.antypas@gmail.com>\n"
 "Language-Team: Greek <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/el/>\n"
@@ -18,10 +18,10 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.6.2\n"
+"X-Generator: Weblate 5.7\n"
 
 #: src/daemon/cmdline.c:113
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -94,8 +94,8 @@ msgstr ""
 "%s [options]\n"
 "\n"
 "ΕΝΤΟΛΕΣ:\n"
-"  -h, --help                            Εμφάνιση της βοήθειας\n"
-"      --version                         Εμφάνιση της έκδοσης\n"
+"  -h, --help                            Εμφάνιση αυτής της βοήθειας\n"
+"      --version                         Εμφάνιση έκδοσης\n"
 "      --dump-conf                       Ρύθμιση προεπιλεγμένης αποτύπωσης\n"
 "      --dump-modules                    Λίστα αποτύπωσης διαθέσιμων "
 "ενοτήτων\n"
@@ -106,8 +106,8 @@ msgstr ""
 "      --start                           Έναρξη του δαίμονα αν δεν "
 "εκτελείται\n"
 "  -k  --kill                            Τερματισμός εκτελούμενου δαίμονα\n"
-"      --check                           Έλεγχος για εκτελούμενο δαίμονα "
-"(επιστρέφει μόνο κώδικα εξόδου)\n"
+"      --check                           Έλεγχος για εκτελούμενο δαίμονα ("
+"επιστρέφει μόνο κώδικα εξόδου)\n"
 "\n"
 "ΕΠΙΛΟΓΕΣ:\n"
 "      --system[=BOOL]                   Εκτέλεση ως στιγμιοτύπου ολόκληρου "
@@ -138,7 +138,7 @@ msgstr ""
 "                                        πέρασε αυτός ο χρόνος\n"
 "      --log-level[=LEVEL]               Αύξηση ή ορισμός  επιπέδου "
 "λεπτομέρειας\n"
-"  -v                                    Αύξηση του επιπέδου λεπτομέρειας\n"
+"  -v  --verbose                         Αύξηση του επιπέδου λεπτομέρειας\n"
 "      --log-target={auto,syslog,stderr,file:PATH,newfile:PATH}\n"
 "                                        Ορισμός του προορισμού καταγραφής\n"
 "      --log-meta[=BOOL]                 Συμπερίληψη θέσης κώδικα σε μηνύματα "
@@ -160,8 +160,10 @@ msgstr ""
 "                                        λειτουργικά που το υποστηρίζουν.\n"
 "      --disable-shm[=BOOL]              Απενεργοποίηση κοινόχρηστης "
 "υποστήριξης μνήμης.\n"
+"      --enable-memfd[=BOOL]             Ενεργοποίηση κοινόχρηστης "
+"υποστήριξης μνήμης memfd.\n"
 "\n"
-"STARTUP SCRIPT:\n"
+"ΣΕΝΑΡΙΟ ΕΚΚΙΝΗΣΗΣ:\n"
 "  -L, --load=\"MODULE ARGUMENTS\"         Φόρτωση της συγκεκριμένης ενότητας "
 "προσθέτου\n"
 "                                        με το συγκεκριμένο όρισμα\n"
@@ -211,14 +213,13 @@ msgid "--use-pid-file expects boolean argument"
 msgstr "Το --use-pid-file περιμένει όρισμα τιμής Μπουλ"
 
 #: src/daemon/cmdline.c:328
-#, fuzzy
 msgid ""
 "Invalid log target: use either 'syslog', 'journal', 'stderr' or 'auto' or a "
 "valid file name 'file:<path>', 'newfile:<path>'."
 msgstr ""
-"Άκυρος προορισμός καταγραφής: χρησιμοποιήστε είτε 'syslog', 'journal' "
-"'stderr' είτε 'auto' ή ένα έγκυρο όνομα αρχείου 'file:<path>', 'newfile:"
-"<path>'."
+"Άκυρος προορισμός καταγραφής: χρησιμοποιήστε είτε 'syslog', 'journal', "
+"'stderr' είτε 'auto' ή ένα έγκυρο όνομα αρχείου 'file:<path>', "
+"'newfile:<path>'."
 
 #: src/daemon/cmdline.c:330
 msgid ""
@@ -501,17 +502,16 @@ msgstr ""
 "loading."
 
 #: src/daemon/main.c:884
-#, fuzzy
 msgid "Running in system mode, forcibly disabling SHM mode."
 msgstr ""
-"Εκτελείται σε λειτουργία συστήματος, απενεργοποιώντας αναγκαστικά τη "
-"λειτουργία SHM!"
+"Εκτελείται σε λειτουργία συστήματος, με επιβολή απενεργοποίησης της "
+"λειτουργίας SHM."
 
 #: src/daemon/main.c:889
 msgid "Running in system mode, forcibly disabling exit idle time."
 msgstr ""
-"Εκτελείται σε λειτουργία συστήματος, απενεργοποιώντας εξαναγκαστικά τον "
-"αδρανή χρόνο εξόδου."
+"Εκτελείται σε λειτουργία συστήματος, με επιβολή απενεργοποίησης του αδρανούς "
+"χρόνου εξόδου."
 
 #: src/daemon/main.c:922
 msgid "Failed to acquire stdio."
@@ -546,7 +546,6 @@ msgid "Failed to get machine ID"
 msgstr "Αποτυχία λήψης αναγνωριστικού μηχανής"
 
 #: src/daemon/main.c:1145
-#, fuzzy
 msgid ""
 "OK, so you are running PA in system mode. Please make sure that you actually "
 "do want to do that.\n"
@@ -554,13 +553,11 @@ msgid ""
 "Documentation/User/WhatIsWrongWithSystemWide/ for an explanation why system "
 "mode is usually a bad idea."
 msgstr ""
-"Εντάξει, εκτελείτε PA σε λειτουργία συστήματος. Παρακαλούμε, σημειώστε ότι "
-"κατά πάσα πιθανότητα δεν θα έπρεπε να το κάνετε.\n"
-"Αν παρόλα αυτά το κάνετε, τότε είναι δικό σας σφάλμα, αν τα πράγματα δεν "
-"δουλέψουν όπως αναμενόταν.\n"
-"Παρακαλούμε, διαβάστε http://www.freedesktop.org/wiki/Software/PulseAudio/"
+"Εντάξει, εκτελείτε λοιπόν το PA σε λειτουργία συστήματος. Παρακαλούμε "
+"βεβαιωθείτε ότι πραγματικά θέλετε να το κάνετε αυτό.\n"
+"Παρακαλούμε διαβάστε http://www.freedesktop.org/wiki/Software/PulseAudio/"
 "Documentation/User/WhatIsWrongWithSystemWide/ για μια εξήγηση γιατί η "
-"λειτουργία συστήματος είναι συνήθως μια άσχημη ιδέα."
+"λειτουργία συστήματος είναι συνήθως μια κακή ιδέα."
 
 #: src/daemon/main.c:1161
 msgid "pa_pid_file_create() failed."
@@ -956,7 +953,7 @@ msgstr ""
 "ή άλλη τιμή < min_avail."
 
 #: src/modules/alsa/alsa-util.c:1183 src/modules/alsa/alsa-util.c:1277
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu byte (%lu "
 "ms).\n"
@@ -968,18 +965,18 @@ msgid_plural ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr[0] ""
-"Το snd_pcm_avail() επέστρεψε μια τιμή που είναι πολύ μεγάλη: %lu ψηφιολέξεις "
-"(%lu ms).\n"
-"Το πιθανότερο αυτό είναι ένα σφάλμα στον οδηγό ALSA '%s'. Παρακαλούμε, "
-"αναφέρτε αυτό το θέμα στους προγραμματιστές ALSA."
+"Το snd_pcm_avail() επέστρεψε μια τιμή που είναι ιδιαζόντως μεγάλη: %lu "
+"ψηφιολέξη (%lu ms).\n"
+"Πιθανότατα αυτό είναι ένα σφάλμα στον οδηγό ALSA '%s'. Παρακαλούμε αναφέρετε "
+"αυτό το θέμα στους προγραμματιστές ALSA."
 msgstr[1] ""
-"Το snd_pcm_avail() επέστρεψε μια τιμή που είναι πολύ μεγάλη: %lu ψηφιολέξεις "
-"(%lu ms).\n"
-"Το πιθανότερο αυτό είναι ένα σφάλμα στον οδηγό ALSA '%s'. Παρακαλούμε, "
-"αναφέρτε αυτό το θέμα στους προγραμματιστές ALSA."
+"Το snd_pcm_avail() επέστρεψε μια τιμή που είναι ιδιαζόντως μεγάλη: %lu "
+"ψηφιολέξεις (%lu ms).\n"
+"Πιθανότατα αυτό είναι ένα σφάλμα στον οδηγό ALSA '%s'. Παρακαλούμε αναφέρετε "
+"αυτό το θέμα στους προγραμματιστές ALSA."
 
 #: src/modules/alsa/alsa-util.c:1249
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li byte (%s"
 "%lu ms).\n"
@@ -991,15 +988,15 @@ msgid_plural ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr[0] ""
-"Το snd_pcm_delay() επέστρεψε μια τιμή που είναι πολύ μεγάλη: %li ψηφιολέξεις "
-"(%s%lu ms).\n"
-"Το πιθανότερο αυτό είναι ένα σφάλμα στον οδηγό ALSA '%s'. Παρακαλούμε, "
-"αναφέρτε αυτό το θέμα στους προγραμματιστές ALSA."
+"Το snd_pcm_delay() επέστρεψε μια τιμή που είναι ιδιαζόντως μεγάλη: %li "
+"ψηφιολέξη (%s%lu ms).\n"
+"Πιθανότατα αυτό είναι ένα σφάλμα στον οδηγό ALSA '%s'. Παρακαλούμε αναφέρετε "
+"αυτό το θέμα στους προγραμματιστές ALSA."
 msgstr[1] ""
-"Το snd_pcm_delay() επέστρεψε μια τιμή που είναι πολύ μεγάλη: %li ψηφιολέξεις "
-"(%s%lu ms).\n"
-"Το πιθανότερο αυτό είναι ένα σφάλμα στον οδηγό ALSA '%s'. Παρακαλούμε, "
-"αναφέρτε αυτό το θέμα στους προγραμματιστές ALSA."
+"Το snd_pcm_delay() επέστρεψε μια τιμή που είναι ιδιαζόντως μεγάλη: %li "
+"ψηφιολέξεις (%s%lu ms).\n"
+"Πιθανότατα αυτό είναι ένα σφάλμα στον οδηγό ALSA '%s'. Παρακαλούμε αναφέρετε "
+"αυτό το θέμα στους προγραμματιστές ALSA."
 
 #: src/modules/alsa/alsa-util.c:1296
 #, c-format
@@ -1015,7 +1012,7 @@ msgstr ""
 "αναφέρτε αυτό το θέμα στους προγραμματιστές ALSA."
 
 #: src/modules/alsa/alsa-util.c:1339
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu byte "
 "(%lu ms).\n"
@@ -1027,15 +1024,15 @@ msgid_plural ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr[0] ""
-"Το snd_pcm_mmap_begin() επέστρεψε μια τιμή που είναι πολύ μεγάλη: %lu "
-"ψηφιολέξεις (%lu ms).\n"
-"Το πιθανότερο αυτό είναι ένα σφάλμα στον οδηγό ALSA '%s'. Παρακαλούμε, "
-"αναφέρτε αυτό το θέμα στους προγραμματιστές ALSA."
+"Το snd_pcm_mmap_begin() επέστρεψε μια τιμή που είναι ιδιαζόντως μεγάλη: %lu "
+"ψηφιολέξη (%lu ms).\n"
+"Πιθανότατα αυτό είναι ένα σφάλμα στον οδηγό ALSA '%s'. Παρακαλούμε αναφέρετε "
+"αυτό το θέμα στους προγραμματιστές ALSA."
 msgstr[1] ""
-"Το snd_pcm_mmap_begin() επέστρεψε μια τιμή που είναι πολύ μεγάλη: %lu "
+"Το snd_pcm_mmap_begin() επέστρεψε μια τιμή που είναι ιδιαζόντως μεγάλη: %lu "
 "ψηφιολέξεις (%lu ms).\n"
-"Το πιθανότερο αυτό είναι ένα σφάλμα στον οδηγό ALSA '%s'. Παρακαλούμε, "
-"αναφέρτε αυτό το θέμα στους προγραμματιστές ALSA."
+"Πιθανότατα αυτό είναι ένα σφάλμα στον οδηγό ALSA '%s'. Παρακαλούμε αναφέρετε "
+"αυτό το θέμα στους προγραμματιστές ALSA."
 
 #: src/modules/bluetooth/module-bluez5-device.c:1937
 #: src/modules/bluetooth/module-bluez5-device.c:1963
@@ -2370,25 +2367,25 @@ msgid "Failed to get statistics: %s"
 msgstr "Αποτυχία λήψης στατιστικών: %s"
 
 #: src/utils/pactl.c:199
-#, fuzzy, c-format
+#, c-format
 msgid "Currently in use: %u block containing %s bytes total.\n"
 msgid_plural "Currently in use: %u blocks containing %s bytes total.\n"
 msgstr[0] ""
-"Χρησιμοποιούνται τώρα: %u ομάδες που περιέχουν συνολικά %s ψηφιολέξεις.\n"
+"Σε χρήση αυτή τη στιγμή: %u ομάδα που περιέχει συνολικά %s ψηφιολέξεις.\n"
 msgstr[1] ""
-"Χρησιμοποιούνται τώρα: %u ομάδες που περιέχουν συνολικά %s ψηφιολέξεις.\n"
+"Σε χρήση αυτή τη στιγμή: %u ομάδες που περιέχουν συνολικά %s ψηφιολέξεις.\n"
 
 #: src/utils/pactl.c:205
-#, fuzzy, c-format
+#, c-format
 msgid "Allocated during whole lifetime: %u block containing %s bytes total.\n"
 msgid_plural ""
 "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
 msgstr[0] ""
-"Κατανεμημένα κατά τη διάρκεια του συνολικού χρόνου ζωής: %u ομάδες που "
-"περιέχουν συνολικά %s ψηφιολέξεις.\n"
+"Εκχώρηση κατά τη διάρκεια του συνολικού χρόνου ζωής: %u ομάδα που περιέχει "
+"συνολικά %s ψηφιολέξεις.\n"
 msgstr[1] ""
-"Κατανεμημένα κατά τη διάρκεια του συνολικού χρόνου ζωής: %u ομάδες που "
-"περιέχουν συνολικά %s ψηφιολέξεις.\n"
+"Εκχώρηση κατά τη διάρκεια του συνολικού χρόνου ζωής: %u ομάδες που περιέχουν "
+"συνολικά %s ψηφιολέξεις.\n"
 
 #: src/utils/pactl.c:211
 #, c-format
@@ -3048,7 +3045,7 @@ msgstr ""
 "οθόνη.\n"
 
 #: src/utils/pactl.c:2664
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "  -h, --help                            Show this help\n"
@@ -3065,7 +3062,10 @@ msgstr ""
 "  -h, --help                            Εμφάνιση αυτής της βοήθειας\n"
 "      --version                         Εμφάνιση έκδοσης\n"
 "\n"
-"  -s, --server=SERVER                   Το όνομα του διακομιστή για σύνδεση\n"
+"  -f, --format=FORMAT                   Η μορφή της εξαγωγής. Είτε \"normal\""
+" είτε \"json\"\n"
+"  -s, --server=SERVER                   Το όνομα του διακομιστή προς "
+"σύνδεση\n"
 "  -n, --client-name=NAME                Πώς να κληθεί αυτός ο πελάτης στον "
 "διακομιστή\n"
 
@@ -3318,7 +3318,7 @@ msgid "WARNING: Child process terminated by signal %u\n"
 msgstr "ΠΡΟΕΙΔΟΠΟΙΗΣΗ: Η θυγατρική διεργασία τελείωσε με σήμα %u\n"
 
 #: src/utils/pasuspender.c:228
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] -- PROGRAM [ARGUMENTS ...]\n"
 "\n"
@@ -3330,11 +3330,14 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
-"%s [options] ... \n"
+"%s [options] -- PROGRAM [ARGUMENTS ...]\n"
 "\n"
-"  -h, --help                            Εμφάνιση της βοήθειας\n"
+"Προσωρινή αναστολή του PulseAudio κατά την εκτέλεση του PROGRAM.\n"
+"\n"
+"  -h, --help                            Εμφάνιση αυτής της βοήθειας\n"
 "      --version                         Εμφάνιση έκδοσης\n"
-"  -s, --server=SERVER                   Το όνομα του διακομιστή για σύνδεση\n"
+"  -s, --server=SERVER                   Το όνομα του διακομιστή προς "
+"σύνδεση\n"
 "\n"
 
 #: src/utils/pasuspender.c:267
