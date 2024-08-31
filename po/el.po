@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2024-08-22 09:38+0000\n"
+"PO-Revision-Date: 2024-09-01 11:38+0000\n"
 "Last-Translator: Giannis Antypas <gianni.antypas@gmail.com>\n"
 "Language-Team: Greek <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/el/>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.7\n"
+"X-Generator: Weblate 5.7.1\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -1094,7 +1094,6 @@ msgid "Handsfree Audio Gateway (HFP)"
 msgstr "Πύλη Ακουστικών Handsfree Κεφαλιού (HFP)"
 
 #: src/modules/echo-cancel/module-echo-cancel.c:59
-#, fuzzy
 msgid ""
 "source_name=<name for the source> source_properties=<properties for the "
 "source> source_master=<name of source to filter> sink_name=<name for the "
@@ -1114,8 +1113,9 @@ msgstr ""
 "μετατόπιση να επαναρυθμίσετε κατόπιν σε ms> format=<μορφή δείγματος> "
 "rate=<ρυθμός δειγμάτων> channels=<αριθμός καναλιών> channel_map=<απεικόνιση "
 "καναλιού> aec_method=<υλοποίηση για χρήση> aec_args=<παράμετροι για την "
-"μηχανή AEC> save_aec=<αποθήκευση δεδομένων AEC σε /tmp> autoloaded=<ορίστε "
-"αν αυτή η ενότητα είναι αυτόματα φορτωμένη> use_volume_sharing=<ναι ή όχι> "
+"μηχανή AEC> save_aec=<αποθήκευση δεδομένων AEC σε /tmp> "
+"autoloaded=<καθορισμός αν αυτή η λειτουργική μονάδα φορτώνεται αυτόματα> "
+"use_volume_sharing=<ναι ή όχι> use_master_format=<ναι ή όχι> "
 
 #. add on profile
 #: src/modules/macosx/module-coreaudio-device.c:825
@@ -1151,7 +1151,7 @@ msgstr ""
 "sink_name=<όνομα δέκτη> sink_properties=<ιδιότητες δέκτη> "
 "sink_master=<δέκτης για σύνδεση> format=<μορφή δείγματος> rate=<ρυθμός "
 "δειγμάτων> channels=<αριθμός καναλιών> channel_map=<απεικόνιση καναλιού> "
-"autoloaded=<πρίστε αν αυτή η ενότητα θα φορτώνεται αυτόματα> "
+"autoloaded=<καθορισμός αν αυτή η λειτουργική μονάδα φορτώνεται αυτόματα> "
 "use_volume_sharing=<ναι ή όχι> "
 
 #: src/modules/module-equalizer-sink.c:1097
@@ -1169,7 +1169,6 @@ msgid "Virtual LADSPA sink"
 msgstr "Εικονικός δέκτης LADSPA"
 
 #: src/modules/module-ladspa-sink.c:54
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "sink_input_properties=<properties for the sink input> master=<name of sink "
@@ -1181,14 +1180,16 @@ msgid ""
 "separated list of output LADSPA port names> autoloaded=<set if this module "
 "is being loaded automatically> "
 msgstr ""
-"sink_name=<όνομα του δέκτη> sink_properties=<ιδιότητες δέκτη> master=<όνομα "
-"δέκτη για φιλτράρισμα> format=<μορφή δείγματος> rate=<ρυθμός δείγματος> "
-"channels=<αριθμός καναλιών> channel_map=<απεικόνιση καναλιού εισόδου> "
-"plugin=<όνομα προσθέτου ladspa> label=<ετικέτα προσθέτου ladspa> "
-"control=<κατάλογος που χωρίζεται με κόμματα των τιμών ελέγχου εισόδου> "
-"input_ladspaport_map=<κατάλογος που χωρίζεται με κόμματα των ονομάτων θυρών "
-"LADSPA> output_ladspaport_map=<κατάλογος που χωρίζεται με κόμματα των "
-"ονομάτων θυρών εξόδου LADSPA> "
+"sink_name=<όνομα δέκτη> sink_properties=<ιδιότητες δέκτη> "
+"sink_input_properties=<ιδιότητες εισόδου δέκτη> master=<όνομα δέκτη για "
+"φιλτράρισμα> sink_master=<όνομα δέκτη για φιλτράρισμα> format=<μορφή "
+"δείγματος> rate=<ρυθμός δείγματος> channels=<αριθμός καναλιών> "
+"channel_map=<απεικόνιση καναλιού εισόδου> plugin=<όνομα προσθέτου ladspa> "
+"label=<ετικέτα προσθέτου ladspa> control=<κατάλογος που χωρίζεται με κόμματα "
+"των τιμών ελέγχου εισόδου> input_ladspaport_map=<κατάλογος που χωρίζεται με "
+"κόμματα των ονομάτων θυρών LADSPA> output_ladspaport_map=<κατάλογος που "
+"χωρίζεται με κόμματα των ονομάτων θυρών εξόδου LADSPA> "
+"autoloaded=<καθορισμός αν αυτή η λειτουργική μονάδα φορτώνεται αυτόματα> "
 
 #: src/modules/module-null-sink.c:46
 msgid "Clocked NULL sink"
@@ -1238,7 +1239,6 @@ msgid "Virtual surround sink"
 msgstr "Εικονικός περιφερειακός ήχος δέκτη"
 
 #: src/modules/module-virtual-surround-sink.c:54
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "master=<name of sink to filter> sink_master=<name of sink to filter> "
@@ -1249,10 +1249,12 @@ msgid ""
 "this module is being loaded automatically> "
 msgstr ""
 "sink_name=<όνομα δέκτη> sink_properties=<ιδιότητες δέκτη> master=<όνομα "
-"δέκτη για φιλτράρισμα> format=<μορφή δείγματος> rate=<ρυθμός δειγμάτων> "
-"channels=<αριθμός καναλιών> channel_map=<απεικόνιση καναλιού> "
-"use_volume_sharing=<ναι ή όχι> force_flat_volume=<ναι ή όχι> hrir=/path/to/"
-"left_hrir.wav "
+"δέκτη για φιλτράρισμα> sink_master=<όνομα δέκτη για φιλτράρισμα> "
+"format=<μορφή δείγματος> rate=<ρυθμός δειγμάτων> channels=<αριθμός καναλιών> "
+"channel_map=<απεικόνιση καναλιού> use_volume_sharing=<ναι ή όχι> "
+"force_flat_volume=<ναι ή όχι> hrir=/path/to/left_hrir.wav hrir_left=/path/to/"
+"left_hrir.wav hrir_right=/path/to/optional/right_hrir.wav "
+"autoloaded=<καθορισμός αν αυτή η λειτουργική μονάδα φορτώνεται αυτόματα> "
 
 #: src/modules/raop/module-raop-discover.c:295
 msgid "Unknown device model"
