@@ -305,7 +305,7 @@ all_modules += [
 # FIXME: meson doesn't support multiple RPATH arguments currently
 rpath_dirs = join_paths(privlibdir) + ':' + join_paths(modlibexecdir)
 
-if host_machine.system() != 'windows' and host_machine.system() != 'darwin'
+if host_machine.system() != 'windows' and host_machine.system() != 'darwin' and host_machine.system() != 'sunos'
   no_undefined_args = ['-Wl,--no-undefined']
 else
   no_undefined_args = []
