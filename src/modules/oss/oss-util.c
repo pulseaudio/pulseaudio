@@ -31,6 +31,10 @@
 #include <sys/types.h>
 #include <fcntl.h>
 
+#ifdef HAVE_SYS_FILIO_H
+#include <sys/filio.h>
+#endif
+
 #include <pulse/xmalloc.h>
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
