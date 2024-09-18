@@ -23,6 +23,7 @@
 
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <signal.h>
 
 #include <pulsecore/core-error.h>
 #include <pulsecore/core-util.h>
