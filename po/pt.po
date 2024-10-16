@@ -10,7 +10,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2022-08-15 14:19+0000\n"
+"PO-Revision-Date: 2024-10-17 15:38+0000\n"
 "Last-Translator: Hugo Carvalho <hugokarvalho@hotmail.com>\n"
 "Language-Team: Portuguese <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/pt/>\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Weblate 4.13\n"
+"X-Generator: Weblate 5.7.2\n"
 "X-Poedit-Language: Portuguese\n"
 "X-Poedit-Country: PORTUGAL\n"
 
@@ -102,7 +102,7 @@ msgstr ""
 "      --dump-conf                       Despeja configuração predefinida\n"
 "      --dump-modules                    Despeja a lista de módulos "
 "disponíveis\n"
-"      --dump-resample-methods           Despeja oa métodos de reamostragem "
+"      --dump-resample-methods           Despeja os métodos de reamostragem "
 "disponíveis\n"
 "      --cleanup-shm                     Limpa segmentos de memória "
 "partilhados encravados\n"
@@ -251,7 +251,7 @@ msgstr "--disable-shm espera argumento booleano"
 
 #: src/daemon/cmdline.c:397
 msgid "--enable-memfd expects boolean argument"
-msgstr "--realtime espera argumento booleano"
+msgstr "--enable-memfd espera argumento booleano"
 
 #: src/daemon/daemon-conf.c:270
 #, c-format
@@ -486,23 +486,23 @@ msgstr ""
 
 #: src/daemon/main.c:878
 msgid "Running in system mode, but --disallow-exit not set."
-msgstr "Executando no modo sistema, mas --disallow-exit não foi configurado."
+msgstr "A executar em modo de sistema, mas --disallow-exit não está definido."
 
 #: src/daemon/main.c:881
 msgid "Running in system mode, but --disallow-module-loading not set."
 msgstr ""
-"Executando no modo sistema, mas --disallow-module-loading não foi "
-"configurado."
+"A executar em modo de sistema, mas --disallow-module-loading não está "
+"definido."
 
 #: src/daemon/main.c:884
 msgid "Running in system mode, forcibly disabling SHM mode."
-msgstr "Executando no modo sistema, desabilitando forçadamente o modo SHM."
+msgstr "A executar em modo de sistema, a forçar a desactivação do modo SHM."
 
 #: src/daemon/main.c:889
 msgid "Running in system mode, forcibly disabling exit idle time."
 msgstr ""
-"Executando no modo sistema, desabilitando forçadamente o tempo ocioso para "
-"saída."
+"A executar em modo de sistema, a forçar a desativação da saída por "
+"inatividade."
 
 #: src/daemon/main.c:922
 msgid "Failed to acquire stdio."
@@ -544,13 +544,11 @@ msgid ""
 "Documentation/User/WhatIsWrongWithSystemWide/ for an explanation why system "
 "mode is usually a bad idea."
 msgstr ""
-"Ok, então está a correr PA em modo de sistema. Por favor repare que não "
-"deveria estar a fazê-lo.\n"
-"Se, na mesma, o continuar a fazer e as coisas não correrem como esperado, a "
-"culpa será sua.\n"
-"Por favor leia http://www.freedesktop.org/wiki/Software/PulseAudio/"
-"Documentation/User/WhatIsWrongWithSystemWide/ para uma explicação de como o "
-"modo de sistema é usualmente uma má ideia."
+"OK, então está a executar o PA no modo de sistema. Por favor, certifique-se "
+"de que quer mesmo fazer isso.\n"
+"Por favor, leia http://www.freedesktop.org/wiki/Software/PulseAudio/"
+"Documentation/User/WhatIsWrongWithSystemWide/ para uma explicação de porque "
+"é que o modo de sistema é normalmente uma má ideia."
 
 #: src/daemon/main.c:1161
 msgid "pa_pid_file_create() failed."
@@ -956,12 +954,12 @@ msgid_plural ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr[0] ""
-"snd_pcm_avail() retornou um valor excecionalmente elevado: %lu byte (%lu ms)."
-"\n"
+"snd_pcm_avail() retornou um valor excepcionalmente elevado: %lu byte (%lu "
+"ms).\n"
 "Provavelmente isto é um erro no controlador ALSA '%s'. Por favor, reporte "
 "este problema aos programadores do ALSA."
 msgstr[1] ""
-"snd_pcm_avail() retornou um valor excecionalmente elevado: %lu bytes (%lu "
+"snd_pcm_avail() retornou um valor excepcionalmente elevado: %lu bytes (%lu "
 "ms).\n"
 "Provavelmente isto é um erro no controlador ALSA '%s'. Por favor, reporte "
 "este problema aos programadores do ALSA."
@@ -979,12 +977,12 @@ msgid_plural ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr[0] ""
-"snd_pcm_delay() retornou um valor excecionalmente elevado: %li byte (%s%lu "
+"snd_pcm_delay() retornou um valor excepcionalmente elevado: %li byte (%s%lu "
 "ms).\n"
 "Provavelmente isto é um erro no driver ALSA '%s'. Por favor, reporte este "
 "problema aos programadores do ALSA."
 msgstr[1] ""
-"snd_pcm_delay() retornou um valor excecionalmente elevado: %li bytes (%s%lu "
+"snd_pcm_delay() retornou um valor excepcionalmente elevado: %li bytes (%s%lu "
 "ms).\n"
 "Provavelmente isto é um erro no driver ALSA '%s'. Por favor, reporte este "
 "problema aos programadores do ALSA."
@@ -1015,12 +1013,12 @@ msgid_plural ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr[0] ""
-"snd_pcm_mmap_begin() retornou um valor excecionalmente elevado: %lu byte ("
+"snd_pcm_mmap_begin() retornou um valor excepcionalmente elevado: %lu byte ("
 "%lu ms).\n"
 "Provavelmente isto é um erro no driver ALSA '%s'. Por favor, reporte este "
 "problema aos programadores do ALSA."
 msgstr[1] ""
-"snd_pcm_mmap_begin() retornou um valor excecionalmente elevado: %lu bytes ("
+"snd_pcm_mmap_begin() retornou um valor excepcionalmente elevado: %lu bytes ("
 "%lu ms).\n"
 "Provavelmente isto é um erro no driver ALSA '%s'. Por favor, reporte este "
 "problema aos programadores do ALSA."
@@ -1111,7 +1109,7 @@ msgstr ""
 #. add on profile
 #: src/modules/macosx/module-coreaudio-device.c:825
 msgid "On"
-msgstr "Ativar"
+msgstr "Ligado"
 
 #: src/modules/module-allow-passthrough.c:71
 #: src/modules/module-always-sink.c:80
@@ -1246,7 +1244,7 @@ msgstr ""
 
 #: src/modules/raop/module-raop-discover.c:295
 msgid "Unknown device model"
-msgstr "Código de erro desconhecido"
+msgstr "Modelo de dispositivo desconhecido"
 
 #: src/modules/raop/raop-sink.c:689
 msgid "RAOP standard profile"
@@ -1952,6 +1950,7 @@ msgid ""
 "index INDEX.\n"
 msgstr ""
 "%s [opções]\n"
+"%s\n"
 "\n"
 "  -h, --help                            Mostra esta ajuda\n"
 "      --version                         Mostra a versão\n"
@@ -2295,7 +2294,7 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
-"pacat %s\n"
+"pacmd %s\n"
 "Compilado com libpulse %s\n"
 "Ligado com libpulse %s\n"
 
@@ -2346,8 +2345,8 @@ msgstr "Falhou a obtenção de estatísticas: %s"
 #, c-format
 msgid "Currently in use: %u block containing %s bytes total.\n"
 msgid_plural "Currently in use: %u blocks containing %s bytes total.\n"
-msgstr[0] "Correntemente em uso: %u bloco contendo %s bytes no total.\n"
-msgstr[1] "Correntemente em uso: %u blocos contendo %s bytes no total.\n"
+msgstr[0] "Atualmente em uso: %u bloco contendo %s bytes no total.\n"
+msgstr[1] "Atualmente em uso: %u blocos contendo %s bytes no total.\n"
 
 #: src/utils/pactl.c:205
 #, c-format
@@ -2424,11 +2423,11 @@ msgstr "disponível"
 
 #: src/utils/pactl.c:322
 msgid "not available"
-msgstr "indisponível"
+msgstr "não disponível"
 
 #: src/utils/pactl.c:331 src/utils/pactl.c:355
 msgid "Unknown"
-msgstr "Desconhecida"
+msgstr "Desconhecido"
 
 #: src/utils/pactl.c:332
 msgid "Aux"
@@ -2444,7 +2443,7 @@ msgstr "Microfone"
 
 #: src/utils/pactl.c:338
 msgid "Handset"
-msgstr "Handset"
+msgstr "Aparelho"
 
 #: src/utils/pactl.c:339
 msgid "Earpiece"
@@ -2514,9 +2513,9 @@ msgstr ""
 "\tMapa de canais: %s\n"
 "\tMódulo proprietário: %u\n"
 "\tMudo: %s\n"
-"\tVolume: %s%s%s\n"
+"\tVolume: %s\n"
 "\t        balanço %0.2f\n"
-"\tVolume base: %s%s%s\n"
+"\tVolume base: %s\n"
 "\tMonitor de origem: %s\n"
 "\tLatência: %0.0f usec, configurado %0.0f usec\n"
 "\tParâmetros: %s%s%s%s%s%s%s\n"
@@ -2531,7 +2530,7 @@ msgstr "\tPorto:\n"
 #: src/utils/pactl.c:708 src/utils/pactl.c:892
 #, c-format
 msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
-msgstr "\t\t%s: %s (tipo: %s, prioridade: %u%%s, %s)\n"
+msgstr "\t\t%s: %s (tipo: %s, prioridade: %u%s%s, %s)\n"
 
 #: src/utils/pactl.c:710 src/utils/pactl.c:894 src/utils/pactl.c:1256
 msgid ", availability group: "
@@ -2583,9 +2582,9 @@ msgstr ""
 "\tMapa de canais: %s\n"
 "\tMódulo Dono: %u\n"
 "\tMudo: %s\n"
-"\tVolume: %s%s%s\n"
+"\tVolume: %s\n"
 "\t        balanço %0.2f\n"
-"\tVolume Base: %s%s%s\n"
+"\tVolume Base: %s\n"
 "\tMonitor do Depósito: %s\n"
 "\tCadência: %0.0f usec, configurado %0.0f usec\n"
 "\tBandeiras: %s%s%s%s%s%s\n"
@@ -2815,7 +2814,6 @@ msgstr ""
 "\tEspecificação da Amostra: %s\n"
 "\tMapa de Canais: %s\n"
 "\tVolume: %s\n"
-"\t        %s\n"
 "\t        balanço %0.2f\n"
 "\tDuração: %0.1fs\n"
 "\tTamanho: %s\n"
@@ -2908,7 +2906,7 @@ msgstr "depósito"
 
 #: src/utils/pactl.c:2164
 msgid "source"
-msgstr "origem"
+msgstr "fonte"
 
 #: src/utils/pactl.c:2167
 msgid "sink-input"
@@ -3036,6 +3034,8 @@ msgstr ""
 "  -h, --help                            Mostra esta ajuda\n"
 "      --version                         Mostra a versão\n"
 "\n"
+"  -f, --format=FORMAT                   O formato da saída. Ou \"normal\" ou "
+"\"json\"\n"
 "  -s, --server=SERVER                   Nome do servidor ao qual ligar\n"
 "  -n, --client-name=NAME                Como chamar este cliente no "
 "servidor\n"
@@ -3054,7 +3054,7 @@ msgstr ""
 #: src/utils/pactl.c:2751
 #, c-format
 msgid "Invalid format value '%s'"
-msgstr "Nome de fluxo inválido '%s'"
+msgstr "Valor de formato inválido '%s'"
 
 #: src/utils/pactl.c:2778
 #, c-format
@@ -3162,7 +3162,7 @@ msgstr "Índice de depósito de entrada inválido"
 
 #: src/utils/pactl.c:3060
 msgid "You have to specify a source output index and a volume"
-msgstr "Tem de especificar um índice de saída de origem e um volume"
+msgstr "Tem de especificar um índice de saída de fonte e um volume"
 
 #: src/utils/pactl.c:3065
 msgid "Invalid source output index"
@@ -3200,7 +3200,7 @@ msgstr "Tem de especificar um nome/índice de origem e um lógico mudo"
 
 #: src/utils/pactl.c:3149
 msgid "Invalid source output index specification"
-msgstr "Especificação de índice de saída de origem inválida"
+msgstr "Especificação de índice de saída de fonte inválida"
 
 #: src/utils/pactl.c:3162
 msgid "You have to specify at least an object path and a message name"
@@ -3287,7 +3287,9 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
-"%s [opções] ... \n"
+"%s [opções] -- PROGRAM [ARGUMENTS ...]\n"
+"\n"
+"Suspende temporariamente o PulseAudio enquanto o PROGRAM é executado.\n"
 "\n"
 "  -h, --help                            Mostra esta ajuda\n"
 "      --version                         Mostra a versão\n"
