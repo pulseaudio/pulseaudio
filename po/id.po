@@ -10,8 +10,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2021-09-24 12:05+0000\n"
-"Last-Translator: Andika Triwidada <andika@gmail.com>\n"
+"PO-Revision-Date: 2024-10-25 11:11+0000\n"
+"Last-Translator: Arif Budiman <arifpedia@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/id/>\n"
 "Language: id\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 4.8\n"
+"X-Generator: Weblate 5.7.2\n"
 
 #: src/daemon/cmdline.c:113
 #, fuzzy, c-format
@@ -2839,11 +2839,11 @@ msgstr "pesan penangan-daftar gagal: %s"
 
 #: src/utils/pactl.c:1711 src/utils/pactl.c:1760
 msgid "list-handlers message response could not be parsed correctly"
-msgstr "respon pesan penangan-daftar tak dapat diurai dengan benar"
+msgstr "respons pesan list-handler tidak dapat diurai dengan benar"
 
 #: src/utils/pactl.c:1718
 msgid "list-handlers message response is not a JSON array"
-msgstr "respon pesan penangan-daftar bukan suatu larik JSON"
+msgstr "respons pesan list-handler bukan merupakan larik JSON"
 
 #: src/utils/pactl.c:1729
 #, c-format
