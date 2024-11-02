@@ -10,8 +10,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2024-10-25 11:11+0000\n"
-"Last-Translator: Arif Budiman <arifpedia@gmail.com>\n"
+"PO-Revision-Date: 2024-11-02 16:07+0000\n"
+"Last-Translator: Andika Triwidada <andika@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/id/>\n"
 "Language: id\n"
@@ -19,10 +19,10 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.7.2\n"
+"X-Generator: Weblate 5.8.2\n"
 
 #: src/daemon/cmdline.c:113
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "\n"
@@ -113,8 +113,8 @@ msgstr ""
 "OPSI:\n"
 "      --system[=BOOL]                   Jalankan sebagai instansi seluruh "
 "sistem\n"
-"  -D, --daemonize[=BOOL]                Jadikan daemon setelah awalan\n"
-"      --fail[=BOOL]                     Keluar ketika awalan gagal\n"
+"  -D, --daemonize[=BOOL]                Jadikan daemon setelah awal mula\n"
+"      --fail[=BOOL]                     Keluar ketika awal mula gagal\n"
 "      --high-priority[=BOOL]            Coba tata ke aras nice tinggi\n"
 "                                        (hanya tersedia sebagai root, ketika "
 "SUID\n"
@@ -126,21 +126,19 @@ msgstr ""
 "                                        atau RLIMIT_RTPRIO yang dinaikkan)\n"
 "      --disallow-module-loading[=BOOL]  Larang muat/bongkar modul yang "
 "diminta\n"
-"                                        pengguna setelah awalan\n"
+"                                        pengguna setelah awal mula\n"
 "      --disallow-exit[=BOOL]            Larang permintaan keluar dari "
 "pengguna\n"
 "      --exit-idle-time=SECS             Matikan daemon ketika menganggur "
 "dan\n"
-"                                        waktu ini habis\n"
-"      --module-idle-time=SECS           Bongkar modul yang dimuat sendiri "
-"ketika\n"
-"                                        menganggur dan waktu ini habis\n"
+"                                        waktu ini berlalu\n"
 "      --scache-idle-time=SECS           Bongkar contoh yang dimuat sendiri "
 "ketika\n"
-"                                        menganggur dan waktu ini habis\n"
+"                                        menganggur dan waktu ini berlalu\n"
 "      --log-level[=LEVEL]               Naikkan atau tata aras kerincian\n"
-"  -v                                    Naikkan aras kerincian\n"
-"      --log-target={auto,syslog,stderr} Nyatakan target log\n"
+"  -v  --verbose                         Naikkan aras kerincian\n"
+"      --log-target={auto,syslog,stderr,file:PATH,newfile:PATH} \n"
+"                                        Nyatakan target log\n"
 "      --log-meta[=BOOL]                 Sertakan lokasi kode dalam pesan "
 "log\n"
 "      --log-time[=BOOL]                 Sertakan penanda waktu dalam pesan "
@@ -159,8 +157,10 @@ msgstr ""
 "      --no-cpu-limit[=BOOL]             Jangan pasang pembatas beban CPU\n"
 "                                        pada platform yang mendukungannya.\n"
 "      --disable-shm[=BOOL]              Matikan dukungan memori bersama.\n"
+"      --enable-memfd[=BOOL]             Fungsikan dukungan memori bersama "
+"memfd.\n"
 "\n"
-"SKRIP AWALAN:\n"
+"SKRIP AWAL MULA:\n"
 "  -L, --load=\"ARGUMEN MODUL\"            Muat modul plugin yang dinyatakan\n"
 "                                        dengan argumen yang disertakan\n"
 "  -F, --file=NAMABERKAS                 Jalankan skrip yang dinyatakan\n"
@@ -179,13 +179,12 @@ msgid "--fail expects boolean argument"
 msgstr "--fail mengharapkan argumen bool"
 
 #: src/daemon/cmdline.c:265
-#, fuzzy
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of error, warn, notice, info, debug)."
 msgstr ""
 "--log-level mengharapkan argumen aras log (bisa berupa angka 0..4 atau salah "
-"satu dari debug, info, notice, warn, error)."
+"satu dari error, warn, notice, info, debug)."
 
 #: src/daemon/cmdline.c:277
 msgid "--high-priority expects boolean argument"
@@ -941,7 +940,7 @@ msgstr ""
 "mengembalikan 0 atau nilai lain < min_avail."
 
 #: src/modules/alsa/alsa-util.c:1183 src/modules/alsa/alsa-util.c:1277
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_avail() returned a value that is exceptionally large: %lu byte (%lu "
 "ms).\n"
@@ -953,13 +952,13 @@ msgid_plural ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr[0] ""
-"snd_pcm_avail() mengembalikan nilai yang luar biasa besar: %lu byte (%lu "
-"ms).\n"
+"snd_pcm_avail() mengembalikan nilai yang luar biasa besar: %lu byte (%lu ms)."
+"\n"
 "Sangat mungkin ini adalah kutu pada driver ALSA '%s'. Silakan laporkan hal "
 "ini ke para pengembang ALSA."
 
 #: src/modules/alsa/alsa-util.c:1249
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_delay() returned a value that is exceptionally large: %li byte (%s"
 "%lu ms).\n"
@@ -990,7 +989,7 @@ msgstr ""
 "kasus ini ke para pengembang ALSA."
 
 #: src/modules/alsa/alsa-util.c:1339
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "snd_pcm_mmap_begin() returned a value that is exceptionally large: %lu byte "
 "(%lu ms).\n"
@@ -1002,8 +1001,8 @@ msgid_plural ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue "
 "to the ALSA developers."
 msgstr[0] ""
-"snd_pcm_mmap_begin() mengembalikan nilai yang luar biasa besar: %lu byte "
-"(%lu ms).\n"
+"snd_pcm_mmap_begin() mengembalikan nilai yang luar biasa besar: %lu byte ("
+"%lu ms).\n"
 "Sangat mungkin ini adalah kutu pada driver ALSA '%s'. Silakan laporkan hal "
 "ini ke para pengembang ALSA."
 
@@ -1043,34 +1042,28 @@ msgid "Phone"
 msgstr "Telepon"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2042
-#, fuzzy
 msgid "High Fidelity Playback (A2DP Sink)"
-msgstr "High Fidelity Playback (Muara A2DP)"
+msgstr "Putar High Fidelity (Muara A2DP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2054
-#, fuzzy
 msgid "High Fidelity Capture (A2DP Source)"
-msgstr "High Fidelity Capture (Sumber A2DP)"
+msgstr "Penangkapan High Fidelity (Sumber A2DP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2066
-#, fuzzy
 msgid "Headset Head Unit (HSP)"
 msgstr "Headset Head Unit (HSP/HFP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2079
-#, fuzzy
 msgid "Headset Audio Gateway (HSP)"
-msgstr "Headset Audio Gateway (HSP/HFP)"
+msgstr "Gateway Audio Headset (HSP/HFP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2092
-#, fuzzy
 msgid "Handsfree Head Unit (HFP)"
-msgstr "Headset Head Unit (HSP/HFP)"
+msgstr "Unit Kepala Handsfree (HFP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2105
-#, fuzzy
 msgid "Handsfree Audio Gateway (HFP)"
-msgstr "Headset Audio Gateway (HSP/HFP)"
+msgstr "Gateway Audio Handsfree (HSP/HFP)"
 
 #: src/modules/echo-cancel/module-echo-cancel.c:59
 #, fuzzy
@@ -1116,7 +1109,6 @@ msgid "Always keeps at least one source loaded even if it's a null one"
 msgstr "Selalu jaga paling tidak satu muara bermuatan bahkan jika berupa null"
 
 #: src/modules/module-equalizer-sink.c:68
-#, fuzzy
 msgid "General Purpose Equalizer"
 msgstr "Equalizer Tujuan Umum"
 
@@ -1876,7 +1868,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() gagal: %s"
 
 #: src/utils/pacat.c:676
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "%s\n"
@@ -1955,7 +1947,9 @@ msgstr ""
 "  -v, --verbose                         Aktifkan operasi cerewet\n"
 "\n"
 "  -s, --server=SERVER                   Nama server untuk dihubungi\n"
-"  -d, --device=DEVICE                   Nama muara/sumber untuk dihubungi\n"
+"  -d, --device=DEVICE                   Nama muara/sumber untuk dihubungi. "
+"Nama khusus @DEFAULT_SINK@, @DEFAULT_SOURCE@, dan @DEFAULT_MONITOR@ masing-"
+"masing dapat dipakai untuk menyatakan muara, sumber, dan monitor.\n"
 "  -n, --client-name=NAME                Bagaimana memanggil klien ini di "
 "server\n"
 "      --stream-name=NAME                Bagaimana memanggil stream ini di "
@@ -1964,35 +1958,34 @@ msgstr ""
 "jangkauan 0...65536\n"
 "      --rate=SAMPLERATE                 Laju cuplikan dalam Hz (nilai baku "
 "44100)\n"
-"      --format=SAMPLEFORMAT             Jenis cuplikan, salah satu dari "
-"s16le, s16be, u8, float32le,\n"
-"                                        float32be, ulaw, alaw, s32le, s32be, "
-"s24le, s24be,\n"
-"                                        s24-32le, s24-32be (nilai baku "
-"s16ne)\n"
+"      --format=SAMPLEFORMAT             Format cuplikan, lihat\n"
+"                                        https://www.freedesktop.org/wiki/"
+"Software/PulseAudio/Documentation/User/SupportedAudioFormats/\n"
+"                                        untuk nilai-nilai yang mungkin ("
+"nilai baku s16ne)\n"
 "      --channels=CHANNELS               Cacah kanal, 1 untuk mono, 2 untuk "
 "stereo\n"
 "                                        (nilai baku 2)\n"
 "      --channel-map=CHANNELMAP          Peta kanal yang dipakai sebagai "
 "pengganti baku\n"
-"      --fix-format                      Ambil format cuplikan dari muara "
-"stream\n"
+"      --fix-format                      Ambil format cuplikan dari muara/"
+"sumber stream\n"
 "                                        yang sedang tersambung.\n"
-"      --fix-rate                        Ambil laju cuplikan dari muara "
-"stream\n"
+"      --fix-rate                        Ambil laju cuplikan dari muara/"
+"sumber stream\n"
 "                                        yang sedang tersambung.\n"
 "      --fix-channels                    Ambil cacah kanal dan peta kanal "
-"dari muara stream\n"
+"dari muara/sumber stream\n"
 "                                        yang sedang tersambung.\n"
 "      --no-remix                        Jangan upmix atau downmix kanal.\n"
 "      --no-remap                        Petakan kanal berdasar indeks bukan "
 "nama.\n"
-"      --latency=BYTE                    Minta latensi yang dinyatakan, dalam "
+"      --latency=BYTE                    Minta latensi yang dinyatakan dalam "
 "byte.\n"
 "      --process-time=BYTE               Minta waktu proses yang dinyatakan "
 "bagi tiap permintaan\n"
 "                                        dalam byte.\n"
-"      --latency-msec=MSEC               Minta latensi yang dinyatakan, dalam "
+"      --latency-msec=MSEC               Minta latensi yang dinyatakan dalam "
 "milidetik.\n"
 "      --process-time-msec=MSEC          Minta waktu proses yang dinyatakan "
 "bagi tiap permintaan\n"
@@ -2526,7 +2519,7 @@ msgstr ""
 #: src/utils/pactl.c:706 src/utils/pactl.c:890 src/utils/pactl.c:1251
 #, c-format
 msgid "\tPorts:\n"
-msgstr "»Port:\n"
+msgstr "\tPort:\n"
 
 #: src/utils/pactl.c:708 src/utils/pactl.c:892
 #, c-format
@@ -2540,7 +2533,7 @@ msgstr ", grup ketersediaan: "
 #: src/utils/pactl.c:715 src/utils/pactl.c:899
 #, c-format
 msgid "\tActive Port: %s\n"
-msgstr "»Port Aktif: %s\n"
+msgstr "\tPort Aktif: %s\n"
 
 #: src/utils/pactl.c:721 src/utils/pactl.c:905
 #, c-format
@@ -2839,11 +2832,11 @@ msgstr "pesan penangan-daftar gagal: %s"
 
 #: src/utils/pactl.c:1711 src/utils/pactl.c:1760
 msgid "list-handlers message response could not be parsed correctly"
-msgstr "respons pesan list-handler tidak dapat diurai dengan benar"
+msgstr "respon pesan penangan-daftar tak dapat diurai dengan benar"
 
 #: src/utils/pactl.c:1718
 msgid "list-handlers message response is not a JSON array"
-msgstr "respons pesan list-handler bukan merupakan larik JSON"
+msgstr "respon pesan penangan-daftar bukan suatu larik JSON"
 
 #: src/utils/pactl.c:1729
 #, c-format
@@ -3009,7 +3002,7 @@ msgstr ""
 "dapat dipakai untuk menyatakan muara, sumber, dan pemantau baku.\n"
 
 #: src/utils/pactl.c:2664
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "  -h, --help                            Show this help\n"
@@ -3026,6 +3019,8 @@ msgstr ""
 "  -h, --help                            Tampilkan bantuan ini\n"
 "      --version                         Tampilkan versi\n"
 "\n"
+"  -f, --format=FORMAT                   Format keluaran. \"normal\" atau "
+"\"json\"\n"
 "  -s, --server=SERVER                   Nama server tujuan koneksi\n"
 "  -n, --client-name=NAMA                Bagaimana memanggil klien ini pada "
 "server\n"
@@ -3042,9 +3037,9 @@ msgstr ""
 "Ditaut dengan libpulse %s\n"
 
 #: src/utils/pactl.c:2751
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid format value '%s'"
-msgstr "Nama stream '%s' tak valid"
+msgstr "Nilai format '%s' tidak valid"
 
 #: src/utils/pactl.c:2778
 #, c-format
@@ -3276,7 +3271,7 @@ msgid "WARNING: Child process terminated by signal %u\n"
 msgstr "PERINGATAN: Proses anak diakhiri oleh sinyal %u\n"
 
 #: src/utils/pasuspender.c:228
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options] -- PROGRAM [ARGUMENTS ...]\n"
 "\n"
@@ -3288,7 +3283,9 @@ msgid ""
 "to\n"
 "\n"
 msgstr ""
-"%s [opsi] ... \n"
+"%s [opsi] -- PROGRAM [ARGUMEN ...]\n"
+"\n"
+"Sementara mensuspensi PulseAudio ketika PROGRAM berjalan.\n"
 "\n"
 "  -h, --help                            Tampilkan bantuan ini\n"
 "      --version                         Tampilkan versi\n"
