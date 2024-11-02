@@ -5,7 +5,7 @@ A bug fix release.
  * A couple of time-smoother-2 fixes, mainly manifesting in issues for GStreamer clients
  * Fix a crash in some restricted environments
  * Minor RTP spec compliance fix
- * Minur completion and tests fixups
+ * Minor completion and tests fixups
 
 Contributors
 
