@@ -1,3 +1,20 @@
+PulseAudio 16.2
+
+A bug fix release.
+
+ * A couple of time-smoother-2 fixes, mainly manifesting in issues for GStreamer clients
+ * Fix a crash in some restricted environments
+ * Minor RTP spec compliance fix
+ * Minur completion and tests fixups
+
+Contributors
+
+Arun Raghavan
+Georg Chini
+Igor V. Kovalenko
+flyingOwl
+
+
 PulseAudio 16.1
 
 A bug fix release.
