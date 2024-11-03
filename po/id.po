@@ -10,7 +10,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2024-11-02 16:07+0000\n"
+"PO-Revision-Date: 2024-11-03 10:40+0000\n"
 "Last-Translator: Andika Triwidada <andika@gmail.com>\n"
 "Language-Team: Indonesian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/id/>\n"
@@ -590,12 +590,10 @@ msgid "Docking Station Microphone"
 msgstr "Mikrofon Docking Station"
 
 #: src/modules/alsa/alsa-mixer.c:2711
-#, fuzzy
 msgid "Docking Station Line In"
 msgstr "Jalur Masuk Docking Station"
 
 #: src/modules/alsa/alsa-mixer.c:2712 src/modules/alsa/alsa-mixer.c:2803
-#, fuzzy
 msgid "Line In"
 msgstr "Jalur Masuk"
 
@@ -697,7 +695,6 @@ msgid "Headphones Mono Output"
 msgstr "Keluaran Mono Headphone"
 
 #: src/modules/alsa/alsa-mixer.c:2810
-#, fuzzy
 msgid "Line Out"
 msgstr "Jalur Keluar"
 
@@ -730,9 +727,8 @@ msgid "Multichannel Output"
 msgstr "Keluaran Multikanal"
 
 #: src/modules/alsa/alsa-mixer.c:2818
-#, fuzzy
 msgid "Game Output"
-msgstr "Keluaran %s"
+msgstr "Keluaran Game"
 
 #: src/modules/alsa/alsa-mixer.c:2819 src/modules/alsa/alsa-mixer.c:2820
 msgid "Chat Output"
@@ -1066,7 +1062,6 @@ msgid "Handsfree Audio Gateway (HFP)"
 msgstr "Gateway Audio Handsfree (HSP/HFP)"
 
 #: src/modules/echo-cancel/module-echo-cancel.c:59
-#, fuzzy
 msgid ""
 "source_name=<name for the source> source_properties=<properties for the "
 "source> source_master=<name of source to filter> sink_name=<name for the "
@@ -1079,16 +1074,16 @@ msgid ""
 "loaded automatically> use_volume_sharing=<yes or no> use_master_format=<yes "
 "or no> "
 msgstr ""
-"source_name=<name for the source> source_properties=<properties for the "
-"source> source_master=<name of source to filter> sink_name=<name for the "
-"sink> sink_properties=<properties for the sink> sink_master=<name of sink to "
-"filter> adjust_time=<how often to readjust rates in s> adjust_threshold=<how "
-"much drift to readjust after in ms> format=<sample format> rate=<sample "
-"rate> channels=<number of channels> channel_map=<channel map> "
-"aec_method=<implementation to use> aec_args=<parameters for the AEC engine> "
-"save_aec=<save AEC data in /tmp> autoloaded=<set if this module is being "
-"loaded automatically> use_volume_sharing=<yes or no> use_master_format=<yes "
-"or no> "
+"source_name=<nama sumber> source_properties=<properti sumber> "
+"source_master=<nama sumber untuk disaring> sink_name=<nama muara> "
+"sink_properties=<properti muara> sink_master=<nama muara untuk disaraing> "
+"adjust_time=<seberapa sering menyetel ulang laju dalam detik> "
+"adjust_threshold=<seberapa banyak drift disetel ulang setelahnya dalam mili "
+"detik> format=<format cuplikan> rate=<laju cuplikan> channels=<cacah kanal> "
+"channel_map=<peta kanal> aec_method=<implementasi yang dipakai> "
+"aec_args=<parameter bagi mesin AEC> save_aec=<simpan data AEC dalam /tmp> "
+"autoloaded=<tata apakah modul ini dimuat secara otomatis> "
+"use_volume_sharing=<yes atau no> use_master_format=<yes atau no> "
 
 #. add on profile
 #: src/modules/macosx/module-coreaudio-device.c:825
@@ -1139,7 +1134,6 @@ msgid "Virtual LADSPA sink"
 msgstr "Muara virtual LADSPA"
 
 #: src/modules/module-ladspa-sink.c:54
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "sink_input_properties=<properties for the sink input> master=<name of sink "
@@ -1151,15 +1145,15 @@ msgid ""
 "separated list of output LADSPA port names> autoloaded=<set if this module "
 "is being loaded automatically> "
 msgstr ""
-"sink_name=<nama bagi muara> sink_properties=<properti bagi muara> "
-"sink_input_properties=<properti bagi masukan muara> master=<nama muara untuk "
+"sink_name=<nama muara> sink_properties=<properti muara> "
+"sink_input_properties=<properti masukan muara> master=<nama muara untuk "
 "disaring> sink_master=<nama muara yang akan disaring> format=<format "
 "cuplikan> rate=<laju cuplikan> channels=<cacah kanal> channel_map=<peta "
 "kanal> plugin=<nama plugin ladspa> label=<label plugin ladspa> "
-"control=<daftar nilai kendali masukan yang dipisahkan dengan koma> \n"
-"input_ladspaport_map=<comma separated list of input LADSPA port names> "
-"output_ladspaport_map=<comma separated list of output LADSPA port names> "
-"autoloaded=<set if this module is being loaded automatically> "
+"control=<daftar nilai kendali masukan yang dipisah koma> "
+"input_ladspaport_map=<daftar dipisah koma dari nama port masukan LADSPA> "
+"output_ladspaport_map=<daftar dipisah koma dari nama port keluaran LADSPA> "
+"autoloaded=<tata apakah modul dimuat secara otomatis> "
 
 #: src/modules/module-null-sink.c:46
 msgid "Clocked NULL sink"
@@ -2255,12 +2249,10 @@ msgid "TARGET"
 msgstr "TARGET"
 
 #: src/utils/pacmd.c:76
-#, fuzzy
 msgid "NUMERIC-LEVEL"
-msgstr "NUMERIC-LEVEL"
+msgstr "ARAS-NUMERIK"
 
 #: src/utils/pacmd.c:79
-#, fuzzy
 msgid "FRAMES"
 msgstr "BINGKAI"
 
@@ -2427,9 +2419,8 @@ msgid "Aux"
 msgstr "Aux"
 
 #: src/utils/pactl.c:335
-#, fuzzy
 msgid "Line"
-msgstr "Jalur Masuk"
+msgstr "Jalur"
 
 #: src/utils/pactl.c:336
 msgid "Mic"
