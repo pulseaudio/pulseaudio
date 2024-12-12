@@ -8,8 +8,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2021-05-21 23:01+0000\n"
-"Last-Translator: scootergrisen <scootergrisen@gmail.com>\n"
+"PO-Revision-Date: 2024-12-13 17:38+0000\n"
+"Last-Translator: DK Guy <peter@nozen.dk>\n"
 "Language-Team: Danish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/da/>\n"
 "Language: da\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.6.2\n"
+"X-Generator: Weblate 5.8.4\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -175,13 +175,12 @@ msgid "--fail expects boolean argument"
 msgstr "--fail venter boolesk argument"
 
 #: src/daemon/cmdline.c:265
-#, fuzzy
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of error, warn, notice, info, debug)."
 msgstr ""
-"--log-level venter logniveau argument (enten numerisk i området 0..4 eller "
-"en af debug, info, notice, warn, error)."
+"--log-level forventer logniveau argument (enten numerisk i området 0..4 "
+"eller en af debug, info, notice, warn, error)."
 
 #: src/daemon/cmdline.c:277
 msgid "--high-priority expects boolean argument"
