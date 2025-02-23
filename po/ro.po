@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2025-02-19 13:59+0000\n"
+"PO-Revision-Date: 2025-02-23 20:53+0000\n"
 "Last-Translator: Remus-Gabriel Chelu <remusgabriel.chelu@disroot.org>\n"
 "Language-Team: Romanian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ro/>\n"
@@ -82,347 +82,455 @@ msgid ""
 "\n"
 "  -n                                    Don't load default script file\n"
 msgstr ""
+"%s [opțiuni]\n"
+"\n"
+"COMENZI:\n"
+"  -h, --help                            afișează acest ajutor\n"
+"      --version                         afișează versiunea\n"
+"      --dump-conf                       afișează configurația implicită\n"
+"      --dump-modules                    afișează lista de module "
+"disponibile\n"
+"      --dump-resample-methods           afișează metodele de resample "
+"disponibile\n"
+"      --cleanup-shm                     curăță segmentele vechi de memorie "
+"partajată\n"
+"      --start                           pornește demonul dacă nu rulează\n"
+"  -k, --kill                             oprește un demon care rulează\n"
+"      --check                           verifică dacă un demon rulează ("
+"returnează\n"
+"                                        doar codul de ieșire)\n"
+"\n"
+"OPȚIUNI:\n"
+"      --system[=BOOL]                   rulează ca instanță la nivel de "
+"sistem\n"
+"  -D, --daemonize[=BOOL]                se execută ca demon după pornire\n"
+"      --fail[=BOOL]                     renunță la pornire când eșuează\n"
+"      --high-priority[=BOOL]            încearcă să stabilească un nivel "
+"înalt\n"
+"                                        de calitate (disponibil doar ca root,"
+"\n"
+"                                        când SUID sau cu RLIMIT_NICE ridicat)"
+"\n"
+"      --realtime[=BOOL]                 încearcă să activeze planificarea în "
+"timp real\n"
+"                                        (disponibil doar ca root, când SUID "
+"sau\n"
+"                                        cu RLIMIT_RTPRIO ridicat)\n"
+"      --disallow-module-loading[=BOOL]  interzice încărcarea/descărcarea "
+"modulului\n"
+"                                        solicitat de utilizator după "
+"pornire\n"
+"      --disallow-exit[=BOOL]            interzice ieșirea solicitată de "
+"utilizator\n"
+"      --exit-idle-time=SECUNDE          termină demonul atunci când este "
+"inactiv\n"
+"                                        și acest timp a trecut\n"
+"      --scache-idle-time=SECUNDE        descarcă eșantioanele încărcate "
+"automat atunci\n"
+"                                        când este inactiv și acest timp a "
+"trecut\n"
+"      --log-level[=NIVEL]               crește sau stabilește nivelul de "
+"detaliere\n"
+"                                        al mesajelor\n"
+"  -v, --verbose                          crește nivelul de detaliere al "
+"informațiilor\n"
+"      --log-target={auto, syslog, stderr, fișier:RUTĂ, fișier-nou:RUTĂ}\n"
+"                                        specifică ținta jurnalului\n"
+"      --log-meta[=BOOL]                 include locația codului în mesajele "
+"de jurnal\n"
+"      --log-time[=BOOL]                 include marcajele temporale în "
+"mesajele de jurnal\n"
+"      --log-backtrace=CADRE             include o urmă în mesajele de "
+"jurnal\n"
+"  -p, --dl-search-path=RUTA             definește ruta de căutare pentru "
+"obiectele\n"
+"                                        partajate dinamic (module)\n"
+"      --resample-method=METODA          utilizează metoda de reeșantionare "
+"specificată\n"
+"                                        (consultați --dump-resample-methods "
+"pentru\n"
+"                                        valorile posibile)\n"
+"      --use-pid-file[=BOOL]             creează un fișier PID\n"
+"      --no-cpu-limit[=BOOL]             nu instalează limitatorul de "
+"încărcare CPU\n"
+"                                        pe platformele care îl acceptă\n"
+"      ---disable-shm[=BOOL]             dezactivează suportul pentru memoria "
+"partajată\n"
+"      --enable-memfd[=BOOL]             activează suportul de memorie "
+"partajată memfd\n"
+"\n"
+"SCRIPT DE PORNIRE:\n"
+"  -L, --load=„MODUL ARGUMENTE”         încarcă modulul specificat cu "
+"argumentul specificat\n"
+"  -F, --file=NUME_FIȘIER               rulează scriptul specificat\n"
+"  -C                                   deschide o linie de comandă pe TTY-ul "
+"pe care\n"
+"                                       rulează după pornire\n"
+"\n"
+"  -n                                   nu încarcă fișierul script implicit\n"
 
 #: src/daemon/cmdline.c:246
 msgid "--daemonize expects boolean argument"
-msgstr ""
+msgstr "opțiunea „--daemonize” așteaptă un argument boolean"
 
 #: src/daemon/cmdline.c:254
 msgid "--fail expects boolean argument"
-msgstr ""
+msgstr "opțiunea „--fail” așteaptă un argument boolean"
 
 #: src/daemon/cmdline.c:265
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one of error, "
 "warn, notice, info, debug)."
 msgstr ""
+"opțiunea „--log-level” așteaptă un argument privind nivelul jurnalului (fie "
+"numeric în intervalul 0..4 sau unul dintre error, warn, notice, info, debug)."
 
 #: src/daemon/cmdline.c:277
 msgid "--high-priority expects boolean argument"
-msgstr ""
+msgstr "opțiunea „--high-priority” așteaptă un argument boolean"
 
 #: src/daemon/cmdline.c:285
 msgid "--realtime expects boolean argument"
-msgstr ""
+msgstr "opțiunea „--realtime” așteaptă un argument boolean"
 
 #: src/daemon/cmdline.c:293
 msgid "--disallow-module-loading expects boolean argument"
-msgstr ""
+msgstr "opțiunea „--disallow-module-loading” așteaptă un argument boolean"
 
 #: src/daemon/cmdline.c:301
 msgid "--disallow-exit expects boolean argument"
-msgstr ""
+msgstr "opțiunea „--disallow-exit” așteaptă un argument boolean"
 
 #: src/daemon/cmdline.c:309
 msgid "--use-pid-file expects boolean argument"
-msgstr ""
+msgstr "opțiunea „--use-pid-file” așteaptă un argument boolean"
 
 #: src/daemon/cmdline.c:328
 msgid ""
 "Invalid log target: use either 'syslog', 'journal', 'stderr' or 'auto' or a valid file "
 "name 'file:<path>', 'newfile:<path>'."
 msgstr ""
+"Țintă de jurnal nevalidă: utilizați fie „syslog”, „journal”, „stderr” sau "
+"„auto” fie un nume de fișier valid „file:<ruta>”, „newfile:<ruta>”."
 
 #: src/daemon/cmdline.c:330
 msgid ""
 "Invalid log target: use either 'syslog', 'stderr' or 'auto' or a valid file name 'file:"
 "<path>', 'newfile:<path>'."
 msgstr ""
+"Țintă de jurnal nevalidă: utilizați fie „syslog, „stderr” sau „auto” fie un "
+"nume de fișier valid „file:<ruta>”, „newfile:<ruta>”."
 
 #: src/daemon/cmdline.c:338
 msgid "--log-time expects boolean argument"
-msgstr ""
+msgstr "opțiunea „--log-time” așteaptă un argument boolean"
 
 #: src/daemon/cmdline.c:346
 msgid "--log-meta expects boolean argument"
-msgstr ""
+msgstr "opțiunea „--log-meta” așteaptă un argument boolean"
 
 #: src/daemon/cmdline.c:366
 #, c-format
 msgid "Invalid resample method '%s'."
-msgstr ""
+msgstr "Metodă de reeșantionare nevalidă „%s”."
 
 #: src/daemon/cmdline.c:373
 msgid "--system expects boolean argument"
-msgstr ""
+msgstr "opțiunea „--system” așteaptă un argument boolean"
 
 #: src/daemon/cmdline.c:381
 msgid "--no-cpu-limit expects boolean argument"
-msgstr ""
+msgstr "opțiunea „--no-cpu-limit” așteaptă un argument boolean"
 
 #: src/daemon/cmdline.c:389
 msgid "--disable-shm expects boolean argument"
-msgstr ""
+msgstr "opțiunea „--disable-shm” așteaptă un argument boolean"
 
 #: src/daemon/cmdline.c:397
 msgid "--enable-memfd expects boolean argument"
-msgstr ""
+msgstr "opțiunea „--enable-memfd” așteaptă un argument boolean"
 
 #: src/daemon/daemon-conf.c:270
 #, c-format
 msgid "[%s:%u] Invalid log target '%s'."
-msgstr ""
+msgstr "[%s:%u] Țintă de jurnal nevalidă „%s”."
 
 #: src/daemon/daemon-conf.c:285
 #, c-format
 msgid "[%s:%u] Invalid log level '%s'."
-msgstr ""
+msgstr "[%s:%u] Nivel de jurnal nevalid „%s”."
 
 #: src/daemon/daemon-conf.c:300
 #, c-format
 msgid "[%s:%u] Invalid resample method '%s'."
-msgstr ""
+msgstr "[%s:%u] Metodă de reeșantionare nevalidă „%s”."
 
 #: src/daemon/daemon-conf.c:322
 #, c-format
 msgid "[%s:%u] Invalid rlimit '%s'."
-msgstr ""
+msgstr "[%s:%u] rlimit nevalid „%s”."
 
 #: src/daemon/daemon-conf.c:342
 #, c-format
 msgid "[%s:%u] Invalid sample format '%s'."
-msgstr ""
+msgstr "[%s:%u] Format de eșantion nevalid „%s”."
 
 #: src/daemon/daemon-conf.c:359 src/daemon/daemon-conf.c:376
 #, c-format
 msgid "[%s:%u] Invalid sample rate '%s'."
-msgstr ""
+msgstr "[%s:%u] Frecvență de eșantionare nevalidă „%s”."
 
 #: src/daemon/daemon-conf.c:399
 #, c-format
 msgid "[%s:%u] Invalid sample channels '%s'."
-msgstr ""
+msgstr "[%s:%u] Canale de eșantionare nevalide „%s”."
 
 #: src/daemon/daemon-conf.c:416
 #, c-format
 msgid "[%s:%u] Invalid channel map '%s'."
-msgstr ""
+msgstr "[%s:%u] Schemă de canale nevalidă „%s”."
 
 #: src/daemon/daemon-conf.c:433
 #, c-format
 msgid "[%s:%u] Invalid number of fragments '%s'."
-msgstr ""
+msgstr "[%s:%u] Număr nevalid de fragmente „%s”."
 
 #: src/daemon/daemon-conf.c:450
 #, c-format
 msgid "[%s:%u] Invalid fragment size '%s'."
-msgstr ""
+msgstr "[%s:%u] Dimensiune nevalidă a fragmentului „%s”."
 
 #: src/daemon/daemon-conf.c:467
 #, c-format
 msgid "[%s:%u] Invalid nice level '%s'."
-msgstr ""
+msgstr "[%s:%u] Nivel de curtoazie (nice) nevalid „%s”."
 
 #: src/daemon/daemon-conf.c:552
 #, c-format
 msgid "[%s:%u] Invalid server type '%s'."
-msgstr ""
+msgstr "[%s:%u] Tip de server nevalid „%s”."
 
 #: src/daemon/daemon-conf.c:685
 #, c-format
 msgid "Failed to open configuration file: %s"
-msgstr ""
+msgstr "Eșec la deschiderea fișierului de configurare: %s"
 
 #: src/daemon/daemon-conf.c:701
 msgid ""
 "The specified default channel map has a different number of channels than the specified "
 "default number of channels."
 msgstr ""
+"Schema de canale implicită specificată are un număr diferit de canale decât "
+"numărul implicit de canale specificat."
 
 #: src/daemon/daemon-conf.c:788
 #, c-format
 msgid "### Read from configuration file: %s ###\n"
-msgstr ""
+msgstr "### Citește din fișierul de configurare: %s ###\n"
 
 #: src/daemon/dumpmodules.c:57
 #, c-format
 msgid "Name: %s\n"
-msgstr ""
+msgstr "Nume: %s\n"
 
 #: src/daemon/dumpmodules.c:60
 #, c-format
 msgid "No module information available\n"
-msgstr ""
+msgstr "Nu există informații disponibile despre modul\n"
 
 #: src/daemon/dumpmodules.c:63
 #, c-format
 msgid "Version: %s\n"
-msgstr ""
+msgstr "Versiunea: %s\n"
 
 #: src/daemon/dumpmodules.c:65
 #, c-format
 msgid "Description: %s\n"
-msgstr ""
+msgstr "Descriere: %s\n"
 
 #: src/daemon/dumpmodules.c:67
 #, c-format
 msgid "Author: %s\n"
-msgstr ""
+msgstr "Autor: %s\n"
 
 #: src/daemon/dumpmodules.c:69
 #, c-format
 msgid "Usage: %s\n"
-msgstr ""
+msgstr "Utilizare: %s\n"
 
 #: src/daemon/dumpmodules.c:70
 #, c-format
 msgid "Load Once: %s\n"
-msgstr ""
+msgstr "Încarcă o dată: %s\n"
 
 #: src/daemon/dumpmodules.c:72
 #, c-format
 msgid "DEPRECATION WARNING: %s\n"
-msgstr ""
+msgstr "AVERTISMENT DE DEPRECIERE: %s\n"
 
 #: src/daemon/dumpmodules.c:76
 #, c-format
 msgid "Path: %s\n"
-msgstr ""
+msgstr "Ruta: %s\n"
 
 #: src/daemon/ltdl-bind-now.c:75
 #, c-format
 msgid "Failed to open module %s: %s"
-msgstr ""
+msgstr "Deschiderea modulului %s a eșuat: %s"
 
 #: src/daemon/ltdl-bind-now.c:126
 msgid "Failed to find original lt_dlopen loader."
-msgstr ""
+msgstr "Nu s-a reușit să se găsească încărcătorul lt_dlopen original."
 
 #: src/daemon/ltdl-bind-now.c:131
 msgid "Failed to allocate new dl loader."
-msgstr ""
+msgstr "Alocarea unui nou încărcător dl a eșuat."
 
 #: src/daemon/ltdl-bind-now.c:144
 msgid "Failed to add bind-now-loader."
-msgstr ""
+msgstr "Nu s-a putut adăuga bind-now-loader."
 
 #: src/daemon/main.c:265
 #, c-format
 msgid "Failed to find user '%s'."
-msgstr ""
+msgstr "Nu s-a reușit să se găsească utilizatorul „%s”."
 
 #: src/daemon/main.c:270
 #, c-format
 msgid "Failed to find group '%s'."
-msgstr ""
+msgstr "Nu s-a reușit să se găsească grupul „%s”."
 
 #: src/daemon/main.c:279
 #, c-format
 msgid "GID of user '%s' and of group '%s' don't match."
-msgstr ""
+msgstr "GID-ul utilizatorului „%s” și al grupului „%s” nu se potrivesc."
 
 #: src/daemon/main.c:284
 #, c-format
 msgid "Home directory of user '%s' is not '%s', ignoring."
-msgstr ""
+msgstr "Directorul personal al utilizatorului „%s” nu este „%s”, se ignoră."
 
 #: src/daemon/main.c:287 src/daemon/main.c:292
 #, c-format
 msgid "Failed to create '%s': %s"
-msgstr ""
+msgstr "Nu s-a putut crea „%s”: %s"
 
 #: src/daemon/main.c:299
 #, c-format
 msgid "Failed to change group list: %s"
-msgstr ""
+msgstr "Modificarea listei grupului a eșuat: %s"
 
 #: src/daemon/main.c:315
 #, c-format
 msgid "Failed to change GID: %s"
-msgstr ""
+msgstr "Schimbarea GID-ului a eșuat: %s"
 
 #: src/daemon/main.c:331
 #, c-format
 msgid "Failed to change UID: %s"
-msgstr ""
+msgstr "Schimbarea UID-ului a eșuat: %s"
 
 #: src/daemon/main.c:360
 msgid "System wide mode unsupported on this platform."
-msgstr ""
+msgstr "Modul de sistem extins/global nu este acceptat pe această platformă."
 
 #: src/daemon/main.c:650
 msgid "Failed to parse command line."
-msgstr ""
+msgstr "Analizarea datelor din linia de comandă a eșuat."
 
 #: src/daemon/main.c:689
 msgid ""
 "System mode refused for non-root user. Only starting the D-Bus server lookup service."
 msgstr ""
+"Modul de sistem este refuzat pentru utilizatorul care nu este root. Se "
+"pornește doar serviciul de căutare a serverului D-Bus."
 
 #: src/daemon/main.c:788
 #, c-format
 msgid "Failed to kill daemon: %s"
-msgstr ""
+msgstr "Omorârea demonului a eșuat: %s"
 
 #: src/daemon/main.c:817
 msgid "This program is not intended to be run as root (unless --system is specified)."
 msgstr ""
+"Acest program nu este destinat să fie rulat ca root (cu excepția cazului în "
+"care este specificată opțiunea „--system”)."
 
 #: src/daemon/main.c:820
 msgid "Root privileges required."
-msgstr ""
+msgstr "Sunt necesare privilegii de root."
 
 #: src/daemon/main.c:827
 msgid "--start not supported for system instances."
-msgstr ""
+msgstr "opțiunea „--start” nu este acceptată pentru instanțele de sistem."
 
 #: src/daemon/main.c:867
 #, c-format
 msgid "User-configured server at %s, refusing to start/autospawn."
 msgstr ""
+"Server configurat de utilizator la %s, care refuză să pornească/inițieze "
+"automat."
 
 #: src/daemon/main.c:873
 #, c-format
 msgid "User-configured server at %s, which appears to be local. Probing deeper."
 msgstr ""
+"Server configurat de utilizator la %s, care pare a fi local. Se efectuează o "
+"verificare mai aprofundată."
 
 #: src/daemon/main.c:878
 msgid "Running in system mode, but --disallow-exit not set."
 msgstr ""
+"Se execută în modul sistem, dar opțiunea „--disallow-exit” nu este "
+"specificată."
 
 #: src/daemon/main.c:881
 msgid "Running in system mode, but --disallow-module-loading not set."
 msgstr ""
+"Se execută în modul sistem, dar opțiunea „--disallow-module-loading” nu este "
+"specificată."
 
 #: src/daemon/main.c:884
 msgid "Running in system mode, forcibly disabling SHM mode."
-msgstr ""
+msgstr "Se execută în modul sistem, se dezactivează forțat modul SHM."
 
 #: src/daemon/main.c:889
 msgid "Running in system mode, forcibly disabling exit idle time."
 msgstr ""
+"Se execută în modul sistem, se dezactivează forțat ieșirea în timpul de "
+"inactivitate."
 
 #: src/daemon/main.c:922
 msgid "Failed to acquire stdio."
-msgstr ""
+msgstr "Nu s-a reușit să se achizționeze stdio."
 
 #: src/daemon/main.c:928 src/daemon/main.c:999
 #, c-format
 msgid "pipe() failed: %s"
-msgstr ""
+msgstr "pipe() a eșuat: %s"
 
 #: src/daemon/main.c:933 src/daemon/main.c:1004
 #, c-format
 msgid "fork() failed: %s"
-msgstr ""
+msgstr "fork() a eșuat: %s"
 
 #: src/daemon/main.c:948 src/daemon/main.c:1019 src/utils/pacat.c:562
 #, c-format
 msgid "read() failed: %s"
-msgstr ""
+msgstr "read() a eșuat: %s"
 
 #: src/daemon/main.c:954
 msgid "Daemon startup failed."
-msgstr ""
+msgstr "Inițierea demonului a eșuat."
 
 #: src/daemon/main.c:987
 #, c-format
 msgid "setsid() failed: %s"
-msgstr ""
+msgstr "setsid() a eșuat: %s"
 
 #: src/daemon/main.c:1119
 msgid "Failed to get machine ID"
-msgstr ""
+msgstr "Obținerea ID-ului mașinii a eșuat"
 
 #: src/daemon/main.c:1145
 msgid ""
@@ -431,18 +539,23 @@ msgid ""
 "Please read http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/"
 "WhatIsWrongWithSystemWide/ for an explanation why system mode is usually a bad idea."
 msgstr ""
+"OK, deci executați PulseAudio în modul sistem. Vă rugăm să vă asigurați că "
+"într-adevăr doriți să faceți acest lucru.\n"
+"Consultați http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/"
+"User/WhatIsWrongWithSystemWide/ pentru a afla de ce modul sistem este de "
+"obicei o idee proastă."
 
 #: src/daemon/main.c:1161
 msgid "pa_pid_file_create() failed."
-msgstr ""
+msgstr "pa_pid_file_create() a eșuat."
 
 #: src/daemon/main.c:1193
 msgid "pa_core_new() failed."
-msgstr ""
+msgstr "pa_core_new() a eșuat."
 
 #: src/daemon/main.c:1268
 msgid "command line arguments"
-msgstr ""
+msgstr "argumente din linia de comandă"
 
 #: src/daemon/main.c:1275
 #, c-format
@@ -450,195 +563,197 @@ msgid ""
 "Failed to initialize daemon due to errors while executing startup commands. Source of "
 "commands: %s"
 msgstr ""
+"Nu s-a reușit inițializarea demonului din cauza unor erori în timpul "
+"executării comenzilor de inițiere. Sursa comenzilor: %s"
 
 #: src/daemon/main.c:1280
 msgid "Daemon startup without any loaded modules, refusing to work."
-msgstr ""
+msgstr "Demonul pornește fără niciun modul încărcat, refuzând să funcționeze."
 
 #: src/daemon/pulseaudio.desktop.in:4
 msgid "PulseAudio Sound System"
-msgstr ""
+msgstr "Sistemul de sunet PulseAudio"
 
 #: src/daemon/pulseaudio.desktop.in:5
 msgid "Start the PulseAudio Sound System"
-msgstr ""
+msgstr "Inițiază sistemul de sunet PulseAudio"
 
 #: src/modules/alsa/alsa-mixer.c:2708
 msgid "Input"
-msgstr ""
+msgstr "Intrare"
 
 #: src/modules/alsa/alsa-mixer.c:2709
 msgid "Docking Station Input"
-msgstr ""
+msgstr "Intrare stație de conectare"
 
 #: src/modules/alsa/alsa-mixer.c:2710
 msgid "Docking Station Microphone"
-msgstr ""
+msgstr "Microfon stație de conectare"
 
 #: src/modules/alsa/alsa-mixer.c:2711
 msgid "Docking Station Line In"
-msgstr ""
+msgstr "Intrare linie stație de conectare"
 
 #: src/modules/alsa/alsa-mixer.c:2712 src/modules/alsa/alsa-mixer.c:2803
 msgid "Line In"
-msgstr ""
+msgstr "Intrare linie"
 
 #: src/modules/alsa/alsa-mixer.c:2713 src/modules/alsa/alsa-mixer.c:2797
 #: src/modules/bluetooth/module-bluez5-device.c:1956
 msgid "Microphone"
-msgstr ""
+msgstr "Microfon"
 
 #: src/modules/alsa/alsa-mixer.c:2714 src/modules/alsa/alsa-mixer.c:2798
 msgid "Front Microphone"
-msgstr ""
+msgstr "Microfon frontal"
 
 #: src/modules/alsa/alsa-mixer.c:2715 src/modules/alsa/alsa-mixer.c:2799
 msgid "Rear Microphone"
-msgstr ""
+msgstr "Microfon posterior"
 
 #: src/modules/alsa/alsa-mixer.c:2716
 msgid "External Microphone"
-msgstr ""
+msgstr "Microfon extern"
 
 #: src/modules/alsa/alsa-mixer.c:2717 src/modules/alsa/alsa-mixer.c:2801
 msgid "Internal Microphone"
-msgstr ""
+msgstr "Microfon intern"
 
 #: src/modules/alsa/alsa-mixer.c:2718 src/modules/alsa/alsa-mixer.c:2804
 #: src/utils/pactl.c:343
 msgid "Radio"
-msgstr ""
+msgstr "Radio"
 
 #: src/modules/alsa/alsa-mixer.c:2719 src/modules/alsa/alsa-mixer.c:2805
 #: src/utils/pactl.c:344
 msgid "Video"
-msgstr ""
+msgstr "Video"
 
 #: src/modules/alsa/alsa-mixer.c:2720
 msgid "Automatic Gain Control"
-msgstr ""
+msgstr "Control automat al câștigului"
 
 #: src/modules/alsa/alsa-mixer.c:2721
 msgid "No Automatic Gain Control"
-msgstr ""
+msgstr "Fără control automat al câștigului"
 
 #: src/modules/alsa/alsa-mixer.c:2722
 msgid "Boost"
-msgstr ""
+msgstr "Intensificare"
 
 #: src/modules/alsa/alsa-mixer.c:2723
 msgid "No Boost"
-msgstr ""
+msgstr "Fără intensificare"
 
 #: src/modules/alsa/alsa-mixer.c:2724
 msgid "Amplifier"
-msgstr ""
+msgstr "Amplificator"
 
 #: src/modules/alsa/alsa-mixer.c:2725
 msgid "No Amplifier"
-msgstr ""
+msgstr "Fără amplificator"
 
 #: src/modules/alsa/alsa-mixer.c:2726
 msgid "Bass Boost"
-msgstr ""
+msgstr "Intensificare bas"
 
 #: src/modules/alsa/alsa-mixer.c:2727
 msgid "No Bass Boost"
-msgstr ""
+msgstr "Fără intensificare bas"
 
 #: src/modules/alsa/alsa-mixer.c:2728 src/modules/bluetooth/module-bluez5-device.c:1964
 #: src/utils/pactl.c:333
 msgid "Speaker"
-msgstr ""
+msgstr "Difuzor"
 
 #: src/modules/alsa/alsa-mixer.c:2729 src/modules/alsa/alsa-mixer.c:2807
 #: src/utils/pactl.c:334
 msgid "Headphones"
-msgstr ""
+msgstr "Căști auriculare"
 
 #: src/modules/alsa/alsa-mixer.c:2796
 msgid "Analog Input"
-msgstr ""
+msgstr "Intrare analogică"
 
 #: src/modules/alsa/alsa-mixer.c:2800
 msgid "Dock Microphone"
-msgstr ""
+msgstr "Microfon stație de conectare"
 
 #: src/modules/alsa/alsa-mixer.c:2802
 msgid "Headset Microphone"
-msgstr ""
+msgstr "Microfon pentru căști"
 
 #: src/modules/alsa/alsa-mixer.c:2806
 msgid "Analog Output"
-msgstr ""
+msgstr "Ieșire analogică"
 
 #: src/modules/alsa/alsa-mixer.c:2808
 msgid "Headphones 2"
-msgstr ""
+msgstr "Căști auriculare 2"
 
 #: src/modules/alsa/alsa-mixer.c:2809
 msgid "Headphones Mono Output"
-msgstr ""
+msgstr "Ieșire mono pentru căști auriculare"
 
 #: src/modules/alsa/alsa-mixer.c:2810
 msgid "Line Out"
-msgstr ""
+msgstr "Ieșire linie"
 
 #: src/modules/alsa/alsa-mixer.c:2811
 msgid "Analog Mono Output"
-msgstr ""
+msgstr "Ieșire mono analogică"
 
 #: src/modules/alsa/alsa-mixer.c:2812
 msgid "Speakers"
-msgstr ""
+msgstr "Difuzoare"
 
 #: src/modules/alsa/alsa-mixer.c:2813
 msgid "HDMI / DisplayPort"
-msgstr ""
+msgstr "HDMI / DisplayPort"
 
 #: src/modules/alsa/alsa-mixer.c:2814
 msgid "Digital Output (S/PDIF)"
-msgstr ""
+msgstr "Ieșire digitală (S/PDIF)"
 
 #: src/modules/alsa/alsa-mixer.c:2815
 msgid "Digital Input (S/PDIF)"
-msgstr ""
+msgstr "Intrare digitală (S/PDIF)"
 
 #: src/modules/alsa/alsa-mixer.c:2816
 msgid "Multichannel Input"
-msgstr ""
+msgstr "Intrare multicanal"
 
 #: src/modules/alsa/alsa-mixer.c:2817
 msgid "Multichannel Output"
-msgstr ""
+msgstr "Ieșire multicanal"
 
 #: src/modules/alsa/alsa-mixer.c:2818
 msgid "Game Output"
-msgstr ""
+msgstr "Ieșire joc"
 
 #: src/modules/alsa/alsa-mixer.c:2819 src/modules/alsa/alsa-mixer.c:2820
 msgid "Chat Output"
-msgstr ""
+msgstr "Ieșire conversație (chat)"
 
 #: src/modules/alsa/alsa-mixer.c:2821
 msgid "Chat Input"
-msgstr ""
+msgstr "Intrare conversație (chat)"
 
 #: src/modules/alsa/alsa-mixer.c:2822
 msgid "Virtual Surround 7.1"
-msgstr ""
+msgstr "Surround virtual 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4563
 msgid "Analog Mono"
-msgstr ""
+msgstr "Mono analogic"
 
 #: src/modules/alsa/alsa-mixer.c:4564
 msgid "Analog Mono (Left)"
-msgstr ""
+msgstr "Mono analogic (stânga)"
 
 #: src/modules/alsa/alsa-mixer.c:4565
 msgid "Analog Mono (Right)"
-msgstr ""
+msgstr "Mono analogic (dreapta)"
 
 #. Note: Not translated to "Analog Stereo Input", because the source
 #. * name gets "Input" appended to it automatically, so adding "Input"
@@ -648,144 +763,144 @@ msgstr ""
 #: src/modules/alsa/alsa-mixer.c:4566 src/modules/alsa/alsa-mixer.c:4574
 #: src/modules/alsa/alsa-mixer.c:4575
 msgid "Analog Stereo"
-msgstr ""
+msgstr "Stereo analogic"
 
 #: src/modules/alsa/alsa-mixer.c:4567 src/pulse/channelmap.c:103
 #: src/pulse/channelmap.c:770
 msgid "Mono"
-msgstr ""
+msgstr "Mono"
 
 #: src/modules/alsa/alsa-mixer.c:4568 src/pulse/channelmap.c:774
 msgid "Stereo"
-msgstr ""
+msgstr "Stereo"
 
 #: src/modules/alsa/alsa-mixer.c:4576 src/modules/alsa/alsa-mixer.c:4734
 #: src/modules/bluetooth/module-bluez5-device.c:1944 src/utils/pactl.c:337
 msgid "Headset"
-msgstr ""
+msgstr "Căști auriculare cu microfon"
 
 #: src/modules/alsa/alsa-mixer.c:4577 src/modules/alsa/alsa-mixer.c:4735
 msgid "Speakerphone"
-msgstr ""
+msgstr "Difuzor"
 
 #: src/modules/alsa/alsa-mixer.c:4578 src/modules/alsa/alsa-mixer.c:4579
 msgid "Multichannel"
-msgstr ""
+msgstr "Multicanal"
 
 #: src/modules/alsa/alsa-mixer.c:4580
 msgid "Analog Surround 2.1"
-msgstr ""
+msgstr "Surround analogic 2.1"
 
 #: src/modules/alsa/alsa-mixer.c:4581
 msgid "Analog Surround 3.0"
-msgstr ""
+msgstr "Surround analogic 3.0"
 
 #: src/modules/alsa/alsa-mixer.c:4582
 msgid "Analog Surround 3.1"
-msgstr ""
+msgstr "Surround analogic 3.1"
 
 #: src/modules/alsa/alsa-mixer.c:4583
 msgid "Analog Surround 4.0"
-msgstr ""
+msgstr "Surround analogic 4.0"
 
 #: src/modules/alsa/alsa-mixer.c:4584
 msgid "Analog Surround 4.1"
-msgstr ""
+msgstr "Surround analogic 4.1"
 
 #: src/modules/alsa/alsa-mixer.c:4585
 msgid "Analog Surround 5.0"
-msgstr ""
+msgstr "Surround analogic 5.0"
 
 #: src/modules/alsa/alsa-mixer.c:4586
 msgid "Analog Surround 5.1"
-msgstr ""
+msgstr "Surround analogic 5.1"
 
 #: src/modules/alsa/alsa-mixer.c:4587
 msgid "Analog Surround 6.0"
-msgstr ""
+msgstr "Surround analogic 6.0"
 
 #: src/modules/alsa/alsa-mixer.c:4588
 msgid "Analog Surround 6.1"
-msgstr ""
+msgstr "Surround analogic 6.1"
 
 #: src/modules/alsa/alsa-mixer.c:4589
 msgid "Analog Surround 7.0"
-msgstr ""
+msgstr "Surround analogic 7.0"
 
 #: src/modules/alsa/alsa-mixer.c:4590
 msgid "Analog Surround 7.1"
-msgstr ""
+msgstr "Surround analogic 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4591
 msgid "Digital Stereo (IEC958)"
-msgstr ""
+msgstr "Stereo digital (IEC958)"
 
 #: src/modules/alsa/alsa-mixer.c:4592
 msgid "Digital Surround 4.0 (IEC958/AC3)"
-msgstr ""
+msgstr "Surround digital 4.0 (IEC958/AC3)"
 
 #: src/modules/alsa/alsa-mixer.c:4593
 msgid "Digital Surround 5.1 (IEC958/AC3)"
-msgstr ""
+msgstr "Surround digital 5.1 (IEC958/AC3)"
 
 #: src/modules/alsa/alsa-mixer.c:4594
 msgid "Digital Surround 5.1 (IEC958/DTS)"
-msgstr ""
+msgstr "Surround digital 5.1 (IEC958/DTS)"
 
 #: src/modules/alsa/alsa-mixer.c:4595
 msgid "Digital Stereo (HDMI)"
-msgstr ""
+msgstr "Stereo digital (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4596
 msgid "Digital Surround 5.1 (HDMI)"
-msgstr ""
+msgstr "Surround digital 5.1 (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4597
 msgid "Chat"
-msgstr ""
+msgstr "Conversație (chat)"
 
 #: src/modules/alsa/alsa-mixer.c:4598
 msgid "Game"
-msgstr ""
+msgstr "Joc"
 
 #: src/modules/alsa/alsa-mixer.c:4732
 msgid "Analog Mono Duplex"
-msgstr ""
+msgstr "Duplex mono analogic"
 
 #: src/modules/alsa/alsa-mixer.c:4733
 msgid "Analog Stereo Duplex"
-msgstr ""
+msgstr "Duplex stereo analogic"
 
 #: src/modules/alsa/alsa-mixer.c:4736
 msgid "Digital Stereo Duplex (IEC958)"
-msgstr ""
+msgstr "Duplex stereo digital (IEC958)"
 
 #: src/modules/alsa/alsa-mixer.c:4737
 msgid "Multichannel Duplex"
-msgstr ""
+msgstr "Duplex multicanal"
 
 #: src/modules/alsa/alsa-mixer.c:4738
 msgid "Stereo Duplex"
-msgstr ""
+msgstr "Duplex stereo"
 
 #: src/modules/alsa/alsa-mixer.c:4739
 msgid "Mono Chat + 7.1 Surround"
-msgstr ""
+msgstr "Conversație(chat) Mono + 7.1 Surround"
 
 #: src/modules/alsa/alsa-mixer.c:4740 src/modules/alsa/module-alsa-card.c:197
 #: src/modules/bluetooth/module-bluez5-device.c:2263
 msgid "Off"
-msgstr ""
+msgstr "Oprit"
 
 #: src/modules/alsa/alsa-mixer.c:4840
 #, c-format
 msgid "%s Output"
-msgstr ""
+msgstr "Ieșire %s"
 
 #: src/modules/alsa/alsa-mixer.c:4848
 #, c-format
 msgid "%s Input"
-msgstr ""
+msgstr "Intrare %s"
 
 #: src/modules/alsa/alsa-sink.c:672 src/modules/alsa/alsa-sink.c:862
 #, c-format
@@ -797,6 +912,12 @@ msgid ""
 "We were woken up with POLLOUT set -- however a subsequent snd_pcm_avail() returned 0 or "
 "another value < min_avail."
 msgstr ""
+"ALSA ne-a trezit pentru a scrie date noi pe dispozitiv, dar de fapt nu era "
+"nimic de scris.\n"
+"Cel mai probabil, aceasta este o eroare în controlorul ALSA „%s”. Vă rugăm "
+"să raportați această problemă dezvoltatorilor ALSA.\n"
+"Am fost treziți cu POLLOUT activat - cu toate acestea, un snd_pcm_avail() "
+"ulterior a returnat 0 sau o altă valoare < min_avail."
 
 #: src/modules/alsa/alsa-source.c:636 src/modules/alsa/alsa-source.c:802
 #, c-format
@@ -808,6 +929,12 @@ msgid ""
 "We were woken up with POLLIN set -- however a subsequent snd_pcm_avail() returned 0 or "
 "another value < min_avail."
 msgstr ""
+"ALSA ne-a trezit pentru a citi date noi de pe dispozitiv, dar de fapt nu era "
+"nimic de citit.\n"
+"Cel mai probabil, aceasta este o eroare în controlorul ALSA „%s”. Vă rugăm "
+"să raportați această problemă dezvoltatorilor ALSA.\n"
+"Am fost treziți cu POLLIN activat - cu toate acestea, un snd_pcm_avail() "
+"ulterior a returnat 0 sau o altă valoare < min_avail."
 
 #: src/modules/alsa/alsa-util.c:1183 src/modules/alsa/alsa-util.c:1277
 #, c-format
@@ -820,7 +947,20 @@ msgid_plural ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA "
 "developers."
 msgstr[0] ""
+"snd_pcm_avail() a returnat o valoare care este excepțional de mare: %lu "
+"octet (%lu ms).\n"
+"Cel mai probabil, aceasta este o eroare a controlorului ALSA „%s”. Vă rugăm "
+"să raportați această problemă dezvoltatorilor ALSA."
 msgstr[1] ""
+"snd_pcm_avail() a returnat o valoare care este excepțional de mare: %lu "
+"octeți (%lu ms).\n"
+"Cel mai probabil, aceasta este o eroare a controlorului ALSA „%s”. Vă rugăm "
+"să raportați această problemă dezvoltatorilor ALSA."
+msgstr[2] ""
+"snd_pcm_avail() a returnat o valoare care este excepțional de mare: %lu de "
+"octeți (%lu ms).\n"
+"Cel mai probabil, aceasta este o eroare a controlorului ALSA „%s”. Vă rugăm "
+"să raportați această problemă dezvoltatorilor ALSA."
 
 #: src/modules/alsa/alsa-util.c:1249
 #, c-format
@@ -833,7 +973,20 @@ msgid_plural ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA "
 "developers."
 msgstr[0] ""
+"snd_pcm_delay() a returnat o valoare care este excepțional de mare: %li "
+"octet (%s%lu ms).\n"
+"Cel mai probabil, aceasta este o eroare a controlorului ALSA „%s”. Vă rugăm "
+"să raportați această problemă dezvoltatorilor ALSA."
 msgstr[1] ""
+"snd_pcm_delay() a returnat o valoare care este excepțional de mare: %li "
+"octeți (%s%lu ms).\n"
+"Cel mai probabil, aceasta este o eroare a controlorului ALSA „%s”. Vă rugăm "
+"să raportați această problemă dezvoltatorilor ALSA."
+msgstr[2] ""
+"snd_pcm_delay() a returnat o valoare care este excepțional de mare: %li de "
+"octeți (%s%lu ms).\n"
+"Cel mai probabil, aceasta este o eroare a controlorului ALSA „%s”. Vă rugăm "
+"să raportați această problemă dezvoltatorilor ALSA."
 
 #: src/modules/alsa/alsa-util.c:1296
 #, c-format
@@ -842,6 +995,10 @@ msgid ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA "
 "developers."
 msgstr ""
+"snd_pcm_avail_delay() a returnat valori ciudate: întârzierea %lu este mai "
+"mică decât valoarea disponibilă %lu.\n"
+"Cel mai probabil, aceasta este o eroare a controlorului ALSA „%s”. Vă rugăm "
+"să raportați această problemă dezvoltatorilor ALSA."
 
 #: src/modules/alsa/alsa-util.c:1339
 #, c-format
@@ -854,66 +1011,79 @@ msgid_plural ""
 "Most likely this is a bug in the ALSA driver '%s'. Please report this issue to the ALSA "
 "developers."
 msgstr[0] ""
+"ssnd_pcm_mmap_begin() a returnat o valoare care este excepțional de mare: "
+"%lu octet (%lu ms).\n"
+"Cel mai probabil, aceasta este o eroare a controlorului ALSA „%s”. Vă rugăm "
+"să raportați această problemă dezvoltatorilor ALSA."
 msgstr[1] ""
+"snd_pcm_mmap_begin() a returnat o valoare care este excepțional de mare: %lu "
+"octeți (%lu ms).\n"
+"Cel mai probabil, aceasta este o eroare a controlorului ALSA „%s”. Vă rugăm "
+"să raportați această problemă dezvoltatorilor ALSA."
+msgstr[2] ""
+"snd_pcm_mmap_begin() a returnat o valoare care este excepțional de mare: %lu "
+"de octeți (%lu ms).\n"
+"Cel mai probabil, aceasta este o eroare a controlorului ALSA „%s”. Vă rugăm "
+"să raportați această problemă dezvoltatorilor ALSA."
 
 #: src/modules/bluetooth/module-bluez5-device.c:1937
 #: src/modules/bluetooth/module-bluez5-device.c:1963
 #: src/modules/bluetooth/module-bluez5-device.c:1970
 msgid "Bluetooth Input"
-msgstr ""
+msgstr "Intrare Bluetooth"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1938
 #: src/modules/bluetooth/module-bluez5-device.c:1957
 msgid "Bluetooth Output"
-msgstr ""
+msgstr "Ieșire Bluetooth"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1950 src/utils/pactl.c:348
 msgid "Handsfree"
-msgstr ""
+msgstr "Kit de mâini libere"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1971
 msgid "Headphone"
-msgstr ""
+msgstr "Cască auriculară"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1977 src/utils/pactl.c:347
 msgid "Portable"
-msgstr ""
+msgstr "Portable"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1983 src/utils/pactl.c:349
 msgid "Car"
-msgstr ""
+msgstr "Autoturism"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1989 src/utils/pactl.c:350
 msgid "HiFi"
-msgstr ""
+msgstr "HiFi"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1995 src/utils/pactl.c:351
 msgid "Phone"
-msgstr ""
+msgstr "Telefon"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2042
 msgid "High Fidelity Playback (A2DP Sink)"
-msgstr ""
+msgstr "Redare de înaltă fidelitate (receptor A2DP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2054
 msgid "High Fidelity Capture (A2DP Source)"
-msgstr ""
+msgstr "Captare de înaltă fidelitate (sursă A2DP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2066
 msgid "Headset Head Unit (HSP)"
-msgstr ""
+msgstr "Unitate de căști (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2079
 msgid "Headset Audio Gateway (HSP)"
-msgstr ""
+msgstr "Pasarelă audio pentru căști (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2092
 msgid "Handsfree Head Unit (HFP)"
-msgstr ""
+msgstr "Unitate de cască cu microfon, mâini libere (HFP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2105
 msgid "Handsfree Audio Gateway (HFP)"
-msgstr ""
+msgstr "Pasarelă unitate de cască cu microfon, mâini libere (HFP)"
 
 #: src/modules/echo-cancel/module-echo-cancel.c:59
 msgid ""
@@ -927,27 +1097,41 @@ msgid ""
 "autoloaded=<set if this module is being loaded automatically> use_volume_sharing=<yes "
 "or no> use_master_format=<yes or no> "
 msgstr ""
+"source_name=<numele sursei> source_properties=<proprietățile sursei> "
+"source_master=<numele sursei de filtrat> sink_name=<numele receptorului> "
+"sink_properties=<proprietățile receptorului> sink_master=<numele "
+"receptorului de filtrat> adjust_time=<cât de des să reajusteze ratele în "
+"sec.> adjust_threshold=<cantitatea de deviere care trebuie reajustată după "
+"în ms> format=<formatul eșantionului> rate=<rata de eșantionare> "
+"channels=<numărul de canale> channel_map=<schema canalelor> "
+"aec_method=<implementarea de utilizat> aec_args=<parametrii pentru motorul "
+"AEC> save_aec=<salvează datele AEC în /tmp> autoloaded=<stabilește dacă "
+"acest modul este încărcat automat> use_volume_sharing=<yes sau no> "
+"use_master_format=<yes sau no> "
 
 #. add on profile
 #: src/modules/macosx/module-coreaudio-device.c:825
 msgid "On"
-msgstr ""
+msgstr "Pornit"
 
 #: src/modules/module-allow-passthrough.c:71 src/modules/module-always-sink.c:80
 msgid "Dummy Output"
-msgstr ""
+msgstr "Ieșire fictivă"
 
 #: src/modules/module-always-sink.c:34
 msgid "Always keeps at least one sink loaded even if it's a null one"
 msgstr ""
+"Păstrează întotdeauna încărcat cel puțin un receptor, chiar dacă este unul "
+"nul"
 
 #: src/modules/module-always-source.c:35
 msgid "Always keeps at least one source loaded even if it's a null one"
 msgstr ""
+"Păstrează întotdeauna cel puțin o sursă încărcată, chiar dacă este una nulă"
 
 #: src/modules/module-equalizer-sink.c:68
 msgid "General Purpose Equalizer"
-msgstr ""
+msgstr "Egalizator de uz general"
 
 #: src/modules/module-equalizer-sink.c:72
 msgid ""
@@ -956,19 +1140,24 @@ msgid ""
 "channels=<number of channels> channel_map=<channel map> autoloaded=<set if this module "
 "is being loaded automatically> use_volume_sharing=<yes or no> "
 msgstr ""
+"sink_name=<denumirea receptorului> sink_properties=<proprietățile "
+"receptorului> sink_master=<receptorul la care se conectează> "
+"format=<formatul eșantionului> rate=<rata de eșantionare> channels=<numărul "
+"de canale> channel_map=<mapa canalelor> autoloaded=<stabilește dacă acest "
+"modul este încărcat automat> use_volume_sharing=<yes sau no> "
 
 #: src/modules/module-equalizer-sink.c:1097 src/modules/module-equalizer-sink.c:1220
 #, c-format
 msgid "FFT based equalizer on %s"
-msgstr ""
+msgstr "Egalizator bazat pe FFT pe %s"
 
 #: src/modules/module-filter-apply.c:47
 msgid "autoclean=<automatically unload unused filters?>"
-msgstr ""
+msgstr "autoclean=<se descarcă automat filtrele neutilizate?>"
 
 #: src/modules/module-ladspa-sink.c:50
 msgid "Virtual LADSPA sink"
-msgstr ""
+msgstr "Receptor virtual LADSPA"
 
 #: src/modules/module-ladspa-sink.c:54
 msgid ""
@@ -981,49 +1170,60 @@ msgid ""
 "output_ladspaport_map=<comma separated list of output LADSPA port names> "
 "autoloaded=<set if this module is being loaded automatically> "
 msgstr ""
+"sink_name=<numele receptorului> sink_properties=<proprietățile receptorului> "
+"sink_input_properties=<proprietățile intrării receptorului> master=<numele "
+"receptorului care urmează să fie filtrat> sink_master=<numele receptorului "
+"care urmează să fie filtrat> format=<formatul eșantionului> rate=<rata de "
+"eșantionare> channels=<numărul de canale> channel_map=<schema canalelor de "
+"intrare> plugin=<ladspa plugin name> label=<eticheta modulului ladspa> "
+"control=<listă de valori de control de intrare separate prin virgule> "
+"input_ladspaport_map=<listă de nume de porturi LADSPA de intrare separate "
+"prin virgule> output_ladspaport_map=<listă de nume de porturi LADSPA de "
+"ieșire separate prin virgule> autoloaded=<stabilește dacă acest modul este "
+"încărcat automat> "
 
 #: src/modules/module-null-sink.c:46
 msgid "Clocked NULL sink"
-msgstr ""
+msgstr "Receptor NULL temporizat"
 
 #: src/modules/module-null-sink.c:356
 msgid "Null Output"
-msgstr ""
+msgstr "Ieșire nulă"
 
 #: src/modules/module-null-sink.c:368 src/utils/pactl.c:2064
 #, c-format
 msgid "Failed to set format: invalid format string %s"
-msgstr ""
+msgstr "Definirierea formatului a eșuat: șir de format nevalid %s"
 
 #: src/modules/module-rygel-media-server.c:506 src/modules/module-rygel-media-server.c:544
 #: src/modules/module-rygel-media-server.c:903
 msgid "Output Devices"
-msgstr ""
+msgstr "Dispozitive de ieșire"
 
 #: src/modules/module-rygel-media-server.c:507 src/modules/module-rygel-media-server.c:545
 #: src/modules/module-rygel-media-server.c:904
 msgid "Input Devices"
-msgstr ""
+msgstr "Dispozitive de intrare"
 
 #: src/modules/module-rygel-media-server.c:1061
 msgid "Audio on @HOSTNAME@"
-msgstr ""
+msgstr "Audio pe @HOSTNAME@"
 
 #. TODO: old tunnel put here the remote sink_name into stream name e.g. 'Null Output for lynxis@lazus'
 #. TODO: old tunnel put here the remote source_name into stream name e.g. 'Null Output for lynxis@lazus'
 #: src/modules/module-tunnel-sink-new.c:370 src/modules/module-tunnel-source-new.c:354
 #, c-format
 msgid "Tunnel for %s@%s"
-msgstr ""
+msgstr "Tunel pentru %s@%s"
 
 #: src/modules/module-tunnel-sink-new.c:715 src/modules/module-tunnel-source-new.c:684
 #, c-format
 msgid "Tunnel to %s/%s"
-msgstr ""
+msgstr "Tunel către %s/%s"
 
 #: src/modules/module-virtual-surround-sink.c:50
 msgid "Virtual surround sink"
-msgstr ""
+msgstr "Receptor surround virtual"
 
 #: src/modules/module-virtual-surround-sink.c:54
 msgid ""
@@ -1034,288 +1234,296 @@ msgid ""
 "wav hrir_left=/path/to/left_hrir.wav hrir_right=/path/to/optional/right_hrir.wav "
 "autoloaded=<set if this module is being loaded automatically> "
 msgstr ""
+"sink_name=<numele receptorului> sink_properties=<proprietățile receptorului> "
+"master=<numele receptorului de filtrat> sink_master=<numele receptorului de "
+"filtrat> format=<formatul eșantionului> rate=<rata de eșantionare> "
+"channels=<numărul de canale> channel_map=<schema canalelor> "
+"use_volume_sharing=<yes sau no> force_flat_volume=<yes sau no> hrir=/ruta/că"
+"tre/left_hrir. wav hrir_left=/path/to/left_hrir.wav hrir_right=/ruta/către/"
+"opțional/right_hrir.wav autoloaded=<stabilește dacă acest modul este "
+"încărcat automat> "
 
 #: src/modules/raop/module-raop-discover.c:295
 msgid "Unknown device model"
-msgstr ""
+msgstr "Model de dispozitiv necunoscut"
 
 #: src/modules/raop/raop-sink.c:689
 msgid "RAOP standard profile"
-msgstr ""
+msgstr "Profil standard RAOP"
 
 #: src/modules/reserve-wrap.c:149
 msgid "PulseAudio Sound Server"
-msgstr ""
+msgstr "Server de sunet PulseAudio"
 
 #: src/pulse/channelmap.c:105
 msgid "Front Center"
-msgstr ""
+msgstr "Centru față"
 
 #: src/pulse/channelmap.c:106
 msgid "Front Left"
-msgstr ""
+msgstr "Stânga față"
 
 #: src/pulse/channelmap.c:107
 msgid "Front Right"
-msgstr ""
+msgstr "Dreapta față"
 
 #: src/pulse/channelmap.c:109
 msgid "Rear Center"
-msgstr ""
+msgstr "Centru spate"
 
 #: src/pulse/channelmap.c:110
 msgid "Rear Left"
-msgstr ""
+msgstr "Stânga spate"
 
 #: src/pulse/channelmap.c:111
 msgid "Rear Right"
-msgstr ""
+msgstr "Dreapta spate"
 
 #: src/pulse/channelmap.c:113
 msgid "Subwoofer"
-msgstr ""
+msgstr "Boxă bas"
 
 #: src/pulse/channelmap.c:115
 msgid "Front Left-of-center"
-msgstr ""
+msgstr "Față stânga-din-centru"
 
 #: src/pulse/channelmap.c:116
 msgid "Front Right-of-center"
-msgstr ""
+msgstr "Față dreapta-din-centru"
 
 #: src/pulse/channelmap.c:118
 msgid "Side Left"
-msgstr ""
+msgstr "Lateral stânga"
 
 #: src/pulse/channelmap.c:119
 msgid "Side Right"
-msgstr ""
+msgstr "Lateral dreapta"
 
 #: src/pulse/channelmap.c:121
 msgid "Auxiliary 0"
-msgstr ""
+msgstr "Auxiliar 0"
 
 #: src/pulse/channelmap.c:122
 msgid "Auxiliary 1"
-msgstr ""
+msgstr "Auxiliar 1"
 
 #: src/pulse/channelmap.c:123
 msgid "Auxiliary 2"
-msgstr ""
+msgstr "Auxiliar 2"
 
 #: src/pulse/channelmap.c:124
 msgid "Auxiliary 3"
-msgstr ""
+msgstr "Auxiliar 3"
 
 #: src/pulse/channelmap.c:125
 msgid "Auxiliary 4"
-msgstr ""
+msgstr "Auxiliar 4"
 
 #: src/pulse/channelmap.c:126
 msgid "Auxiliary 5"
-msgstr ""
+msgstr "Auxiliar 5"
 
 #: src/pulse/channelmap.c:127
 msgid "Auxiliary 6"
-msgstr ""
+msgstr "Auxiliar 6"
 
 #: src/pulse/channelmap.c:128
 msgid "Auxiliary 7"
-msgstr ""
+msgstr "Auxiliar 7"
 
 #: src/pulse/channelmap.c:129
 msgid "Auxiliary 8"
-msgstr ""
+msgstr "Auxiliar 8"
 
 #: src/pulse/channelmap.c:130
 msgid "Auxiliary 9"
-msgstr ""
+msgstr "Auxiliar 9"
 
 #: src/pulse/channelmap.c:131
 msgid "Auxiliary 10"
-msgstr ""
+msgstr "Auxiliar 10"
 
 #: src/pulse/channelmap.c:132
 msgid "Auxiliary 11"
-msgstr ""
+msgstr "Auxiliar 11"
 
 #: src/pulse/channelmap.c:133
 msgid "Auxiliary 12"
-msgstr ""
+msgstr "Auxiliar 12"
 
 #: src/pulse/channelmap.c:134
 msgid "Auxiliary 13"
-msgstr ""
+msgstr "Auxiliar 13"
 
 #: src/pulse/channelmap.c:135
 msgid "Auxiliary 14"
-msgstr ""
+msgstr "Auxiliar 14"
 
 #: src/pulse/channelmap.c:136
 msgid "Auxiliary 15"
-msgstr ""
+msgstr "Auxiliar 15"
 
 #: src/pulse/channelmap.c:137
 msgid "Auxiliary 16"
-msgstr ""
+msgstr "Auxiliar 16"
 
 #: src/pulse/channelmap.c:138
 msgid "Auxiliary 17"
-msgstr ""
+msgstr "Auxiliar 17"
 
 #: src/pulse/channelmap.c:139
 msgid "Auxiliary 18"
-msgstr ""
+msgstr "Auxiliar 18"
 
 #: src/pulse/channelmap.c:140
 msgid "Auxiliary 19"
-msgstr ""
+msgstr "Auxiliar 19"
 
 #: src/pulse/channelmap.c:141
 msgid "Auxiliary 20"
-msgstr ""
+msgstr "Auxiliar 20"
 
 #: src/pulse/channelmap.c:142
 msgid "Auxiliary 21"
-msgstr ""
+msgstr "Auxiliar 21"
 
 #: src/pulse/channelmap.c:143
 msgid "Auxiliary 22"
-msgstr ""
+msgstr "Auxiliar 22"
 
 #: src/pulse/channelmap.c:144
 msgid "Auxiliary 23"
-msgstr ""
+msgstr "Auxiliar 23"
 
 #: src/pulse/channelmap.c:145
 msgid "Auxiliary 24"
-msgstr ""
+msgstr "Auxiliar 24"
 
 #: src/pulse/channelmap.c:146
 msgid "Auxiliary 25"
-msgstr ""
+msgstr "Auxiliar 25"
 
 #: src/pulse/channelmap.c:147
 msgid "Auxiliary 26"
-msgstr ""
+msgstr "Auxiliar 26"
 
 #: src/pulse/channelmap.c:148
 msgid "Auxiliary 27"
-msgstr ""
+msgstr "Auxiliar 27"
 
 #: src/pulse/channelmap.c:149
 msgid "Auxiliary 28"
-msgstr ""
+msgstr "Auxiliar 28"
 
 #: src/pulse/channelmap.c:150
 msgid "Auxiliary 29"
-msgstr ""
+msgstr "Auxiliar 29"
 
 #: src/pulse/channelmap.c:151
 msgid "Auxiliary 30"
-msgstr ""
+msgstr "Auxiliar 30"
 
 #: src/pulse/channelmap.c:152
 msgid "Auxiliary 31"
-msgstr ""
+msgstr "Auxiliar 31"
 
 #: src/pulse/channelmap.c:154
 msgid "Top Center"
-msgstr ""
+msgstr "Centru sus"
 
 #: src/pulse/channelmap.c:156
 msgid "Top Front Center"
-msgstr ""
+msgstr "Centru față sus"
 
 #: src/pulse/channelmap.c:157
 msgid "Top Front Left"
-msgstr ""
+msgstr "Stânga față sus"
 
 #: src/pulse/channelmap.c:158
 msgid "Top Front Right"
-msgstr ""
+msgstr "Dreapta față sus"
 
 #: src/pulse/channelmap.c:160
 msgid "Top Rear Center"
-msgstr ""
+msgstr "Centru spate sus"
 
 #: src/pulse/channelmap.c:161
 msgid "Top Rear Left"
-msgstr ""
+msgstr "Stânga spate sus"
 
 #: src/pulse/channelmap.c:162
 msgid "Top Rear Right"
-msgstr ""
+msgstr "Dreapta spate sus"
 
 #: src/pulse/channelmap.c:478 src/pulse/format.c:123 src/pulse/sample.c:177
 #: src/pulse/volume.c:306 src/pulse/volume.c:332 src/pulse/volume.c:352
 #: src/pulse/volume.c:384 src/pulse/volume.c:424 src/pulse/volume.c:443
 #: src/utils/pactl.c:483 src/utils/pactl.c:504
 msgid "(invalid)"
-msgstr ""
+msgstr "(nevalid)"
 
 #: src/pulse/channelmap.c:779
 msgid "Surround 4.0"
-msgstr ""
+msgstr "Surround 4.0"
 
 #: src/pulse/channelmap.c:785
 msgid "Surround 4.1"
-msgstr ""
+msgstr "Surround 4.1"
 
 #: src/pulse/channelmap.c:791
 msgid "Surround 5.0"
-msgstr ""
+msgstr "Surround 5.0"
 
 #: src/pulse/channelmap.c:797
 msgid "Surround 5.1"
-msgstr ""
+msgstr "Surround 5.1"
 
 #: src/pulse/channelmap.c:804
 msgid "Surround 7.1"
-msgstr ""
+msgstr "Surround 7.1"
 
 #: src/pulse/client-conf-x11.c:61 src/utils/pax11publish.c:97
 msgid "xcb_connect() failed"
-msgstr ""
+msgstr "xcb_connect() a eșuat"
 
 #: src/pulse/client-conf-x11.c:66 src/utils/pax11publish.c:102
 msgid "xcb_connection_has_error() returned true"
-msgstr ""
+msgstr "xcb_connection_has_error() a returnat „true”"
 
 #: src/pulse/client-conf-x11.c:102
 msgid "Failed to parse cookie data"
-msgstr ""
+msgstr "Analizarea datelor cookie a eșuat"
 
 #: src/pulse/context.c:717
 #, c-format
 msgid "fork(): %s"
-msgstr ""
+msgstr "fork(): %s"
 
 #: src/pulse/context.c:772
 #, c-format
 msgid "waitpid(): %s"
-msgstr ""
+msgstr "waitpid(): %s"
 
 #: src/pulse/context.c:1488
 #, c-format
 msgid "Received message for unknown extension '%s'"
-msgstr ""
+msgstr "Mesaj primit pentru extensia necunoscută „%s”"
 
 #: src/pulse/direction.c:37
 msgid "input"
-msgstr ""
+msgstr "intrare"
 
 #: src/pulse/direction.c:39
 msgid "output"
-msgstr ""
+msgstr "teșire"
 
 #: src/pulse/direction.c:41
 msgid "bidirectional"
-msgstr ""
+msgstr "bidirecțional"
 
 #: src/pulse/direction.c:43
 msgid "invalid"
-msgstr ""
+msgstr "nevalid"
 
 #: src/pulsecore/core-util.c:1790
 #, c-format
@@ -1324,349 +1532,358 @@ msgid ""
 "happen if you try to connect to a non-root PulseAudio as a root user, over the native "
 "protocol. Don't do that.)"
 msgstr ""
+"XDG_RUNTIME_DIR (%s) nu este deținut de noi (uid %d), ci de uid %d! «Acest "
+"lucru s-ar putea întâmpla, de exemplu, dacă încercați să vă conectați la un "
+"PulseAudio non-root ca utilizator root, prin protocolul nativ. Nu faceți "
+"asta!»"
 
 #: src/pulsecore/core-util.h:97
 msgid "yes"
-msgstr ""
+msgstr "da"
 
 #: src/pulsecore/core-util.h:97
 msgid "no"
-msgstr ""
+msgstr "nu"
 
 #: src/pulsecore/lock-autospawn.c:141 src/pulsecore/lock-autospawn.c:227
 msgid "Cannot access autospawn lock."
-msgstr ""
+msgstr "Nu se poate accesa blocarea inițierii automate."
 
 #: src/pulsecore/log.c:165
 #, c-format
 msgid "Failed to open target file '%s'."
-msgstr ""
+msgstr "Deschiderea fișierului țintă „%s” a eșuat."
 
 #: src/pulsecore/log.c:188
 #, c-format
 msgid "Tried to open target file '%s', '%s.1', '%s.2' ... '%s.%d', but all failed."
 msgstr ""
+"S-a încercat deschiderea fișierelor țintă „%s”, „%s.1”, „%s.2” ... „%s.%d”, "
+"dar toate încercările au eșuat."
 
 #: src/pulsecore/log.c:651
 msgid "Invalid log target."
-msgstr ""
+msgstr "Țintă jurnal nevalidă."
 
 #: src/pulsecore/sink.c:3609
 msgid "Built-in Audio"
-msgstr ""
+msgstr "Audio integrat"
 
 #: src/pulsecore/sink.c:3614
 msgid "Modem"
-msgstr ""
+msgstr "Modem"
 
 #: src/pulse/error.c:38
 msgid "OK"
-msgstr ""
+msgstr "Ok"
 
 #: src/pulse/error.c:39
 msgid "Access denied"
-msgstr ""
+msgstr "Acces refuzat"
 
 #: src/pulse/error.c:40
 msgid "Unknown command"
-msgstr ""
+msgstr "Comandă necunoscută"
 
 #: src/pulse/error.c:41
 msgid "Invalid argument"
-msgstr ""
+msgstr "Argument nevalid"
 
 #: src/pulse/error.c:42
 msgid "Entity exists"
-msgstr ""
+msgstr "Entitatea există"
 
 #: src/pulse/error.c:43
 msgid "No such entity"
-msgstr ""
+msgstr "Nu există o astfel de entitate"
 
 #: src/pulse/error.c:44
 msgid "Connection refused"
-msgstr ""
+msgstr "Conexiune refuzată"
 
 #: src/pulse/error.c:45
 msgid "Protocol error"
-msgstr ""
+msgstr "Eroare de protocol"
 
 #: src/pulse/error.c:46
 msgid "Timeout"
-msgstr ""
+msgstr "S-a depășit limita de timp"
 
 #: src/pulse/error.c:47
 msgid "No authentication key"
-msgstr ""
+msgstr "Fără cheie de autentificare"
 
 #: src/pulse/error.c:48
 msgid "Internal error"
-msgstr ""
+msgstr "Eroare internă"
 
 #: src/pulse/error.c:49
 msgid "Connection terminated"
-msgstr ""
+msgstr "Conexiune terminată"
 
 #: src/pulse/error.c:50
 msgid "Entity killed"
-msgstr ""
+msgstr "Entitate omorâtă"
 
 #: src/pulse/error.c:51
 msgid "Invalid server"
-msgstr ""
+msgstr "Server nevalid"
 
 #: src/pulse/error.c:52
 msgid "Module initialization failed"
-msgstr ""
+msgstr "Inițializarea modulului a eșuat"
 
 #: src/pulse/error.c:53
 msgid "Bad state"
-msgstr ""
+msgstr "Stare defectuoasă"
 
 #: src/pulse/error.c:54
 msgid "No data"
-msgstr ""
+msgstr "Nu există date"
 
 #: src/pulse/error.c:55
 msgid "Incompatible protocol version"
-msgstr ""
+msgstr "Versiune de protocol incompatibilă"
 
 #: src/pulse/error.c:56
 msgid "Too large"
-msgstr ""
+msgstr "Prea mare"
 
 #: src/pulse/error.c:57
 msgid "Not supported"
-msgstr ""
+msgstr "Necompatibil"
 
 #: src/pulse/error.c:58
 msgid "Unknown error code"
-msgstr ""
+msgstr "Cod de eroare necunoscut"
 
 #: src/pulse/error.c:59
 msgid "No such extension"
-msgstr ""
+msgstr "Nu există o astfel de extensie"
 
 #: src/pulse/error.c:60
 msgid "Obsolete functionality"
-msgstr ""
+msgstr "Funcționalitate obsoletă"
 
 #: src/pulse/error.c:61
 msgid "Missing implementation"
-msgstr ""
+msgstr "Lipsește implementarea"
 
 #: src/pulse/error.c:62
 msgid "Client forked"
-msgstr ""
+msgstr "Client bifurcat (inițiat în fundal)"
 
 #: src/pulse/error.c:63
 msgid "Input/Output error"
-msgstr ""
+msgstr "Eroare de intrare/ieșire"
 
 #: src/pulse/error.c:64
 msgid "Device or resource busy"
-msgstr ""
+msgstr "Dispozitiv sau resursă ocupată"
 
 #: src/pulse/sample.c:179
 #, c-format
 msgid "%s %uch %uHz"
-msgstr ""
+msgstr "%s %uch %uHz"
 
 #: src/pulse/sample.c:191
 #, c-format
 msgid "%0.1f GiB"
-msgstr ""
+msgstr "%0.1f Gio"
 
 #: src/pulse/sample.c:193
 #, c-format
 msgid "%0.1f MiB"
-msgstr ""
+msgstr "%0.1f Mio"
 
 #: src/pulse/sample.c:195
 #, c-format
 msgid "%0.1f KiB"
-msgstr ""
+msgstr "%0.1f Kio"
 
 #: src/pulse/sample.c:197
 #, c-format
 msgid "%u B"
-msgstr ""
+msgstr "%u o"
 
 #: src/utils/pacat.c:134
 #, c-format
 msgid "Failed to drain stream: %s"
-msgstr ""
+msgstr "Golirea fluxului a eșuat: %s"
 
 #: src/utils/pacat.c:139
 msgid "Playback stream drained."
-msgstr ""
+msgstr "Fluxul de redare a fost golit."
 
 #: src/utils/pacat.c:150
 msgid "Draining connection to server."
-msgstr ""
+msgstr "Se golește conexiunea la server."
 
 #: src/utils/pacat.c:163
 #, c-format
 msgid "pa_stream_drain(): %s"
-msgstr ""
+msgstr "pa_stream_drain(): %s"
 
 #: src/utils/pacat.c:194 src/utils/pacat.c:543
 #, c-format
 msgid "pa_stream_begin_write() failed: %s"
-msgstr ""
+msgstr "pa_stream_begin_write() a eșuat: %s"
 
 #: src/utils/pacat.c:244 src/utils/pacat.c:274
 #, c-format
 msgid "pa_stream_peek() failed: %s"
-msgstr ""
+msgstr "pa_stream_peek() a eșuat: %s"
 
 #: src/utils/pacat.c:324
 msgid "Stream successfully created."
-msgstr ""
+msgstr "Flux creat cu succes."
 
 #: src/utils/pacat.c:327
 #, c-format
 msgid "pa_stream_get_buffer_attr() failed: %s"
-msgstr ""
+msgstr "pa_stream_get_buffer_attr() a eșuat: %s"
 
 #: src/utils/pacat.c:331
 #, c-format
 msgid "Buffer metrics: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
 msgstr ""
+"Măsurile memoriei tampon: maxlength=%u, tlength=%u, prebuf=%u, minreq=%u"
 
 #: src/utils/pacat.c:334
 #, c-format
 msgid "Buffer metrics: maxlength=%u, fragsize=%u"
-msgstr ""
+msgstr "Măsurile memoriei tampon: maxlength=%u, fragsize=%u"
 
 #: src/utils/pacat.c:338
 #, c-format
 msgid "Using sample spec '%s', channel map '%s'."
-msgstr ""
+msgstr "Se utilizează specificația eșantionului „%s”, schema canalelor „%s”."
 
 #: src/utils/pacat.c:342
 #, c-format
 msgid "Connected to device %s (index: %u, suspended: %s)."
-msgstr ""
+msgstr "Conectat la dispozitivul %s (index: %u, suspendat: %s)."
 
 #: src/utils/pacat.c:352
 #, c-format
 msgid "Stream error: %s"
-msgstr ""
+msgstr "Eroare a fluxului: %s"
 
 #: src/utils/pacat.c:362
 #, c-format
 msgid "Stream device suspended.%s"
-msgstr ""
+msgstr "Dispozitiv de flux suspendat.%s"
 
 #: src/utils/pacat.c:364
 #, c-format
 msgid "Stream device resumed.%s"
-msgstr ""
+msgstr "Dispozitiv de flux reluat.%s"
 
 #: src/utils/pacat.c:372
 #, c-format
 msgid "Stream underrun.%s"
-msgstr ""
+msgstr "Flux sub capacitate.%s"
 
 #: src/utils/pacat.c:379
 #, c-format
 msgid "Stream overrun.%s"
-msgstr ""
+msgstr "Flux peste capacitate.%s"
 
 #: src/utils/pacat.c:386
 #, c-format
 msgid "Stream started.%s"
-msgstr ""
+msgstr "Flux inițiat.%s"
 
 #: src/utils/pacat.c:393
 #, c-format
 msgid "Stream moved to device %s (%u, %ssuspended).%s"
-msgstr ""
+msgstr "Flux mutat pe dispozitivul %s (%u, %ssuspendat).%s"
 
 #: src/utils/pacat.c:393
 msgid "not "
-msgstr ""
+msgstr "nu "
 
 #: src/utils/pacat.c:400
 #, c-format
 msgid "Stream buffer attributes changed.%s"
-msgstr ""
+msgstr "Atributele memoriei tampon de flux au fost modificate.%s"
 
 #: src/utils/pacat.c:415
 msgid "Cork request stack is empty: corking stream"
-msgstr ""
+msgstr "Stiva de cereri de plafonare este goală: se plafonează fluxul"
 
 #: src/utils/pacat.c:421
 msgid "Cork request stack is empty: uncorking stream"
-msgstr ""
+msgstr "Stiva de cereri de plafonare este goală: se deplafonează fluxul"
 
 #: src/utils/pacat.c:425
 msgid "Warning: Received more uncork requests than cork requests."
 msgstr ""
+"Atenție: Au fost primite mai multe cereri de deplafonare decât cereri de "
+"plafonare."
 
 #: src/utils/pacat.c:450
 #, c-format
 msgid "Connection established.%s"
-msgstr ""
+msgstr "Conexiune stabilită.%s"
 
 #: src/utils/pacat.c:453
 #, c-format
 msgid "pa_stream_new() failed: %s"
-msgstr ""
+msgstr "pa_stream_new() a eșuat: %s"
 
 #: src/utils/pacat.c:491
 #, c-format
 msgid "pa_stream_connect_playback() failed: %s"
-msgstr ""
+msgstr "pa_stream_connect_playback() a eșuat: %s"
 
 #: src/utils/pacat.c:497
 #, c-format
 msgid "Failed to set monitor stream: %s"
-msgstr ""
+msgstr "Configurarea fluxului de monitorizare a eșuat: %s"
 
 #: src/utils/pacat.c:501
 #, c-format
 msgid "pa_stream_connect_record() failed: %s"
-msgstr ""
+msgstr "pa_stream_connect_record() a eșuat: %s"
 
 #: src/utils/pacat.c:514 src/utils/pactl.c:2508
 #, c-format
 msgid "Connection failure: %s"
-msgstr ""
+msgstr "Eșec de conectare: %s"
 
 #: src/utils/pacat.c:557
 msgid "Got EOF."
-msgstr ""
+msgstr "S-a obținut EOF."
 
 #: src/utils/pacat.c:581
 #, c-format
 msgid "pa_stream_write() failed: %s"
-msgstr ""
+msgstr "pa_stream_write() a eșuat: %s"
 
 #: src/utils/pacat.c:605
 #, c-format
 msgid "write() failed: %s"
-msgstr ""
+msgstr "write() a eșuat: %s"
 
 #: src/utils/pacat.c:626
 msgid "Got signal, exiting."
-msgstr ""
+msgstr "S-a primit semnalul, se iese."
 
 #: src/utils/pacat.c:640
 #, c-format
 msgid "Failed to get latency: %s"
-msgstr ""
+msgstr "Obținerea latenței a eșuat: %s"
 
 #: src/utils/pacat.c:645
 #, c-format
 msgid "Time: %0.3f sec; Latency: %0.0f usec."
-msgstr ""
+msgstr "Timp: %0.3f sec; Latență: %0.0f usec."
 
 #: src/utils/pacat.c:666
 #, c-format
 msgid "pa_stream_update_timing_info() failed: %s"
-msgstr ""
+msgstr "pa_stream_update_timing_info() a eșuat: %s"
 
 #: src/utils/pacat.c:676
 #, c-format
@@ -1725,25 +1942,107 @@ msgid ""
 "      --list-file-formats               List available file formats.\n"
 "      --monitor-stream=INDEX            Record from the sink input with index INDEX.\n"
 msgstr ""
+"%s [opțiuni]\n"
+"%s\n"
+"\n"
+"  -h, --help                            afișează acest ajutor\n"
+"      --version                         afișează versiunea\n"
+"\n"
+"  -r, --record                          creează o conexiune pentru "
+"înregistrare\n"
+"  -p, --playback                        creează o conexiune pentru redare\n"
+"\n"
+"  -v, --verbose                         activează operațiile cu mesaje "
+"detaliate\n"
+"\n"
+"  -s, --server=SERVER                   numele serverului la care se face "
+"conexiunea\n"
+"  -d, --device=DISPOZITIV               numele chiuvetei/sursei la care "
+"trebuie să se conecteze; numele speciale @DEFAULT_SINK@, @DEFAULT_SOURCE@ și "
+"@DEFAULT_MONITOR@ pot fi utilizate pentru a specifica chiuveta, sursa și "
+"respectiv monitorul implicite\n"
+"  -n, --client-name=NUME                cum să se numească acest client pe "
+"server\n"
+"      --stream-name=NUME                cum să se numească acest flux pe "
+"server\n"
+"      --volume=VOLUM                    specifică volumul inițial (liniar) "
+"în\n"
+"                                        intervalul 0...65536\n"
+"      --rate=RATĂ_EȘANTIONARE           rata de eșantionare în Hz (valoarea\n"
+"                                        implicită este 44100)\n"
+"      --format=FORMAT_EȘANTION          formatul eșantionului, consultați\n"
+"                                        https://www.freedesktop.org/wiki/"
+"Software/PulseAudio/Documentation/User/SupportedAudioFormats/\n"
+"                                        pentru valorile posibile (valoarea "
+"implicită este s16ne)\n"
+"      --channels=CANALE                 numărul de canale, 1 pentru mono, 2 "
+"pentru stereo\n"
+"                                        (valoarea implicită este 2)\n"
+"      --channel-map=SCHEMĂ_CANALE       schema canalelor de utilizat în "
+"locul\n"
+"                                        celei implicite\n"
+"      --fix-format                      preia formatul de eșantionare de la "
+"sursa\n"
+"                                        la care este conectat fluxul\n"
+"      --fix-rate                        preia rata de eșantionare de la "
+"sursa la\n"
+"                                        care este conectat fluxul\n"
+"      --fix-channels                    preia numărul de canale și schema "
+"canalelor\n"
+"                                        de la sursa la care este conectat "
+"fluxul\n"
+"      --no-remix                        nu upmix sau downmix canalele\n"
+"      --no-remap                        realizează schema canalelor după "
+"index\n"
+"                                        în loc de după nume\n"
+"      --latency=OCTEȚI                  solicită latența specificată în "
+"octeți\n"
+"      --process-time=OCTEȚI             solicită timpul de proces specificat "
+"în\n"
+"                                        cerere în octeți\n"
+"      --latency-msec=MSEC               solicită latența specificată în "
+"msec\n"
+"      --process-time-msec=MSEC          solicită timpul de proces specificat "
+"în\n"
+"                                        cerere în msec\n"
+"      --property=PROPERTY=VALOARE       definește proprietatea specificată "
+"la\n"
+"                                        valoarea specificată\n"
+"      --raw                             înregistrează/redă date PCM brute\n"
+"      --passthrough                     transmite datele direct, fără "
+"procesare\n"
+"      --file-format[=FFORMAT]           înregistrează/redă date PCM "
+"formatate\n"
+"      --list-file-formats               listează formatele de fișier "
+"disponibile\n"
+"      --monitor-stream=INDEX            înregistrează de la intrarea "
+"receptorului\n"
+"                                        cu indexul INDEX\n"
 
 #: src/utils/pacat.c:793
 msgid "Play back encoded audio files on a PulseAudio sound server."
-msgstr ""
+msgstr "Redarea fișierelor audio codificate pe un server de sunet PulseAudio."
 
 #: src/utils/pacat.c:797
 msgid "Capture audio data from a PulseAudio sound server and write it to a file."
 msgstr ""
+"Capturează date audio de la un server de sunet PulseAudio și le scrie într-"
+"un fișier."
 
 #: src/utils/pacat.c:801
 msgid ""
 "Capture audio data from a PulseAudio sound server and write it to STDOUT or the "
 "specified file."
 msgstr ""
+"Captează datele audio de la un server de sunet PulseAudio și le scrie la "
+"STDOUT sau în fișierul specificat."
 
 #: src/utils/pacat.c:805
 msgid ""
 "Play back audio data from STDIN or the specified file on a PulseAudio sound server."
 msgstr ""
+"Redă date audio provenite de la STDIN sau din fișierul specificat pe un "
+"server de sunet PulseAudio."
 
 #: src/utils/pacat.c:819
 #, c-format
@@ -1752,228 +2051,236 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"pacat %s\n"
+"Compilat cu libpulse %s\n"
+"Vinculat cu libpulse %s\n"
 
 #: src/utils/pacat.c:852 src/utils/pactl.c:2731
 #, c-format
 msgid "Invalid client name '%s'"
-msgstr ""
+msgstr "Nume de client nevalid „%s”"
 
 #: src/utils/pacat.c:867
 #, c-format
 msgid "Invalid stream name '%s'"
-msgstr ""
+msgstr "Nume de flux nevalid „%s”"
 
 #: src/utils/pacat.c:904
 #, c-format
 msgid "Invalid channel map '%s'"
-msgstr ""
+msgstr "Schemă de canal nevalidă „%s”"
 
 #: src/utils/pacat.c:933 src/utils/pacat.c:947
 #, c-format
 msgid "Invalid latency specification '%s'"
-msgstr ""
+msgstr "Specificație de latență nevalidă „%s"
 
 #: src/utils/pacat.c:940 src/utils/pacat.c:954
 #, c-format
 msgid "Invalid process time specification '%s'"
-msgstr ""
+msgstr "Specificație a timpului de proces nevalidă „%s”"
 
 #: src/utils/pacat.c:966
 #, c-format
 msgid "Invalid property '%s'"
-msgstr ""
+msgstr "Proprietate nevalidă „%s”"
 
 #: src/utils/pacat.c:985
 #, c-format
 msgid "Unknown file format %s."
-msgstr ""
+msgstr "Format de fișier necunoscut %s."
 
 #: src/utils/pacat.c:1000
 msgid "Failed to parse the argument for --monitor-stream"
 msgstr ""
+"Nu s-a reușit analizarea argumentului pentru opțiunea „--monitor-stream”"
 
 #: src/utils/pacat.c:1011
 msgid "Invalid sample specification"
-msgstr ""
+msgstr "Specificație de eșantion nevalidă"
 
 #: src/utils/pacat.c:1021
 #, c-format
 msgid "open(): %s"
-msgstr ""
+msgstr "open(): %s"
 
 #: src/utils/pacat.c:1026
 #, c-format
 msgid "dup2(): %s"
-msgstr ""
+msgstr "dup2(): %s"
 
 #: src/utils/pacat.c:1033
 msgid "Too many arguments."
-msgstr ""
+msgstr "Prea multe argumente."
 
 #: src/utils/pacat.c:1044
 msgid "Failed to generate sample specification for file."
-msgstr ""
+msgstr "Generarea specificației eșantionului pentru fișier a eșuat."
 
 #: src/utils/pacat.c:1082
 msgid "Failed to open audio file."
-msgstr ""
+msgstr "Deschiderea fișierului audio a eșuat."
 
 #: src/utils/pacat.c:1088
 msgid ""
 "Warning: specified sample specification will be overwritten with specification from "
 "file."
 msgstr ""
+"Avertisment: specificația eșantionului specificată va fi suprascrisă cu "
+"specificația din fișier."
 
 #: src/utils/pacat.c:1091 src/utils/pactl.c:2806
 msgid "Failed to determine sample specification from file."
-msgstr ""
+msgstr "Nu s-a putut determina specificația eșantionului din fișier."
 
 #: src/utils/pacat.c:1100
 msgid "Warning: Failed to determine channel map from file."
-msgstr ""
+msgstr "Avertisment: Nu s-a reușit determinarea schemei canalelor din fișier."
 
 #: src/utils/pacat.c:1111
 msgid "Channel map doesn't match sample specification"
-msgstr ""
+msgstr "Schema canalelor nu corespunde specificației eșantionului"
 
 #: src/utils/pacat.c:1122
 msgid "Warning: failed to write channel map to file."
-msgstr ""
+msgstr "Atenție: nu s-a reușit scrierea schemei canalelor în fișier."
 
 #: src/utils/pacat.c:1137
 #, c-format
 msgid "Opening a %s stream with sample specification '%s' and channel map '%s'."
 msgstr ""
+"Se deschide un flux %s cu specificația eșantionului „%s” și cu schema "
+"canalelor „%s”."
 
 #: src/utils/pacat.c:1138
 msgid "recording"
-msgstr ""
+msgstr "înregistrare"
 
 #: src/utils/pacat.c:1138
 msgid "playback"
-msgstr ""
+msgstr "redare"
 
 #: src/utils/pacat.c:1162
 msgid "Failed to set media name."
-msgstr ""
+msgstr "Definirea numelui suportului a eșuat."
 
 #: src/utils/pacat.c:1172 src/utils/pactl.c:3218
 msgid "pa_mainloop_new() failed."
-msgstr ""
+msgstr "pa_mainloop_new() a eșuat."
 
 #: src/utils/pacat.c:1195
 msgid "io_new() failed."
-msgstr ""
+msgstr "io_new() a eșuat."
 
 #: src/utils/pacat.c:1202 src/utils/pactl.c:3230
 msgid "pa_context_new() failed."
-msgstr ""
+msgstr "pa_context_new() a eșuat."
 
 #: src/utils/pacat.c:1210 src/utils/pactl.c:3236
 #, c-format
 msgid "pa_context_connect() failed: %s"
-msgstr ""
+msgstr "pa_context_connect() a eșuat: %s"
 
 #: src/utils/pacat.c:1216
 msgid "pa_context_rttime_new() failed."
-msgstr ""
+msgstr "pa_context_rttime_new() a eșuat."
 
 #: src/utils/pacat.c:1223 src/utils/pactl.c:3241
 msgid "pa_mainloop_run() failed."
-msgstr ""
+msgstr "pa_mainloop_run() a eșuat."
 
 #: src/utils/pacmd.c:51 src/utils/pactl.c:2643
 msgid "NAME [ARGS ...]"
-msgstr ""
+msgstr "NUME [ARGUMENTE ...]"
 
 #: src/utils/pacmd.c:52 src/utils/pacmd.c:60 src/utils/pactl.c:2644 src/utils/pactl.c:2651
 #: src/utils/pactl.c:2652
 msgid "NAME|#N"
-msgstr ""
+msgstr "NUME|NUMĂR"
 
 #: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:2642 src/utils/pactl.c:2649
 msgid "NAME"
-msgstr ""
+msgstr "NUME"
 
 #: src/utils/pacmd.c:54
 msgid "NAME|#N VOLUME"
-msgstr ""
+msgstr "NUME|NUMĂR_VOLUM"
 
 #: src/utils/pacmd.c:55
 msgid "#N VOLUME"
-msgstr ""
+msgstr "NUMĂR_VOLUM"
 
 #: src/utils/pacmd.c:56 src/utils/pacmd.c:70 src/utils/pactl.c:2646
 msgid "NAME|#N 1|0"
-msgstr ""
+msgstr "NUME|NUMĂR 1|0"
 
 #: src/utils/pacmd.c:57
 msgid "#N 1|0"
-msgstr ""
+msgstr "NUMĂR 1|0"
 
 #: src/utils/pacmd.c:58
 msgid "NAME|#N KEY=VALUE"
-msgstr ""
+msgstr "NUME|NUMĂR CHEIE=VALOARE"
 
 #: src/utils/pacmd.c:59
 msgid "#N KEY=VALUE"
-msgstr ""
+msgstr "NUMĂR CHEIE=VALOARE"
 
 #: src/utils/pacmd.c:61
 msgid "#N"
-msgstr ""
+msgstr "NUMĂR"
 
 #: src/utils/pacmd.c:62
 msgid "NAME SINK|#N"
-msgstr ""
+msgstr "NUME RECEPTOR|NUMĂR"
 
 #: src/utils/pacmd.c:64 src/utils/pacmd.c:65
 msgid "NAME FILENAME"
-msgstr ""
+msgstr "NUME NUME_FIȘIER"
 
 #: src/utils/pacmd.c:66
 msgid "PATHNAME"
-msgstr ""
+msgstr "NUMELE_RUTEI"
 
 #: src/utils/pacmd.c:67
 msgid "FILENAME SINK|#N"
-msgstr ""
+msgstr "NUME_FIȘIER RECEPTOR|NUMĂR"
 
 #: src/utils/pacmd.c:69 src/utils/pactl.c:2645
 msgid "#N SINK|SOURCE"
-msgstr ""
+msgstr "NUMĂR RECEPTOR|SURSĂ"
 
 #: src/utils/pacmd.c:71 src/utils/pacmd.c:77 src/utils/pacmd.c:78
 msgid "1|0"
-msgstr ""
+msgstr "1|0"
 
 #: src/utils/pacmd.c:72 src/utils/pactl.c:2647
 msgid "CARD PROFILE"
-msgstr ""
+msgstr "PROFILUL PLĂCII"
 
 #: src/utils/pacmd.c:73 src/utils/pactl.c:2650
 msgid "NAME|#N PORT"
-msgstr ""
+msgstr "NUME|NUMĂR PORT"
 
 #: src/utils/pacmd.c:74 src/utils/pactl.c:2658
 msgid "CARD-NAME|CARD-#N PORT OFFSET"
-msgstr ""
+msgstr "NUME_PLACĂ|NUMĂR_PLACĂ PORT POZIȚIE"
 
 #: src/utils/pacmd.c:75
 msgid "TARGET"
-msgstr ""
+msgstr "ȚINTA"
 
 #: src/utils/pacmd.c:76
 msgid "NUMERIC-LEVEL"
-msgstr ""
+msgstr "NIVEL_NUMERIC"
 
 #: src/utils/pacmd.c:79
 msgid "FRAMES"
-msgstr ""
+msgstr "CADRE"
 
 #: src/utils/pacmd.c:80 src/utils/pactl.c:2659
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
-msgstr ""
+msgstr "DESTINATAR MESAJ [PARAMETRII_MESAJULUI]"
 
 #: src/utils/pacmd.c:82
 #, c-format
@@ -1983,6 +2290,11 @@ msgid ""
 "      --version                         Show version\n"
 "When no command is given pacmd starts in the interactive mode.\n"
 msgstr ""
+"\n"
+"  -h, --help                            afișează acest ajutor\n"
+"      --version                         afișează versiunea\n"
+"Atunci când nu este dată nicio comandă, «pacmd» pornește în modul interactiv."
+"\n"
 
 #: src/utils/pacmd.c:129
 #, c-format
@@ -1991,77 +2303,87 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"pacmd %s\n"
+"Compilat cu libpulse %s\n"
+"Vinculat cu libpulse %s\n"
 
 #: src/utils/pacmd.c:143
 msgid "No PulseAudio daemon running, or not running as session daemon."
-msgstr ""
+msgstr "Nu rulează niciun demon PulseAudio sau nu rulează ca demon de sesiune."
 
 #: src/utils/pacmd.c:148
 #, c-format
 msgid "socket(PF_UNIX, SOCK_STREAM, 0): %s"
-msgstr ""
+msgstr "socket(PF_UNIX, SOCK_STREAM, 0): %s"
 
 #: src/utils/pacmd.c:165
 #, c-format
 msgid "connect(): %s"
-msgstr ""
+msgstr "connect(): %s"
 
 #: src/utils/pacmd.c:173
 msgid "Failed to kill PulseAudio daemon."
-msgstr ""
+msgstr "Omorârea demonului PulseAudio a eșuat."
 
 #: src/utils/pacmd.c:181
 msgid "Daemon not responding."
-msgstr ""
+msgstr "Daemonul nu răspunde."
 
 #: src/utils/pacmd.c:213 src/utils/pacmd.c:322 src/utils/pacmd.c:340
 #, c-format
 msgid "write(): %s"
-msgstr ""
+msgstr "write(): %s"
 
 #: src/utils/pacmd.c:269
 #, c-format
 msgid "poll(): %s"
-msgstr ""
+msgstr "poll(): %s"
 
 #: src/utils/pacmd.c:280 src/utils/pacmd.c:300
 #, c-format
 msgid "read(): %s"
-msgstr ""
+msgstr "read(): %s"
 
 #: src/utils/pactl.c:183
 #, c-format
 msgid "Failed to get statistics: %s"
-msgstr ""
+msgstr "Obținerea statisticilor a eșuat: %s"
 
 #: src/utils/pactl.c:199
 #, c-format
 msgid "Currently in use: %u block containing %s bytes total.\n"
 msgid_plural "Currently in use: %u blocks containing %s bytes total.\n"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "În prezent în uz: %u bloc conținând în total %s octeți.\n"
+msgstr[1] "În prezent în uz: %u blocuri conținând în total %s octeți.\n"
+msgstr[2] "În prezent în uz: %u de blocuri conținând în total %s de octeți.\n"
 
 #: src/utils/pactl.c:205
 #, c-format
 msgid "Allocated during whole lifetime: %u block containing %s bytes total.\n"
 msgid_plural "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
 msgstr[0] ""
+"Alocat pe întreaga durată de viață: %u bloc conținând în total %s octeți.\n"
 msgstr[1] ""
+"Alocate pe întreaga durată de viață: %u blocuri conținând în total %s octeți."
+"\n"
+msgstr[2] ""
+"Alocate pe întreaga durată de viață: %u de blocuri conținând în total %s de "
+"octeți.\n"
 
 #: src/utils/pactl.c:211
 #, c-format
 msgid "Sample cache size: %s\n"
-msgstr ""
+msgstr "Dimensiunea memoriei cache a eșantionului: %s\n"
 
 #: src/utils/pactl.c:219 src/utils/pactl.c:231 src/utils/pactl.c:245
 #, c-format
 msgid "Failed to get server information: %s"
-msgstr ""
+msgstr "Obținerea informațiilor despre server a eșuat: %s"
 
 #: src/utils/pactl.c:224 src/utils/pactl.c:236
 #, c-format
 msgid "%s\n"
-msgstr ""
+msgstr "%s\n"
 
 #: src/utils/pactl.c:281
 #, c-format
@@ -2073,6 +2395,12 @@ msgid ""
 "Client Index: %u\n"
 "Tile Size: %zu\n"
 msgstr ""
+"Șirul serverului: %s\n"
+"Versiunea protocolului bibliotecii: %u\n"
+"Versiunea protocolului serverului: %u\n"
+"Local: %s\n"
+"Index client: %u\n"
+"Dimensiunea fragmentului: %zu\n"
 
 #: src/utils/pactl.c:294
 #, c-format
@@ -2087,76 +2415,85 @@ msgid ""
 "Default Source: %s\n"
 "Cookie: %04x:%04x\n"
 msgstr ""
+"Nume utilizator: %s\n"
+"Nume gazdă: %s\n"
+"Numele serverului: %s\n"
+"Versiunea serverului: %s\n"
+"Specificație eșantion implicită: %s\n"
+"Schema implicită a canalelor: %s\n"
+"Receptor implicit: %s\n"
+"Sursă implicită: %s\n"
+"Cookie: %04x:%04x\n"
 
 #: src/utils/pactl.c:320
 msgid "availability unknown"
-msgstr ""
+msgstr "disponibilitate necunoscută"
 
 #: src/utils/pactl.c:321
 msgid "available"
-msgstr ""
+msgstr "disponibil"
 
 #: src/utils/pactl.c:322
 msgid "not available"
-msgstr ""
+msgstr "nu este disponibil"
 
 #: src/utils/pactl.c:331 src/utils/pactl.c:355
 msgid "Unknown"
-msgstr ""
+msgstr "Necunoscut"
 
 #: src/utils/pactl.c:332
 msgid "Aux"
-msgstr ""
+msgstr "Aux"
 
 #: src/utils/pactl.c:335
 msgid "Line"
-msgstr ""
+msgstr "Linie"
 
 #: src/utils/pactl.c:336
 msgid "Mic"
-msgstr ""
+msgstr "Microfon"
 
 #: src/utils/pactl.c:338
 msgid "Handset"
-msgstr ""
+msgstr "Cască"
 
 #: src/utils/pactl.c:339
 msgid "Earpiece"
-msgstr ""
+msgstr "Auricular"
 
 #: src/utils/pactl.c:340
 msgid "SPDIF"
-msgstr ""
+msgstr "SPDIF"
 
 #: src/utils/pactl.c:341
 msgid "HDMI"
-msgstr ""
+msgstr "HDMI"
 
 #: src/utils/pactl.c:342
 msgid "TV"
-msgstr ""
+msgstr "TV"
 
 #: src/utils/pactl.c:345
 msgid "USB"
-msgstr ""
+msgstr "USB"
 
 #: src/utils/pactl.c:346
 msgid "Bluetooth"
-msgstr ""
+msgstr "Bluetooth"
 
 #: src/utils/pactl.c:352
 msgid "Network"
-msgstr ""
+msgstr "Rețea"
 
 #: src/utils/pactl.c:353
 msgid "Analog"
-msgstr ""
+msgstr "Analog"
 
 #: src/utils/pactl.c:567 src/utils/pactl.c:1834 src/utils/pactl.c:1852
 #: src/utils/pactl.c:1875 src/utils/pactl.c:1992
 #, c-format
 msgid "Failed to get sink information: %s"
-msgstr ""
+msgstr "Obținerea informațiilor despre receptor a eșuat: %s"
 
 #: src/utils/pactl.c:664
 #, c-format
@@ -2179,36 +2516,53 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Receptor nr.%u\n"
+"\tStare: %s\n"
+"\tNume: %s\n"
+"\tDescriere: %s\n"
+"\tControlor: %s\n"
+"\tSpecificație eșantion: %s\n"
+"\tSchema canalelor: %s\n"
+"\tModul proprietar: %u\n"
+"\tDezactivare sunet: %s\n"
+"\tVolum: %s\n"
+"\t        balans %0.2f\n"
+"\tVolum de bază: %s\n"
+"\tSursă monitor: %s\n"
+"\tLatență: %0.0f usec, configurat %0.0f usec\n"
+"\tFanioane: %s%s%s%s%s%s%s\n"
+"\tProprietăți:\n"
+"\t\t%s\n"
 
 #: src/utils/pactl.c:706 src/utils/pactl.c:890 src/utils/pactl.c:1251
 #, c-format
 msgid "\tPorts:\n"
-msgstr ""
+msgstr "\tPorturi:\n"
 
 #: src/utils/pactl.c:708 src/utils/pactl.c:892
 #, c-format
 msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
-msgstr ""
+msgstr "\t\t%s: %s (tip: %s, prioritate: %u%s%s, %s)\n"
 
 #: src/utils/pactl.c:710 src/utils/pactl.c:894 src/utils/pactl.c:1256
 msgid ", availability group: "
-msgstr ""
+msgstr ", grupul de disponibilitate: "
 
 #: src/utils/pactl.c:715 src/utils/pactl.c:899
 #, c-format
 msgid "\tActive Port: %s\n"
-msgstr ""
+msgstr "\tPort activ: %s\n"
 
 #: src/utils/pactl.c:721 src/utils/pactl.c:905
 #, c-format
 msgid "\tFormats:\n"
-msgstr ""
+msgstr "\tFormate:\n"
 
 #: src/utils/pactl.c:753 src/utils/pactl.c:1893 src/utils/pactl.c:1911
 #: src/utils/pactl.c:1934 src/utils/pactl.c:2007
 #, c-format
 msgid "Failed to get source information: %s"
-msgstr ""
+msgstr "Obținerea informațiilor despre sursă a eșuat: %s"
 
 #: src/utils/pactl.c:849
 #, c-format
@@ -2231,6 +2585,23 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Sursă #%u\n"
+"\tStare: %s\n"
+"\tNume: %s\n"
+"\tDescriere: %s\n"
+"\tControlor: %s\n"
+"\tSpecificație eșantion: %s\n"
+"\tSchema canalelor: %s\n"
+"\tModul proprietar: %u\n"
+"\tDezactivare sunet: %s\n"
+"\tVolum: %s\n"
+"\t        balans %0.2f\n"
+"\tVolum de bază: %s\n"
+"\tMonitor al receptorului: %s\n"
+"\tLatență: %0.0f usec, configurat %0.0f usec\n"
+"\tFanioane: %s%s%s%s%s%s\n"
+"\tProprietăți:\n"
+"\t\t%s\n"
 
 #: src/utils/pactl.c:877 src/utils/pactl.c:962 src/utils/pactl.c:1062
 #: src/utils/pactl.c:1232 src/utils/pactl.c:1384 src/utils/pactl.c:1385
@@ -2238,12 +2609,12 @@ msgstr ""
 #: src/utils/pactl.c:1519 src/utils/pactl.c:1557 src/utils/pactl.c:1582
 #: src/utils/pactl.c:1624
 msgid "n/a"
-msgstr ""
+msgstr "nu este disponibil"
 
 #: src/utils/pactl.c:924 src/utils/pactl.c:1793
 #, c-format
 msgid "Failed to get module information: %s"
-msgstr ""
+msgstr "Obținerea informațiilor despre modul a eșuat: %s"
 
 #: src/utils/pactl.c:976
 #, c-format
@@ -2255,11 +2626,17 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Modul #%u\n"
+"\tNume: %s\n"
+"\tArgument: %s\n"
+"\tContor de utilizare: %s\n"
+"\tProprietăți:\n"
+"\t\t%s\n"
 
 #: src/utils/pactl.c:1002
 #, c-format
 msgid "Failed to get client information: %s"
-msgstr ""
+msgstr "Obținerea informațiilor despre client a eșuat: %s"
 
 #: src/utils/pactl.c:1056
 #, c-format
@@ -2270,11 +2647,16 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Client #%u\n"
+"\tControlor: %s\n"
+"\tModul proprietar: %s\n"
+"\tProprietăți:\n"
+"\t\t%s\n"
 
 #: src/utils/pactl.c:1168
 #, c-format
 msgid "Failed to get card information: %s"
-msgstr ""
+msgstr "Obținerea informațiilor despre placa de sunet a eșuat: %s"
 
 #: src/utils/pactl.c:1224
 #, c-format
@@ -2286,26 +2668,35 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Placa nr.%u\n"
+"\tNume: %s\n"
+"\tControlor: %s\n"
+"\tModul proprietar: %s\n"
+"\tProprietăți:\n"
+"\t\t%s\n"
 
 #: src/utils/pactl.c:1238
 #, c-format
 msgid "\tProfiles:\n"
-msgstr ""
+msgstr "\tProfile:\n"
 
 #: src/utils/pactl.c:1240
 #, c-format
 msgid "\t\t%s: %s (sinks: %u, sources: %u, priority: %u, available: %s)\n"
 msgstr ""
+"\t\t%s: %s (receptoare: %u, surse: %u, prioritate: %u, disponibil: %s)\n"
 
 #: src/utils/pactl.c:1245
 #, c-format
 msgid "\tActive Profile: %s\n"
-msgstr ""
+msgstr "\tProfil activ: %s\n"
 
 #: src/utils/pactl.c:1254
 #, c-format
 msgid "\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s, %s)\n"
 msgstr ""
+"\t\t%s: %s (tip: %s, prioritate: %u, decalaj latență: %<PRId64> usec%s%s, %s)"
+"\n"
 
 #: src/utils/pactl.c:1261
 #, c-format
@@ -2313,16 +2704,18 @@ msgid ""
 "\t\t\tProperties:\n"
 "\t\t\t\t%s\n"
 msgstr ""
+"\t\t\tProprietăți:\n"
+"\t\t\t\t%s\n"
 
 #: src/utils/pactl.c:1265
 #, c-format
 msgid "\t\t\tPart of profile(s): %s"
-msgstr ""
+msgstr "\t\t\tParte a profilului (profilurilor): %s"
 
 #: src/utils/pactl.c:1290 src/utils/pactl.c:1954 src/utils/pactl.c:2022
 #, c-format
 msgid "Failed to get sink input information: %s"
-msgstr ""
+msgstr "Obținerea informațiilor de intrare a receptorului a eșuat: %s"
 
 #: src/utils/pactl.c:1366
 #, c-format
@@ -2345,11 +2738,28 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Intrare receptor nr.%u\n"
+"\tControlor: %s\n"
+"\tModul proprietar: %s\n"
+"\tClient: %s\n"
+"\tSink: %u\n"
+"\tSpecificație eșantion: %s\n"
+"\tSchema canalelor: %s\n"
+"\tFormat: %s\n"
+"\tReceptor: %s\n"
+"\tDezactivare sunet: %s\n"
+"\tVolum: %s\n"
+"\t        balans %0.2f\n"
+"\tLatență memorie tampon: %0.0f usec\n"
+"\tLatență receptor: %0.0f usec\n"
+"\tMetoda de reeșantionare: %s\n"
+"\tProprietăți:\n"
+"\t\t%s\n"
 
 #: src/utils/pactl.c:1413 src/utils/pactl.c:1974 src/utils/pactl.c:2037
 #, c-format
 msgid "Failed to get source output information: %s"
-msgstr ""
+msgstr "Obținerea informațiilor despre sursa de ieșire a eșuat: %s"
 
 #: src/utils/pactl.c:1489
 #, c-format
@@ -2372,11 +2782,28 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Sursă de ieșire #%u\n"
+"\tControlor: %s\n"
+"\tModul proprietar: %s\n"
+"\tClient: %s\n"
+"\tSursă: %u\n"
+"\tSpecificație eșantion: %s\n"
+"\tSchema canalelor: %s\n"
+"\tFormat: %s\n"
+"\tPlafonat: %s\n"
+"\tDezactivare sunet: %s\n"
+"\tVolum: %s\n"
+"\t        balans %0.2f\n"
+"\tLatența memoriei tampon: %0.0f usec\n"
+"\tLatența sursei: %0.0f usec\n"
+"\tMetoda de reeșantionare: %s\n"
+"\tProprietăți:\n"
+"\t\t%s\n"
 
 #: src/utils/pactl.c:1536
 #, c-format
 msgid "Failed to get sample information: %s"
-msgstr ""
+msgstr "Obținerea informațiilor despre eșantion a eșuat: %s"
 
 #: src/utils/pactl.c:1604
 #, c-format
@@ -2394,21 +2821,33 @@ msgid ""
 "\tProperties:\n"
 "\t\t%s\n"
 msgstr ""
+"Eșantion nr.%u\n"
+"\tNume: %s\n"
+"\tSpecificația eșantionului: %s\n"
+"\tSchema canalelor: %s\n"
+"\tVolum: %s\n"
+"\t        balans %0.2f\n"
+"\tDurata: %0.1fs\n"
+"\tDimensiune: %s\n"
+"\tLentoare: %s\n"
+"\tNume fișier: %s\n"
+"\tProprietăți:\n"
+"\t\t%s\n"
 
 #: src/utils/pactl.c:1633 src/utils/pactl.c:1643
 #, c-format
 msgid "Failure: %s"
-msgstr ""
+msgstr "Eșec: %s"
 
 #: src/utils/pactl.c:1667
 #, c-format
 msgid "Send message failed: %s"
-msgstr ""
+msgstr "Trimiterea mesajului a eșuat: %s"
 
 #: src/utils/pactl.c:1695
 #, c-format
 msgid "list-handlers message failed: %s"
-msgstr ""
+msgstr "Mesajul list-handlers a eșuat: %s"
 
 #: src/utils/pactl.c:1711 src/utils/pactl.c:1760
 msgid "list-handlers message response could not be parsed correctly"
@@ -2422,11 +2861,13 @@ msgstr "Răspunsul la mesajele list-handlers nu este o matrice JSON"
 #, c-format
 msgid "list-handlers message response array element %d is not a JSON object"
 msgstr ""
+"Elementul %d al matricei de răspuns a mesajului list-handlers nu este un "
+"obiect JSON"
 
 #: src/utils/pactl.c:1800
 #, c-format
 msgid "Failed to unload module: Module %s not loaded"
-msgstr ""
+msgstr "Descărcarea modulului a eșuat: Modulul %s nu a fost încărcat"
 
 #: src/utils/pactl.c:1818
 #, c-format
@@ -2437,93 +2878,100 @@ msgid_plural ""
 "Failed to set volume: You tried to set volumes for %d channels, whereas channel(s) "
 "supported = %d\n"
 msgstr[0] ""
+"Reglarea volumului a eșuat: Ați încercat să reglați volumul pentru %d canal, "
+"în timp ce numărul canale furnizate = %d\n"
 msgstr[1] ""
+"Reglarea volumului a eșuat: Ați încercat să reglați volumul pentru %d "
+"canale, în timp ce numărul canale furnizate = %d\n"
+msgstr[2] ""
+"Reglarea volumului a eșuat: Ați încercat să reglați volumul pentru %d de "
+"canale, în timp ce numărul canale furnizate = %d\n"
 
 #: src/utils/pactl.c:2107
 #, c-format
 msgid "Failed to upload sample: %s"
-msgstr ""
+msgstr "Încărcarea eșantionului a eșuat: %s"
 
 #: src/utils/pactl.c:2124
 msgid "Premature end of file"
-msgstr ""
+msgstr "Sfârșit prematur al fișierului"
 
 #: src/utils/pactl.c:2144
 msgid "new"
-msgstr ""
+msgstr "nou"
 
 #: src/utils/pactl.c:2147
 msgid "change"
-msgstr ""
+msgstr "schimbare"
 
 #: src/utils/pactl.c:2150
 msgid "remove"
-msgstr ""
+msgstr "eliminare"
 
 #: src/utils/pactl.c:2153 src/utils/pactl.c:2188
 msgid "unknown"
-msgstr ""
+msgstr "necunoscut"
 
 #: src/utils/pactl.c:2161
 msgid "sink"
-msgstr ""
+msgstr "receptor"
 
 #: src/utils/pactl.c:2164
 msgid "source"
-msgstr ""
+msgstr "sursa"
 
 #: src/utils/pactl.c:2167
 msgid "sink-input"
-msgstr ""
+msgstr "intrare-receptor"
 
 #: src/utils/pactl.c:2170
 msgid "source-output"
-msgstr ""
+msgstr "ieșire-sursă"
 
 #: src/utils/pactl.c:2173
 msgid "module"
-msgstr ""
+msgstr "modul"
 
 #: src/utils/pactl.c:2176
 msgid "client"
-msgstr ""
+msgstr "client"
 
 #: src/utils/pactl.c:2179
 msgid "sample-cache"
-msgstr ""
+msgstr "cache-eșantion"
 
 #: src/utils/pactl.c:2182
 msgid "server"
-msgstr ""
+msgstr "server"
 
 #: src/utils/pactl.c:2185
 msgid "card"
-msgstr ""
+msgstr "placă"
 
 #: src/utils/pactl.c:2206
 #, c-format
 msgid "Event '%s' on %s #%u\n"
-msgstr ""
+msgstr "Evenimentul „%s” pe %s nr.%u\n"
 
 #: src/utils/pactl.c:2514
 msgid "Got SIGINT, exiting."
-msgstr ""
+msgstr "S-a primit semnalul SIGINT, se iese."
 
 #: src/utils/pactl.c:2547
 msgid "Invalid volume specification"
-msgstr ""
+msgstr "Specificație nevalidă a volumului"
 
 #: src/utils/pactl.c:2581
 msgid "Volume outside permissible range.\n"
-msgstr ""
+msgstr "Volum în afara intervalului permis.\n"
 
 #: src/utils/pactl.c:2594
 msgid "Invalid number of volume specifications.\n"
-msgstr ""
+msgstr "Număr nevalid de specificații ale volumului.\n"
 
 #: src/utils/pactl.c:2606
 msgid "Inconsistent volume specification.\n"
-msgstr ""
+msgstr "Specificație de volum inconsistentă.\n"
 
 #: src/utils/pactl.c:2636 src/utils/pactl.c:2637 src/utils/pactl.c:2638
 #: src/utils/pactl.c:2639 src/utils/pactl.c:2640 src/utils/pactl.c:2641
@@ -2535,39 +2983,39 @@ msgstr ""
 #: src/utils/pactl.c:2657 src/utils/pactl.c:2658 src/utils/pactl.c:2659
 #: src/utils/pactl.c:2660
 msgid "[options]"
-msgstr ""
+msgstr "[opțiuni]"
 
 #: src/utils/pactl.c:2638
 msgid "[TYPE]"
-msgstr ""
+msgstr "[TIP]"
 
 #: src/utils/pactl.c:2640
 msgid "FILENAME [NAME]"
-msgstr ""
+msgstr "NUME_FIȘIER [NUME]"
 
 #: src/utils/pactl.c:2641
 msgid "NAME [SINK]"
-msgstr ""
+msgstr "NUME [RECEPTOR]"
 
 #: src/utils/pactl.c:2653
 msgid "NAME|#N VOLUME [VOLUME ...]"
-msgstr ""
+msgstr "NUME|NUMĂR VOLUM [VOLUM ...]"
 
 #: src/utils/pactl.c:2654
 msgid "#N VOLUME [VOLUME ...]"
-msgstr ""
+msgstr "NUMĂR VOLUM [VOLUM ...]"
 
 #: src/utils/pactl.c:2655
 msgid "NAME|#N 1|0|toggle"
-msgstr ""
+msgstr "NUME|NUMĂR 1|0|toggle"
 
 #: src/utils/pactl.c:2656
 msgid "#N 1|0|toggle"
-msgstr ""
+msgstr "NUMĂR 1|0|toggle"
 
 #: src/utils/pactl.c:2657
 msgid "#N FORMATS"
-msgstr ""
+msgstr "NUMĂR FORMATE"
 
 #: src/utils/pactl.c:2661
 #, c-format
@@ -2576,6 +3024,10 @@ msgid ""
 "The special names @DEFAULT_SINK@, @DEFAULT_SOURCE@ and @DEFAULT_MONITOR@\n"
 "can be used to specify the default sink, source and monitor.\n"
 msgstr ""
+"\n"
+"Numele speciale @DEFAULT_SINK@, @DEFAULT_SOURCE@ și @DEFAULT_MONITOR@\n"
+"pot fi utilizate pentru a specifica receptorul, sursa și monitorul implicite."
+"\n"
 
 #: src/utils/pactl.c:2664
 #, c-format
@@ -2589,6 +3041,16 @@ msgid ""
 "  -s, --server=SERVER                   The name of the server to connect to\n"
 "  -n, --client-name=NAME                How to call this client on the server\n"
 msgstr ""
+"\n"
+"  -h, --help                            afișează acest ajutor\n"
+"      --version                         afișează versiunea\n"
+"\n"
+"  -f, --format=FORMAT                   formatul de ieșire; fie „normal,” "
+"fie „json”\n"
+"  -s, --server=SERVER                   numele serverului la care trebuie să "
+"se conecteze\n"
+"  -n, --client-name=NUME                cum să se numească acest client pe "
+"server\n"
 
 #: src/utils/pactl.c:2707
 #, c-format
@@ -2597,212 +3059,238 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"pactl %s\n"
+"Compilat cu libpulse %s\n"
+"Vinculat cu libpulse %s\n"
 
 #: src/utils/pactl.c:2751
 #, c-format
 msgid "Invalid format value '%s'"
-msgstr ""
+msgstr "Valoare nevalidă a formatului „%s”"
 
 #: src/utils/pactl.c:2778
 #, c-format
 msgid "Specify nothing, or one of: %s"
-msgstr ""
+msgstr "Nu specificați nimic, sau unul dintre: %s"
 
 #: src/utils/pactl.c:2788
 msgid "Please specify a sample file to load"
-msgstr ""
+msgstr "Vă rugăm să specificați un fișier de eșantion pentru încărcare"
 
 #: src/utils/pactl.c:2801
 msgid "Failed to open sound file."
-msgstr ""
+msgstr "Deschiderea fișierului de sunet a eșuat."
 
 #: src/utils/pactl.c:2813
 msgid "Warning: Failed to determine sample specification from file."
 msgstr ""
+"Avertisment: Nu s-a putut determina specificația eșantionului din fișier."
 
 #: src/utils/pactl.c:2823
 msgid "You have to specify a sample name to play"
-msgstr ""
+msgstr "Trebuie să specificați un nume de eșantion pentru a-l reda"
 
 #: src/utils/pactl.c:2835
 msgid "You have to specify a sample name to remove"
-msgstr ""
+msgstr "Trebuie să specificați un nume de eșantion pentru a-l elimina"
 
 #: src/utils/pactl.c:2844
 msgid "You have to specify a sink input index and a sink"
 msgstr ""
+"Trebuie să specificați un indice de intrare a receptorului și un receptor"
 
 #: src/utils/pactl.c:2854
 msgid "You have to specify a source output index and a source"
-msgstr ""
+msgstr "Trebuie să specificați un indice de ieșire sursă și o sursă"
 
 #: src/utils/pactl.c:2869
 msgid "You have to specify a module name and arguments."
-msgstr ""
+msgstr "Trebuie să specificați un nume de modul și argumente."
 
 #: src/utils/pactl.c:2889
 msgid "You have to specify a module index or name"
-msgstr ""
+msgstr "Trebuie să specificați un indice sau un nume de modul"
 
 #: src/utils/pactl.c:2902
 msgid "You may not specify more than one sink. You have to specify a boolean value."
 msgstr ""
+"Nu puteți specifica mai mult de un receptor. Trebuie să specificați o "
+"valoare booleană."
 
 #: src/utils/pactl.c:2907 src/utils/pactl.c:2927
 msgid "Invalid suspend specification."
-msgstr ""
+msgstr "Specificație de suspendare nevalidă."
 
 #: src/utils/pactl.c:2922
 msgid "You may not specify more than one source. You have to specify a boolean value."
 msgstr ""
+"Nu puteți specifica mai mult de o sursă. Trebuie să specificați o valoare "
+"booleană."
 
 #: src/utils/pactl.c:2939
 msgid "You have to specify a card name/index and a profile name"
 msgstr ""
+"Trebuie să specificați un nume/indice de placă audio și un nume de profil"
 
 #: src/utils/pactl.c:2950
 msgid "You have to specify a sink name/index and a port name"
 msgstr ""
+"Trebuie să specificați un nume/indice al receptorului și un nume de port"
 
 #: src/utils/pactl.c:2961
 msgid "You have to specify a sink name"
-msgstr ""
+msgstr "Trebuie să specificați un nume de receptor"
 
 #: src/utils/pactl.c:2974
 msgid "You have to specify a source name/index and a port name"
-msgstr ""
+msgstr "Trebuie să specificați un nume/indice de sursă și un nume de port"
 
 #: src/utils/pactl.c:2985
 msgid "You have to specify a source name"
-msgstr ""
+msgstr "Trebuie să specificați un nume de sursă"
 
 #: src/utils/pactl.c:2998 src/utils/pactl.c:3076
 msgid "You have to specify a sink name/index"
-msgstr ""
+msgstr "Trebuie să specificați un nume/indice de receptor"
 
 #: src/utils/pactl.c:3008
 msgid "You have to specify a sink name/index and a volume"
-msgstr ""
+msgstr "Trebuie să specificați un nume/indice al receptorului și un volum"
 
 #: src/utils/pactl.c:3021 src/utils/pactl.c:3101
 msgid "You have to specify a source name/index"
-msgstr ""
+msgstr "Trebuie să specificați un nume/indice al sursei"
 
 #: src/utils/pactl.c:3031
 msgid "You have to specify a source name/index and a volume"
-msgstr ""
+msgstr "Trebuie să specificați un nume/indice al sursei și un volum"
 
 #: src/utils/pactl.c:3044
 msgid "You have to specify a sink input index and a volume"
-msgstr ""
+msgstr "Trebuie să specificați un indice de intrare a rezervorului și un volum"
 
 #: src/utils/pactl.c:3049
 msgid "Invalid sink input index"
-msgstr ""
+msgstr "Indice de intrare a receptorului nevalid"
 
 #: src/utils/pactl.c:3060
 msgid "You have to specify a source output index and a volume"
-msgstr ""
+msgstr "Trebuie să specificați un indice de ieșire a sursei și un volum"
 
 #: src/utils/pactl.c:3065
 msgid "Invalid source output index"
-msgstr ""
+msgstr "Index de ieșire a sursei nevalid"
 
 #: src/utils/pactl.c:3086
 msgid "You have to specify a sink name/index and a mute action (0, 1, or 'toggle')"
 msgstr ""
+"Trebuie să specificați un nume/indice al receptorului și o acțiune de "
+"dezactivare (0, 1 sau „toggle”)"
 
 #: src/utils/pactl.c:3091 src/utils/pactl.c:3116 src/utils/pactl.c:3136
 #: src/utils/pactl.c:3154
 msgid "Invalid mute specification"
-msgstr ""
+msgstr "Specificație nevalidă de dezactivare a sunetului"
 
 #: src/utils/pactl.c:3111
 msgid "You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
 msgstr ""
+"Trebuie să specificați un nume/indice al sursei și o acțiune de dezactivare ("
+"0, 1 sau „toggle”)"
 
 #: src/utils/pactl.c:3126
 msgid "You have to specify a sink input index and a mute action (0, 1, or 'toggle')"
 msgstr ""
+"Trebuie să specificați un indice de intrare a receptorului și o acțiune de "
+"dezactivare (0, 1 sau „toggle”)"
 
 #: src/utils/pactl.c:3131
 msgid "Invalid sink input index specification"
-msgstr ""
+msgstr "Specificație nevalidă a indicelui de intrare a receptorului"
 
 #: src/utils/pactl.c:3144
 msgid "You have to specify a source output index and a mute action (0, 1, or 'toggle')"
 msgstr ""
+"Trebuie să specificați un indice de ieșire a sursei și o acțiune de "
+"dezactivare (0, 1 sau „toggle”)"
 
 #: src/utils/pactl.c:3149
 msgid "Invalid source output index specification"
-msgstr ""
+msgstr "Specificație nevalidă a indicelui de ieșire a sursei"
 
 #: src/utils/pactl.c:3162
 msgid "You have to specify at least an object path and a message name"
 msgstr ""
+"Trebuie să specificați cel puțin o rută a obiectului și un nume de mesaj"
 
 #: src/utils/pactl.c:3172
 msgid ""
 "Excess arguments given, they will be ignored. Note that all message parameters must be "
 "given as a single string."
 msgstr ""
+"Argumentele furnizate în exces vor fi ignorate. Rețineți că toți parametrii "
+"mesajului trebuie să fie dați ca un singur șir de caractere."
 
 #: src/utils/pactl.c:3182
 msgid ""
 "You have to specify a sink index and a semicolon-separated list of supported formats"
 msgstr ""
+"Trebuie să specificați un indice al receptorului și o listă separată prin "
+"punct și virgulă a formatelor acceptate"
 
 #: src/utils/pactl.c:3194
 msgid "You have to specify a card name/index, a port name and a latency offset"
 msgstr ""
+"Trebuie să specificați un nume/indice de card, un nume de port și o "
+"compensare a latenței"
 
 #: src/utils/pactl.c:3201
 msgid "Could not parse latency offset"
-msgstr ""
+msgstr "Nu s-a putut analiza compensarea de latență"
 
 #: src/utils/pactl.c:3213
 msgid "No valid command specified."
-msgstr ""
+msgstr "Nu a fost specificată nicio comandă validă."
 
 #: src/utils/pasuspender.c:79
 #, c-format
 msgid "fork(): %s\n"
-msgstr ""
+msgstr "fork(): %s\n"
 
 #: src/utils/pasuspender.c:92
 #, c-format
 msgid "execvp(): %s\n"
-msgstr ""
+msgstr "execvp(): %s\n"
 
 #: src/utils/pasuspender.c:111
 #, c-format
 msgid "Failure to resume: %s\n"
-msgstr ""
+msgstr "Eșec la reluare: %s\n"
 
 #: src/utils/pasuspender.c:145
 #, c-format
 msgid "Failure to suspend: %s\n"
-msgstr ""
+msgstr "Eșec la suspendare: %s\n"
 
 #: src/utils/pasuspender.c:170
 #, c-format
 msgid "WARNING: Sound server is not local, not suspending.\n"
-msgstr ""
+msgstr "AVERTISMENT: Serverul de sunet nu este local, nu se suspendă.\n"
 
 #: src/utils/pasuspender.c:183
 #, c-format
 msgid "Connection failure: %s\n"
-msgstr ""
+msgstr "Eșec de conectare: %s\n"
 
 #: src/utils/pasuspender.c:201
 #, c-format
 msgid "Got SIGINT, exiting.\n"
-msgstr ""
+msgstr "S-a primit semnalul SIGINT, se iese.\n"
 
 #: src/utils/pasuspender.c:219
 #, c-format
 msgid "WARNING: Child process terminated by signal %u\n"
-msgstr ""
+msgstr "AVERTISMENT: Procesul-copil încheiat de semnalul %u\n"
 
 #: src/utils/pasuspender.c:228
 #, c-format
@@ -2816,6 +3304,15 @@ msgid ""
 "  -s, --server=SERVER                   The name of the server to connect to\n"
 "\n"
 msgstr ""
+"%s [opțiuni] -- PROGRAM [ARGUMENTE ...]\n"
+"\n"
+"Suspendă temporar PulseAudio în timp ce PROGRAM rulează.\n"
+"\n"
+"  -h, --help                            afișează acest ajutor\n"
+"      --version                         afișează versiunea\n"
+"  -s, --server=SERVER                   numele serverului la care trebuie să "
+"se conecteze\n"
+"\n"
 
 #: src/utils/pasuspender.c:267
 #, c-format
@@ -2824,21 +3321,24 @@ msgid ""
 "Compiled with libpulse %s\n"
 "Linked with libpulse %s\n"
 msgstr ""
+"pasuspender %s\n"
+"Compilat cu libpulse %s\n"
+"Vinculat cu libpulse %s\n"
 
 #: src/utils/pasuspender.c:296
 #, c-format
 msgid "pa_mainloop_new() failed.\n"
-msgstr ""
+msgstr "pa_mainloop_new() a eșuat.\n"
 
 #: src/utils/pasuspender.c:309
 #, c-format
 msgid "pa_context_new() failed.\n"
-msgstr ""
+msgstr "pa_context_new() a eșuat.\n"
 
 #: src/utils/pasuspender.c:321
 #, c-format
 msgid "pa_mainloop_run() failed.\n"
-msgstr ""
+msgstr "pa_mainloop_run() a eșuat.\n"
 
 #: src/utils/pax11publish.c:58
 #, c-format
@@ -2851,53 +3351,62 @@ msgid ""
 "cookie file.\n"
 " -r    Remove PulseAudio data from X11 display\n"
 msgstr ""
+"%s [-D afișaj] [-S server] [-O receptor] [-I sursă] [-c fișier] [-d|-e|-i|-r]"
+"\n"
+"\n"
+" -d    afișează datele PulseAudio curente atașate la afișajul X11 (implicit)"
+"\n"
+" -e    exportă date PulseAudio locale către afișajul X11\n"
+" -i    importăi datele PulseAudio de la afișajul X11 în variabilele de mediu "
+"locale și în fișierul cookie\n"
+" -r    elimină datele PulseAudio din afișajul X11\n"
 
 #: src/utils/pax11publish.c:91
 #, c-format
 msgid "Failed to parse command line.\n"
-msgstr ""
+msgstr "Analizarea liniei de comandă a eșuat.\n"
 
 #: src/utils/pax11publish.c:110
 #, c-format
 msgid "Server: %s\n"
-msgstr ""
+msgstr "Server: %s\n"
 
 #: src/utils/pax11publish.c:112
 #, c-format
 msgid "Source: %s\n"
-msgstr ""
+msgstr "Sursă: %s\n"
 
 #: src/utils/pax11publish.c:114
 #, c-format
 msgid "Sink: %s\n"
-msgstr ""
+msgstr "Receptor: %s\n"
 
 #: src/utils/pax11publish.c:116
 #, c-format
 msgid "Cookie: %s\n"
-msgstr ""
+msgstr "Cookie: %s\n"
 
 #: src/utils/pax11publish.c:134
 #, c-format
 msgid "Failed to parse cookie data\n"
-msgstr ""
+msgstr "Analizarea datelor cookie a eșuat\n"
 
 #: src/utils/pax11publish.c:139
 #, c-format
 msgid "Failed to save cookie data\n"
-msgstr ""
+msgstr "Salvarea datelor cookie a eșuat\n"
 
 #: src/utils/pax11publish.c:168
 #, c-format
 msgid "Failed to get FQDN.\n"
-msgstr ""
+msgstr "Nu s-a reușit să se obțină FQDN-ul (numele de domeniu complet).\n"
 
 #: src/utils/pax11publish.c:188
 #, c-format
 msgid "Failed to load cookie data\n"
-msgstr ""
+msgstr "Încărcarea datelor cookie a eșuat\n"
 
 #: src/utils/pax11publish.c:206
 #, c-format
 msgid "Not yet implemented.\n"
-msgstr ""
+msgstr "Nu este încă implementat.\n"
