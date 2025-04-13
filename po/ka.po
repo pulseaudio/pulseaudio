@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2023-09-16 04:35+0000\n"
+"PO-Revision-Date: 2025-04-13 20:52+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ka/>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.0.1\n"
+"X-Generator: Weblate 5.10.4\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -407,7 +407,7 @@ msgstr ""
 
 #: src/daemon/main.c:922
 msgid "Failed to acquire stdio."
-msgstr ""
+msgstr "stdio-ის მიღება ჩავარდა."
 
 #: src/daemon/main.c:928 src/daemon/main.c:999
 #, c-format
@@ -1037,7 +1037,7 @@ msgstr ""
 
 #: src/modules/module-null-sink.c:46
 msgid "Clocked NULL sink"
-msgstr ""
+msgstr "სინქრონული ცარიელი აუდიომიმღები"
 
 #: src/modules/module-null-sink.c:356
 msgid "Null Output"
@@ -1080,7 +1080,7 @@ msgstr "გვირაბი %s/%s -მდე"
 
 #: src/modules/module-virtual-surround-sink.c:50
 msgid "Virtual surround sink"
-msgstr ""
+msgstr "სივრცითი ხმის ვირტუალური მიმღები"
 
 #: src/modules/module-virtual-surround-sink.c:54
 msgid ""
@@ -1616,12 +1616,12 @@ msgstr "ნაკადის შეცდომა: %s"
 #: src/utils/pacat.c:362
 #, c-format
 msgid "Stream device suspended.%s"
-msgstr ""
+msgstr "ნაკადის მოწყობილობა შეჩერებულია. %s"
 
 #: src/utils/pacat.c:364
 #, c-format
 msgid "Stream device resumed.%s"
-msgstr ""
+msgstr "ნაკადის მოწყობილობის მუშაობა გაგრძელდა. %s"
 
 #: src/utils/pacat.c:372
 #, c-format
@@ -2047,7 +2047,7 @@ msgstr "FRAMES"
 
 #: src/utils/pacmd.c:80 src/utils/pactl.c:2659
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
-msgstr ""
+msgstr "მიმღების შეტყობინება [შეტყობინების_პარამეტრები]"
 
 #: src/utils/pacmd.c:82
 #, c-format
@@ -2642,11 +2642,11 @@ msgstr "ხმა დაშვებულ დიაპაზონს გარ
 
 #: src/utils/pactl.c:2594
 msgid "Invalid number of volume specifications.\n"
-msgstr ""
+msgstr "არასწორი რიცხვი ხმის დონის სპეციფიკაციისთვის.\n"
 
 #: src/utils/pactl.c:2606
 msgid "Inconsistent volume specification.\n"
-msgstr ""
+msgstr "ხმის სიძლიერის არამდგრადი მნიშვნელობა.\n"
 
 #: src/utils/pactl.c:2636 src/utils/pactl.c:2637 src/utils/pactl.c:2638
 #: src/utils/pactl.c:2639 src/utils/pactl.c:2640 src/utils/pactl.c:2641
@@ -2826,7 +2826,7 @@ msgstr ""
 
 #: src/utils/pactl.c:3049
 msgid "Invalid sink input index"
-msgstr ""
+msgstr "არასწორი მიმღების შეყვანის ინდექსი"
 
 #: src/utils/pactl.c:3060
 msgid "You have to specify a source output index and a volume"
@@ -2834,7 +2834,7 @@ msgstr ""
 
 #: src/utils/pactl.c:3065
 msgid "Invalid source output index"
-msgstr ""
+msgstr "არასწორი წყაროს გამოტანის ინდექსი"
 
 #: src/utils/pactl.c:3086
 msgid ""
@@ -2868,7 +2868,7 @@ msgstr ""
 
 #: src/utils/pactl.c:3149
 msgid "Invalid source output index specification"
-msgstr ""
+msgstr "არასწორი წყაროს გამოტანის ინდექსის სპეციფიკაცია"
 
 #: src/utils/pactl.c:3162
 msgid "You have to specify at least an object path and a message name"
