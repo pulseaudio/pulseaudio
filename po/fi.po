@@ -10,7 +10,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2024-12-20 12:38+0000\n"
+"PO-Revision-Date: 2025-04-22 16:19+0000\n"
 "Last-Translator: Ricky Tigg <ricky.tigg@gmail.com>\n"
 "Language-Team: Finnish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/fi/>\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.9.1\n"
+"X-Generator: Weblate 5.11\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -742,11 +742,11 @@ msgstr "Peli ulostulo"
 
 #: src/modules/alsa/alsa-mixer.c:2819 src/modules/alsa/alsa-mixer.c:2820
 msgid "Chat Output"
-msgstr "Chatti ulostulo"
+msgstr "Pikakeskustelun lähtö"
 
 #: src/modules/alsa/alsa-mixer.c:2821
 msgid "Chat Input"
-msgstr "Chatti sisääntulo"
+msgstr "Pikakeskustelun syöttö"
 
 #: src/modules/alsa/alsa-mixer.c:2822
 msgid "Virtual Surround 7.1"
