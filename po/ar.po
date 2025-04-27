@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2025-04-27 08:33+0000\n"
+"PO-Revision-Date: 2025-04-27 12:48+0000\n"
 "Last-Translator: Zayed Al-Saidi <zayed.alsaidi@gmail.com>\n"
 "Language-Team: Arabic <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ar/>\n"
@@ -1847,7 +1847,7 @@ msgstr ""
 
 #: src/utils/pacat.c:1138
 msgid "recording"
-msgstr ""
+msgstr "يسجّل"
 
 #: src/utils/pacat.c:1138
 msgid "playback"
@@ -2094,15 +2094,15 @@ msgstr ""
 
 #: src/utils/pactl.c:321
 msgid "available"
-msgstr ""
+msgstr "متوفر"
 
 #: src/utils/pactl.c:322
 msgid "not available"
-msgstr ""
+msgstr "غير متوفر"
 
 #: src/utils/pactl.c:331 src/utils/pactl.c:355
 msgid "Unknown"
-msgstr ""
+msgstr "غير معروف"
 
 #: src/utils/pactl.c:332
 msgid "Aux"
@@ -2138,15 +2138,15 @@ msgstr ""
 
 #: src/utils/pactl.c:345
 msgid "USB"
-msgstr ""
+msgstr "يو إس بي"
 
 #: src/utils/pactl.c:346
 msgid "Bluetooth"
-msgstr ""
+msgstr "بلوتوث"
 
 #: src/utils/pactl.c:352
 msgid "Network"
-msgstr ""
+msgstr "شبكة"
 
 #: src/utils/pactl.c:353
 msgid "Analog"
@@ -2412,11 +2412,11 @@ msgstr ""
 
 #: src/utils/pactl.c:1711 src/utils/pactl.c:1760
 msgid "list-handlers message response could not be parsed correctly"
-msgstr ""
+msgstr "تعذر تحليل استجابة رسالة معالجات القائمة بشكل صحيح"
 
 #: src/utils/pactl.c:1718
 msgid "list-handlers message response is not a JSON array"
-msgstr ""
+msgstr "استجابة رسائل معالجات القائمة ليست مصفوفة JSON"
 
 #: src/utils/pactl.c:1729
 #, c-format
@@ -2458,11 +2458,11 @@ msgstr ""
 
 #: src/utils/pactl.c:2150
 msgid "remove"
-msgstr ""
+msgstr "أزِل"
 
 #: src/utils/pactl.c:2153 src/utils/pactl.c:2188
 msgid "unknown"
-msgstr ""
+msgstr "مجهول"
 
 #: src/utils/pactl.c:2161
 msgid "sink"
@@ -2470,7 +2470,7 @@ msgstr ""
 
 #: src/utils/pactl.c:2164
 msgid "source"
-msgstr ""
+msgstr "المصدر"
 
 #: src/utils/pactl.c:2167
 msgid "sink-input"
@@ -2494,7 +2494,7 @@ msgstr ""
 
 #: src/utils/pactl.c:2182
 msgid "server"
-msgstr ""
+msgstr "خادم"
 
 #: src/utils/pactl.c:2185
 msgid "card"
@@ -2511,7 +2511,7 @@ msgstr ""
 
 #: src/utils/pactl.c:2547
 msgid "Invalid volume specification"
-msgstr ""
+msgstr "مواصفات ملف خاطئة"
 
 #: src/utils/pactl.c:2581
 msgid "Volume outside permissible range.\n"
@@ -2715,7 +2715,7 @@ msgstr ""
 #: src/utils/pactl.c:3091 src/utils/pactl.c:3116 src/utils/pactl.c:3136
 #: src/utils/pactl.c:3154
 msgid "Invalid mute specification"
-msgstr ""
+msgstr "مواصفات كتم الصوت غير صالحة"
 
 #: src/utils/pactl.c:3111
 msgid "You have to specify a source name/index and a mute action (0, 1, or 'toggle')"
@@ -2900,4 +2900,4 @@ msgstr ""
 #: src/utils/pax11publish.c:206
 #, c-format
 msgid "Not yet implemented.\n"
-msgstr ""
+msgstr "لم تنفذ بعد.\n"
