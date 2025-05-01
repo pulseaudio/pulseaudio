@@ -10,16 +10,18 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2016-07-19 11:06+0300\n"
-"Last-Translator: Viktar Vaŭčkievič <victorenator@gmail.com>\n"
-"Language-Team: Belarusian <>\n"
+"PO-Revision-Date: 2025-05-01 00:34+0000\n"
+"Last-Translator: Yauhen Bugamol "
+"<bugamol@users.noreply.translate.fedoraproject.org>\n"
+"Language-Team: Belarusian <https://translate.fedoraproject.org/projects/"
+"pulseaudio/pulseaudio/be/>\n"
 "Language: be\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Lokalize 2.0\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Weblate 5.11.1\n"
 
 #: src/daemon/cmdline.c:113
 #, fuzzy, c-format
@@ -508,7 +510,7 @@ msgstr ""
 
 #: src/daemon/main.c:922
 msgid "Failed to acquire stdio."
-msgstr "Не атрымалася атрымаць stdio."
+msgstr "Не ўдалося атрымаць stdio."
 
 #: src/daemon/main.c:928 src/daemon/main.c:999
 #, c-format
@@ -536,7 +538,7 @@ msgstr "setsid() пацярпела няўдачу: %s"
 
 #: src/daemon/main.c:1119
 msgid "Failed to get machine ID"
-msgstr "Не атрымалася атрымаць ідэнтыфікатар машыны"
+msgstr "Не ўдалося атрымаць ідэнтыфікатар машыны"
 
 #: src/daemon/main.c:1145
 msgid ""
@@ -561,9 +563,8 @@ msgid "pa_core_new() failed."
 msgstr "pa_core_new() пацярпела няўдачу."
 
 #: src/daemon/main.c:1268
-#, fuzzy
 msgid "command line arguments"
-msgstr "Занадта шмат аргументаў."
+msgstr "аргументы каманднага радка"
 
 #: src/daemon/main.c:1275
 #, c-format
@@ -696,14 +697,12 @@ msgid "Analog Output"
 msgstr "Аналагавы выхад"
 
 #: src/modules/alsa/alsa-mixer.c:2808
-#, fuzzy
 msgid "Headphones 2"
-msgstr "Навушнікі"
+msgstr "Навушнікі 2"
 
 #: src/modules/alsa/alsa-mixer.c:2809
-#, fuzzy
 msgid "Headphones Mono Output"
-msgstr "Аналагавы монавыхад"
+msgstr "Манавыхад навушнікаў"
 
 #: src/modules/alsa/alsa-mixer.c:2810
 msgid "Line Out"
@@ -711,7 +710,7 @@ msgstr "Лінейны выхад"
 
 #: src/modules/alsa/alsa-mixer.c:2811
 msgid "Analog Mono Output"
-msgstr "Аналагавы монавыхад"
+msgstr "Аналагавы манавыхад"
 
 #: src/modules/alsa/alsa-mixer.c:2812
 msgid "Speakers"
@@ -738,38 +737,32 @@ msgid "Multichannel Output"
 msgstr "Шматканальны выхад"
 
 #: src/modules/alsa/alsa-mixer.c:2818
-#, fuzzy
 msgid "Game Output"
-msgstr "%s выхад"
+msgstr "Выхад гульні"
 
 #: src/modules/alsa/alsa-mixer.c:2819 src/modules/alsa/alsa-mixer.c:2820
-#, fuzzy
 msgid "Chat Output"
-msgstr "%s выхад"
+msgstr "Выхад размовы"
 
 #: src/modules/alsa/alsa-mixer.c:2821
-#, fuzzy
 msgid "Chat Input"
-msgstr "%s уваход"
+msgstr "Уваход размовы"
 
 #: src/modules/alsa/alsa-mixer.c:2822
-#, fuzzy
 msgid "Virtual Surround 7.1"
-msgstr "Віртуальны абʼёмны прыёмнік"
+msgstr "Віртуальны абʼёмны 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4563
 msgid "Analog Mono"
 msgstr "Аналагавы мона"
 
 #: src/modules/alsa/alsa-mixer.c:4564
-#, fuzzy
 msgid "Analog Mono (Left)"
-msgstr "Аналагавы мона"
+msgstr "Аналагавы мона (левы)"
 
 #: src/modules/alsa/alsa-mixer.c:4565
-#, fuzzy
 msgid "Analog Mono (Right)"
-msgstr "Аналагавы мона"
+msgstr "Аналагавы мона (правы)"
 
 #. Note: Not translated to "Analog Stereo Input", because the source
 #. * name gets "Input" appended to it automatically, so adding "Input"
@@ -796,9 +789,8 @@ msgid "Headset"
 msgstr "Гарнітура"
 
 #: src/modules/alsa/alsa-mixer.c:4577 src/modules/alsa/alsa-mixer.c:4735
-#, fuzzy
 msgid "Speakerphone"
-msgstr "Дынамік"
+msgstr "Гучная сувязь"
 
 #: src/modules/alsa/alsa-mixer.c:4578 src/modules/alsa/alsa-mixer.c:4579
 msgid "Multichannel"
@@ -874,36 +866,35 @@ msgstr "Лічбавы абʼёмны 5.1 (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4597
 msgid "Chat"
-msgstr ""
+msgstr "Размова"
 
 #: src/modules/alsa/alsa-mixer.c:4598
 msgid "Game"
-msgstr ""
+msgstr "Гульня"
 
 #: src/modules/alsa/alsa-mixer.c:4732
 msgid "Analog Mono Duplex"
-msgstr "Аналагавы мона дуплекс"
+msgstr "Дуплексны аналагавы мона"
 
 #: src/modules/alsa/alsa-mixer.c:4733
 msgid "Analog Stereo Duplex"
-msgstr "Аналагавы стэрэа дуплекс"
+msgstr "Дуплексны аналагавы стэрэа"
 
 #: src/modules/alsa/alsa-mixer.c:4736
 msgid "Digital Stereo Duplex (IEC958)"
-msgstr "Лічбавы стэрэа дуплекс (IEC958)"
+msgstr "Дуплексны лічбавы стэрэа (IEC958)"
 
 #: src/modules/alsa/alsa-mixer.c:4737
 msgid "Multichannel Duplex"
-msgstr "Шматканальны дуплекс"
+msgstr "Дуплексны шматканальны"
 
 #: src/modules/alsa/alsa-mixer.c:4738
-#, fuzzy
 msgid "Stereo Duplex"
-msgstr "Аналагавы стэрэа дуплекс"
+msgstr "Дуплексны стэрэа"
 
 #: src/modules/alsa/alsa-mixer.c:4739
 msgid "Mono Chat + 7.1 Surround"
-msgstr ""
+msgstr "Размова, мона + аб'ёмны 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4740 src/modules/alsa/module-alsa-card.c:197
 #: src/modules/bluetooth/module-bluez5-device.c:2263
@@ -1260,7 +1251,6 @@ msgid "Virtual surround sink"
 msgstr "Віртуальны абʼёмны прыёмнік"
 
 #: src/modules/module-virtual-surround-sink.c:54
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "master=<name of sink to filter> sink_master=<name of sink to filter> "
@@ -1271,19 +1261,21 @@ msgid ""
 "this module is being loaded automatically> "
 msgstr ""
 "sink_name=<назва прыёмніка> sink_properties=<уласцівасці прыёмніка> "
-"master=<назва прыёмніка для фільтрацыі> format=<фармат сэмлаў> rate=<частата "
-"сэмлаў> channels=<number of channels> channel_map=<колькасць каналаў> "
-"use_volume_sharing=<yes ці no> force_flat_volume=<yes ці no> hrir=<шлях да "
-"left_hrir.wav> "
+"master=<назва прыёмніка для фільтрацыі> sink_master=<назва прыёмніка для "
+"фільтрацыі> format=<фармат сэмлаў> rate=<частата дыскрэдытацыі> "
+"channels=<колькасць каналаў> channel_map=<карта каналаў> "
+"use_volume_sharing=<yes або no> force_flat_volume=<yes або no> hrir=/шлях/да/"
+"левага_hrir.wav hrir_left=/шлях/да/левага_hrir.wav "
+"hrir_right=/шлях/да/неабавязковага/правага_hrir.wav autoloaded=<задаецца, "
+"калі модуль загружаецца аўтаматычна> "
 
 #: src/modules/raop/module-raop-discover.c:295
-#, fuzzy
 msgid "Unknown device model"
-msgstr "Невядомы код памылкі"
+msgstr "Невядомая мадэль прылады"
 
 #: src/modules/raop/raop-sink.c:689
 msgid "RAOP standard profile"
-msgstr ""
+msgstr "Стандартны профіль RAOP"
 
 #: src/modules/reserve-wrap.c:149
 msgid "PulseAudio Sound Server"
@@ -1832,7 +1824,7 @@ msgstr "Паток перасунуты ў прыладу %s (%u, %sпрыпын
 
 #: src/utils/pacat.c:393
 msgid "not "
-msgstr "не"
+msgstr "не "
 
 #: src/utils/pacat.c:400
 #, c-format
@@ -1903,7 +1895,7 @@ msgstr "Атрыманы сігнал — выхад."
 #: src/utils/pacat.c:640
 #, c-format
 msgid "Failed to get latency: %s"
-msgstr "Не атрымалася атрымаць затрымку: %s"
+msgstr "Не ўдалося атрымаць затрымку: %s"
 
 #: src/utils/pacat.c:645
 #, c-format
@@ -2368,7 +2360,7 @@ msgstr "read(): %s"
 #: src/utils/pactl.c:183
 #, c-format
 msgid "Failed to get statistics: %s"
-msgstr "Не атрымалася атрымаць статыстыку: %s"
+msgstr "Не ўдалося атрымаць статыстыку: %s"
 
 #: src/utils/pactl.c:199
 #, fuzzy, c-format
@@ -2404,7 +2396,7 @@ msgstr "Памер кэшу сэмплаў: %s\n"
 #: src/utils/pactl.c:219 src/utils/pactl.c:231 src/utils/pactl.c:245
 #, c-format
 msgid "Failed to get server information: %s"
-msgstr "Не атрымалася атрымаць інфармацыю аб серверы: %s"
+msgstr "Не ўдалося атрымаць інфармацыю аб серверы: %s"
 
 #: src/utils/pactl.c:224 src/utils/pactl.c:236
 #, c-format
@@ -2453,11 +2445,11 @@ msgstr ""
 
 #: src/utils/pactl.c:320
 msgid "availability unknown"
-msgstr ""
+msgstr "даступнасць невядомая"
 
 #: src/utils/pactl.c:321
 msgid "available"
-msgstr ""
+msgstr "даступна"
 
 #: src/utils/pactl.c:322
 msgid "not available"
@@ -2492,11 +2484,11 @@ msgstr ""
 
 #: src/utils/pactl.c:340
 msgid "SPDIF"
-msgstr ""
+msgstr "SPDIF"
 
 #: src/utils/pactl.c:341
 msgid "HDMI"
-msgstr ""
+msgstr "HDMI"
 
 #: src/utils/pactl.c:342
 msgid "TV"
@@ -2504,7 +2496,7 @@ msgstr ""
 
 #: src/utils/pactl.c:345
 msgid "USB"
-msgstr ""
+msgstr "USB"
 
 #: src/utils/pactl.c:346
 #, fuzzy
@@ -2513,18 +2505,17 @@ msgstr "Bluetooth-уваход"
 
 #: src/utils/pactl.c:352
 msgid "Network"
-msgstr ""
+msgstr "Сетка"
 
 #: src/utils/pactl.c:353
-#, fuzzy
 msgid "Analog"
-msgstr "Аналагавы мона"
+msgstr "Аналагавы"
 
 #: src/utils/pactl.c:567 src/utils/pactl.c:1834 src/utils/pactl.c:1852
 #: src/utils/pactl.c:1875 src/utils/pactl.c:1992
 #, c-format
 msgid "Failed to get sink information: %s"
-msgstr "Не атрымалася атрымаць інфармацыю аб прыёмніку: %s"
+msgstr "Не ўдалося атрымаць інфармацыю аб прыёмніку: %s"
 
 #: src/utils/pactl.c:664
 #, c-format
@@ -2593,7 +2584,7 @@ msgstr "\tФарматы:\n"
 #: src/utils/pactl.c:1934 src/utils/pactl.c:2007
 #, c-format
 msgid "Failed to get source information: %s"
-msgstr "Не атрымалася атрымаць інфармацыю аб крыніцы: %s"
+msgstr "Не ўдалося атрымаць інфармацыю аб крыніцы: %s"
 
 #: src/utils/pactl.c:849
 #, c-format
@@ -2645,7 +2636,7 @@ msgstr "н/д"
 #: src/utils/pactl.c:924 src/utils/pactl.c:1793
 #, c-format
 msgid "Failed to get module information: %s"
-msgstr "Не атрымалася атрымаць інфармацыю аб модулі: %s"
+msgstr "Не ўдалося атрымаць інфармацыю аб модулі: %s"
 
 #: src/utils/pactl.c:976
 #, c-format
@@ -2667,7 +2658,7 @@ msgstr ""
 #: src/utils/pactl.c:1002
 #, c-format
 msgid "Failed to get client information: %s"
-msgstr "Не атрымалася атрымаць інфармацыю аб кліенце: %s"
+msgstr "Не ўдалося атрымаць інфармацыю аб кліенце: %s"
 
 #: src/utils/pactl.c:1056
 #, c-format
@@ -2687,7 +2678,7 @@ msgstr ""
 #: src/utils/pactl.c:1168
 #, c-format
 msgid "Failed to get card information: %s"
-msgstr "Не атрымалася атрымаць інфармацыю аб картцы: %s"
+msgstr "Не ўдалося атрымаць інфармацыю аб картцы: %s"
 
 #: src/utils/pactl.c:1224
 #, c-format
@@ -2744,7 +2735,7 @@ msgstr "\t\t\tЧастка профілю(яў): %s"
 #: src/utils/pactl.c:1290 src/utils/pactl.c:1954 src/utils/pactl.c:2022
 #, c-format
 msgid "Failed to get sink input information: %s"
-msgstr "Не атрымалася атрымаць інфармацыю аб уваходзе прыёмніка: %s"
+msgstr "Не ўдалося атрымаць інфармацыю аб уваходзе прыёмніка: %s"
 
 #: src/utils/pactl.c:1366
 #, c-format
@@ -2788,7 +2779,7 @@ msgstr ""
 #: src/utils/pactl.c:1413 src/utils/pactl.c:1974 src/utils/pactl.c:2037
 #, c-format
 msgid "Failed to get source output information: %s"
-msgstr "Не атрымалася атрымаць інфармацыю аб выхадзе крыніцы: %s"
+msgstr "Не ўдалося атрымаць інфармацыю аб выхадзе крыніцы: %s"
 
 #: src/utils/pactl.c:1489
 #, c-format
@@ -2832,7 +2823,7 @@ msgstr ""
 #: src/utils/pactl.c:1536
 #, c-format
 msgid "Failed to get sample information: %s"
-msgstr "Не атрымалася атрымаць інфармацыю аб сэмпле: %s"
+msgstr "Не ўдалося атрымаць інфармацыю аб сэмпле: %s"
 
 #: src/utils/pactl.c:1604
 #, c-format
@@ -3268,7 +3259,7 @@ msgstr ""
 
 #: src/utils/pactl.c:3194
 msgid "You have to specify a card name/index, a port name and a latency offset"
-msgstr "Неабходна задаць нумар ці назву карткі, назву порту і зрух затрымкі."
+msgstr "Неабходна задаць назву/нумар карты, назву порта і зрух затрымкі"
 
 #: src/utils/pactl.c:3201
 msgid "Could not parse latency offset"
@@ -3423,7 +3414,7 @@ msgstr "Не атрымалася захаваць дадзеныя cookie\n"
 #: src/utils/pax11publish.c:168
 #, c-format
 msgid "Failed to get FQDN.\n"
-msgstr "Не атрымалася атрымаць поўнае даменнае імя (FQDN).\n"
+msgstr "Не ўдалося атрымаць поўнае даменнае імя (FQDN).\n"
 
 #: src/utils/pax11publish.c:188
 #, c-format
