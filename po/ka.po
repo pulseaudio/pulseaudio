@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2025-04-13 20:52+0000\n"
+"PO-Revision-Date: 2025-05-10 22:55+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ka/>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.10.4\n"
+"X-Generator: Weblate 5.11.3\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -328,7 +328,7 @@ msgstr ""
 #: src/daemon/main.c:287 src/daemon/main.c:292
 #, c-format
 msgid "Failed to create '%s': %s"
-msgstr "შეცდომა %s-ის გახსნისას: %s"
+msgstr "'%s'-ის შექმნა ჩავარდა: %s"
 
 #: src/daemon/main.c:299
 #, c-format
@@ -554,11 +554,11 @@ msgstr "გამაძლიერებლის გარეშე"
 
 #: src/modules/alsa/alsa-mixer.c:2726
 msgid "Bass Boost"
-msgstr "Bass-ის გაძლიერება"
+msgstr "ბასის გაძლიერება"
 
 #: src/modules/alsa/alsa-mixer.c:2727
 msgid "No Bass Boost"
-msgstr "Bass-ის გაძლიერების გარეშე"
+msgstr "ბასის გაძლიერების გარეშე"
 
 #: src/modules/alsa/alsa-mixer.c:2728
 #: src/modules/bluetooth/module-bluez5-device.c:1964 src/utils/pactl.c:333
@@ -1338,7 +1338,7 @@ msgstr "xcb_connect() ჩავარდა"
 
 #: src/pulse/client-conf-x11.c:66 src/utils/pax11publish.c:102
 msgid "xcb_connection_has_error() returned true"
-msgstr "xcb_connection_has_error()-მა 1 დააბრუნა"
+msgstr "xcb_connection_has_error()-მა დააბრუნა ჭეშმარიტი მნისვნელობა"
 
 #: src/pulse/client-conf-x11.c:102
 msgid "Failed to parse cookie data"
