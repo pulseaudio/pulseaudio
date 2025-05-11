@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2025-02-23 20:53+0000\n"
+"PO-Revision-Date: 2025-05-11 11:49+0000\n"
 "Last-Translator: Remus-Gabriel Chelu <remusgabriel.chelu@disroot.org>\n"
 "Language-Team: Romanian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ro/>\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
 "20)) ? 1 : 2;\n"
-"X-Generator: Weblate 5.10\n"
+"X-Generator: Weblate 5.11.3\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -502,7 +502,7 @@ msgstr ""
 
 #: src/daemon/main.c:922
 msgid "Failed to acquire stdio."
-msgstr "Nu s-a reușit să se achizționeze stdio."
+msgstr "Nu s-a reușit să se achiziționeze stdio."
 
 #: src/daemon/main.c:928 src/daemon/main.c:999
 #, c-format
@@ -2135,7 +2135,7 @@ msgstr "Nu s-a putut determina specificația eșantionului din fișier."
 
 #: src/utils/pacat.c:1100
 msgid "Warning: Failed to determine channel map from file."
-msgstr "Avertisment: Nu s-a reușit determinarea schemei canalelor din fișier."
+msgstr "Avertisment: Nu s-a reușit să se determine schema canalelor din fișier."
 
 #: src/utils/pacat.c:1111
 msgid "Channel map doesn't match sample specification"
