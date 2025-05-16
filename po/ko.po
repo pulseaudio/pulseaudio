@@ -7,7 +7,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2024-08-04 19:41+0000\n"
+"PO-Revision-Date: 2025-05-16 04:44+0000\n"
 "Last-Translator: 김인수 <simmon@nplob.com>\n"
 "Language-Team: Korean <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ko/>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.6.2\n"
+"X-Generator: Weblate 5.11.3\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -230,7 +230,7 @@ msgstr "--disable-shm 에는 부울 인자 값이 필요합니다"
 
 #: src/daemon/cmdline.c:397
 msgid "--enable-memfd expects boolean argument"
-msgstr "--enable-memfd는 부울 인수가 필요합니다"
+msgstr "--enable-memfd 는 부울 인수가 예상됩니다"
 
 #: src/daemon/daemon-conf.c:270
 #, c-format
@@ -423,9 +423,8 @@ msgstr "명령어 행 분석 실패."
 msgid ""
 "System mode refused for non-root user. Only starting the D-Bus server lookup "
 "service."
-msgstr ""
-"비 루트 사용자의 시스템 모드 전환을 거부했습니다. D-Bus 서버 검색 서비스만 시"
-"작합니다."
+msgstr "non-root 사용자에게 시스템 방식이 거부되었습니다. D-Bus 서버 검색 서비스만 "
+"시작합니다."
 
 #: src/daemon/main.c:788
 #, c-format
@@ -436,9 +435,8 @@ msgstr "데몬 종료 실패: %s"
 msgid ""
 "This program is not intended to be run as root (unless --system is "
 "specified)."
-msgstr ""
-"이 프로그램은 루트 계정으로 실행하도록 만들지 않았습니다. (실행하려면 --"
-"system을 명기하십시오)."
+msgstr "이와 같은 프로그램은 root로 동작하도록 의도되지 않았습니다 (--system 이 "
+"지정되지 않은 경우)."
 
 #: src/daemon/main.c:820
 msgid "Root privileges required."
