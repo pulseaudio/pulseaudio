@@ -14,8 +14,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2022-12-18 11:19+0000\n"
-"Last-Translator: Toni Estevez <toni.estevez@gmail.com>\n"
+"PO-Revision-Date: 2025-05-16 16:15+0000\n"
+"Last-Translator: \"Fco. Javier F. Serrador\" <fserrador@gmail.com>\n"
 "Language-Team: Spanish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/es/>\n"
 "Language: es\n"
@@ -23,7 +23,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 4.15\n"
+"X-Generator: Weblate 5.11.3\n"
 "X-Poedit-Language: Spanish\n"
 
 #: src/daemon/cmdline.c:113
@@ -195,9 +195,9 @@ msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of error, warn, notice, info, debug)."
 msgstr ""
-"--log-level espera un argumento para el nivel de registro (un valor numérico "
-"en el rango de 0-4 o bien uno de estos valores: error, warn, notice, info, "
-"debug)."
+"--log-level espera un argumento para el nivel de bitácora (un valor numérico "
+"en el intervalo de 0..4 o bien uno de estos valores: error, warn, notice, "
+"info, debug)."
 
 #: src/daemon/cmdline.c:277
 msgid "--high-priority expects boolean argument"
@@ -217,7 +217,7 @@ msgstr "--disallow-exit espera un argumento booleano"
 
 #: src/daemon/cmdline.c:309
 msgid "--use-pid-file expects boolean argument"
-msgstr "--use pid-file espera un argumento booleano"
+msgstr "--use-pid-file espera un argumento booleano"
 
 #: src/daemon/cmdline.c:328
 msgid ""
