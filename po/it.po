@@ -12,7 +12,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2025-04-18 18:51+0000\n"
+"PO-Revision-Date: 2025-06-01 10:37+0000\n"
 "Last-Translator: Salvatore Cocuzza <info@salvatorecocuzza.it>\n"
 "Language-Team: Italian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/it/>\n"
@@ -21,7 +21,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.11\n"
+"X-Generator: Weblate 5.11.4\n"
 
 # mamma mia che impressione
 #: src/daemon/cmdline.c:113
@@ -2418,7 +2418,7 @@ msgstr "Recupero delle informazioni del server non riuscito: %s"
 #: src/utils/pactl.c:224 src/utils/pactl.c:236
 #, c-format
 msgid "%s\n"
-msgstr ""
+msgstr "%s\n"
 
 #: src/utils/pactl.c:281
 #, c-format
@@ -2489,7 +2489,6 @@ msgid "Mic"
 msgstr "Mic"
 
 #: src/utils/pactl.c:338
-#, fuzzy
 msgid "Handset"
 msgstr "Cuffie con microfono"
 
