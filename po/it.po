@@ -12,7 +12,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2025-06-01 10:37+0000\n"
+"PO-Revision-Date: 2025-06-08 14:42+0000\n"
 "Last-Translator: Salvatore Cocuzza <info@salvatorecocuzza.it>\n"
 "Language-Team: Italian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/it/>\n"
@@ -1245,7 +1245,6 @@ msgid "Virtual surround sink"
 msgstr "Sink surround virtuale"
 
 #: src/modules/module-virtual-surround-sink.c:54
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "master=<name of sink to filter> sink_master=<name of sink to filter> "
@@ -2583,7 +2582,6 @@ msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
 msgstr "\t\t%s: %s (tipo: %s, priorità: %u%s%s, %s)\n"
 
 #: src/utils/pactl.c:710 src/utils/pactl.c:894 src/utils/pactl.c:1256
-#, fuzzy
 msgid ", availability group: "
 msgstr ", gruppo disponibilità: "
 
