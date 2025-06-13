@@ -9,8 +9,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2024-09-04 16:38+0000\n"
-"Last-Translator: Giannis Antypas <gianni.antypas@gmail.com>\n"
+"PO-Revision-Date: 2025-06-13 08:45+0000\n"
+"Last-Translator: Jim Spentzos <jimspentzos2000@gmail.com>\n"
 "Language-Team: Greek <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/el/>\n"
 "Language: el\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.7.1\n"
+"X-Generator: Weblate 5.11.4\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -2298,9 +2298,7 @@ msgstr "ΠΛΑΙΣΙΑ"
 
 #: src/utils/pacmd.c:80 src/utils/pactl.c:2659
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
-msgstr ""
-"ΜΗΝΥΜΑ ΠΑΡΑΛΗΠΤΗ\n"
-"[ΠΑΡΑΜΕΤΡΟΙ_ΜΗΝΥΜΑΤΟΣ]"
+msgstr "ΜΗΝΥΜΑ ΠΑΡΑΛΗΠΤΗ [MESSAGE_PARAMETERS]"
 
 #: src/utils/pacmd.c:82
 #, c-format
