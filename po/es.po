@@ -14,7 +14,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2025-07-29 08:49+0000\n"
+"PO-Revision-Date: 2025-07-29 09:34+0000\n"
 "Last-Translator: \"Fco. Javier F. Serrador\" <fserrador@gmail.com>\n"
 "Language-Team: Spanish <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/es/>\n"
@@ -3410,7 +3410,7 @@ msgstr "Fuente: %s\n"
 #: src/utils/pax11publish.c:114
 #, c-format
 msgid "Sink: %s\n"
-msgstr "Sumidero: %s\n"
+msgstr "Destino: %s\n"
 
 #: src/utils/pax11publish.c:116
 #, c-format
