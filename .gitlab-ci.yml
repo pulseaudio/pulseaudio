@@ -106,6 +106,8 @@ build-meson:
     - cd meson-0.63.2
     - python3 setup.py install
     - cd ..
+    # needed to generate a version
+    - git fetch https://gitlab.freedesktop.org/pulseaudio/pulseaudio.git --tags
     # Do the actual build
     - meson build -Dwebrtc-aec=enabled
     - cd build
