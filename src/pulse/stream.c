@@ -1915,12 +1915,12 @@ static void stream_get_timing_info_callback(pa_pdispatch *pd, uint32_t command, 
 
             /* Go through the saved correction values and add up the
              * total correction.*/
-            for (n = 0, j = o->stream->current_write_index_correction+1;
+            for (n = 0, j = o->stream->current_write_index_correction + 1;
                  n < PA_MAX_WRITE_INDEX_CORRECTIONS;
                  n++, j++) {
 
                 /* First fix up the index to be within the array */
-                j  = j % PA_MAX_WRITE_INDEX_CORRECTIONS;
+                j = j % PA_MAX_WRITE_INDEX_CORRECTIONS;
 
                 /* Step over invalid data or out-of-date data */
                 if (!o->stream->write_index_corrections[j].valid ||
