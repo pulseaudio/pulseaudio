@@ -39,6 +39,8 @@
 #include <pulsecore/atomic.h>
 #include <pulse/xmalloc.h>
 
+#define EXIT_FAILURE_SKIP 77
+
 static pa_once once = PA_ONCE_INIT;
 static volatile unsigned n_run = 0;
 static const char * volatile ran_by = NULL;
@@ -139,5 +141,5 @@ int main(int argc, char *argv[]) {
     failed = srunner_ntests_failed(sr);
     srunner_free(sr);
 
-    return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+    return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE_SKIP;
 }
