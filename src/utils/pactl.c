@@ -1841,8 +1841,18 @@ static void get_sink_mute_callback(pa_context *c, const pa_sink_info *i, int is_
 
     pa_assert(i);
 
-    printf(("Mute: %s\n"),
-           pa_yes_no_localised(i->mute));
+    if (format == JSON) {
+        pa_json_encoder *encoder = pa_json_encoder_new();
+        pa_json_encoder_begin_element_object(encoder);
+        pa_json_encoder_add_member_bool(encoder, "mute", i->mute);
+        pa_json_encoder_end_object(encoder);
+        char* json_str = pa_json_encoder_to_string_free(encoder);
+        printf("%s\n", json_str);
+        pa_xfree(json_str);
+    } else {
+        printf(("Mute: %s\n"),
+               pa_yes_no_localised(i->mute));
+    }
 
     complete_action();
 }
@@ -1860,10 +1870,21 @@ static void get_sink_volume_callback(pa_context *c, const pa_sink_info *i, int i
     pa_assert(i);
 
     char cv[PA_CVOLUME_SNPRINT_VERBOSE_MAX];
-    printf(("Volume: %s\n"
-            "        balance %0.2f\n"),
-           pa_cvolume_snprint_verbose(cv, sizeof(cv), &i->volume, &i->channel_map, true),
-           pa_cvolume_get_balance(&i->volume, &i->channel_map));
+    if (format == JSON) {
+        pa_json_encoder *encoder = pa_json_encoder_new();
+        pa_json_encoder_begin_element_object(encoder);
+        pa_json_encoder_add_member_raw_json(encoder, "volume", pa_cvolume_to_json_object(&i->volume, &i->channel_map, i->flags & PA_SINK_DECIBEL_VOLUME));
+        pa_json_encoder_add_member_double(encoder, "balance", pa_cvolume_get_balance(&i->volume, &i->channel_map), 2);
+        pa_json_encoder_end_object(encoder);
+        char* json_str = pa_json_encoder_to_string_free(encoder);
+        printf("%s\n", json_str);
+        pa_xfree(json_str);
+    } else {
+        printf(("Volume: %s\n"
+                "        balance %0.2f\n"),
+               pa_cvolume_snprint_verbose(cv, sizeof(cv), &i->volume, &i->channel_map, true),
+               pa_cvolume_get_balance(&i->volume, &i->channel_map));
+    }
 
     complete_action();
 }
@@ -1907,8 +1928,18 @@ static void get_source_mute_callback(pa_context *c, const pa_source_info *i, int
 
     pa_assert(i);
 
-    printf(("Mute: %s\n"),
-           pa_yes_no_localised(i->mute));
+    if (format == JSON) {
+        pa_json_encoder *encoder = pa_json_encoder_new();
+        pa_json_encoder_begin_element_object(encoder);
+        pa_json_encoder_add_member_bool(encoder, "mute", i->mute);
+        pa_json_encoder_end_object(encoder);
+        char* json_str = pa_json_encoder_to_string_free(encoder);
+        printf("%s\n", json_str);
+        pa_xfree(json_str);
+    } else {
+        printf(("Mute: %s\n"),
+               pa_yes_no_localised(i->mute));
+    }
 
     complete_action();
 }
@@ -1926,10 +1957,21 @@ static void get_source_volume_callback(pa_context *c, const pa_source_info *i, i
     pa_assert(i);
 
     char cv[PA_CVOLUME_SNPRINT_VERBOSE_MAX];
-    printf(("Volume: %s\n"
-            "        balance %0.2f\n"),
-           pa_cvolume_snprint_verbose(cv, sizeof(cv), &i->volume, &i->channel_map, true),
-           pa_cvolume_get_balance(&i->volume, &i->channel_map));
+    if (format == JSON) {
+        pa_json_encoder *encoder = pa_json_encoder_new();
+        pa_json_encoder_begin_element_object(encoder);
+        pa_json_encoder_add_member_raw_json(encoder, "volume", pa_cvolume_to_json_object(&i->volume, &i->channel_map, i->flags & PA_SINK_DECIBEL_VOLUME));
+        pa_json_encoder_add_member_double(encoder, "balance", pa_cvolume_get_balance(&i->volume, &i->channel_map), 2);
+        pa_json_encoder_end_object(encoder);
+        char* json_str = pa_json_encoder_to_string_free(encoder);
+        printf("%s\n", json_str);
+        pa_xfree(json_str);
+    } else {
+        printf(("Volume: %s\n"
+                "        balance %0.2f\n"),
+               pa_cvolume_snprint_verbose(cv, sizeof(cv), &i->volume, &i->channel_map, true),
+               pa_cvolume_get_balance(&i->volume, &i->channel_map));
+    }
 
     complete_action();
 }
