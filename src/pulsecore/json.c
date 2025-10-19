@@ -763,8 +763,8 @@ static char *pa_json_escape(const char *p) {
                 *output++ = 't';
                 break;
             default:
-                if (*s < 0x20 || *s > 0x7E) {
-                    pa_log("Invalid non-ASCII character: 0x%x", (unsigned int) *s);
+                if (*s < 0x20 || *s == 0x7F) {
+                    pa_log("Invalid ASCII character: 0x%x", (unsigned int) *s);
                     pa_xfree(out_string);
                     return NULL;
                 }
