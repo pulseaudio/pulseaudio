@@ -1,6 +1,6 @@
 project('pulseaudio', 'c',
         version : run_command(find_program('git-version-gen'), join_paths(meson.current_source_dir(), '.tarball-version'), check : false).stdout().strip(),
-        meson_version : '>= 0.50.0',
+        meson_version : '>= 0.56.0',
         default_options : [ 'c_std=gnu11', 'cpp_std=c++17' ]
         )
 
@@ -171,7 +171,7 @@ cdata.set_quoted('DESKTOPFILEDIR', join_paths(datadir, 'applications'))
 cdata.set_quoted('PULSE_LOCALEDIR', localedir)
 cdata.set_quoted('GETTEXT_PACKAGE', 'pulseaudio')
 cdata.set('ENABLE_NLS', 1)
-cdata.set('top_srcdir', meson.source_root())
+cdata.set('top_srcdir', meson.project_source_root())
 
 # Platform specifics
 # First some defaults to keep config file generation happy
