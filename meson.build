@@ -123,7 +123,7 @@ bashcompletiondir = get_option('bashcompletiondir')
 if bashcompletiondir == ''
   bash_completion_dep = dependency('bash-completion', required : false)
   if bash_completion_dep.found()
-    bashcompletiondir = bash_completion_dep.get_pkgconfig_variable('completionsdir')
+    bashcompletiondir = bash_completion_dep.get_variable(pkgconfig : 'completionsdir')
   else
     bashcompletiondir = join_paths(datadir, 'bash-completion', 'completions')
   endif
@@ -733,7 +733,7 @@ if get_option('daemon')
 
   systemd_dep = dependency('systemd', required : get_option('systemd'))
   if systemd_dep.found() and systemduserunitdir == ''
-    systemduserunitdir = systemd_dep.get_pkgconfig_variable('systemduserunitdir')
+    systemduserunitdir = systemd_dep.get_variable(pkgconfig: 'systemduserunitdir')
   endif
 
   libelogind_dep = dependency('libelogind', required : get_option('elogind'))
