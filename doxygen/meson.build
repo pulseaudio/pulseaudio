@@ -1,3 +1,8 @@
+doxygen = find_program('doxygen', required: get_option('doxygen'))
+if not doxygen.found()
+  subdir_done()
+endif
+
 cdata.set('DOXYGEN_OUTPUT_DIRECTORY', meson.current_build_dir())
 
 doxygen_conf = configure_file(
@@ -7,4 +12,4 @@ doxygen_conf = configure_file(
 )
 
 run_target('doxygen',
-  command : ['doxygen', doxygen_conf])
+  command : [doxygen, doxygen_conf])

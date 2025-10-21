@@ -1,3 +1,7 @@
+if not check_dep.found()
+  subdir_done()
+endif
+
 # Note that a few tests have dependencies on src/modules.
 #
 # The syntax for tests declaration is:

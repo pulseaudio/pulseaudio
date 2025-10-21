@@ -224,7 +224,5 @@ if get_option('daemon')
   subdir('daemon')
   subdir('modules')
 endif
-if get_option('tests')
-  subdir('tests')
-endif
+subdir('tests')
 subdir('utils')

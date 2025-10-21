@@ -5,7 +5,7 @@ option('client',
        type : 'boolean', value : true,
        description : 'Build and install pulseaudio client libraries and utilities')
 option('doxygen',
-       type : 'boolean', value : true,
+       type : 'feature',
        description : 'Enable building and installation of documentation generated with doxygen')
 option('gcov',
        type : 'boolean', value : false,
@@ -14,7 +14,7 @@ option('man',
        type : 'boolean',
        description : 'Enable building and installation of man pages')
 option('tests',
-       type : 'boolean',
+       type : 'feature',
        description : 'Enable unit tests')
 
 option('system_user',
