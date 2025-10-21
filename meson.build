@@ -439,7 +439,7 @@ endif
 # Code coverage
 
 if get_option('gcov')
-  add_languages('cpp')
+  add_languages('cpp', native: false)
   add_project_arguments('--coverage', language: ['c', 'cpp'])
   add_project_link_arguments('--coverage', language: ['c', 'cpp'])
 endif
