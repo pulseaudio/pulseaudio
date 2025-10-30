@@ -328,8 +328,8 @@ pa_channel_map* pa_channel_map_init_auto(pa_channel_map *m, unsigned channels, p
                     /* Fall through */
 
                 case 8:
-                    m->map[6] = PA_CHANNEL_POSITION_FRONT_LEFT_OF_CENTER;
-                    m->map[7] = PA_CHANNEL_POSITION_FRONT_RIGHT_OF_CENTER;
+                    m->map[6] = PA_CHANNEL_POSITION_SIDE_LEFT;
+                    m->map[7] = PA_CHANNEL_POSITION_SIDE_RIGHT;
                     /* Fall through */
 
                 case 6:
