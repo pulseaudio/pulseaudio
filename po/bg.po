@@ -6,8 +6,7 @@ msgstr ""
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
 "PO-Revision-Date: 2025-11-15 16:45+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
+"Last-Translator: twlvnn kraftwerk <kraft_werk@tutanota.com>\n"
 "Language-Team: Bulgarian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/bg/>\n"
 "Language: bg\n"
@@ -509,7 +508,7 @@ msgstr ""
 
 #: src/daemon/main.c:922
 msgid "Failed to acquire stdio."
-msgstr ""
+msgstr "Стандартният вход не може да бъде получен."
 
 #: src/daemon/main.c:928 src/daemon/main.c:999
 #, c-format
@@ -1657,7 +1656,7 @@ msgstr "Не се поддържа"
 
 #: src/pulse/error.c:58
 msgid "Unknown error code"
-msgstr "Неизвестен код за грешка"
+msgstr "Непознат код за грешка"
 
 #: src/pulse/error.c:59
 msgid "No such extension"
@@ -2430,7 +2429,7 @@ msgstr "наличност неизвестна"
 
 #: src/utils/pactl.c:321
 msgid "available"
-msgstr "наличено"
+msgstr "налични"
 
 #: src/utils/pactl.c:322
 msgid "not available"
@@ -2438,7 +2437,7 @@ msgstr "не е налично"
 
 #: src/utils/pactl.c:331 src/utils/pactl.c:355
 msgid "Unknown"
-msgstr "Неизвестно"
+msgstr "Непознат"
 
 #: src/utils/pactl.c:332
 msgid "Aux"
@@ -3412,4 +3411,4 @@ msgstr "Данните за бисквитката не може да бъдат
 #: src/utils/pax11publish.c:206
 #, c-format
 msgid "Not yet implemented.\n"
-msgstr "Не е реализирано.\n"
+msgstr "Все още не е реализирано\n"
