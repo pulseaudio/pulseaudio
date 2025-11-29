@@ -14,15 +14,16 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2016-10-12 22:20+0200\n"
-"Last-Translator: Cédric Valmary (totenoc.eu) <cvalmary@yahoo.fr>\n"
-"Language-Team: Tot En Òc\n"
+"PO-Revision-Date: 2025-11-30 08:10+0000\n"
+"Last-Translator: Quentin PAGÈS <quentinantonin@free.fr>\n"
+"Language-Team: Occitan <https://translate.fedoraproject.org/projects/"
+"pulseaudio/pulseaudio/oc/>\n"
 "Language: oc\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Virtaal 0.7.1\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 5.14.3\n"
 "X-Launchpad-Export-Date: 2016-10-12 20:12+0000\n"
 
 #: src/daemon/cmdline.c:113
@@ -1613,7 +1614,7 @@ msgstr "%0.1f Kio"
 #: src/pulse/sample.c:197
 #, c-format
 msgid "%u B"
-msgstr "%u B"
+msgstr "%u o"
 
 #: src/utils/pacat.c:134
 #, c-format
@@ -2195,20 +2196,20 @@ msgid "Failed to get statistics: %s"
 msgstr "Fracàs al moment de la recuperacion de las estatisticas : %s"
 
 #: src/utils/pactl.c:199
-#, fuzzy, c-format
+#, c-format
 msgid "Currently in use: %u block containing %s bytes total.\n"
 msgid_plural "Currently in use: %u blocks containing %s bytes total.\n"
-msgstr[0] "En cors d'utilizacion : %u blòts que conten al total %s octets.\n"
-msgstr[1] "En cors d'utilizacion : %u blòts que conten al total %s octets.\n"
+msgstr[0] "En cors d'utilizacion : %u blòt que conten al total %s octets.\n"
+msgstr[1] "En cors d'utilizacion : %u blòts que contenon al total %s octets.\n"
 
 #: src/utils/pactl.c:205
-#, fuzzy, c-format
+#, c-format
 msgid "Allocated during whole lifetime: %u block containing %s bytes total.\n"
 msgid_plural ""
 "Allocated during whole lifetime: %u blocks containing %s bytes total.\n"
 msgstr[0] ""
-"Atribuit pendent l'ensemble de la durada d'execucion : %u blòts que contenon "
-"al total %s octets.\n"
+"Atribuit pendent l'ensemble de la durada d'execucion : %u blòt que conten al "
+"total %s octets.\n"
 msgstr[1] ""
 "Atribuit pendent l'ensemble de la durada d'execucion : %u blòts que contenon "
 "al total %s octets.\n"
