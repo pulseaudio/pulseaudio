@@ -686,7 +686,7 @@ static void apply_diff_time(struct userdata *u, int64_t diff_time) {
              * timings */
             diff += 10 * pa_frame_size (&u->sink_input->sample_spec);
 
-            pa_log("Playback after capture (%lld), drop sink %lld", (long long) diff_time, (long long) diff);
+            pa_log(PA_LOG_INFO, "Playback after capture (%lld), drop sink %lld", (long long) diff_time, (long long) diff);
 
             u->sink_skip = diff;
             u->source_skip = 0;
@@ -695,7 +695,7 @@ static void apply_diff_time(struct userdata *u, int64_t diff_time) {
         diff = pa_usec_to_bytes(diff_time, &u->source_output->sample_spec);
 
         if (diff > 0) {
-            pa_log("Playback too far ahead (%lld), drop source %lld", (long long) diff_time, (long long) diff);
+            pa_log(PA_LOG_INFO, "Playback too far ahead (%lld), drop source %lld", (long long) diff_time, (long long) diff);
 
             u->source_skip = diff;
             u->sink_skip = 0;
@@ -708,7 +708,7 @@ static void do_resync(struct userdata *u) {
     int64_t diff_time;
     struct snapshot latency_snapshot;
 
-    pa_log("Doing resync");
+    pa_log(PA_LOG_INFO, "Doing resync");
 
     /* update our snapshot */
     /* 1. Get sink input latency snapshot, might cause buffers to be sent to source thread */
