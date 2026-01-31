@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2025-07-21 10:49+0000\n"
+"PO-Revision-Date: 2026-02-01 05:58+0000\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ka/>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.12.2\n"
+"X-Generator: Weblate 5.15.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -149,7 +149,7 @@ msgstr "--log-meta ლოგიკურ არგუმენტს მოე�
 #: src/daemon/cmdline.c:366
 #, c-format
 msgid "Invalid resample method '%s'."
-msgstr ""
+msgstr "არასწორი რესემპლის მეთოდი '%s'."
 
 #: src/daemon/cmdline.c:373
 msgid "--system expects boolean argument"
@@ -347,7 +347,7 @@ msgstr "UID-ის შეცვლის შეცდომა: %s"
 
 #: src/daemon/main.c:360
 msgid "System wide mode unsupported on this platform."
-msgstr ""
+msgstr "ამ პლატფორმაზე რეჟიმი 'მთელი სისტემისთვის' მხარდაჭერილი არაა."
 
 #: src/daemon/main.c:650
 msgid "Failed to parse command line."
@@ -2866,7 +2866,7 @@ msgstr ""
 
 #: src/utils/pactl.c:3131
 msgid "Invalid sink input index specification"
-msgstr ""
+msgstr "არასწორი გამოტანის ინდექსის სპეციფიკაცია"
 
 #: src/utils/pactl.c:3144
 msgid ""
