@@ -150,7 +150,7 @@ static const char* parse_string(const char *str, pa_json_object *obj) {
         if (*str != '\\') {
             /* JSON specifies that ASCII control characters 0x00 through 0x1F
              * must not appear in the string. */
-            if (*str < 0x20) {
+            if (*str >= 0x00 && *str < 0x20) {
                 pa_log("Invalid ASCII character: 0x%x", (unsigned int) *str);
                 goto error;
             }
@@ -763,7 +763,7 @@ static char *pa_json_escape(const char *p) {
                 *output++ = 't';
                 break;
             default:
-                if (*s < 0x20 || *s == 0x7F) {
+                if ((*s >= 0x00 && *s < 0x20) || *s == 0x7F) {
                     pa_log("Invalid ASCII character: 0x%x", (unsigned int) *s);
                     pa_xfree(out_string);
                     return NULL;
