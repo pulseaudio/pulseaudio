@@ -14,7 +14,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2025-11-30 08:10+0000\n"
+"PO-Revision-Date: 2026-03-09 12:58+0000\n"
 "Last-Translator: Quentin PAGÈS <quentinantonin@free.fr>\n"
 "Language-Team: Occitan <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/oc/>\n"
@@ -23,7 +23,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 5.14.3\n"
+"X-Generator: Weblate 5.16.2\n"
 "X-Launchpad-Export-Date: 2016-10-12 20:12+0000\n"
 
 #: src/daemon/cmdline.c:113
@@ -620,14 +620,12 @@ msgid "Analog Output"
 msgstr "Sortida analogica"
 
 #: src/modules/alsa/alsa-mixer.c:2808
-#, fuzzy
 msgid "Headphones 2"
-msgstr "Escotadors"
+msgstr "Escotadors 2"
 
 #: src/modules/alsa/alsa-mixer.c:2809
-#, fuzzy
 msgid "Headphones Mono Output"
-msgstr "Sortida Analogica Monò"
+msgstr "Sortida mono dels escotadors"
 
 #: src/modules/alsa/alsa-mixer.c:2810
 msgid "Line Out"
@@ -655,45 +653,39 @@ msgstr "Entrada numerica (S/PDIF)"
 
 #: src/modules/alsa/alsa-mixer.c:2816
 msgid "Multichannel Input"
-msgstr ""
+msgstr "Entrada multicanala"
 
 #: src/modules/alsa/alsa-mixer.c:2817
 msgid "Multichannel Output"
-msgstr ""
+msgstr "Sortida multicanala"
 
 #: src/modules/alsa/alsa-mixer.c:2818
-#, fuzzy
 msgid "Game Output"
-msgstr "%s Sortida"
+msgstr "Sortida jòc"
 
 #: src/modules/alsa/alsa-mixer.c:2819 src/modules/alsa/alsa-mixer.c:2820
-#, fuzzy
 msgid "Chat Output"
-msgstr "%s Sortida"
+msgstr "Sortida messatjariá"
 
 #: src/modules/alsa/alsa-mixer.c:2821
-#, fuzzy
 msgid "Chat Input"
-msgstr "%s Entrada"
+msgstr "Entrada messatjariá"
 
 #: src/modules/alsa/alsa-mixer.c:2822
-#, fuzzy
 msgid "Virtual Surround 7.1"
-msgstr "Collector ambiofonic virtual"
+msgstr "Surround 7.1 virtual"
 
 #: src/modules/alsa/alsa-mixer.c:4563
 msgid "Analog Mono"
 msgstr "Monò analogic"
 
 #: src/modules/alsa/alsa-mixer.c:4564
-#, fuzzy
 msgid "Analog Mono (Left)"
-msgstr "Monò analogic"
+msgstr "Mono analogic (esquèrra)"
 
 #: src/modules/alsa/alsa-mixer.c:4565
-#, fuzzy
 msgid "Analog Mono (Right)"
-msgstr "Monò analogic"
+msgstr "Mono analogic (drecha)"
 
 #. Note: Not translated to "Analog Stereo Input", because the source
 #. * name gets "Input" appended to it automatically, so adding "Input"
@@ -726,7 +718,7 @@ msgstr "Nautparlaire"
 
 #: src/modules/alsa/alsa-mixer.c:4578 src/modules/alsa/alsa-mixer.c:4579
 msgid "Multichannel"
-msgstr ""
+msgstr "Multicanal"
 
 #: src/modules/alsa/alsa-mixer.c:4580
 msgid "Analog Surround 2.1"
@@ -798,11 +790,11 @@ msgstr "Digital Surround 5.1 (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4597
 msgid "Chat"
-msgstr ""
+msgstr "Messatjariá"
 
 #: src/modules/alsa/alsa-mixer.c:4598
 msgid "Game"
-msgstr ""
+msgstr "Jòc"
 
 #: src/modules/alsa/alsa-mixer.c:4732
 msgid "Analog Mono Duplex"
@@ -821,9 +813,8 @@ msgid "Multichannel Duplex"
 msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:4738
-#, fuzzy
 msgid "Stereo Duplex"
-msgstr "Duplèx esterèo analogic"
+msgstr "Duplèx esterèo"
 
 #: src/modules/alsa/alsa-mixer.c:4739
 msgid "Mono Chat + 7.1 Surround"
@@ -1124,7 +1115,7 @@ msgstr "Audio sus @HOSTNAME@"
 #: src/modules/module-tunnel-source-new.c:354
 #, c-format
 msgid "Tunnel for %s@%s"
-msgstr ""
+msgstr "Tunèl per %s@%s"
 
 #: src/modules/module-tunnel-sink-new.c:715
 #: src/modules/module-tunnel-source-new.c:684
@@ -1426,7 +1417,7 @@ msgstr "Messatge recebut per una extension desconeguda « %s »"
 
 #: src/pulse/direction.c:37
 msgid "input"
-msgstr ""
+msgstr "entrada"
 
 #: src/pulse/direction.c:39
 msgid "output"
