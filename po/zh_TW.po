@@ -10,8 +10,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2025-04-09 01:53+0000\n"
-"Last-Translator: hsu zangmen <chzang55@gmail.com>\n"
+"PO-Revision-Date: 2026-03-12 12:58+0000\n"
+"Last-Translator: Kisaragi Hiu <mail@kisaragi-hiu.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.fedoraproject.org/"
 "projects/pulseaudio/pulseaudio/zh_TW/>\n"
 "Language: zh_TW\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.10.4\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -161,13 +161,12 @@ msgid "--fail expects boolean argument"
 msgstr "--fail 預期布林引數"
 
 #: src/daemon/cmdline.c:265
-#, fuzzy
 msgid ""
 "--log-level expects log level argument (either numeric in range 0..4 or one "
 "of error, warn, notice, info, debug)."
 msgstr ""
-"--log-level 預期記錄層級引數 (範圍 0..4 間的數字，或是後列之一： debug、"
-"info、notice、warn、error)。"
+"--log-level 預期記錄層級引數 (範圍 0..4 間的數字，或是後列之一：error、warn、"
+"notice、info、debug)。"
 
 #: src/daemon/cmdline.c:277
 msgid "--high-priority expects boolean argument"
@@ -216,7 +215,7 @@ msgstr "--log-meta 預期布林引數"
 #: src/daemon/cmdline.c:366
 #, c-format
 msgid "Invalid resample method '%s'."
-msgstr "無效的重新取樣方法「%s」"
+msgstr "無效的重新取樣方法「%s」。"
 
 #: src/daemon/cmdline.c:373
 msgid "--system expects boolean argument"
@@ -454,7 +453,7 @@ msgstr "使用者於 %s 設定的伺服器，拒絕啟動/autospawn。"
 #, c-format
 msgid ""
 "User-configured server at %s, which appears to be local. Probing deeper."
-msgstr "使用者設定的伺服器位於 %s，它似乎是本機。正在深入探測。"
+msgstr "使用者於 %s 設定的伺服器，它似乎是本機。正在深入探測。"
 
 #: src/daemon/main.c:878
 msgid "Running in system mode, but --disallow-exit not set."
@@ -657,9 +656,8 @@ msgid "Analog Output"
 msgstr "類比輸出"
 
 #: src/modules/alsa/alsa-mixer.c:2808
-#, fuzzy
 msgid "Headphones 2"
-msgstr "頭戴式耳機"
+msgstr "頭戴式耳機 2"
 
 #: src/modules/alsa/alsa-mixer.c:2809
 msgid "Headphones Mono Output"
@@ -706,28 +704,24 @@ msgid "Chat Output"
 msgstr "聊天輸出"
 
 #: src/modules/alsa/alsa-mixer.c:2821
-#, fuzzy
 msgid "Chat Input"
-msgstr "聊天輸出"
+msgstr "聊天輸入"
 
 #: src/modules/alsa/alsa-mixer.c:2822
-#, fuzzy
 msgid "Virtual Surround 7.1"
-msgstr "虛擬環繞聲 sink"
+msgstr "虛擬環繞聲 7.1"
 
 #: src/modules/alsa/alsa-mixer.c:4563
 msgid "Analog Mono"
 msgstr "類比單聲道"
 
 #: src/modules/alsa/alsa-mixer.c:4564
-#, fuzzy
 msgid "Analog Mono (Left)"
-msgstr "類比單聲道"
+msgstr "類比單聲道（左）"
 
 #: src/modules/alsa/alsa-mixer.c:4565
-#, fuzzy
 msgid "Analog Mono (Right)"
-msgstr "類比單聲道"
+msgstr "類比單聲道（右）"
 
 #. Note: Not translated to "Analog Stereo Input", because the source
 #. * name gets "Input" appended to it automatically, so adding "Input"
@@ -754,9 +748,8 @@ msgid "Headset"
 msgstr "耳麥"
 
 #: src/modules/alsa/alsa-mixer.c:4577 src/modules/alsa/alsa-mixer.c:4735
-#, fuzzy
 msgid "Speakerphone"
-msgstr "喇叭"
+msgstr "會議揚聲器"
 
 #: src/modules/alsa/alsa-mixer.c:4578 src/modules/alsa/alsa-mixer.c:4579
 msgid "Multichannel"
@@ -832,11 +825,11 @@ msgstr "數位環繞聲 5.1 (HDMI)"
 
 #: src/modules/alsa/alsa-mixer.c:4597
 msgid "Chat"
-msgstr ""
+msgstr "聊天"
 
 #: src/modules/alsa/alsa-mixer.c:4598
 msgid "Game"
-msgstr ""
+msgstr "遊戲"
 
 #: src/modules/alsa/alsa-mixer.c:4732
 msgid "Analog Mono Duplex"
@@ -860,7 +853,7 @@ msgstr "立體聲雙工"
 
 #: src/modules/alsa/alsa-mixer.c:4739
 msgid "Mono Chat + 7.1 Surround"
-msgstr ""
+msgstr "單聲道聊天 + 7.1 立體聲"
 
 #: src/modules/alsa/alsa-mixer.c:4740 src/modules/alsa/module-alsa-card.c:197
 #: src/modules/bluetooth/module-bluez5-device.c:2263
@@ -1010,24 +1003,20 @@ msgid "High Fidelity Capture (A2DP Source)"
 msgstr "高傳真擷取裝置 (A2DP Source)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2066
-#, fuzzy
 msgid "Headset Head Unit (HSP)"
-msgstr "耳機麥克風頭部 (HSP/HFP)"
+msgstr "耳麥頭戴單元 (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2079
-#, fuzzy
 msgid "Headset Audio Gateway (HSP)"
-msgstr "耳機麥克風音訊閘道 (HSP/HFP)"
+msgstr "耳麥音訊閘道 (HSP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2092
-#, fuzzy
 msgid "Handsfree Head Unit (HFP)"
-msgstr "耳機麥克風頭部 (HSP/HFP)"
+msgstr "免持裝置頭戴單元 (HFP)"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2105
-#, fuzzy
 msgid "Handsfree Audio Gateway (HFP)"
-msgstr "耳機麥克風音訊閘道 (HSP/HFP)"
+msgstr "免持裝置音訊閘道 (HFP)"
 
 #: src/modules/echo-cancel/module-echo-cancel.c:59
 msgid ""
@@ -1166,7 +1155,6 @@ msgid "Virtual surround sink"
 msgstr "虛擬環繞聲 sink"
 
 #: src/modules/module-virtual-surround-sink.c:54
-#, fuzzy
 msgid ""
 "sink_name=<name for the sink> sink_properties=<properties for the sink> "
 "master=<name of sink to filter> sink_master=<name of sink to filter> "
@@ -1176,11 +1164,12 @@ msgid ""
 "left_hrir.wav hrir_right=/path/to/optional/right_hrir.wav autoloaded=<set if "
 "this module is being loaded automatically> "
 msgstr ""
-"sink_name=<sink 名稱> sink_properties=<sink 屬性> master=<要過濾的 sink 名稱"
-"> sink_master=<要過濾的 sink 名稱> format=<取樣格式> rate=<取樣率> channels=<"
-"聲道數> channel_map=<聲道映射表> use_volume_sharing=<是或否> "
-"force_flat_volume=<是或否> hrir=/path/to/left_hrir.wav autoloaded=<設定此模組"
-"是否自動被載入> "
+"sink_name=<sink 名稱> sink_properties=<sink 屬性> master=<要過濾的 sink 名"
+"稱> sink_master=<要過濾的 sink 名稱> format=<取樣格式> rate=<取樣率> "
+"channels=<聲道數> channel_map=<聲道映射表> use_volume_sharing=<是或否> "
+"force_flat_volume=<是或否> hrir=/path/to/left_hrir.wav hrir_left=/path/to/"
+"left_hrir.wav hrir_right=/path/to/optional/right_hrir.wav autoloaded=<設定此"
+"模組是否自動被載入> "
 
 #: src/modules/raop/module-raop-discover.c:295
 msgid "Unknown device model"
@@ -1693,7 +1682,7 @@ msgstr "緩衝矩陣：maxlength=%u, fragsize=%u"
 #: src/utils/pacat.c:338
 #, c-format
 msgid "Using sample spec '%s', channel map '%s'."
-msgstr "使用取樣規格「%s」，聲道對應表「%s」"
+msgstr "使用取樣規格「%s」，聲道對應表「%s」。"
 
 #: src/utils/pacat.c:342
 #, c-format
@@ -1820,7 +1809,7 @@ msgid "pa_stream_update_timing_info() failed: %s"
 msgstr "pa_stream_update_timing_info() 失敗：%s"
 
 #: src/utils/pacat.c:676
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "%s [options]\n"
 "%s\n"
@@ -1890,27 +1879,28 @@ msgstr ""
 "%s [選項]\n"
 "%s\n"
 "\n"
-"  -h, --help                            顯示此幫助\n"
+"  -h, --help                            顯示此說明\n"
 "      --version                         顯示版本\n"
 "\n"
-"  -r, --record                          建立錄製的連線\n"
-"  -p, --playback                        建立播放控制的連線\n"
+"  -r, --record                          建立錄製用的連線\n"
+"  -p, --playback                        建立播放用的連線\n"
 "\n"
-"  -v, --verbose                         啟用詳盡作業\n"
+"  -v, --verbose                         操作進行時顯示詳細訊息\n"
 "\n"
 "  -s, --server=SERVER                   要連接的伺服器名稱\n"
-"  -d, --device=DEVICE                   要連接的 sink/source 名稱\n"
-"  -n, --client-name=NAME                如何稱呼伺服器上的這個客戶端\n"
-"      --stream-name=NAME                如何稱呼伺服器上的這個串流\n"
+"  -d, --device=DEVICE                   要連接的 sink/source 名稱。可使用 "
+"@DEFAULT_SINK@、@DEFAULT_SOURCE@ 及 @DEFAULT_MONITOR@ 這幾個特殊名稱來指定預"
+"設 sink、預設來源 (source) 或預設監聽器 (monitor)。\n"
+"  -n, --client-name=NAME                伺服器上如何稱呼這個客戶端\n"
+"      --stream-name=NAME                伺服器上如何稱呼這個串流\n"
 "      --volume=VOLUME                   指定初始 (線性) 音量，範圍為 "
 "0...65536\n"
 "      --rate=SAMPLERATE                 以 Hz  為單位的取樣率 (預設值為 "
 "44100)\n"
-"      --format=SAMPLEFORMAT             取樣類型，右列之一 s16le、s16be、u8、"
-"float32le、\n"
-"                                        float32be、ulaw、alaw、s32le、s32be、"
-"s24le、s24be、\n"
-"                                        s24-32le、s24-32be (預設值為 s16ne)\n"
+"      --format=SAMPLEFORMAT             取樣類型，可用值請參見\n"
+"                                        https://www.freedesktop.org/wiki/"
+"Software/PulseAudio/Documentation/User/SupportedAudioFormats/\n"
+"                                        (預設值為 s16ne)\n"
 "      --channels=CHANNELS               聲道數量，1 為單聲道，2 為立體聲\n"
 "                                        (預設值為 2)\n"
 "      --channel-map=CHANNELMAP          要改用的聲道映射表（取代預設值）\n"
@@ -2187,7 +2177,7 @@ msgstr "FRAMES"
 
 #: src/utils/pacmd.c:80 src/utils/pactl.c:2659
 msgid "RECIPIENT MESSAGE [MESSAGE_PARAMETERS]"
-msgstr ""
+msgstr "接收者 訊息 [訊息參數]"
 
 #: src/utils/pacmd.c:82
 #, c-format
@@ -2198,7 +2188,7 @@ msgid ""
 "When no command is given pacmd starts in the interactive mode.\n"
 msgstr ""
 "\n"
-"  -h, --help                            顯示此幫助\n"
+"  -h, --help                            顯示此說明\n"
 "      --version                         顯示版本\n"
 "當沒有給予指令時，pacmd 會以互動模式啟動。\n"
 
@@ -2279,9 +2269,9 @@ msgid "Failed to get server information: %s"
 msgstr "未能取得伺服器資訊：%s"
 
 #: src/utils/pactl.c:224 src/utils/pactl.c:236
-#, fuzzy, c-format
+#, c-format
 msgid "%s\n"
-msgstr "%s %s\n"
+msgstr "%s\n"
 
 #: src/utils/pactl.c:281
 #, c-format
@@ -2325,72 +2315,67 @@ msgstr ""
 
 #: src/utils/pactl.c:320
 msgid "availability unknown"
-msgstr ""
+msgstr "可用性未知"
 
 #: src/utils/pactl.c:321
 msgid "available"
-msgstr ""
+msgstr "可用"
 
 #: src/utils/pactl.c:322
 msgid "not available"
-msgstr ""
+msgstr "無法使用"
 
 #: src/utils/pactl.c:331 src/utils/pactl.c:355
-#, fuzzy
 msgid "Unknown"
 msgstr "未知"
 
 #: src/utils/pactl.c:332
 msgid "Aux"
-msgstr ""
+msgstr "Aux"
 
 #: src/utils/pactl.c:335
-#, fuzzy
 msgid "Line"
-msgstr "線路輸入"
+msgstr "線路"
 
 #: src/utils/pactl.c:336
 msgid "Mic"
-msgstr ""
+msgstr "麥克風"
 
 #: src/utils/pactl.c:338
-#, fuzzy
 msgid "Handset"
-msgstr "耳麥"
+msgstr "電話聽筒"
 
 #: src/utils/pactl.c:339
 msgid "Earpiece"
-msgstr ""
+msgstr "耳機"
 
 #: src/utils/pactl.c:340
 msgid "SPDIF"
-msgstr ""
+msgstr "SPDIF"
 
 #: src/utils/pactl.c:341
 msgid "HDMI"
-msgstr ""
+msgstr "HDMI"
 
 #: src/utils/pactl.c:342
 msgid "TV"
-msgstr ""
+msgstr "電視"
 
 #: src/utils/pactl.c:345
 msgid "USB"
-msgstr ""
+msgstr "USB"
 
 #: src/utils/pactl.c:346
-#, fuzzy
 msgid "Bluetooth"
-msgstr "藍牙輸入"
+msgstr "藍牙"
 
 #: src/utils/pactl.c:352
 msgid "Network"
-msgstr ""
+msgstr "網路"
 
 #: src/utils/pactl.c:353
-#, fuzzy
 msgid "Analog"
-msgstr "類比單聲道"
+msgstr "類比"
 
 #: src/utils/pactl.c:567 src/utils/pactl.c:1834 src/utils/pactl.c:1852
 #: src/utils/pactl.c:1875 src/utils/pactl.c:1992
@@ -2443,13 +2428,13 @@ msgid "\tPorts:\n"
 msgstr "\t連接埠：\n"
 
 #: src/utils/pactl.c:708 src/utils/pactl.c:892
-#, fuzzy, c-format
+#, c-format
 msgid "\t\t%s: %s (type: %s, priority: %u%s%s, %s)\n"
-msgstr "\t\t%s: %s (sink：%u，來源：%u，優先序：%u，可用：%s)\n"
+msgstr "\t\t%s: %s (類型：%s，優先序%u%s%s，%s)\n"
 
 #: src/utils/pactl.c:710 src/utils/pactl.c:894 src/utils/pactl.c:1256
 msgid ", availability group: "
-msgstr ""
+msgstr "，可用性群組： "
 
 #: src/utils/pactl.c:715 src/utils/pactl.c:899
 #, c-format
@@ -2597,7 +2582,7 @@ msgstr "\t啟用的個人設定檔：%s\n"
 #, c-format
 msgid ""
 "\t\t%s: %s (type: %s, priority: %u, latency offset: %<PRId64> usec%s%s, %s)\n"
-msgstr ""
+msgstr "\t\t%s: %s (類型：%s，優先序：%u，延遲偏移：%<PRId64> usec%s%s，%s)\n"
 
 #: src/utils/pactl.c:1261
 #, c-format
@@ -2741,14 +2726,14 @@ msgid "Failure: %s"
 msgstr "失敗：%s"
 
 #: src/utils/pactl.c:1667
-#, fuzzy, c-format
+#, c-format
 msgid "Send message failed: %s"
-msgstr "read() 失敗：%s"
+msgstr "傳送訊息失敗：%s"
 
 #: src/utils/pactl.c:1695
 #, c-format
 msgid "list-handlers message failed: %s"
-msgstr ""
+msgstr "list-handlers 訊息失敗：%s"
 
 #: src/utils/pactl.c:1711 src/utils/pactl.c:1760
 msgid "list-handlers message response could not be parsed correctly"
@@ -2761,7 +2746,7 @@ msgstr "list-handlers 訊息回應內容不是 JSON 陣列"
 #: src/utils/pactl.c:1729
 #, c-format
 msgid "list-handlers message response array element %d is not a JSON object"
-msgstr ""
+msgstr "list-handlers 訊息回應陣列元素 %d 不是 JSON 物件"
 
 #: src/utils/pactl.c:1800
 #, c-format
@@ -2821,28 +2806,28 @@ msgstr "source-output"
 
 #: src/utils/pactl.c:2173
 msgid "module"
-msgstr "module"
+msgstr "模組"
 
 #: src/utils/pactl.c:2176
 msgid "client"
-msgstr "client"
+msgstr "客戶端"
 
 #: src/utils/pactl.c:2179
 msgid "sample-cache"
-msgstr "sample-cache"
+msgstr "樣本快取"
 
 #: src/utils/pactl.c:2182
 msgid "server"
-msgstr "server"
+msgstr "伺服器"
 
 #: src/utils/pactl.c:2185
 msgid "card"
-msgstr "card"
+msgstr "音效卡"
 
 #: src/utils/pactl.c:2206
 #, c-format
 msgid "Event '%s' on %s #%u\n"
-msgstr "事件「%s」 於  %s #%u\n"
+msgstr "事件「%s」 於 %s #%u\n"
 
 #: src/utils/pactl.c:2514
 msgid "Got SIGINT, exiting."
@@ -2898,7 +2883,7 @@ msgstr "#N VOLUME [VOLUME ...]"
 
 #: src/utils/pactl.c:2655
 msgid "NAME|#N 1|0|toggle"
-msgstr "NAME|#N 1|0|toggle"
+msgstr "名稱|#N 1|0|toggle"
 
 #: src/utils/pactl.c:2656
 msgid "#N 1|0|toggle"
@@ -2920,7 +2905,7 @@ msgstr ""
 "可用來指定預設 sink、source 和 monitor。\n"
 
 #: src/utils/pactl.c:2664
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "  -h, --help                            Show this help\n"
@@ -2934,11 +2919,13 @@ msgid ""
 "server\n"
 msgstr ""
 "\n"
-"  -h, --help                            顯示此幫助\n"
+"  -h, --help                            顯示此說明\n"
 "      --version                         顯示版本\n"
 "\n"
+"  -f, --format=FORMAT                   輸出的格式。可以是 \"normal\"（普通）"
+"或 \"json\"\n"
 "  -s, --server=SERVER                   要連接的伺服器名稱\n"
-"  -n, --client-name=NAME                如何稱呼伺服器上的這個客戶端\n"
+"  -n, --client-name=NAME                伺服器上如何稱呼這個客戶端\n"
 
 #: src/utils/pactl.c:2707
 #, c-format
@@ -2952,9 +2939,9 @@ msgstr ""
 "以 libpulse %s 連結\n"
 
 #: src/utils/pactl.c:2751
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid format value '%s'"
-msgstr "無效的串流名稱「%s」"
+msgstr "無效的格式值「%s」"
 
 #: src/utils/pactl.c:2778
 #, c-format
@@ -3026,29 +3013,27 @@ msgstr "您必須指定 sink 名稱"
 
 #: src/utils/pactl.c:2974
 msgid "You have to specify a source name/index and a port name"
-msgstr "您必須指定一個來源名稱/索引，以及連接埠名稱"
+msgstr "您必須指定來源名稱/索引與連接埠名稱"
 
 #: src/utils/pactl.c:2985
 msgid "You have to specify a source name"
 msgstr "您必須指定 source 名稱"
 
 #: src/utils/pactl.c:2998 src/utils/pactl.c:3076
-#, fuzzy
 msgid "You have to specify a sink name/index"
-msgstr "您必須指定 sink 名稱"
+msgstr "您必須指定 sink 名稱/索引"
 
 #: src/utils/pactl.c:3008
 msgid "You have to specify a sink name/index and a volume"
 msgstr "您必須指定一個 sink 名稱/索引，以及一項音量"
 
 #: src/utils/pactl.c:3021 src/utils/pactl.c:3101
-#, fuzzy
 msgid "You have to specify a source name/index"
-msgstr "您必須指定 source 名稱"
+msgstr "您必須指定來源名稱/索引"
 
 #: src/utils/pactl.c:3031
 msgid "You have to specify a source name/index and a volume"
-msgstr "您必須指定一個來源名稱/索引，以及一項音量"
+msgstr "您必須指定來源名稱/索引與音量值"
 
 #: src/utils/pactl.c:3044
 msgid "You have to specify a sink input index and a volume"
@@ -3101,15 +3086,14 @@ msgid "Invalid source output index specification"
 msgstr "無效的來源輸出索引規格"
 
 #: src/utils/pactl.c:3162
-#, fuzzy
 msgid "You have to specify at least an object path and a message name"
-msgstr "您必須指定一個 sink 名稱/索引，以及連接埠名稱"
+msgstr "您必須至少指定一個物件路徑與訊息名稱"
 
 #: src/utils/pactl.c:3172
 msgid ""
 "Excess arguments given, they will be ignored. Note that all message "
 "parameters must be given as a single string."
-msgstr ""
+msgstr "提供了多餘的引數，它們將被忽略。請注意所有訊息參數都需要以單一字串提供。"
 
 #: src/utils/pactl.c:3182
 msgid ""
@@ -3185,6 +3169,7 @@ msgstr ""
 "%s [選項] -- 程式 [參數 ...]\n"
 "\n"
 "<程式> 執行時，暫時暫停 PulseAudio。\n"
+"\n"
 "  -h, --help                            顯示此說明\n"
 "      --version                         顯示版本\n"
 "  -s, --server=SERVER                   要連線的伺服器名稱\n"
