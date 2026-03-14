@@ -11,7 +11,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2025-05-10 22:55+0000\n"
+"PO-Revision-Date: 2026-03-14 01:27+0000\n"
 "Last-Translator: Rafael Fontenelle <rafaelff@gnome.org>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.fedoraproject.org/"
 "projects/pulseaudio/pulseaudio/pt_BR/>\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 5.11.3\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -136,10 +136,6 @@ msgstr ""
 "      --exit-idle-time=SEGUNDOS         Termina um daemon quando ocioso e "
 "este\n"
 "                                        tempo foi decorrido\n"
-"      --module-idle-time=SEGUNDOS       Descarrega os módulos "
-"autocarregáveis\n"
-"                                        quando ociosos e este tempo foi\n"
-"                                        decorrido\n"
 "      --scache-idle-time=SEGUNDOS       Descarrega amostras quando ociosas "
 "e\n"
 "                                        este tempo foi decorrido\n"
@@ -686,7 +682,7 @@ msgstr "Sem reforço de graves"
 #: src/modules/alsa/alsa-mixer.c:2728
 #: src/modules/bluetooth/module-bluez5-device.c:1964 src/utils/pactl.c:333
 msgid "Speaker"
-msgstr "Auto-falante"
+msgstr "Alto-falante"
 
 #: src/modules/alsa/alsa-mixer.c:2729 src/modules/alsa/alsa-mixer.c:2807
 #: src/utils/pactl.c:334
