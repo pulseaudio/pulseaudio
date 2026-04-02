@@ -9,14 +9,17 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2026-04-03 13:58+0000\n"
+"Last-Translator: ButterflyOfFire "
+"<butterflyoffire@users.noreply.translate.fedoraproject.org>\n"
+"Language-Team: Kabyle <https://translate.fedoraproject.org/projects/"
+"pulseaudio/pulseaudio/kab/>\n"
 "Language: kab\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 5.16.2\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -234,7 +237,7 @@ msgstr ""
 #: src/daemon/dumpmodules.c:57
 #, c-format
 msgid "Name: %s\n"
-msgstr ""
+msgstr "Isem: %s\n"
 
 #: src/daemon/dumpmodules.c:60
 #, c-format
@@ -244,22 +247,22 @@ msgstr ""
 #: src/daemon/dumpmodules.c:63
 #, c-format
 msgid "Version: %s\n"
-msgstr ""
+msgstr "Lqem: %s\n"
 
 #: src/daemon/dumpmodules.c:65
 #, c-format
 msgid "Description: %s\n"
-msgstr ""
+msgstr "Aglam: %s\n"
 
 #: src/daemon/dumpmodules.c:67
 #, c-format
 msgid "Author: %s\n"
-msgstr ""
+msgstr "Ameskar: %s\n"
 
 #: src/daemon/dumpmodules.c:69
 #, c-format
 msgid "Usage: %s\n"
-msgstr ""
+msgstr "Aseqdec: %s\n"
 
 #: src/daemon/dumpmodules.c:70
 #, c-format
@@ -274,7 +277,7 @@ msgstr ""
 #: src/daemon/dumpmodules.c:76
 #, c-format
 msgid "Path: %s\n"
-msgstr ""
+msgstr "Abrid: %s\n"
 
 #: src/daemon/ltdl-bind-now.c:75
 #, c-format
@@ -454,7 +457,7 @@ msgstr ""
 
 #: src/daemon/pulseaudio.desktop.in:4
 msgid "PulseAudio Sound System"
-msgstr ""
+msgstr "Anagraw n yimesli PulseAudio"
 
 #: src/daemon/pulseaudio.desktop.in:5
 msgid "Start the PulseAudio Sound System"
@@ -483,7 +486,7 @@ msgstr ""
 #: src/modules/alsa/alsa-mixer.c:2713 src/modules/alsa/alsa-mixer.c:2797
 #: src/modules/bluetooth/module-bluez5-device.c:1956
 msgid "Microphone"
-msgstr ""
+msgstr "Asawaḍ"
 
 #: src/modules/alsa/alsa-mixer.c:2714 src/modules/alsa/alsa-mixer.c:2798
 msgid "Front Microphone"
@@ -504,12 +507,12 @@ msgstr ""
 #: src/modules/alsa/alsa-mixer.c:2718 src/modules/alsa/alsa-mixer.c:2804
 #: src/utils/pactl.c:343
 msgid "Radio"
-msgstr ""
+msgstr "Ṛṛadyu"
 
 #: src/modules/alsa/alsa-mixer.c:2719 src/modules/alsa/alsa-mixer.c:2805
 #: src/utils/pactl.c:344
 msgid "Video"
-msgstr ""
+msgstr "Tavidyut"
 
 #: src/modules/alsa/alsa-mixer.c:2720
 msgid "Automatic Gain Control"
@@ -739,11 +742,11 @@ msgstr ""
 
 #: src/modules/alsa/alsa-mixer.c:4597
 msgid "Chat"
-msgstr ""
+msgstr "Adiwenni"
 
 #: src/modules/alsa/alsa-mixer.c:4598
 msgid "Game"
-msgstr ""
+msgstr "Urar"
 
 #: src/modules/alsa/alsa-mixer.c:4732
 msgid "Analog Mono Duplex"
@@ -772,7 +775,7 @@ msgstr ""
 #: src/modules/alsa/alsa-mixer.c:4740 src/modules/alsa/module-alsa-card.c:197
 #: src/modules/bluetooth/module-bluez5-device.c:2263
 msgid "Off"
-msgstr ""
+msgstr "Yensa"
 
 #: src/modules/alsa/alsa-mixer.c:4840
 #, c-format
@@ -878,15 +881,15 @@ msgstr ""
 
 #: src/modules/bluetooth/module-bluez5-device.c:1983 src/utils/pactl.c:349
 msgid "Car"
-msgstr ""
+msgstr "Takeṛṛust"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1989 src/utils/pactl.c:350
 msgid "HiFi"
-msgstr ""
+msgstr "HiFi"
 
 #: src/modules/bluetooth/module-bluez5-device.c:1995 src/utils/pactl.c:351
 msgid "Phone"
-msgstr ""
+msgstr "Tiliɣri"
 
 #: src/modules/bluetooth/module-bluez5-device.c:2042
 msgid "High Fidelity Playback (A2DP Sink)"
@@ -1253,23 +1256,23 @@ msgstr ""
 
 #: src/pulse/channelmap.c:779
 msgid "Surround 4.0"
-msgstr ""
+msgstr "Surround 4.0"
 
 #: src/pulse/channelmap.c:785
 msgid "Surround 4.1"
-msgstr ""
+msgstr "Surround 4.1"
 
 #: src/pulse/channelmap.c:791
 msgid "Surround 5.0"
-msgstr ""
+msgstr "Surround 5.0"
 
 #: src/pulse/channelmap.c:797
 msgid "Surround 5.1"
-msgstr ""
+msgstr "Surround 5.1"
 
 #: src/pulse/channelmap.c:804
 msgid "Surround 7.1"
-msgstr ""
+msgstr "Surround 7.1"
 
 #: src/pulse/client-conf-x11.c:61 src/utils/pax11publish.c:97
 msgid "xcb_connect() failed"
@@ -1324,11 +1327,11 @@ msgstr ""
 
 #: src/pulsecore/core-util.h:97
 msgid "yes"
-msgstr ""
+msgstr "ih"
 
 #: src/pulsecore/core-util.h:97
 msgid "no"
-msgstr ""
+msgstr "uhu"
 
 #: src/pulsecore/lock-autospawn.c:141 src/pulsecore/lock-autospawn.c:227
 msgid "Cannot access autospawn lock."
@@ -1354,11 +1357,11 @@ msgstr ""
 
 #: src/pulsecore/sink.c:3614
 msgid "Modem"
-msgstr ""
+msgstr "Anajkas"
 
 #: src/pulse/error.c:38
 msgid "OK"
-msgstr ""
+msgstr "IH"
 
 #: src/pulse/error.c:39
 msgid "Access denied"
@@ -1386,7 +1389,7 @@ msgstr ""
 
 #: src/pulse/error.c:45
 msgid "Protocol error"
-msgstr ""
+msgstr "Tuccḍa n uneggaf"
 
 #: src/pulse/error.c:46
 msgid "Timeout"
@@ -1398,7 +1401,7 @@ msgstr ""
 
 #: src/pulse/error.c:48
 msgid "Internal error"
-msgstr ""
+msgstr "Tuccḍa n daxel"
 
 #: src/pulse/error.c:49
 msgid "Connection terminated"
@@ -1410,7 +1413,7 @@ msgstr ""
 
 #: src/pulse/error.c:51
 msgid "Invalid server"
-msgstr ""
+msgstr "Aqeddac d arameɣtu"
 
 #: src/pulse/error.c:52
 msgid "Module initialization failed"
@@ -1796,12 +1799,12 @@ msgstr ""
 #: src/utils/pacat.c:1021
 #, c-format
 msgid "open(): %s"
-msgstr ""
+msgstr "open(): %s"
 
 #: src/utils/pacat.c:1026
 #, c-format
 msgid "dup2(): %s"
-msgstr ""
+msgstr "dup2(): %s"
 
 #: src/utils/pacat.c:1033
 msgid "Too many arguments."
@@ -1886,11 +1889,11 @@ msgstr ""
 #: src/utils/pacmd.c:52 src/utils/pacmd.c:60 src/utils/pactl.c:2644 src/utils/pactl.c:2651
 #: src/utils/pactl.c:2652
 msgid "NAME|#N"
-msgstr ""
+msgstr "NAME|#N"
 
 #: src/utils/pacmd.c:53 src/utils/pacmd.c:63 src/utils/pactl.c:2642 src/utils/pactl.c:2649
 msgid "NAME"
-msgstr ""
+msgstr "NAME"
 
 #: src/utils/pacmd.c:54
 msgid "NAME|#N VOLUME"
@@ -1918,7 +1921,7 @@ msgstr ""
 
 #: src/utils/pacmd.c:61
 msgid "#N"
-msgstr ""
+msgstr "#N"
 
 #: src/utils/pacmd.c:62
 msgid "NAME SINK|#N"
@@ -1930,7 +1933,7 @@ msgstr ""
 
 #: src/utils/pacmd.c:66
 msgid "PATHNAME"
-msgstr ""
+msgstr "PATHNAME"
 
 #: src/utils/pacmd.c:67
 msgid "FILENAME SINK|#N"
@@ -1942,7 +1945,7 @@ msgstr ""
 
 #: src/utils/pacmd.c:71 src/utils/pacmd.c:77 src/utils/pacmd.c:78
 msgid "1|0"
-msgstr ""
+msgstr "1|0"
 
 #: src/utils/pacmd.c:72 src/utils/pactl.c:2647
 msgid "CARD PROFILE"
@@ -1958,11 +1961,11 @@ msgstr ""
 
 #: src/utils/pacmd.c:75
 msgid "TARGET"
-msgstr ""
+msgstr "TARGET"
 
 #: src/utils/pacmd.c:76
 msgid "NUMERIC-LEVEL"
-msgstr ""
+msgstr "NUMERIC-LEVEL"
 
 #: src/utils/pacmd.c:79
 msgid "FRAMES"
@@ -2099,11 +2102,11 @@ msgstr ""
 
 #: src/utils/pactl.c:331 src/utils/pactl.c:355
 msgid "Unknown"
-msgstr ""
+msgstr "D arussin"
 
 #: src/utils/pactl.c:332
 msgid "Aux"
-msgstr ""
+msgstr "Aux"
 
 #: src/utils/pactl.c:335
 msgid "Line"
@@ -2123,11 +2126,11 @@ msgstr ""
 
 #: src/utils/pactl.c:340
 msgid "SPDIF"
-msgstr ""
+msgstr "SPDIF"
 
 #: src/utils/pactl.c:341
 msgid "HDMI"
-msgstr ""
+msgstr "HDMI"
 
 #: src/utils/pactl.c:342
 msgid "TV"
@@ -2857,12 +2860,12 @@ msgstr ""
 #: src/utils/pax11publish.c:110
 #, c-format
 msgid "Server: %s\n"
-msgstr ""
+msgstr "Aqeddac: %s\n"
 
 #: src/utils/pax11publish.c:112
 #, c-format
 msgid "Source: %s\n"
-msgstr ""
+msgstr "Aɣbalu: %s\n"
 
 #: src/utils/pax11publish.c:114
 #, c-format
