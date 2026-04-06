@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2026-04-03 13:58+0000\n"
+"PO-Revision-Date: 2026-04-07 18:58+0000\n"
 "Last-Translator: ButterflyOfFire "
 "<butterflyoffire@users.noreply.translate.fedoraproject.org>\n"
 "Language-Team: Kabyle <https://translate.fedoraproject.org/projects/"
@@ -2061,7 +2061,7 @@ msgstr ""
 #: src/utils/pactl.c:224 src/utils/pactl.c:236
 #, c-format
 msgid "%s\n"
-msgstr ""
+msgstr "%s\n"
 
 #: src/utils/pactl.c:281
 #, c-format
@@ -2094,7 +2094,7 @@ msgstr ""
 
 #: src/utils/pactl.c:321
 msgid "available"
-msgstr ""
+msgstr "yella"
 
 #: src/utils/pactl.c:322
 msgid "not available"
@@ -2138,15 +2138,15 @@ msgstr ""
 
 #: src/utils/pactl.c:345
 msgid "USB"
-msgstr ""
+msgstr "USB"
 
 #: src/utils/pactl.c:346
 msgid "Bluetooth"
-msgstr ""
+msgstr "Bluetooth"
 
 #: src/utils/pactl.c:352
 msgid "Network"
-msgstr ""
+msgstr "Aẓeṭṭa"
 
 #: src/utils/pactl.c:353
 msgid "Analog"
@@ -2183,7 +2183,7 @@ msgstr ""
 #: src/utils/pactl.c:706 src/utils/pactl.c:890 src/utils/pactl.c:1251
 #, c-format
 msgid "\tPorts:\n"
-msgstr ""
+msgstr "\tTiwwura:\n"
 
 #: src/utils/pactl.c:708 src/utils/pactl.c:892
 #, c-format
@@ -2450,7 +2450,7 @@ msgstr ""
 
 #: src/utils/pactl.c:2144
 msgid "new"
-msgstr ""
+msgstr "amaynut"
 
 #: src/utils/pactl.c:2147
 msgid "change"
@@ -2458,11 +2458,11 @@ msgstr ""
 
 #: src/utils/pactl.c:2150
 msgid "remove"
-msgstr ""
+msgstr "kkes"
 
 #: src/utils/pactl.c:2153 src/utils/pactl.c:2188
 msgid "unknown"
-msgstr ""
+msgstr "arussin"
 
 #: src/utils/pactl.c:2161
 msgid "sink"
@@ -2470,7 +2470,7 @@ msgstr ""
 
 #: src/utils/pactl.c:2164
 msgid "source"
-msgstr ""
+msgstr "aɣbalu"
 
 #: src/utils/pactl.c:2167
 msgid "sink-input"
@@ -2482,11 +2482,11 @@ msgstr ""
 
 #: src/utils/pactl.c:2173
 msgid "module"
-msgstr ""
+msgstr "azegrir"
 
 #: src/utils/pactl.c:2176
 msgid "client"
-msgstr ""
+msgstr "amsaɣ"
 
 #: src/utils/pactl.c:2179
 msgid "sample-cache"
@@ -2494,11 +2494,11 @@ msgstr ""
 
 #: src/utils/pactl.c:2182
 msgid "server"
-msgstr ""
+msgstr "aqeddac"
 
 #: src/utils/pactl.c:2185
 msgid "card"
-msgstr ""
+msgstr "takarḍa"
 
 #: src/utils/pactl.c:2206
 #, c-format
