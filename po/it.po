@@ -12,8 +12,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2025-06-08 14:42+0000\n"
-"Last-Translator: Salvatore Cocuzza <info@salvatorecocuzza.it>\n"
+"PO-Revision-Date: 2026-04-08 14:43+0000\n"
+"Last-Translator: Ali Ciloqlu <ali.ciloqlu@murena.io>\n"
 "Language-Team: Italian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/it/>\n"
 "Language: it\n"
@@ -21,7 +21,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.11.4\n"
+"X-Generator: Weblate 5.16.2\n"
 
 # mamma mia che impressione
 #: src/daemon/cmdline.c:113
@@ -530,7 +530,7 @@ msgstr ""
 
 #: src/daemon/main.c:922
 msgid "Failed to acquire stdio."
-msgstr "Acquisizione di STDIO non riuscita."
+msgstr "Acquisizione di studio non riuscita."
 
 #: src/daemon/main.c:928 src/daemon/main.c:999
 #, c-format
@@ -1509,7 +1509,7 @@ msgstr "xcb_connect() non riuscita"
 
 #: src/pulse/client-conf-x11.c:66 src/utils/pax11publish.c:102
 msgid "xcb_connection_has_error() returned true"
-msgstr "xcb_connection_has_error() ha restituito VERO"
+msgstr "xcb_connection_has_error() ha restituito vero"
 
 #: src/pulse/client-conf-x11.c:102
 msgid "Failed to parse cookie data"
@@ -2898,10 +2898,12 @@ msgstr "messaggio list-handlers non riuscito: %s"
 #: src/utils/pactl.c:1711 src/utils/pactl.c:1760
 msgid "list-handlers message response could not be parsed correctly"
 msgstr ""
+"-hNon è stato possibile analizzare correttamente la risposta al messaggio "
+"dei gestori di elenco"
 
 #: src/utils/pactl.c:1718
 msgid "list-handlers message response is not a JSON array"
-msgstr ""
+msgstr "-hLa risposta al messaggio dei gestori di elenco non è un array JSON"
 
 #: src/utils/pactl.c:1729
 #, c-format
@@ -3405,8 +3407,7 @@ msgid ""
 "variables and cookie file.\n"
 " -r    Remove PulseAudio data from X11 display\n"
 msgstr ""
-"%s [-D DISPLAY] [-S SERVER] [-O SINK] [-I SORGENTE] [-c FILE]  [-d|-e|-i|-"
-"r]\n"
+"%s [-D disply] [-S server] [-O sink] [-I sorgente] [-c file]  [-d|-e|-i|-r]\n"
 "\n"
 " -d    Mostra i dati PulseAudio attuali collegati al display X11 (predef)\n"
 " -e    Esporta i dati PulseAudio locali sul display X11\n"
