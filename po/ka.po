@@ -9,8 +9,9 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://gitlab.freedesktop.org/pulseaudio/pulseaudio/"
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
-"PO-Revision-Date: 2026-02-25 05:58+0000\n"
-"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
+"PO-Revision-Date: 2026-07-17 05:17+0000\n"
+"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
+"memory@weblate.org>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ka/>\n"
 "Language: ka\n"
@@ -18,7 +19,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.16\n"
+"X-Generator: Weblate 2026.7.1\n"
 
 #: src/daemon/cmdline.c:113
 #, c-format
@@ -1682,7 +1683,7 @@ msgstr "pa_stream_connect_playback() ჩავარდა: %s"
 #: src/utils/pacat.c:497
 #, c-format
 msgid "Failed to set monitor stream: %s"
-msgstr ""
+msgstr "მონიტორინგის ნაკადის შექმნის შეცდომა"
 
 #: src/utils/pacat.c:501
 #, c-format
