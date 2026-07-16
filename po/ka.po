@@ -10,8 +10,7 @@ msgstr ""
 "issues/new\n"
 "POT-Creation-Date: 2022-06-18 09:49+0300\n"
 "PO-Revision-Date: 2026-07-17 05:17+0000\n"
-"Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
-"memory@weblate.org>\n"
+"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <https://translate.fedoraproject.org/projects/"
 "pulseaudio/pulseaudio/ka/>\n"
 "Language: ka\n"
@@ -1683,7 +1682,7 @@ msgstr "pa_stream_connect_playback() ჩავარდა: %s"
 #: src/utils/pacat.c:497
 #, c-format
 msgid "Failed to set monitor stream: %s"
-msgstr "მონიტორინგის ნაკადის შექმნის შეცდომა"
+msgstr "მონიტორინგის ნაკადის შექმნის შეცდომა: %s"
 
 #: src/utils/pacat.c:501
 #, c-format
@@ -2803,7 +2802,7 @@ msgstr ""
 
 #: src/utils/pactl.c:2961
 msgid "You have to specify a sink name"
-msgstr ""
+msgstr "საჭიროა გამოტანის სახელის მითითება"
 
 #: src/utils/pactl.c:2974
 msgid "You have to specify a source name/index and a port name"
@@ -2811,7 +2810,7 @@ msgstr ""
 
 #: src/utils/pactl.c:2985
 msgid "You have to specify a source name"
-msgstr ""
+msgstr "საჭიროა შეყვანის სახელის მითითება"
 
 #: src/utils/pactl.c:2998 src/utils/pactl.c:3076
 msgid "You have to specify a sink name/index"
@@ -2823,7 +2822,7 @@ msgstr ""
 
 #: src/utils/pactl.c:3021 src/utils/pactl.c:3101
 msgid "You have to specify a source name/index"
-msgstr ""
+msgstr "წყაროს სახელის/ინდექსის მითითება აუცილებელია"
 
 #: src/utils/pactl.c:3031
 msgid "You have to specify a source name/index and a volume"
