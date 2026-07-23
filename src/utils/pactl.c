@@ -2720,7 +2720,7 @@ static void help(const char *argv0) {
     printf(_("\n"
              "  -h, --help                            Show this help\n"
              "      --version                         Show version\n\n"
-             "  -f, --format=FORMAT                   The format of the output. Either \"normal\" or \"json\"\n"
+             "  -f, --format=FORMAT                   The format of the output. Either \"text\" or \"json\"\n"
              "  -s, --server=SERVER                   The name of the server to connect to\n"
              "  -n, --client-name=NAME                How to call this client on the server\n"));
 }
